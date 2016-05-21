@@ -1,6 +1,6 @@
 #include "VulkanLearn.h"
 #include "Macros.h"
-#include <vector>
+#include <iostream>
 
 void VulkanInstance::InitVulkanInstance()
 {
@@ -9,6 +9,7 @@ void VulkanInstance::InitVulkanInstance()
 	appInfo.pApplicationName	= "VulkanLearn";
 	appInfo.apiVersion			= (((1) << 22) | ((0) << 12) | (0));
 
+	//Need surface extension to create surface from device
 	std::vector<const char*> extensions = { EXTENSION_VULKAN_SURFACE };
 #if defined(_WIN32)
 	extensions.push_back( EXTENSION_VULKAN_SURFACE_WIN32 );
@@ -19,5 +20,230 @@ void VulkanInstance::InitVulkanInstance()
 	instCreateInfo.enabledExtensionCount = (int32_t)extensions.size();
 	instCreateInfo.ppEnabledExtensionNames = extensions.data();
 
-	CHECK_ERROR(vkCreateInstance(&instCreateInfo, nullptr, &m_vulkanInst));
+	CHECK_VK_ERROR(vkCreateInstance(&instCreateInfo, nullptr, &m_vulkanInst));
+}
+
+void VulkanInstance::InitPhysicalDevice()
+{
+	//Get an available physical device
+	uint32_t gpuCount = 0;
+	vkEnumeratePhysicalDevices(m_vulkanInst, &gpuCount, nullptr);
+	ASSERTION(gpuCount > 0);
+	std::vector<VkPhysicalDevice> physicalDevices;
+	physicalDevices.resize(gpuCount);
+	vkEnumeratePhysicalDevices(m_vulkanInst, &gpuCount, physicalDevices.data());
+	m_physicalDevice = physicalDevices[0];
+
+	//Get queue properties from physical device
+	uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(m_physicalDevice, &queueFamilyCount, nullptr);
+	ASSERTION(queueFamilyCount > 0);
+	m_queueProperties.resize(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(m_physicalDevice, &queueFamilyCount, m_queueProperties.data());
+
+	//Get physical device properties
+	vkGetPhysicalDeviceProperties(m_physicalDevice, &m_physicalDeviceProperties);
+	vkGetPhysicalDeviceFeatures(m_physicalDevice, &m_physicalDeviceFeatures);
+	vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &m_physicalDeviceMemoryProperties);
+	
+	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceCapabilitiesKHR);
+	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceFormatsKHR);
+	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfacePresentModesKHR);
+	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceSupportKHR);
+}
+
+void VulkanInstance::InitVulkanDevice()
+{
+	uint32_t queueIndex = 0;
+	for (; queueIndex < m_queueProperties.size(); queueIndex++)
+	{
+		if (m_queueProperties[queueIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			break;
+	}
+	ASSERTION(queueIndex < m_queueProperties.size());
+	m_graphicQueueIndex = queueIndex;
+
+	std::array<float, 1> queueProperties = { 0.0f };
+	VkDeviceQueueCreateInfo deviceQueueCreateInfo = {};
+	deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	deviceQueueCreateInfo.queueFamilyIndex = m_graphicQueueIndex;
+	deviceQueueCreateInfo.queueCount = queueProperties.size();
+	deviceQueueCreateInfo.pQueuePriorities = queueProperties.data();
+
+	VkDeviceCreateInfo deviceCreateInfo = {};
+	deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	deviceCreateInfo.queueCreateInfoCount = 1;
+	deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
+	std::vector<const char*> extensions = { EXTENSION_VULKAN_SWAPCHAIN };
+	deviceCreateInfo.enabledExtensionCount = extensions.size();
+	deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
+
+	CHECK_VK_ERROR(vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &m_device));
+
+	GET_DEVICE_PROC_ADDR(m_device, CreateSwapchainKHR);
+	GET_DEVICE_PROC_ADDR(m_device, DestroySwapchainKHR);
+	GET_DEVICE_PROC_ADDR(m_device, GetSwapchainImagesKHR);
+	GET_DEVICE_PROC_ADDR(m_device, AcquireNextImageKHR);
+	GET_DEVICE_PROC_ADDR(m_device, QueuePresentKHR);
+}
+
+void VulkanInstance::InitSurface()
+{
+#if defined (_WIN32)
+	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {};
+	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+	surfaceCreateInfo.hinstance = (HINSTANCE)m_hPlatformInst;
+	surfaceCreateInfo.hwnd = (HWND)m_hWindow;
+	CHECK_VK_ERROR(vkCreateWin32SurfaceKHR(m_vulkanInst, &surfaceCreateInfo, nullptr, &m_surface));
+#endif
+
+	//Get all queues information whether they support presentation or not
+	std::vector<VkBool32> supportPresent(m_queueProperties.size());
+	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
+	{
+		CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice, m_graphicQueueIndex, m_surface, &supportPresent[i]));
+	}
+
+	//Store the first one supports presentation
+	for (uint32_t i = 0; i < supportPresent.size(); i++)
+	{
+		if (supportPresent[i])
+		{
+			m_presentQueueIndex = i;
+			break;
+		}
+	}
+
+	//Get surface's format
+	uint32_t formatCount = 0;
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, nullptr));
+	ASSERTION(formatCount > 0);
+	std::vector<VkSurfaceFormatKHR> formats(formatCount);
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, formats.data()));
+	m_surfaceFormat = formats[0];
+}
+
+void VulkanInstance::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
+{
+	m_hPlatformInst = hinstance;
+
+	bool fullscreen = false;
+
+	// Check command line arguments
+	for (int32_t i = 0; i < __argc; i++)
+	{
+		if (__argv[i] == std::string("-fullscreen"))
+		{
+			fullscreen = true;
+		}
+	}
+
+	WNDCLASSEX wndClass;
+
+	wndClass.cbSize = sizeof(WNDCLASSEX);
+	wndClass.style = CS_HREDRAW | CS_VREDRAW;
+	wndClass.lpfnWndProc = wndproc;
+	wndClass.cbClsExtra = 0;
+	wndClass.cbWndExtra = 0;
+	wndClass.hInstance = hinstance;
+	wndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wndClass.lpszMenuName = NULL;
+	wndClass.lpszClassName = PROJECT_NAME;
+	wndClass.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
+
+	if (!RegisterClassEx(&wndClass))
+	{
+		std::cout << "Could not register window class!\n";
+		fflush(stdout);
+		exit(1);
+	}
+
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	if (fullscreen)
+	{
+		DEVMODE dmScreenSettings;
+		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
+		dmScreenSettings.dmPelsWidth = screenWidth;
+		dmScreenSettings.dmPelsHeight = screenHeight;
+		dmScreenSettings.dmBitsPerPel = 32;
+		dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+
+		if ((WINDOW_WIDTH != screenWidth) && (WINDOW_HEIGHT != screenHeight))
+		{
+			if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
+			{
+				if (MessageBox(NULL, "Fullscreen Mode not supported!\n Switch to window mode?", "Error", MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
+				{
+					fullscreen = FALSE;
+				}
+				else
+				{
+					return;
+				}
+			}
+		}
+
+	}
+
+	DWORD dwExStyle;
+	DWORD dwStyle;
+
+	if (fullscreen)
+	{
+		dwExStyle = WS_EX_APPWINDOW;
+		dwStyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+	}
+	else
+	{
+		dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+		dwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+	}
+
+	RECT windowRect;
+	if (fullscreen)
+	{
+		windowRect.left = (long)0;
+		windowRect.right = (long)screenWidth;
+		windowRect.top = (long)0;
+		windowRect.bottom = (long)screenHeight;
+	}
+	else
+	{
+		windowRect.left = (long)screenWidth / 2 - WINDOW_WIDTH / 2;
+		windowRect.right = (long)WINDOW_WIDTH;
+		windowRect.top = (long)screenHeight / 2 - WINDOW_HEIGHT / 2;
+		windowRect.bottom = (long)WINDOW_HEIGHT;
+	}
+
+	AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle);
+
+	std::string windowTitle = PROJECT_NAME;
+	m_hWindow = CreateWindowEx(0,
+		PROJECT_NAME,
+		windowTitle.c_str(),
+		dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+		windowRect.left,
+		windowRect.top,
+		windowRect.right,
+		windowRect.bottom,
+		NULL,
+		NULL,
+		hinstance,
+		NULL);
+
+	if (!m_hWindow)
+	{
+		printf("Could not create window!\n");
+		fflush(stdout);
+		exit(1);
+	}
+
+	ShowWindow(m_hWindow, SW_SHOW);
+	SetForegroundWindow(m_hWindow);
+	SetFocus(m_hWindow);
 }
