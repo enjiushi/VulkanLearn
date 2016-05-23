@@ -1,6 +1,8 @@
 #include "VulkanLearn.h"
 #include "Macros.h"
 #include <iostream>
+#include <chrono>
+#include <sstream>
 
 void VulkanInstance::InitVulkanInstance()
 {
@@ -87,6 +89,7 @@ void VulkanInstance::InitVulkanDevice()
 	GET_DEVICE_PROC_ADDR(m_device, QueuePresentKHR);
 }
 
+#if defined (_WIN32)
 void VulkanInstance::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 {
 	m_hPlatformInst = hinstance;
@@ -212,6 +215,19 @@ void VulkanInstance::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 	SetFocus(m_hWindow);
 }
 
+void VulkanInstance::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
+	{
+	case WM_CLOSE:
+		DestroyWindow(hWnd);
+		PostQuitMessage(0);
+		break;
+	}
+}
+
+#endif
+
 void VulkanInstance::InitSurface()
 {
 #if defined (_WIN32)
@@ -310,4 +326,96 @@ void VulkanInstance::InitSwapchain()
 	swapchainCreateInfo.imageColorSpace = m_surfaceFormat.colorSpace;
 
 	CHECK_VK_ERROR(vkCreateSwapchainKHR(m_device, &swapchainCreateInfo, nullptr, &m_swapchain));
+}
+
+void VulkanInstance::Update()
+{
+#if defined(_WIN32)
+	static uint32_t frameCount = 0;
+	static float fpsTimer = 0;
+	MSG msg;
+	while (TRUE)
+	{
+		auto tStart = std::chrono::high_resolution_clock::now();
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			if (msg.message == WM_QUIT)
+			{
+				break;
+			}
+			else
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		}
+		//render();
+		frameCount++;
+		auto tEnd = std::chrono::high_resolution_clock::now();
+		auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
+
+		fpsTimer += (float)tDiff;
+		if (fpsTimer > 1000.0f)
+		{
+			std::stringstream ss;
+			ss << "FPS:" << frameCount;
+			SetWindowText(m_hWindow, ss.str().c_str());
+			fpsTimer = 0.0f;
+			frameCount = 0.0f;
+		}
+	}
+#endif
+}
+
+void VulkanInstance::InitCommandPool()
+{
+	VkCommandPoolCreateInfo commandPoolCreateInfo = {};
+	commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	commandPoolCreateInfo.queueFamilyIndex = m_graphicQueueIndex;
+	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	CHECK_VK_ERROR(vkCreateCommandPool(m_device, &commandPoolCreateInfo, nullptr, &m_commandPool));
+}
+
+void VulkanInstance::InitSetupCommandBuffer()
+{
+	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
+	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	commandBufferAllocateInfo.commandPool = m_commandPool;
+	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	commandBufferAllocateInfo.commandBufferCount = 1;
+
+	CHECK_VK_ERROR(vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, &m_setupCommandBuffer));
+}
+
+void VulkanInstance::InitSwapchainImgs()
+{
+	m_swapchainImg.images.resize(m_swapchainImgCount);
+	m_swapchainImg.views.resize(m_swapchainImgCount);
+
+	for (uint32_t i = 0; i < m_swapchainImgCount; i++)
+	{
+		CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_device, m_swapchain, &m_swapchainImgCount, m_swapchainImg.images.data()));
+	}
+
+	for (uint32_t i = 0; i < m_swapchainImgCount; i++)
+	{
+		VkImageViewCreateInfo imageViewCreateInfo = {};
+		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewCreateInfo.format = m_surfaceFormat.format;
+		imageViewCreateInfo.image = m_swapchainImg.images[i];
+		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		imageViewCreateInfo.subresourceRange.layerCount = 1;
+		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+		imageViewCreateInfo.subresourceRange.levelCount = 1;
+		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		imageViewCreateInfo.components =
+		{
+			VK_COMPONENT_SWIZZLE_R,
+			VK_COMPONENT_SWIZZLE_G,
+			VK_COMPONENT_SWIZZLE_B,
+			VK_COMPONENT_SWIZZLE_A
+		};
+		CHECK_VK_ERROR(vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &m_swapchainImg.views[i]));
+	}
 }

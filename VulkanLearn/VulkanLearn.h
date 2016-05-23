@@ -2,6 +2,12 @@
 #include <vector>
 #include <array>
 
+typedef struct _swapchainImg
+{
+	std::vector<VkImage>				images;
+	std::vector<VkImageView>			views;
+}SwapchainImg;
+
 class VulkanInstance
 {
 public:
@@ -9,10 +15,17 @@ public:
 	void InitPhysicalDevice();
 	void InitVulkanDevice();
 #if defined(_WIN32)
-	void SetupWindow(HINSTANCE hInstance, WNDPROC wndProc);
+	void SetupWindow(HINSTANCE hInstance, WNDPROC wndproc);
+	void HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+#endif
 	void InitSurface();
 	void InitSwapchain();
-#endif
+
+	void InitCommandPool();
+	void InitSetupCommandBuffer();
+	void InitSwapchainImgs();
+
+	void Update();
 
 public:
 	static const uint32_t				WINDOW_WIDTH = 1024;
@@ -51,7 +64,11 @@ protected:
 	uint32_t							m_width;
 	uint32_t							m_height;
 
+	VkCommandPool						m_commandPool;
+	VkCommandBuffer						m_setupCommandBuffer;
+
 	uint32_t							m_swapchainImgCount;
+	SwapchainImg						m_swapchainImg;
 
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
