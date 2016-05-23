@@ -11,6 +11,7 @@ public:
 #if defined(_WIN32)
 	void SetupWindow(HINSTANCE hInstance, WNDPROC wndProc);
 	void InitSurface();
+	void InitSwapchain();
 #endif
 
 public:
@@ -27,6 +28,7 @@ protected:
 	VkPhysicalDeviceMemoryProperties	m_physicalDeviceMemoryProperties;
 
 	VkDevice							m_device;
+	VkSwapchainKHR						m_swapchain;
 
 	uint32_t							m_graphicQueueIndex;
 	uint32_t							m_presentQueueIndex;
@@ -45,6 +47,11 @@ protected:
 	PFN_vkQueuePresentKHR							m_fpQueuePresentKHR;
 
 	VkSurfaceFormatKHR					m_surfaceFormat;
+
+	uint32_t							m_width;
+	uint32_t							m_height;
+
+	uint32_t							m_swapchainImgCount;
 
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;

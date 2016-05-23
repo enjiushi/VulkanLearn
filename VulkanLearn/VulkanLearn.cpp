@@ -87,42 +87,6 @@ void VulkanInstance::InitVulkanDevice()
 	GET_DEVICE_PROC_ADDR(m_device, QueuePresentKHR);
 }
 
-void VulkanInstance::InitSurface()
-{
-#if defined (_WIN32)
-	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {};
-	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	surfaceCreateInfo.hinstance = (HINSTANCE)m_hPlatformInst;
-	surfaceCreateInfo.hwnd = (HWND)m_hWindow;
-	CHECK_VK_ERROR(vkCreateWin32SurfaceKHR(m_vulkanInst, &surfaceCreateInfo, nullptr, &m_surface));
-#endif
-
-	//Get all queues information whether they support presentation or not
-	std::vector<VkBool32> supportPresent(m_queueProperties.size());
-	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
-	{
-		CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice, m_graphicQueueIndex, m_surface, &supportPresent[i]));
-	}
-
-	//Store the first one supports presentation
-	for (uint32_t i = 0; i < supportPresent.size(); i++)
-	{
-		if (supportPresent[i])
-		{
-			m_presentQueueIndex = i;
-			break;
-		}
-	}
-
-	//Get surface's format
-	uint32_t formatCount = 0;
-	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, nullptr));
-	ASSERTION(formatCount > 0);
-	std::vector<VkSurfaceFormatKHR> formats(formatCount);
-	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, formats.data()));
-	m_surfaceFormat = formats[0];
-}
-
 void VulkanInstance::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 {
 	m_hPlatformInst = hinstance;
@@ -246,4 +210,104 @@ void VulkanInstance::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 	ShowWindow(m_hWindow, SW_SHOW);
 	SetForegroundWindow(m_hWindow);
 	SetFocus(m_hWindow);
+}
+
+void VulkanInstance::InitSurface()
+{
+#if defined (_WIN32)
+	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {};
+	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+	surfaceCreateInfo.hinstance = (HINSTANCE)m_hPlatformInst;
+	surfaceCreateInfo.hwnd = (HWND)m_hWindow;
+	CHECK_VK_ERROR(vkCreateWin32SurfaceKHR(m_vulkanInst, &surfaceCreateInfo, nullptr, &m_surface));
+#endif
+
+	//Get all queues information whether they support presentation or not
+	std::vector<VkBool32> supportPresent(m_queueProperties.size());
+	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
+	{
+		CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice, m_graphicQueueIndex, m_surface, &supportPresent[i]));
+	}
+
+	//Store the first one supports presentation
+	for (uint32_t i = 0; i < supportPresent.size(); i++)
+	{
+		if (supportPresent[i])
+		{
+			m_presentQueueIndex = i;
+			break;
+		}
+	}
+
+	//Get surface's format
+	uint32_t formatCount = 0;
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, nullptr));
+	ASSERTION(formatCount > 0);
+	std::vector<VkSurfaceFormatKHR> formats(formatCount);
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, formats.data()));
+	m_surfaceFormat = formats[0];
+}
+
+void VulkanInstance::InitSwapchain()
+{
+	//Get surface capabilities
+	VkSurfaceCapabilitiesKHR surfCap = {};
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice, m_surface, &surfCap));
+
+	//Get present modes
+	uint32_t presentModeCount = 0;
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &presentModeCount, nullptr));
+	ASSERTION(presentModeCount > 0);
+	std::vector<VkPresentModeKHR> presentModes(presentModeCount);
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &presentModeCount, presentModes.data()));
+
+	// Prefer mailbox mode if present, it's the lowest latency non-tearing present  mode
+	VkPresentModeKHR swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+	for (size_t i = 0; i < presentModeCount; i++)
+	{
+		if (presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+		{
+			swapchainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+			break;
+		}
+		if ((swapchainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR) && (presentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR))
+		{
+			swapchainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+		}
+	}
+
+	//Get width and height
+	m_width = surfCap.currentExtent.width;
+	m_height = surfCap.currentExtent.height;
+
+	//Get how many images in the surface
+	m_swapchainImgCount = surfCap.minImageCount + 1 < surfCap.maxImageCount ? surfCap.minImageCount + 1 : surfCap.maxImageCount;
+
+	//Don't know what's this
+	VkSurfaceTransformFlagsKHR preTransform;
+	if (surfCap.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
+	{
+		preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+	}
+	else
+	{
+		preTransform = surfCap.currentTransform;
+	}
+
+	VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
+	swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	swapchainCreateInfo.surface = m_surface;
+	swapchainCreateInfo.minImageCount = m_swapchainImgCount;
+	swapchainCreateInfo.presentMode = swapchainPresentMode;
+	swapchainCreateInfo.preTransform = (VkSurfaceTransformFlagBitsKHR)preTransform;
+	swapchainCreateInfo.clipped = true;
+	swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	swapchainCreateInfo.imageArrayLayers = 1;
+	swapchainCreateInfo.imageExtent.width = m_width;
+	swapchainCreateInfo.imageExtent.height = m_height;
+	swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	swapchainCreateInfo.imageFormat = m_surfaceFormat.format;
+	swapchainCreateInfo.imageColorSpace = m_surfaceFormat.colorSpace;
+
+	CHECK_VK_ERROR(vkCreateSwapchainKHR(m_device, &swapchainCreateInfo, nullptr, &m_swapchain));
 }

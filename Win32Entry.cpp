@@ -16,7 +16,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 	vulkanInst.InitVulkanInstance();
 	vulkanInst.InitPhysicalDevice();
 	vulkanInst.InitVulkanDevice();
-	vulkanInst.InitSurface();
 	vulkanInst.SetupWindow(hInstance, WndProc);
+	vulkanInst.InitSurface();
+	vulkanInst.InitSwapchain();
 }
 
