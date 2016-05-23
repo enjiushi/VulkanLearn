@@ -391,14 +391,27 @@ void VulkanInstance::InitSwapchainImgs()
 {
 	m_swapchainImg.images.resize(m_swapchainImgCount);
 	m_swapchainImg.views.resize(m_swapchainImgCount);
-
+	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_device, m_swapchain, &m_swapchainImgCount, m_swapchainImg.images.data()));
 	for (uint32_t i = 0; i < m_swapchainImgCount; i++)
 	{
-		CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_device, m_swapchain, &m_swapchainImgCount, m_swapchainImg.images.data()));
+		VkImageMemoryBarrier imageBarrier = {};
+		imageBarrier.srcAccessMask = 0;
+		imageBarrier.dstAccessMask = 0;
+		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imageBarrier.image = m_swapchainImg.images[i];
+		imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageBarrier.subresourceRange.baseMipLevel = 0;
+		imageBarrier.subresourceRange.levelCount = 1;
+		imageBarrier.subresourceRange.baseArrayLayer = 0;
+		imageBarrier.subresourceRange.layerCount = 1;
 	}
 
 	for (uint32_t i = 0; i < m_swapchainImgCount; i++)
 	{
+		//Create image view
 		VkImageViewCreateInfo imageViewCreateInfo = {};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		imageViewCreateInfo.format = m_surfaceFormat.format;
@@ -417,5 +430,29 @@ void VulkanInstance::InitSwapchainImgs()
 			VK_COMPONENT_SWIZZLE_A
 		};
 		CHECK_VK_ERROR(vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &m_swapchainImg.views[i]));
+
+		//Change image layout
+		VkImageMemoryBarrier imageBarrier = {};
+		imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imageBarrier.srcAccessMask = 0;
+		imageBarrier.dstAccessMask = 0;
+		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imageBarrier.image = m_swapchainImg.images[i];
+		imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageBarrier.subresourceRange.baseMipLevel = 0;
+		imageBarrier.subresourceRange.levelCount = 1;
+		imageBarrier.subresourceRange.baseArrayLayer = 0;
+		imageBarrier.subresourceRange.layerCount = 1;
+
+		vkCmdPipelineBarrier(m_setupCommandBuffer,
+			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &imageBarrier);
 	}
 }
