@@ -357,6 +357,7 @@ void VulkanInstance::InitSwapchain()
 	swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	swapchainCreateInfo.imageFormat = m_surfaceFormat.format;
 	swapchainCreateInfo.imageColorSpace = m_surfaceFormat.colorSpace;
+	swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
 	CHECK_VK_ERROR(vkCreateSwapchainKHR(m_device, &swapchainCreateInfo, nullptr, &m_swapchain));
 }
@@ -418,13 +419,21 @@ void VulkanInstance::InitSetupCommandBuffer()
 	commandBufferAllocateInfo.commandBufferCount = 1;
 
 	CHECK_VK_ERROR(vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, &m_setupCommandBuffer));
+
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	CHECK_VK_ERROR(vkBeginCommandBuffer(m_setupCommandBuffer, &beginInfo));
 }
 
 void VulkanInstance::InitSwapchainImgs()
 {
 	m_swapchainImg.images.resize(m_swapchainImgCount);
 	m_swapchainImg.views.resize(m_swapchainImgCount);
-	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_device, m_swapchain, &m_swapchainImgCount, m_swapchainImg.images.data()));
+	uint32_t count = 0;
+	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_device, m_swapchain, &count, nullptr));
+	ASSERTION(count == m_swapchainImgCount);
+	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_device, m_swapchain, &count, m_swapchainImg.images.data()));
+	
 	for (uint32_t i = 0; i < m_swapchainImgCount; i++)
 	{
 		VkImageMemoryBarrier imageBarrier = {};
