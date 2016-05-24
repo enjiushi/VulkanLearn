@@ -24,6 +24,7 @@ public:
 	void InitCommandPool();
 	void InitSetupCommandBuffer();
 	void InitSwapchainImgs();
+	void InitDepthStencil();
 
 	void Update();
 
@@ -52,6 +53,11 @@ protected:
 	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR		m_fpGetPhysicalDeviceSurfaceFormatsKHR;
 	PFN_vkGetPhysicalDeviceSurfacePresentModesKHR	m_fpGetPhysicalDeviceSurfacePresentModesKHR;
 	PFN_vkGetPhysicalDeviceSurfaceSupportKHR		m_fpGetPhysicalDeviceSurfaceSupportKHR;
+
+	PFN_vkCreateDebugReportCallbackEXT				m_fpCreateDebugReportCallbackEXT;
+	PFN_vkDebugReportMessageEXT						m_fpDebugReportMessageEXT;
+	PFN_vkDestroyDebugReportCallbackEXT				m_fpDestroyDebugReportCallbackEXT;
+	VkDebugReportCallbackEXT						m_debugCallback;
 
 	PFN_vkCreateSwapchainKHR						m_fpCreateSwapchainKHR;
 	PFN_vkDestroySwapchainKHR						m_fpDestroySwapchainKHR;

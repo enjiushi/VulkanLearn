@@ -4,6 +4,17 @@
 #include <chrono>
 #include <sstream>
 
+VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT flags,
+	VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location,
+	int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData) {
+
+	OutputDebugStringA(pLayerPrefix);
+	OutputDebugStringA(" ");
+	OutputDebugStringA(pMessage);
+	OutputDebugStringA("\n");
+	return VK_FALSE;
+}
+
 void VulkanInstance::InitVulkanInstance()
 {
 	VkApplicationInfo appInfo	= {};
@@ -13,16 +24,38 @@ void VulkanInstance::InitVulkanInstance()
 
 	//Need surface extension to create surface from device
 	std::vector<const char*> extensions = { EXTENSION_VULKAN_SURFACE };
+	std::vector<const char*> layers;
 #if defined(_WIN32)
 	extensions.push_back( EXTENSION_VULKAN_SURFACE_WIN32 );
+#endif
+#if defined(_DEBUG)
+	layers.push_back(EXTENSION_VULKAN_VALIDATION_LAYER);
+	extensions.push_back(EXTENSION_VULKAN_DEBUG_REPORT);
 #endif
 	VkInstanceCreateInfo instCreateInfo = {};
 	instCreateInfo.sType				= VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instCreateInfo.pApplicationInfo		= &appInfo;
 	instCreateInfo.enabledExtensionCount = (int32_t)extensions.size();
 	instCreateInfo.ppEnabledExtensionNames = extensions.data();
+	instCreateInfo.enabledLayerCount = (int32_t)layers.size();
+	instCreateInfo.ppEnabledLayerNames = layers.data();
 
 	CHECK_VK_ERROR(vkCreateInstance(&instCreateInfo, nullptr, &m_vulkanInst));
+
+	GET_INSTANCE_PROC_ADDR(m_vulkanInst, CreateDebugReportCallbackEXT);
+	GET_INSTANCE_PROC_ADDR(m_vulkanInst, DebugReportMessageEXT);
+	GET_INSTANCE_PROC_ADDR(m_vulkanInst, DestroyDebugReportCallbackEXT);
+
+	VkDebugReportCallbackCreateInfoEXT callbackCreateInfo = {};
+	callbackCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
+	callbackCreateInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT |
+		VK_DEBUG_REPORT_WARNING_BIT_EXT |
+		VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+	callbackCreateInfo.pfnCallback = &MyDebugReportCallback;
+	callbackCreateInfo.pUserData = NULL;
+
+	VkResult res = m_fpCreateDebugReportCallbackEXT(m_vulkanInst, &callbackCreateInfo, NULL, &m_debugCallback);
+	ASSERTION(res == VK_SUCCESS);
 }
 
 void VulkanInstance::InitPhysicalDevice()
@@ -455,4 +488,9 @@ void VulkanInstance::InitSwapchainImgs()
 			0, nullptr,
 			1, &imageBarrier);
 	}
+}
+
+void VulkanInstance::InitDepthStencil()
+{
+
 }
