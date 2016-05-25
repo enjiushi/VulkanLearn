@@ -8,6 +8,14 @@ typedef struct _swapchainImg
 	std::vector<VkImageView>			views;
 }SwapchainImg;
 
+typedef struct _depthStencil
+{
+	VkFormat							format;
+	VkDeviceMemory						memory;
+	VkImage								image;
+	VkImageView							view;
+}DepthStencil;
+
 class VulkanInstance
 {
 public:
@@ -25,6 +33,8 @@ public:
 	void InitSetupCommandBuffer();
 	void InitSwapchainImgs();
 	void InitDepthStencil();
+	void InitRenderpass();
+	void InitFrameBuffer();
 
 	void Update();
 
@@ -75,7 +85,10 @@ protected:
 
 	uint32_t							m_swapchainImgCount;
 	SwapchainImg						m_swapchainImg;
+	DepthStencil						m_depthStencil;
 
+	VkRenderPass						m_renderpass;
+	std::vector<VkFramebuffer>			m_framebuffers;
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;

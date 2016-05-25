@@ -27,6 +27,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 	vulkanInst.InitCommandPool();
 	vulkanInst.InitSetupCommandBuffer();
 	vulkanInst.InitSwapchainImgs();
+	vulkanInst.InitDepthStencil();
+	vulkanInst.InitRenderpass();
+	vulkanInst.InitFrameBuffer();
 
 	vulkanInst.Update();
 }

@@ -80,6 +80,27 @@ void VulkanInstance::InitPhysicalDevice()
 	vkGetPhysicalDeviceProperties(m_physicalDevice, &m_physicalDeviceProperties);
 	vkGetPhysicalDeviceFeatures(m_physicalDevice, &m_physicalDeviceFeatures);
 	vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &m_physicalDeviceMemoryProperties);
+
+	//Get depth stencil format
+	std::vector<VkFormat> formats =
+	{
+		VK_FORMAT_D32_SFLOAT_S8_UINT,
+		VK_FORMAT_D32_SFLOAT,
+		VK_FORMAT_D24_UNORM_S8_UINT,
+		VK_FORMAT_D16_UNORM_S8_UINT,
+		VK_FORMAT_D16_UNORM
+	};
+
+	for (uint32_t i = 0; i < formats.size(); i++)
+	{
+		VkFormatProperties prop;
+		vkGetPhysicalDeviceFormatProperties(m_physicalDevice, formats[i], &prop);
+		if (prop.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+		{
+			m_depthStencil.format = formats[i];
+			break;
+		}
+	}
 	
 	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceCapabilitiesKHR);
 	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceFormatsKHR);
@@ -501,5 +522,154 @@ void VulkanInstance::InitSwapchainImgs()
 
 void VulkanInstance::InitDepthStencil()
 {
+	//create image of depth stencil
+	VkImageCreateInfo dsCreateInfo = {};
+	dsCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	dsCreateInfo.format = m_depthStencil.format;
+	dsCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	dsCreateInfo.arrayLayers = 1;
+	dsCreateInfo.extent.depth = 1;
+	dsCreateInfo.extent.width = m_width;
+	dsCreateInfo.extent.height = m_height;
+	dsCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	dsCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	dsCreateInfo.mipLevels = 1;
+	dsCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	dsCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 
+	CHECK_VK_ERROR(vkCreateImage(m_device, &dsCreateInfo, nullptr, &m_depthStencil.image));
+
+	//Get memory requirements from depth stencil image
+	VkMemoryRequirements dsReq = {};
+	vkGetImageMemoryRequirements(m_device, m_depthStencil.image, &dsReq);
+	
+	VkMemoryAllocateInfo memoryAllocateInfo = {};
+	memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	memoryAllocateInfo.allocationSize = dsReq.size;
+	
+	uint32_t typeBits = dsReq.memoryTypeBits;
+	uint32_t typeIndex = 0;
+	while (typeBits)
+	{
+		if (typeBits & 1)
+		{
+			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+			{
+				memoryAllocateInfo.memoryTypeIndex = typeIndex;
+				break;
+			}
+		}
+		typeBits >>= 1;
+		typeIndex++;
+	}
+
+	CHECK_VK_ERROR(vkAllocateMemory(m_device, &memoryAllocateInfo, nullptr, &m_depthStencil.memory));
+
+	//Bind memory to depth stencil image
+	CHECK_VK_ERROR(vkBindImageMemory(m_device, m_depthStencil.image, m_depthStencil.memory, 0));
+
+	//Create depth stencil image view
+	VkImageViewCreateInfo dsImageViewCreateInfo = {};
+	dsImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	dsImageViewCreateInfo.image = m_depthStencil.image;
+	dsImageViewCreateInfo.format = m_depthStencil.format;
+	dsImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	dsImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	dsImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+	dsImageViewCreateInfo.subresourceRange.layerCount = 1;
+	dsImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+	dsImageViewCreateInfo.subresourceRange.levelCount = 1;
+
+	CHECK_VK_ERROR(vkCreateImageView(m_device, &dsImageViewCreateInfo, nullptr, &m_depthStencil.view));
+
+	VkImageMemoryBarrier barrier = {};
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.image = m_depthStencil.image;
+	barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	barrier.dstQueueFamilyIndex = m_graphicQueueIndex;
+	barrier.srcAccessMask = 0;
+	barrier.srcQueueFamilyIndex = m_graphicQueueIndex;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = 1;
+
+	vkCmdPipelineBarrier(m_setupCommandBuffer,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		0,
+		0, nullptr,
+		0, nullptr,
+		1, &barrier);
+}
+
+void VulkanInstance::InitRenderpass()
+{
+	std::vector<VkAttachmentDescription> attachmentDescs(2);
+	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	attachmentDescs[0].format = m_surfaceFormat.format;
+	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
+
+	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	attachmentDescs[0].format = m_depthStencil.format;
+	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
+
+	VkAttachmentReference colorAttach = {};
+	colorAttach.attachment = 0;
+	colorAttach.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference dsAttach = {};
+	dsAttach.attachment = 1;
+	dsAttach.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass = {};
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttach;
+	subpass.pDepthStencilAttachment = &dsAttach;
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+	VkRenderPassCreateInfo renderpassCreateInfo = {};
+	renderpassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderpassCreateInfo.attachmentCount = attachmentDescs.size();
+	renderpassCreateInfo.pAttachments = attachmentDescs.data();
+	renderpassCreateInfo.subpassCount = 1;
+	renderpassCreateInfo.pSubpasses = &subpass;
+
+	CHECK_VK_ERROR(vkCreateRenderPass(m_device, &renderpassCreateInfo, nullptr, &m_renderpass));
+}
+
+void VulkanInstance::InitFrameBuffer()
+{
+	m_framebuffers.resize(m_swapchainImgCount);
+	std::vector<VkImageView> attachments(2);
+	attachments[1] = m_depthStencil.view;
+
+	for (uint32_t i = 0; i < m_swapchainImgCount; i++)
+	{
+		attachments[0] = m_swapchainImg.views[i];
+
+		VkFramebufferCreateInfo framebufferCreateInfo = {};
+		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferCreateInfo.attachmentCount = 2;
+		framebufferCreateInfo.pAttachments = attachments.data();
+		framebufferCreateInfo.layers = 1;
+		framebufferCreateInfo.width = m_width;
+		framebufferCreateInfo.height = m_height;
+		framebufferCreateInfo.renderPass = m_renderpass;
+
+		CHECK_VK_ERROR(vkCreateFramebuffer(m_device, &framebufferCreateInfo, nullptr, &m_framebuffers[i]));
+	}
 }
