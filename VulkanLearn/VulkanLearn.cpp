@@ -673,3 +673,57 @@ void VulkanInstance::InitFrameBuffer()
 		CHECK_VK_ERROR(vkCreateFramebuffer(m_device, &framebufferCreateInfo, nullptr, &m_framebuffers[i]));
 	}
 }
+
+void VulkanInstance::InitVertices()
+{
+	float vertices[] =
+	{
+		-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+		1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 1.0, 0.0, 0.0
+	};
+
+	int32_t indices[] = { 0, 1, 2 };
+
+	Buffer stageVertexBuffer, stageIndexBuffer;
+
+	VkBufferCreateInfo bufferInfo = {};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = sizeof(vertices);
+	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	CHECK_VK_ERROR(vkCreateBuffer(m_device, &bufferInfo, nullptr, &stageVertexBuffer.buffer));
+
+	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	CHECK_VK_ERROR(vkCreateBuffer(m_device, &bufferInfo, nullptr, &m_vertexBuffer.buffer));
+
+	VkMemoryRequirements reqs = {};
+	vkGetBufferMemoryRequirements(m_device, stageVertexBuffer.buffer, &reqs);
+	stageVertexBuffer.reqs = reqs;
+
+	VkMemoryAllocateInfo allocateInfo = {};
+	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocateInfo.allocationSize = reqs.size;
+
+	uint32_t typeIndex = 0;
+	uint32_t typeBits = reqs.memoryTypeBits;
+	while (typeBits)
+	{
+		if (typeBits & 1)
+		{
+			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+			{
+				allocateInfo.memoryTypeIndex = typeIndex;
+				break;
+			}
+		}
+		typeBits >>= 1;
+		typeIndex++;
+	}
+
+	CHECK_VK_ERROR(vkAllocateMemory(m_device, &allocateInfo, nullptr, &stageVertexBuffer.memory));
+
+	void* pData;
+	CHECK_VK_ERROR(vkMapMemory(m_device, stageVertexBuffer.memory, 0, stageVertexBuffer.reqs.size, 0, &pData));
+	memcpy(pData, vertices, stageVertexBuffer.reqs.size);
+	vkUnmapMemory(m_device, stageVertexBuffer.memory);
+}

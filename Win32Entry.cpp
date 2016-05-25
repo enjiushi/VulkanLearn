@@ -30,6 +30,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 	vulkanInst.InitDepthStencil();
 	vulkanInst.InitRenderpass();
 	vulkanInst.InitFrameBuffer();
+	vulkanInst.InitVertices();
 
 	vulkanInst.Update();
 }

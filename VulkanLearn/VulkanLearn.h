@@ -16,6 +16,13 @@ typedef struct _depthStencil
 	VkImageView							view;
 }DepthStencil;
 
+typedef struct _buffer
+{
+	VkDeviceMemory						memory;
+	VkBuffer							buffer;
+	VkMemoryRequirements				reqs;
+}Buffer;
+
 class VulkanInstance
 {
 public:
@@ -35,6 +42,7 @@ public:
 	void InitDepthStencil();
 	void InitRenderpass();
 	void InitFrameBuffer();
+	void InitVertices();
 
 	void Update();
 
@@ -89,6 +97,9 @@ protected:
 
 	VkRenderPass						m_renderpass;
 	std::vector<VkFramebuffer>			m_framebuffers;
+
+	Buffer								m_vertexBuffer;
+	Buffer								m_indexBuffer;
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;
