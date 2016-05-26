@@ -885,3 +885,68 @@ void VulkanInstance::InitVertices()
 	m_vertexBuffer.attribDesc[1].location = 1;
 	m_vertexBuffer.attribDesc[1].offset = sizeof(float) * 3;	//after xyz
 }
+
+void VulkanInstance::InitUniforms()
+{
+	//Create uniform buffer
+	m_uniformBuffer.info.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+	m_uniformBuffer.info.size = sizeof(MVP);
+	CHECK_VK_ERROR(vkCreateBuffer(m_device, &m_uniformBuffer.info, nullptr, &m_uniformBuffer.buffer));
+
+	vkGetBufferMemoryRequirements(m_device, m_uniformBuffer.buffer, &m_uniformBuffer.reqs);
+	VkMemoryAllocateInfo allocateInfo = {};
+	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocateInfo.allocationSize = m_uniformBuffer.reqs.size;
+
+	uint32_t typeIndex = 0;
+	uint32_t typeBits = m_uniformBuffer.reqs.memoryTypeBits;
+	while (typeBits)
+	{
+		if (typeBits & 1)
+		{
+			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+			{
+				allocateInfo.memoryTypeIndex = typeIndex;
+				break;
+			}
+		}
+		typeIndex++;
+		typeBits >>= 1;
+	}
+
+	CHECK_VK_ERROR(vkAllocateMemory(m_device, &allocateInfo, nullptr, &m_uniformBuffer.memory));
+	CHECK_VK_ERROR(vkBindBufferMemory(m_device, m_uniformBuffer.buffer, m_uniformBuffer.memory, 0));
+
+	memset(m_mvp.model, 0, sizeof(m_mvp.model));
+	memset(m_mvp.view, 0, sizeof(m_mvp.view));
+	memset(m_mvp.projection, 0, sizeof(m_mvp.projection));
+	m_mvp.model[0] = m_mvp.model[5] = m_mvp.model[10] = m_mvp.model[15] = 1.0f;
+	m_mvp.view[0] = m_mvp.view[5] = m_mvp.view[10] = m_mvp.view[15] = 1.0f;
+	m_mvp.projection[0] = m_mvp.projection[5] = m_mvp.projection[10] = m_mvp.projection[15] = 1.0f;
+
+	void* pData;
+	CHECK_VK_ERROR(vkMapMemory(m_device, m_uniformBuffer.memory, 0, m_uniformBuffer.info.size, 0, &pData));
+	memcpy(pData, &m_mvp, sizeof(MVP));
+	vkUnmapMemory(m_device, m_uniformBuffer.memory);
+
+	m_uniformBuffer.descriptor.buffer = m_uniformBuffer.buffer;
+	m_uniformBuffer.descriptor.offset = 0;
+	m_uniformBuffer.descriptor.range = sizeof(MVP);
+
+	//Setup a barrier to let shader know its latest updated information in buffer
+	VkBufferMemoryBarrier barrier = {};
+	barrier.buffer = m_uniformBuffer.buffer;
+	barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+	barrier.dstAccessMask = VK_ACCESS_UNIFORM_READ_BIT;
+	barrier.offset = 0;
+	barrier.size = sizeof(MVP);
+	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+	
+	vkCmdPipelineBarrier(m_setupCommandBuffer,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		0,
+		0, nullptr,
+		1, &barrier,
+		0, nullptr);
+}

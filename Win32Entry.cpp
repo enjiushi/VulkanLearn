@@ -31,6 +31,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 	vulkanInst.InitRenderpass();
 	vulkanInst.InitFrameBuffer();
 	vulkanInst.InitVertices();
+	vulkanInst.InitUniforms();
 
 	vulkanInst.Update();
 }
