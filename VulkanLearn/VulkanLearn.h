@@ -23,6 +23,8 @@ typedef struct _buffer
 	VkBuffer							buffer;
 	VkMemoryRequirements				reqs;
 	VkBufferCreateInfo					info;
+	VkVertexInputBindingDescription		bindingDesc;
+	std::vector<VkVertexInputAttributeDescription>	attribDesc;
 }Buffer;
 
 class VulkanInstance

@@ -868,4 +868,20 @@ void VulkanInstance::InitVertices()
 		0, nullptr,
 		2, &barriers[0],
 		0, nullptr);
+
+	//Binding and attributes information
+	m_vertexBuffer.bindingDesc.binding = 0;		//hard coded 0
+	m_vertexBuffer.bindingDesc.stride = sizeof(float) * 6;	//xyzrgb, all hard coded, mockup code, don't care, just for learning
+	m_vertexBuffer.bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	m_vertexBuffer.attribDesc.resize(2);
+	m_vertexBuffer.attribDesc[0].binding = 0;
+	m_vertexBuffer.attribDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+	m_vertexBuffer.attribDesc[0].location = 0;	//layout location 0 in shader
+	m_vertexBuffer.attribDesc[0].offset = 0;
+
+	m_vertexBuffer.attribDesc[1].binding = 0;
+	m_vertexBuffer.attribDesc[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+	m_vertexBuffer.attribDesc[1].location = 1;
+	m_vertexBuffer.attribDesc[1].offset = sizeof(float) * 3;	//after xyz
 }
