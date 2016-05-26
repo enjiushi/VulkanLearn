@@ -18,9 +18,11 @@ typedef struct _depthStencil
 
 typedef struct _buffer
 {
+	_buffer() { info = {}; info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO; }
 	VkDeviceMemory						memory;
 	VkBuffer							buffer;
 	VkMemoryRequirements				reqs;
+	VkBufferCreateInfo					info;
 }Buffer;
 
 class VulkanInstance

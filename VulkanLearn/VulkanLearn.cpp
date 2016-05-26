@@ -687,25 +687,21 @@ void VulkanInstance::InitVertices()
 
 	Buffer stageVertexBuffer, stageIndexBuffer;
 
-	VkBufferCreateInfo bufferInfo = {};
-	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferInfo.size = sizeof(vertices);
-	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	CHECK_VK_ERROR(vkCreateBuffer(m_device, &bufferInfo, nullptr, &stageVertexBuffer.buffer));
 
-	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	CHECK_VK_ERROR(vkCreateBuffer(m_device, &bufferInfo, nullptr, &m_vertexBuffer.buffer));
+	//Create staging vertex buffer
+	stageVertexBuffer.info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	stageVertexBuffer.info.size = sizeof(vertices);
+	stageVertexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	CHECK_VK_ERROR(vkCreateBuffer(m_device, &stageVertexBuffer.info, nullptr, &stageVertexBuffer.buffer));
 
-	VkMemoryRequirements reqs = {};
-	vkGetBufferMemoryRequirements(m_device, stageVertexBuffer.buffer, &reqs);
-	stageVertexBuffer.reqs = reqs;
+	vkGetBufferMemoryRequirements(m_device, stageVertexBuffer.buffer, &stageVertexBuffer.reqs);
 
 	VkMemoryAllocateInfo allocateInfo = {};
 	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocateInfo.allocationSize = reqs.size;
+	allocateInfo.allocationSize = stageVertexBuffer.reqs.size;
 
 	uint32_t typeIndex = 0;
-	uint32_t typeBits = reqs.memoryTypeBits;
+	uint32_t typeBits = stageVertexBuffer.reqs.memoryTypeBits;
 	while (typeBits)
 	{
 		if (typeBits & 1)
@@ -721,9 +717,155 @@ void VulkanInstance::InitVertices()
 	}
 
 	CHECK_VK_ERROR(vkAllocateMemory(m_device, &allocateInfo, nullptr, &stageVertexBuffer.memory));
+	CHECK_VK_ERROR(vkBindBufferMemory(m_device, stageVertexBuffer.buffer, stageVertexBuffer.memory, 0));
 
 	void* pData;
 	CHECK_VK_ERROR(vkMapMemory(m_device, stageVertexBuffer.memory, 0, stageVertexBuffer.reqs.size, 0, &pData));
 	memcpy(pData, vertices, stageVertexBuffer.reqs.size);
 	vkUnmapMemory(m_device, stageVertexBuffer.memory);
+
+
+	//Create vertex buffer
+	m_vertexBuffer.info.size = sizeof(vertices);
+	m_vertexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	CHECK_VK_ERROR(vkCreateBuffer(m_device, &m_vertexBuffer.info, nullptr, &m_vertexBuffer.buffer));
+	vkGetBufferMemoryRequirements(m_device, m_vertexBuffer.buffer, &m_vertexBuffer.reqs);
+
+	allocateInfo.allocationSize = m_vertexBuffer.reqs.size;
+
+	typeIndex = 0;
+	typeBits = m_vertexBuffer.reqs.memoryTypeBits;
+	while (typeBits)
+	{
+		if (typeBits & 1)
+		{
+			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+			{
+				allocateInfo.memoryTypeIndex = typeIndex;
+				break;
+			}
+		}
+		typeIndex++;
+		typeBits >>= 1;
+	}
+
+	CHECK_VK_ERROR(vkAllocateMemory(m_device, &allocateInfo, nullptr, &m_vertexBuffer.memory));
+	CHECK_VK_ERROR(vkBindBufferMemory(m_device, m_vertexBuffer.buffer, m_vertexBuffer.memory, 0));
+
+
+	//Create staging index buffer
+	stageIndexBuffer.info.size = sizeof(indices);
+	stageIndexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+	CHECK_VK_ERROR(vkCreateBuffer(m_device, &stageIndexBuffer.info, nullptr, &stageIndexBuffer.buffer));
+	vkGetBufferMemoryRequirements(m_device, stageIndexBuffer.buffer, &stageIndexBuffer.reqs);
+
+	allocateInfo.allocationSize = stageIndexBuffer.reqs.size;
+
+	typeIndex = 0;
+	typeBits = stageIndexBuffer.reqs.memoryTypeBits;
+	while (typeBits)
+	{
+		if (typeBits & 1)
+		{
+			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+			{
+				allocateInfo.memoryTypeIndex = typeIndex;
+				break;
+			}
+		}
+		typeIndex++;
+		typeBits >>= 1;
+	}
+
+	CHECK_VK_ERROR(vkAllocateMemory(m_device, &allocateInfo, nullptr, &stageIndexBuffer.memory));
+	CHECK_VK_ERROR(vkBindBufferMemory(m_device, stageIndexBuffer.buffer, stageIndexBuffer.memory, 0));
+
+	CHECK_VK_ERROR(vkMapMemory(m_device, stageIndexBuffer.memory, 0, stageIndexBuffer.reqs.size, 0, &pData));
+	memcpy(pData, indices, stageIndexBuffer.reqs.size);
+	vkUnmapMemory(m_device, stageIndexBuffer.memory);
+
+
+	//Create index buffer
+	m_indexBuffer.info.size = sizeof(indices);
+	m_indexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+	CHECK_VK_ERROR(vkCreateBuffer(m_device, &m_indexBuffer.info, nullptr, &m_indexBuffer.buffer));
+	vkGetBufferMemoryRequirements(m_device, m_indexBuffer.buffer, &m_indexBuffer.reqs);
+
+	allocateInfo.allocationSize = m_indexBuffer.reqs.size;
+
+	typeIndex = 0;
+	typeBits = m_indexBuffer.reqs.memoryTypeBits;
+	while (typeBits)
+	{
+		if (typeBits & 1)
+		{
+			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+			{
+				allocateInfo.memoryTypeIndex = typeIndex;
+				break;
+			}
+		}
+		typeIndex++;
+		typeBits >>= 1;
+	}
+
+	CHECK_VK_ERROR(vkAllocateMemory(m_device, &allocateInfo, nullptr, &m_indexBuffer.memory));
+	CHECK_VK_ERROR(vkBindBufferMemory(m_device, m_indexBuffer.buffer, m_indexBuffer.memory, 0));
+
+	//Setup a barrier for staging buffers
+	VkBufferMemoryBarrier barriers[2] = {};
+
+	barriers[0] = {};
+	barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+	barriers[0].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+	barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	barriers[0].buffer = stageVertexBuffer.buffer;
+	barriers[0].offset = 0;
+	barriers[0].size = stageVertexBuffer.info.size;
+
+	barriers[1] = {};
+	barriers[1].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+	barriers[1].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+	barriers[1].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	barriers[1].buffer = stageIndexBuffer.buffer;
+	barriers[1].offset = 0;
+	barriers[1].size = stageIndexBuffer.info.size;
+
+	vkCmdPipelineBarrier(m_setupCommandBuffer,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		0,
+		0, nullptr,
+		2, &barriers[0],
+		0, nullptr);
+
+	//Transfer data from staging buffers to device local buffers
+	//Copy vertex buffer
+	VkBufferCopy copy = {};
+	copy.dstOffset = 0;
+	copy.srcOffset = 0;
+	copy.size = stageVertexBuffer.info.size;
+	vkCmdCopyBuffer(m_setupCommandBuffer, stageVertexBuffer.buffer, m_vertexBuffer.buffer, 1, &copy);
+
+	//Copy index buffer
+	copy.size = stageIndexBuffer.info.size;
+	vkCmdCopyBuffer(m_setupCommandBuffer, stageIndexBuffer.buffer, m_indexBuffer.buffer, 1, &copy);
+
+	//Setup a barrier for memory changes
+	barriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	barriers[0].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;	
+	barriers[0].buffer = m_vertexBuffer.buffer;
+
+	barriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	barriers[1].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;	//not sure if it's the same as vertex buffer
+	barriers[1].buffer = m_indexBuffer.buffer;
+
+	vkCmdPipelineBarrier(m_setupCommandBuffer,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		0,
+		0, nullptr,
+		2, &barriers[0],
+		0, nullptr);
 }
