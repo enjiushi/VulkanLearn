@@ -498,7 +498,7 @@ void VulkanInstance::InitSwapchainImgs()
 		VkImageMemoryBarrier imageBarrier = {};
 		imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		imageBarrier.srcAccessMask = 0;
-		imageBarrier.dstAccessMask = 0;
+		imageBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
