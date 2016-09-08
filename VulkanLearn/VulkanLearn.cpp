@@ -56,6 +56,11 @@ void VulkanInstance::InitVulkanInstance()
 
 	VkResult res = m_fpCreateDebugReportCallbackEXT(m_vulkanInst, &callbackCreateInfo, NULL, &m_debugCallback);
 	ASSERTION(res == VK_SUCCESS);
+
+	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceCapabilitiesKHR);
+	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceFormatsKHR);
+	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfacePresentModesKHR);
+	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceSupportKHR);
 }
 
 void VulkanInstance::InitPhysicalDevice()
@@ -101,11 +106,6 @@ void VulkanInstance::InitPhysicalDevice()
 			break;
 		}
 	}
-	
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceCapabilitiesKHR);
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceFormatsKHR);
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfacePresentModesKHR);
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceSupportKHR);
 }
 
 void VulkanInstance::InitVulkanDevice()
@@ -500,7 +500,7 @@ void VulkanInstance::InitSwapchainImgs()
 		imageBarrier.srcAccessMask = 0;
 		imageBarrier.dstAccessMask = 0;
 		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		imageBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier.image = m_swapchainImg.images[i];
@@ -609,8 +609,8 @@ void VulkanInstance::InitDepthStencil()
 void VulkanInstance::InitRenderpass()
 {
 	std::vector<VkAttachmentDescription> attachmentDescs(2);
-	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	attachmentDescs[0].format = m_surfaceFormat.format;
 	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -618,14 +618,14 @@ void VulkanInstance::InitRenderpass()
 	attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
 
-	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachmentDescs[0].format = m_depthStencil.format;
-	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	attachmentDescs[1].format = m_depthStencil.format;
+	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachmentDescs[1].samples = VK_SAMPLE_COUNT_1_BIT;
 
 	VkAttachmentReference colorAttach = {};
 	colorAttach.attachment = 0;
