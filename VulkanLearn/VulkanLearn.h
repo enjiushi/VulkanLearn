@@ -25,7 +25,6 @@ typedef struct _buffer
 	VkBufferCreateInfo					info;
 	VkVertexInputBindingDescription		bindingDesc;
 	std::vector<VkVertexInputAttributeDescription>	attribDesc;
-	VkDescriptorBufferInfo				descriptor;
 }Buffer;
 
 typedef struct _mvp
@@ -33,6 +32,10 @@ typedef struct _mvp
 	float	model[16];
 	float	view[16];
 	float	projection[16];
+
+	VkDescriptorBufferInfo modelDescriptor;
+	VkDescriptorBufferInfo viewDescriptor;
+	VkDescriptorBufferInfo projDescriptor;
 }MVP;
 
 class VulkanInstance
@@ -56,6 +59,8 @@ public:
 	void InitFrameBuffer();
 	void InitVertices();
 	void InitUniforms();
+	void InitDescriptorSetLayout();
+	void InitPipeline();
 
 	void Update();
 
@@ -116,6 +121,12 @@ protected:
 	Buffer								m_uniformBuffer;
 
 	MVP									m_mvp;
+
+	std::vector<VkDescriptorSetLayoutBinding> m_dsLayoutBinding;
+	VkDescriptorSetLayout				m_descriptorSetLayout;
+	VkPipelineLayout					m_pipelineLayout;
+
+	VkPipeline							m_pipeline;
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;

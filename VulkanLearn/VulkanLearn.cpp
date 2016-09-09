@@ -929,9 +929,17 @@ void VulkanInstance::InitUniforms()
 	memcpy(pData, &m_mvp, sizeof(MVP));
 	vkUnmapMemory(m_device, m_uniformBuffer.memory);
 
-	m_uniformBuffer.descriptor.buffer = m_uniformBuffer.buffer;
-	m_uniformBuffer.descriptor.offset = 0;
-	m_uniformBuffer.descriptor.range = sizeof(MVP);
+	m_mvp.modelDescriptor.buffer = m_uniformBuffer.buffer;
+	m_mvp.modelDescriptor.offset = 0;
+	m_mvp.modelDescriptor.range = sizeof(m_mvp.model);
+
+	m_mvp.viewDescriptor.buffer = m_uniformBuffer.buffer;
+	m_mvp.viewDescriptor.offset = m_mvp.modelDescriptor.offset + m_mvp.modelDescriptor.range;
+	m_mvp.viewDescriptor.range = sizeof(m_mvp.view);
+
+	m_mvp.projDescriptor.buffer = m_uniformBuffer.buffer;
+	m_mvp.projDescriptor.offset = m_mvp.viewDescriptor.offset + m_mvp.viewDescriptor.range;
+	m_mvp.projDescriptor.range = sizeof(m_mvp.projection);
 
 	//Setup a barrier to let shader know its latest updated information in buffer
 	VkBufferMemoryBarrier barrier = {};
@@ -949,4 +957,83 @@ void VulkanInstance::InitUniforms()
 		0, nullptr,
 		1, &barrier,
 		0, nullptr);
+}
+
+void VulkanInstance::InitDescriptorSetLayout()
+{
+	m_dsLayoutBinding = 
+	{
+		{
+			0,	//binding
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	//type
+			1,
+			VK_SHADER_STAGE_VERTEX_BIT,
+			nullptr
+		},
+
+		{
+			1,	//binding
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	//type
+			1,
+			VK_SHADER_STAGE_VERTEX_BIT,
+			nullptr
+		},
+
+		{
+			2,	//binding
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	//type
+			1,
+			VK_SHADER_STAGE_VERTEX_BIT,
+			nullptr
+		}
+	};
+
+	VkDescriptorSetLayoutCreateInfo dslayoutInfo = {};
+	dslayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	dslayoutInfo.bindingCount = m_dsLayoutBinding.size();
+	dslayoutInfo.pBindings = m_dsLayoutBinding.data();
+	CHECK_VK_ERROR(vkCreateDescriptorSetLayout(m_device, &dslayoutInfo, nullptr, &m_descriptorSetLayout));
+
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = 1;
+	pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
+	CHECK_VK_ERROR(vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout));
+}
+
+void VulkanInstance::InitPipeline()
+{
+	VkPipelineColorBlendAttachmentState blendState = {};
+	blendState.colorWriteMask = 0xf;
+	blendState.blendEnable = VK_TRUE;
+
+	blendState.colorBlendOp = VK_BLEND_OP_ADD;
+	blendState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	blendState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+
+	blendState.alphaBlendOp = VK_BLEND_OP_ADD;
+	blendState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	blendState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+
+	VkPipelineColorBlendStateCreateInfo blendStateInfo = {};
+	blendStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	blendStateInfo.logicOpEnable = VK_TRUE;
+	blendStateInfo.attachmentCount = 1;
+	blendStateInfo.pAttachments = &blendState;
+
+	VkPipelineDepthStencilStateCreateInfo dsCreateInfo = {};
+	dsCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	dsCreateInfo.depthTestEnable = VK_TRUE;
+	dsCreateInfo.depthWriteEnable = VK_TRUE;
+	dsCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+
+	VkPipelineInputAssemblyStateCreateInfo assCreateinfo = {};
+	assCreateinfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	assCreateinfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+	VkGraphicsPipelineCreateInfo pipelineInfo = {};
+	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	pipelineInfo.pColorBlendState = &blendStateInfo;
+	pipelineInfo.pDepthStencilState = &dsCreateInfo;
+	pipelineInfo.pInputAssemblyState = &assCreateinfo;
 }
