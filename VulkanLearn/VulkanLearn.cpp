@@ -3,6 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include <sstream>
+#include <fstream>
 
 VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT flags,
 	VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location,
@@ -1027,13 +1028,77 @@ void VulkanInstance::InitPipeline()
 	dsCreateInfo.depthWriteEnable = VK_TRUE;
 	dsCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
 
-	VkPipelineInputAssemblyStateCreateInfo assCreateinfo = {};
-	assCreateinfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	assCreateinfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	VkPipelineInputAssemblyStateCreateInfo assCreateInfo = {};
+	assCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	assCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+	VkPipelineMultisampleStateCreateInfo msCreateInfo = {};
+	msCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	msCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+	VkPipelineRasterizationStateCreateInfo rsCreateInfo = {};
+	rsCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	rsCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+	rsCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	rsCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	rsCreateInfo.lineWidth = 1.0f;
+	rsCreateInfo.depthClampEnable = VK_FALSE;
+	rsCreateInfo.rasterizerDiscardEnable = VK_FALSE;
+	rsCreateInfo.depthBiasEnable = VK_FALSE;
+
+	VkViewport viewPort = {0, 0, 128, 128, 0, 1};
+	VkPipelineViewportStateCreateInfo vpCreateInfo = {};
+	vpCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	vpCreateInfo.viewportCount = 1;
+	vpCreateInfo.pScissors = nullptr;
+	vpCreateInfo.scissorCount = 0;
+	vpCreateInfo.pViewports = &viewPort;
+
+	std::vector<VkDynamicState> dynamicStates =
+	{
+		VK_DYNAMIC_STATE_VIEWPORT,
+		VK_DYNAMIC_STATE_SCISSOR
+	};
+
+	VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = {};
+	dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamicStateCreateInfo.dynamicStateCount = dynamicStates.size();
+	dynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
 
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	pipelineInfo.pColorBlendState = &blendStateInfo;
 	pipelineInfo.pDepthStencilState = &dsCreateInfo;
-	pipelineInfo.pInputAssemblyState = &assCreateinfo;
+	pipelineInfo.pInputAssemblyState = &assCreateInfo;
+	pipelineInfo.pMultisampleState = &msCreateInfo;
+	pipelineInfo.pRasterizationState = &rsCreateInfo;
+	pipelineInfo.pViewportState = &vpCreateInfo;
+	pipelineInfo.pDynamicState = &dynamicStateCreateInfo;
+	pipelineInfo.renderPass = m_renderpass;
+
+	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
+	shaderStages[0].sType = shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+	shaderStages[0].pName = "main";
+	pipelineInfo.stageCount = 2;
+
+	VkShaderModule module = InitShaderModule("data/shaders/simple.vert.spv");
+}
+
+VkShaderModule VulkanInstance::InitShaderModule(const char* shaderPath)
+{
+	std::ifstream ifs;
+	//ifs.open("data/shaders/simple.vert.spv", std::ios::binary);
+	ifs.open(shaderPath, std::ios::binary);
+	assert(ifs.good());
+	std::vector<char> buffer;
+	buffer.assign(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+	
+	VkShaderModule module;
+	VkShaderModuleCreateInfo shaderModuleCreateInfo = {};
+	shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	shaderModuleCreateInfo.codeSize = buffer.size();
+	shaderModuleCreateInfo.pCode = (uint32_t*)buffer.data();
+	CHECK_VK_ERROR(vkCreateShaderModule(m_device, &shaderModuleCreateInfo, nullptr, &module));
+	return module;
 }

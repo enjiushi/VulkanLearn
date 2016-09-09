@@ -64,6 +64,8 @@ public:
 
 	void Update();
 
+	VkShaderModule InitShaderModule(const char* shaderPath);
+
 public:
 	static const uint32_t				WINDOW_WIDTH = 1024;
 	static const uint32_t				WINDOW_HEIGHT = 768;
