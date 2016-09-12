@@ -64,6 +64,7 @@ public:
 	void InitPipeline();
 	void InitDescriptorPool();
 	void InitDescriptorSet();
+	void InitDrawCmdBuffers();
 
 	void Update();
 
@@ -136,6 +137,8 @@ protected:
 
 	VkDescriptorPool					m_descriptorPool;
 	VkDescriptorSet						m_descriptorSet;
+
+	std::vector<VkCommandBuffer>		m_drawCmdBuffers;
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;

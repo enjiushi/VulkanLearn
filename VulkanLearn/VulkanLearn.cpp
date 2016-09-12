@@ -1162,18 +1162,90 @@ void VulkanInstance::InitDescriptorSet()
 	writeDescSet[0].dstBinding = 0;
 	writeDescSet[0].dstSet = m_descriptorSet;
 	writeDescSet[0].pBufferInfo = &m_mvp.modelDescriptor;
+	writeDescSet[0].descriptorCount = 1;
 
 	writeDescSet[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	writeDescSet[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	writeDescSet[1].dstBinding = 1;
 	writeDescSet[1].dstSet = m_descriptorSet;
 	writeDescSet[1].pBufferInfo = &m_mvp.viewDescriptor;
+	writeDescSet[1].descriptorCount = 1;
 
 	writeDescSet[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	writeDescSet[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	writeDescSet[2].dstBinding = 2;
 	writeDescSet[2].dstSet = m_descriptorSet;
 	writeDescSet[2].pBufferInfo = &m_mvp.projDescriptor;
+	writeDescSet[2].descriptorCount = 1;
 
+	//vkUpdateDescriptorSets(m_device, 1, &writeDescSet[0], 0, nullptr);
 	vkUpdateDescriptorSets(m_device, writeDescSet.size(), writeDescSet.data(), 0, nullptr);
+}
+
+void VulkanInstance::InitDrawCmdBuffers()
+{
+	m_drawCmdBuffers.resize(m_swapchainImg.images.size());
+
+	VkCommandBufferAllocateInfo cmdAllocInfo = {};
+	cmdAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	cmdAllocInfo.commandPool = m_commandPool;
+	cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	cmdAllocInfo.commandBufferCount = m_swapchainImg.images.size();
+	CHECK_VK_ERROR(vkAllocateCommandBuffers(m_device, &cmdAllocInfo, m_drawCmdBuffers.data()));
+
+	for (size_t i = 0; i < m_swapchainImg.images.size(); i++)
+	{
+		VkCommandBufferBeginInfo cmdBeginInfo = {};
+		cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		CHECK_VK_ERROR(vkBeginCommandBuffer(m_drawCmdBuffers[i], &cmdBeginInfo));
+		
+		std::vector<VkClearValue> clearValues = 
+		{
+			{0.0f, 0.0f, 0.0f, 0.0f},
+			{0.0f, 0}
+		};
+
+		VkRenderPassBeginInfo renderPassBeginInfo = {};
+		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassBeginInfo.clearValueCount = clearValues.size();
+		renderPassBeginInfo.pClearValues = clearValues.data();
+		renderPassBeginInfo.renderPass = m_renderpass;
+		renderPassBeginInfo.framebuffer = m_framebuffers[i];
+		renderPassBeginInfo.renderArea.extent.width = m_width;
+		renderPassBeginInfo.renderArea.extent.height = m_height;
+		renderPassBeginInfo.renderArea.offset.x = 0;
+		renderPassBeginInfo.renderArea.offset.y = 0;
+
+		vkCmdBeginRenderPass(m_drawCmdBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		VkViewport viewport =
+		{
+			0, 0,
+			m_width, m_height,
+			0, 1
+		};
+
+		VkRect2D scissorRect =
+		{
+			0, 0,
+			m_width, m_height
+		};
+
+		vkCmdSetViewport(m_drawCmdBuffers[i], 0, 1, &viewport);
+		vkCmdSetScissor(m_drawCmdBuffers[i], 0, 1, &scissorRect);
+
+		vkCmdBindDescriptorSets(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
+
+		vkCmdBindPipeline(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+
+		VkDeviceSize deviceSize;
+		vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &m_vertexBuffer.buffer, &deviceSize);
+		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+		vkCmdDrawIndexed(m_drawCmdBuffers[i], 3, 1, 0, 0, 0);
+
+		vkCmdEndRenderPass(m_drawCmdBuffers[i]);
+
+		CHECK_VK_ERROR(vkEndCommandBuffer(m_drawCmdBuffers[i]));
+	}
 }
