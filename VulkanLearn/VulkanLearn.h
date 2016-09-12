@@ -60,7 +60,10 @@ public:
 	void InitVertices();
 	void InitUniforms();
 	void InitDescriptorSetLayout();
+	void InitPipelineCache();
 	void InitPipeline();
+	void InitDescriptorPool();
+	void InitDescriptorSet();
 
 	void Update();
 
@@ -129,6 +132,10 @@ protected:
 	VkPipelineLayout					m_pipelineLayout;
 
 	VkPipeline							m_pipeline;
+	VkPipelineCache						m_pipelineCache;
+
+	VkDescriptorPool					m_descriptorPool;
+	VkDescriptorSet						m_descriptorSet;
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;

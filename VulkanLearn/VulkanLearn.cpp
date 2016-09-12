@@ -1002,6 +1002,13 @@ void VulkanInstance::InitDescriptorSetLayout()
 	CHECK_VK_ERROR(vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout));
 }
 
+void VulkanInstance::InitPipelineCache()
+{
+	VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
+	pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+	CHECK_VK_ERROR(vkCreatePipelineCache(m_device, &pipelineCacheCreateInfo, nullptr, &m_pipelineCache));
+}
+
 void VulkanInstance::InitPipeline()
 {
 	VkPipelineColorBlendAttachmentState blendState = {};
@@ -1018,7 +1025,7 @@ void VulkanInstance::InitPipeline()
 
 	VkPipelineColorBlendStateCreateInfo blendStateInfo = {};
 	blendStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	blendStateInfo.logicOpEnable = VK_TRUE;
+	blendStateInfo.logicOpEnable = VK_FALSE;
 	blendStateInfo.attachmentCount = 1;
 	blendStateInfo.pAttachments = &blendState;
 
@@ -1046,13 +1053,12 @@ void VulkanInstance::InitPipeline()
 	rsCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 	rsCreateInfo.depthBiasEnable = VK_FALSE;
 
-	VkViewport viewPort = {0, 0, 128, 128, 0, 1};
 	VkPipelineViewportStateCreateInfo vpCreateInfo = {};
 	vpCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	vpCreateInfo.viewportCount = 1;
 	vpCreateInfo.pScissors = nullptr;
-	vpCreateInfo.scissorCount = 0;
-	vpCreateInfo.pViewports = &viewPort;
+	vpCreateInfo.scissorCount = 1;
+	vpCreateInfo.pViewports = nullptr;
 
 	std::vector<VkDynamicState> dynamicStates =
 	{
@@ -1075,20 +1081,40 @@ void VulkanInstance::InitPipeline()
 	pipelineInfo.pViewportState = &vpCreateInfo;
 	pipelineInfo.pDynamicState = &dynamicStateCreateInfo;
 	pipelineInfo.renderPass = m_renderpass;
+	pipelineInfo.layout = m_pipelineLayout;
+
+	VkShaderModule vertex_module = InitShaderModule("data/shaders/simple.vert.spv");
+	VkShaderModule fragment_module = InitShaderModule("data/shaders/simple.frag.spv");
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
+	shaderStages[0] = shaderStages[1] = {};
 	shaderStages[0].sType = shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+
 	shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
 	shaderStages[0].pName = "main";
-	pipelineInfo.stageCount = 2;
+	shaderStages[0].module = vertex_module;
 
-	VkShaderModule module = InitShaderModule("data/shaders/simple.vert.spv");
+	shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	shaderStages[1].pName = "main";
+	shaderStages[1].module = fragment_module;
+
+	pipelineInfo.stageCount = shaderStages.size();
+	pipelineInfo.pStages = shaderStages.data();
+
+	VkPipelineVertexInputStateCreateInfo vertexCreateInfo = {};
+	vertexCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vertexCreateInfo.vertexBindingDescriptionCount = 1;
+	vertexCreateInfo.pVertexBindingDescriptions = &m_vertexBuffer.bindingDesc;
+	vertexCreateInfo.vertexAttributeDescriptionCount = m_vertexBuffer.attribDesc.size();
+	vertexCreateInfo.pVertexAttributeDescriptions = m_vertexBuffer.attribDesc.data();
+	pipelineInfo.pVertexInputState = &vertexCreateInfo;
+
+	CHECK_VK_ERROR(vkCreateGraphicsPipelines(m_device, m_pipelineCache, 1, &pipelineInfo, nullptr, &m_pipeline));
 }
 
 VkShaderModule VulkanInstance::InitShaderModule(const char* shaderPath)
 {
 	std::ifstream ifs;
-	//ifs.open("data/shaders/simple.vert.spv", std::ios::binary);
 	ifs.open(shaderPath, std::ios::binary);
 	assert(ifs.good());
 	std::vector<char> buffer;
@@ -1101,4 +1127,53 @@ VkShaderModule VulkanInstance::InitShaderModule(const char* shaderPath)
 	shaderModuleCreateInfo.pCode = (uint32_t*)buffer.data();
 	CHECK_VK_ERROR(vkCreateShaderModule(m_device, &shaderModuleCreateInfo, nullptr, &module));
 	return module;
+}
+
+void VulkanInstance::InitDescriptorPool()
+{
+	VkDescriptorPoolSize descPoolSize = {};
+	descPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	descPoolSize.descriptorCount = 3;
+
+	VkDescriptorPoolCreateInfo descPoolInfo = {};
+	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	descPoolInfo.pPoolSizes = &descPoolSize;
+	descPoolInfo.poolSizeCount = 1;
+	descPoolInfo.maxSets = 12;
+
+	CHECK_VK_ERROR(vkCreateDescriptorPool(m_device, &descPoolInfo, nullptr, &m_descriptorPool));
+}
+
+void VulkanInstance::InitDescriptorSet()
+{
+	VkDescriptorSetAllocateInfo descAllocInfo = {};
+	descAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	descAllocInfo.descriptorPool = m_descriptorPool;
+	descAllocInfo.descriptorSetCount = 1;
+	descAllocInfo.pSetLayouts = &m_descriptorSetLayout;
+
+	CHECK_VK_ERROR(vkAllocateDescriptorSets(m_device, &descAllocInfo, &m_descriptorSet));
+
+	std::vector<VkWriteDescriptorSet> writeDescSet;
+	writeDescSet.resize(3);
+
+	writeDescSet[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeDescSet[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	writeDescSet[0].dstBinding = 0;
+	writeDescSet[0].dstSet = m_descriptorSet;
+	writeDescSet[0].pBufferInfo = &m_mvp.modelDescriptor;
+
+	writeDescSet[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeDescSet[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	writeDescSet[1].dstBinding = 1;
+	writeDescSet[1].dstSet = m_descriptorSet;
+	writeDescSet[1].pBufferInfo = &m_mvp.viewDescriptor;
+
+	writeDescSet[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeDescSet[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	writeDescSet[2].dstBinding = 2;
+	writeDescSet[2].dstSet = m_descriptorSet;
+	writeDescSet[2].pBufferInfo = &m_mvp.projDescriptor;
+
+	vkUpdateDescriptorSets(m_device, writeDescSet.size(), writeDescSet.data(), 0, nullptr);
 }

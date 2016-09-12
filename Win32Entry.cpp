@@ -33,7 +33,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 	vulkanInst.InitVertices();
 	vulkanInst.InitUniforms();
 	vulkanInst.InitDescriptorSetLayout();
+	vulkanInst.InitPipelineCache();
 	vulkanInst.InitPipeline();
+	vulkanInst.InitDescriptorPool();
+	vulkanInst.InitDescriptorSet();
 
 	vulkanInst.Update();
 }
