@@ -65,6 +65,7 @@ public:
 	void InitDescriptorSet();
 	void InitDrawCmdBuffers();
 	void InitSemaphore();
+	void EndSetup();
 
 	void Draw();
 	void Update();

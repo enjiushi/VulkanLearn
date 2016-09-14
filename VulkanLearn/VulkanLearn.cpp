@@ -467,7 +467,7 @@ void VulkanInstance::InitSwapchainImgs()
 		imageBarrier.srcAccessMask = 0;
 		imageBarrier.dstAccessMask = 0;
 		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		imageBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier.image = m_swapchainImg.images[i];
@@ -1225,6 +1225,24 @@ void VulkanInstance::InitSemaphore()
 	CHECK_VK_ERROR(vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderDone));
 }
 
+void VulkanInstance::EndSetup()
+{
+	if (m_setupCommandBuffer == nullptr)
+		return;
+
+	CHECK_VK_ERROR(vkEndCommandBuffer(m_setupCommandBuffer));
+
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &m_setupCommandBuffer;
+
+	CHECK_VK_ERROR(vkQueueSubmit(m_queue, 1, &submitInfo, nullptr));
+	vkQueueWaitIdle(m_queue);
+
+	vkFreeCommandBuffers(m_device, m_commandPool, 1, &m_setupCommandBuffer);
+}
+
 void VulkanInstance::Draw()
 {
 	m_fpAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_swapchainAcquireDone, nullptr, &m_currentBufferIndex);
@@ -1242,6 +1260,8 @@ void VulkanInstance::Draw()
 	submitInfo.pSignalSemaphores = &m_renderDone;
 
 	vkQueueSubmit(m_queue, 1, &submitInfo, nullptr);
+
+	vkDeviceWaitIdle(m_device);
 
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

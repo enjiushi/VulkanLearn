@@ -40,6 +40,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 	vulkanInst.InitDescriptorSet();
 	vulkanInst.InitDrawCmdBuffers();
 	vulkanInst.InitSemaphore();
+	vulkanInst.EndSetup();
 
 	vulkanInst.Update();
 }
