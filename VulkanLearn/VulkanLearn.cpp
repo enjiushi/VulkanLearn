@@ -283,6 +283,11 @@ void VulkanInstance::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 #endif
 
+void VulkanInstance::InitQueue()
+{
+	vkGetDeviceQueue(m_device, m_graphicQueueIndex, 0, &m_queue);
+}
+
 void VulkanInstance::InitSurface()
 {
 #if defined (_WIN32)
@@ -405,7 +410,7 @@ void VulkanInstance::Update()
 				DispatchMessage(&msg);
 			}
 		}
-		//render();
+		Draw();
 		frameCount++;
 		auto tEnd = std::chrono::high_resolution_clock::now();
 		auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
@@ -1210,4 +1215,40 @@ void VulkanInstance::InitDrawCmdBuffers()
 
 		CHECK_VK_ERROR(vkEndCommandBuffer(m_drawCmdBuffers[i]));
 	}
+}
+
+void VulkanInstance::InitSemaphore()
+{
+	VkSemaphoreCreateInfo semaphoreInfo = {};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	CHECK_VK_ERROR(vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_swapchainAcquireDone));
+	CHECK_VK_ERROR(vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderDone));
+}
+
+void VulkanInstance::Draw()
+{
+	m_fpAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_swapchainAcquireDone, nullptr, &m_currentBufferIndex);
+
+	VkPipelineStageFlags flag = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &m_drawCmdBuffers[m_currentBufferIndex];
+	submitInfo.pWaitDstStageMask = &flag;
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = &m_swapchainAcquireDone;
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = &m_renderDone;
+
+	vkQueueSubmit(m_queue, 1, &submitInfo, nullptr);
+
+	VkPresentInfoKHR presentInfo = {};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = &m_swapchain;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = &m_renderDone;
+	presentInfo.pImageIndices = &m_currentBufferIndex;
+	m_fpQueuePresentKHR(m_queue, &presentInfo);
 }

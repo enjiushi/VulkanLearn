@@ -9,6 +9,8 @@
 #define EXTENSION_VULKAN_SWAPCHAIN "VK_KHR_swapchain"
 #define PROJECT_NAME "VulkanLearn"
 
+#define UINT64_MAX       0xffffffffffffffffui64
+
 #if defined(_WIN32)
 #if defined(_DEBUG)
 #define CHECK_VK_ERROR(vkExpress) { \

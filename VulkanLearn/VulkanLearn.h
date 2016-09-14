@@ -42,6 +42,7 @@ public:
 	void InitVulkanInstance();
 	void InitPhysicalDevice();
 	void InitVulkanDevice();
+	void InitQueue();
 #if defined(_WIN32)
 	void SetupWindow(HINSTANCE hInstance, WNDPROC wndproc);
 	void HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -63,7 +64,9 @@ public:
 	void InitDescriptorPool();
 	void InitDescriptorSet();
 	void InitDrawCmdBuffers();
+	void InitSemaphore();
 
+	void Draw();
 	void Update();
 
 	VkShaderModule InitShaderModule(const char* shaderPath);
@@ -88,6 +91,8 @@ protected:
 	uint32_t							m_presentQueueIndex;
 	
 	std::vector<VkQueueFamilyProperties>	m_queueProperties;
+
+	VkQueue								m_queue;
 
 	PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR	m_fpGetPhysicalDeviceSurfaceCapabilitiesKHR;
 	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR		m_fpGetPhysicalDeviceSurfaceFormatsKHR;
@@ -137,6 +142,11 @@ protected:
 	VkDescriptorSet						m_descriptorSet;
 
 	std::vector<VkCommandBuffer>		m_drawCmdBuffers;
+
+	VkSemaphore							m_swapchainAcquireDone;
+	VkSemaphore							m_renderDone;
+
+	uint32_t							m_currentBufferIndex = 0;
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;

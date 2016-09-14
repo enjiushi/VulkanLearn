@@ -23,6 +23,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 	vulkanInst.SetupWindow(hInstance, WndProc);
 	vulkanInst.InitSurface();
 	vulkanInst.InitSwapchain();
+	vulkanInst.InitQueue();
 
 	vulkanInst.InitCommandPool();
 	vulkanInst.InitSetupCommandBuffer();
@@ -38,6 +39,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 	vulkanInst.InitDescriptorPool();
 	vulkanInst.InitDescriptorSet();
 	vulkanInst.InitDrawCmdBuffers();
+	vulkanInst.InitSemaphore();
 
 	vulkanInst.Update();
 }
