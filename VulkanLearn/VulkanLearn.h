@@ -143,6 +143,8 @@ protected:
 	VkDescriptorSet						m_descriptorSet;
 
 	std::vector<VkCommandBuffer>		m_drawCmdBuffers;
+	VkCommandBuffer						m_prePresentCmdBuffer;
+	VkCommandBuffer						m_postPresentCmdBuffer;
 
 	VkSemaphore							m_swapchainAcquireDone;
 	VkSemaphore							m_renderDone;

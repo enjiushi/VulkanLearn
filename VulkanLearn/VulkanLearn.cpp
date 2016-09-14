@@ -446,6 +446,8 @@ void VulkanInstance::InitSetupCommandBuffer()
 	commandBufferAllocateInfo.commandBufferCount = 1;
 
 	CHECK_VK_ERROR(vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, &m_setupCommandBuffer));
+	CHECK_VK_ERROR(vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, &m_prePresentCmdBuffer));
+	CHECK_VK_ERROR(vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, &m_postPresentCmdBuffer));
 
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1246,6 +1248,41 @@ void VulkanInstance::EndSetup()
 void VulkanInstance::Draw()
 {
 	m_fpAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_swapchainAcquireDone, nullptr, &m_currentBufferIndex);
+
+	/*VkCommandBufferBeginInfo cmdBufInfo = {};
+	cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+	CHECK_VK_ERROR(vkBeginCommandBuffer(m_postPresentCmdBuffer, &cmdBufInfo));
+
+	VkImageMemoryBarrier postPresentBarrier = vkTools::initializers::imageMemoryBarrier();
+	postPresentBarrier.srcAccessMask = 0;
+	postPresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	postPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	postPresentBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	postPresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	postPresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	postPresentBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+	postPresentBarrier.image = image;
+
+	vkCmdPipelineBarrier(
+		postPresentCmdBuffer,
+		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		0,
+		0, nullptr, // No memory barriers,
+		0, nullptr, // No buffer barriers,
+		1, &postPresentBarrier);
+
+	vkRes = vkEndCommandBuffer(postPresentCmdBuffer);
+	assert(!vkRes);
+
+	VkSubmitInfo submitInfo = vkTools::initializers::submitInfo();
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &postPresentCmdBuffer;
+
+	vkRes = vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+	assert(!vkRes);*/
+
 
 	VkPipelineStageFlags flag = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
