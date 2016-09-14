@@ -33,9 +33,7 @@ typedef struct _mvp
 	float	view[16];
 	float	projection[16];
 
-	VkDescriptorBufferInfo modelDescriptor;
-	VkDescriptorBufferInfo viewDescriptor;
-	VkDescriptorBufferInfo projDescriptor;
+	VkDescriptorBufferInfo mvpDescriptor;
 }MVP;
 
 class VulkanInstance

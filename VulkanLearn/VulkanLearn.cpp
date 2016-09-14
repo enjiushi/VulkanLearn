@@ -930,17 +930,9 @@ void VulkanInstance::InitUniforms()
 	memcpy(pData, &m_mvp, sizeof(MVP));
 	vkUnmapMemory(m_device, m_uniformBuffer.memory);
 
-	m_mvp.modelDescriptor.buffer = m_uniformBuffer.buffer;
-	m_mvp.modelDescriptor.offset = 0;
-	m_mvp.modelDescriptor.range = sizeof(m_mvp.model);
-
-	m_mvp.viewDescriptor.buffer = m_uniformBuffer.buffer;
-	m_mvp.viewDescriptor.offset = m_mvp.modelDescriptor.offset + m_mvp.modelDescriptor.range;
-	m_mvp.viewDescriptor.range = sizeof(m_mvp.view);
-
-	m_mvp.projDescriptor.buffer = m_uniformBuffer.buffer;
-	m_mvp.projDescriptor.offset = m_mvp.viewDescriptor.offset + m_mvp.viewDescriptor.range;
-	m_mvp.projDescriptor.range = sizeof(m_mvp.projection);
+	m_mvp.mvpDescriptor.buffer = m_uniformBuffer.buffer;
+	m_mvp.mvpDescriptor.offset = 0;
+	m_mvp.mvpDescriptor.range = sizeof(m_mvp.model) + sizeof(m_mvp.view) + sizeof(m_mvp.projection);
 
 	//Setup a barrier to let shader know its latest updated information in buffer
 	VkBufferMemoryBarrier barrier = {};
@@ -971,22 +963,6 @@ void VulkanInstance::InitDescriptorSetLayout()
 			VK_SHADER_STAGE_VERTEX_BIT,
 			nullptr
 		},
-
-		{
-			1,	//binding
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	//type
-			1,
-			VK_SHADER_STAGE_VERTEX_BIT,
-			nullptr
-		},
-
-		{
-			2,	//binding
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	//type
-			1,
-			VK_SHADER_STAGE_VERTEX_BIT,
-			nullptr
-		}
 	};
 
 	VkDescriptorSetLayoutCreateInfo dslayoutInfo = {};
@@ -1155,28 +1131,14 @@ void VulkanInstance::InitDescriptorSet()
 	CHECK_VK_ERROR(vkAllocateDescriptorSets(m_device, &descAllocInfo, &m_descriptorSet));
 
 	std::vector<VkWriteDescriptorSet> writeDescSet;
-	writeDescSet.resize(3);
+	writeDescSet.resize(1);
 
 	writeDescSet[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	writeDescSet[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	writeDescSet[0].dstBinding = 0;
 	writeDescSet[0].dstSet = m_descriptorSet;
-	writeDescSet[0].pBufferInfo = &m_mvp.modelDescriptor;
+	writeDescSet[0].pBufferInfo = &m_mvp.mvpDescriptor;
 	writeDescSet[0].descriptorCount = 1;
-
-	writeDescSet[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writeDescSet[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	writeDescSet[1].dstBinding = 1;
-	writeDescSet[1].dstSet = m_descriptorSet;
-	writeDescSet[1].pBufferInfo = &m_mvp.viewDescriptor;
-	writeDescSet[1].descriptorCount = 1;
-
-	writeDescSet[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writeDescSet[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	writeDescSet[2].dstBinding = 2;
-	writeDescSet[2].dstSet = m_descriptorSet;
-	writeDescSet[2].pBufferInfo = &m_mvp.projDescriptor;
-	writeDescSet[2].descriptorCount = 1;
 
 	//vkUpdateDescriptorSets(m_device, 1, &writeDescSet[0], 0, nullptr);
 	vkUpdateDescriptorSets(m_device, writeDescSet.size(), writeDescSet.data(), 0, nullptr);
