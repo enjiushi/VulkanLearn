@@ -1190,8 +1190,8 @@ void VulkanInstance::InitDrawCmdBuffers()
 
 		vkCmdBindPipeline(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
-		VkDeviceSize deviceSize;
-		vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &m_vertexBuffer.buffer, &deviceSize);
+		VkDeviceSize deviceSize[1] = { 0 };
+		vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &m_vertexBuffer.buffer, deviceSize);
 		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
 		vkCmdDrawIndexed(m_drawCmdBuffers[i], 3, 1, 0, 0, 0);
