@@ -462,23 +462,6 @@ void VulkanInstance::InitSwapchainImgs()
 	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_device, m_swapchain, &count, nullptr));
 	ASSERTION(count == m_swapchainImgCount);
 	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_device, m_swapchain, &count, m_swapchainImg.images.data()));
-	
-	for (uint32_t i = 0; i < m_swapchainImgCount; i++)
-	{
-		VkImageMemoryBarrier imageBarrier = {};
-		imageBarrier.srcAccessMask = 0;
-		imageBarrier.dstAccessMask = 0;
-		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier.image = m_swapchainImg.images[i];
-		imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		imageBarrier.subresourceRange.baseMipLevel = 0;
-		imageBarrier.subresourceRange.levelCount = 1;
-		imageBarrier.subresourceRange.baseArrayLayer = 0;
-		imageBarrier.subresourceRange.layerCount = 1;
-	}
 
 	for (uint32_t i = 0; i < m_swapchainImgCount; i++)
 	{
@@ -508,7 +491,7 @@ void VulkanInstance::InitSwapchainImgs()
 		imageBarrier.srcAccessMask = 0;
 		imageBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 		imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier.image = m_swapchainImg.images[i];
@@ -617,7 +600,7 @@ void VulkanInstance::InitDepthStencil()
 void VulkanInstance::InitRenderpass()
 {
 	std::vector<VkAttachmentDescription> attachmentDescs(2);
-	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	attachmentDescs[0].format = m_surfaceFormat.format;
 	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -1247,42 +1230,7 @@ void VulkanInstance::EndSetup()
 
 void VulkanInstance::Draw()
 {
-	m_fpAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_swapchainAcquireDone, nullptr, &m_currentBufferIndex);
-
-	/*VkCommandBufferBeginInfo cmdBufInfo = {};
-	cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-	CHECK_VK_ERROR(vkBeginCommandBuffer(m_postPresentCmdBuffer, &cmdBufInfo));
-
-	VkImageMemoryBarrier postPresentBarrier = vkTools::initializers::imageMemoryBarrier();
-	postPresentBarrier.srcAccessMask = 0;
-	postPresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	postPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	postPresentBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	postPresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	postPresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	postPresentBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-	postPresentBarrier.image = image;
-
-	vkCmdPipelineBarrier(
-		postPresentCmdBuffer,
-		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		0,
-		0, nullptr, // No memory barriers,
-		0, nullptr, // No buffer barriers,
-		1, &postPresentBarrier);
-
-	vkRes = vkEndCommandBuffer(postPresentCmdBuffer);
-	assert(!vkRes);
-
-	VkSubmitInfo submitInfo = vkTools::initializers::submitInfo();
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &postPresentCmdBuffer;
-
-	vkRes = vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-	assert(!vkRes);*/
-
+	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_swapchainAcquireDone, nullptr, &m_currentBufferIndex));
 
 	VkPipelineStageFlags flag = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
