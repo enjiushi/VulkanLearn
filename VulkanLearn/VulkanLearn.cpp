@@ -669,9 +669,9 @@ void VulkanInstance::InitVertices()
 {
 	float vertices[] =
 	{
-		-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-		1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-		0.0, 1.0, 0.0, 1.0, 0.0, 0.0
+		-1.0, -1.0, 0.0,
+		1.0, -1.0, 0.0,
+		0.0, 1.0, 0.0
 	};
 
 	int32_t indices[] = { 0, 1, 2 };
@@ -862,19 +862,19 @@ void VulkanInstance::InitVertices()
 
 	//Binding and attributes information
 	m_vertexBuffer.bindingDesc.binding = 0;		//hard coded 0
-	m_vertexBuffer.bindingDesc.stride = sizeof(float) * 6;	//xyzrgb, all hard coded, mockup code, don't care, just for learning
+	m_vertexBuffer.bindingDesc.stride = sizeof(float) * 3;	//xyzrgb, all hard coded, mockup code, don't care, just for learning
 	m_vertexBuffer.bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-	m_vertexBuffer.attribDesc.resize(2);
+	m_vertexBuffer.attribDesc.resize(1);
 	m_vertexBuffer.attribDesc[0].binding = 0;
 	m_vertexBuffer.attribDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	m_vertexBuffer.attribDesc[0].location = 0;	//layout location 0 in shader
 	m_vertexBuffer.attribDesc[0].offset = 0;
-
+/*
 	m_vertexBuffer.attribDesc[1].binding = 0;
 	m_vertexBuffer.attribDesc[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 	m_vertexBuffer.attribDesc[1].location = 1;
-	m_vertexBuffer.attribDesc[1].offset = sizeof(float) * 3;	//after xyz
+	m_vertexBuffer.attribDesc[1].offset = sizeof(float) * 3;	//after xyz*/
 }
 
 void VulkanInstance::InitUniforms()
@@ -979,7 +979,7 @@ void VulkanInstance::InitPipeline()
 {
 	VkPipelineColorBlendAttachmentState blendState = {};
 	blendState.colorWriteMask = 0xf;
-	blendState.blendEnable = VK_TRUE;
+	blendState.blendEnable = VK_FALSE;
 
 	blendState.colorBlendOp = VK_BLEND_OP_ADD;
 	blendState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
@@ -999,7 +999,7 @@ void VulkanInstance::InitPipeline()
 	dsCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 	dsCreateInfo.depthTestEnable = VK_TRUE;
 	dsCreateInfo.depthWriteEnable = VK_TRUE;
-	dsCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+	dsCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 
 	VkPipelineInputAssemblyStateCreateInfo assCreateInfo = {};
 	assCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -1012,7 +1012,7 @@ void VulkanInstance::InitPipeline()
 	VkPipelineRasterizationStateCreateInfo rsCreateInfo = {};
 	rsCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rsCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-	rsCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	rsCreateInfo.cullMode = VK_CULL_MODE_NONE;
 	rsCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rsCreateInfo.lineWidth = 1.0f;
 	rsCreateInfo.depthClampEnable = VK_FALSE;
@@ -1049,8 +1049,8 @@ void VulkanInstance::InitPipeline()
 	pipelineInfo.renderPass = m_renderpass;
 	pipelineInfo.layout = m_pipelineLayout;
 
-	VkShaderModule vertex_module = InitShaderModule("data/shaders/simple.vert.spv");
-	VkShaderModule fragment_module = InitShaderModule("data/shaders/simple.frag.spv");
+	VkShaderModule vertex_module = InitShaderModule("data/shaders/simple_vert.spv");
+	VkShaderModule fragment_module = InitShaderModule("data/shaders/simple_frag.spv");
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
 	shaderStages[0] = shaderStages[1] = {};
@@ -1154,7 +1154,7 @@ void VulkanInstance::InitDrawCmdBuffers()
 		std::vector<VkClearValue> clearValues = 
 		{
 			{0.0f, 0.0f, 0.0f, 0.0f},
-			{0.0f, 0}
+			{1.0f, 0}
 		};
 
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -1246,8 +1246,6 @@ void VulkanInstance::Draw()
 
 	vkQueueSubmit(m_queue, 1, &submitInfo, nullptr);
 
-	vkDeviceWaitIdle(m_device);
-
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.swapchainCount = 1;
@@ -1256,4 +1254,6 @@ void VulkanInstance::Draw()
 	presentInfo.pWaitSemaphores = &m_renderDone;
 	presentInfo.pImageIndices = &m_currentBufferIndex;
 	m_fpQueuePresentKHR(m_queue, &presentInfo);
+
+	CHECK_VK_ERROR(vkQueueWaitIdle(m_queue));
 }
