@@ -1,14 +1,13 @@
-#include "stdafx.h"
 #include "MathUtil.h"
 
-GLboolean FloatCompare(GLfloat a1, GLfloat a2)
+bool FloatCompare(float a1, float a2)
 {
-	const static GLfloat eps = 10e-3f;
+	const static float eps = 10e-3f;
 	return a1 >= a2 - eps && a1 <= a2 + eps;
 }
 
-GLboolean FloatCompare(GLdouble a1, GLdouble a2)
+bool FloatCompare(double a1, double a2)
 {
-	const static GLdouble eps = 10e-3f;
+	const static double eps = 10e-3f;
 	return a1 >= a2 - eps && a1 <= a2 + eps;
 }
