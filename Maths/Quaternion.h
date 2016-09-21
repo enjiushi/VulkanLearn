@@ -1,7 +1,5 @@
 #pragma once
 
-#include <GL\glew.h>
-
 template<typename T>
 class Vector3;
 
@@ -22,8 +20,8 @@ public:
 
 	Matrix3x3<T> Matrix() const;
 
-	GLboolean operator == (const Quaternion<T>& q);
-	GLboolean operator != (const Quaternion<T>& q);
+	bool operator == (const Quaternion<T>& q);
+	bool operator != (const Quaternion<T>& q);
 	Quaternion<T> operator * (const Quaternion<T>& q);
 
 	Quaternion<T>& Normalize();
@@ -48,6 +46,6 @@ public:
 	};
 };
 
-typedef Quaternion<GLfloat> Quaternionf;
+typedef Quaternion<float> Quaternionf;
 
 #include "Quaternion.inl"

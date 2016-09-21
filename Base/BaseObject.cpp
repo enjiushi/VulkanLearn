@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "BaseObject.h"
 
 BaseObject::~BaseObject()
@@ -14,7 +13,7 @@ void BaseObject::AddComponent(BaseComponent* pComp)
 	pComp->SetObject(this);
 }
 
-void BaseObject::DelComponent(GLuint index)
+void BaseObject::DelComponent(uint32_t index)
 {
 	if (index < 0 || index >= m_components.size())
 		return;
@@ -22,7 +21,7 @@ void BaseObject::DelComponent(GLuint index)
 	m_components.erase(m_components.begin() + index);
 }
 
-BaseComponent* BaseObject::GetComponent(GLuint index)
+BaseComponent* BaseObject::GetComponent(uint32_t index)
 {
 	if (index < 0 || index >= m_components.size())
 		return nullptr;
@@ -37,7 +36,7 @@ void BaseObject::AddChild(BaseObject* pObj)
 	pObj->m_parent = this;
 }
 
-void BaseObject::DelChild(GLuint index)
+void BaseObject::DelChild(uint32_t index)
 {
 	if (index < 0 || index >= m_children.size())
 		return;
@@ -45,36 +44,36 @@ void BaseObject::DelChild(GLuint index)
 	m_children.erase(m_children.begin() + index);
 }
 
-BaseObject* BaseObject::GetChild(GLuint index)
+BaseObject* BaseObject::GetChild(uint32_t index)
 {
 	if (index < 0 || index >= m_children.size())
 		return nullptr;
 	return m_children[index];
 }
 
-GLboolean BaseObject::ContainComponent(const BaseComponent* pComp) const
+bool BaseObject::ContainComponent(const BaseComponent* pComp) const
 {
 	for (size_t i = 0; i < m_components.size(); i++)
 	{
 		if (m_components[i] == pComp)
-			return GL_TRUE;
+			return true;
 	}
-	return GL_FALSE;
+	return false;
 }
 
-GLboolean BaseObject::ContainObject(const BaseObject* pObj) const
+bool BaseObject::ContainObject(const BaseObject* pObj) const
 {
 	for (size_t i = 0; i < m_children.size(); i++)
 	{
 		if (m_children[i] == pObj)
-			return GL_TRUE;
+			return true;
 	}
-	return GL_FALSE;
+	return false;
 }
 
-void BaseObject::Update(GLfloat delta, GLboolean isParentDirty)
+void BaseObject::Update(float delta, bool isParentDirty)
 {
-	GLboolean isDirty = isParentDirty || m_isDirty;
+	bool isDirty = isParentDirty || m_isDirty;
 
 	UpdateLocalInfo();
 
@@ -90,21 +89,21 @@ void BaseObject::Update(GLfloat delta, GLboolean isParentDirty)
 	for (size_t i = 0; i < m_children.size(); i++)
 		m_children[i]->Update(delta, isDirty);
 
-	m_isDirty = GL_FALSE;
+	m_isDirty = false;
 }
 
 void BaseObject::SetRotation(const Matrix3f& m)
 {
 	m_localRotationM = m;
 	m_localRotationQ = Quaternionf(m);
-	m_isDirty = GL_TRUE;
+	m_isDirty = true;
 }
 
 void BaseObject::SetRotation(const Quaternionf& q)
 {
 	m_localRotationQ = q;
 	m_localRotationM = q.Matrix();
-	m_isDirty = GL_TRUE;
+	m_isDirty = true;
 }
 
 void BaseObject::UpdateLocalInfo()
@@ -134,7 +133,7 @@ void BaseObject::UpdateWorldInfo()
 	m_worldPosition = (parentWorldTransform * Vector4f(m_localPosition, 1.0f)).xyz();
 }
 
-void BaseObject::Rotate(const Vector3f& v, GLfloat angle)
+void BaseObject::Rotate(const Vector3f& v, float angle)
 {
 
 }

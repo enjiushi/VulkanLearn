@@ -114,13 +114,13 @@ Matrix3x3<T> Quaternion<T>::Matrix() const
 }
 
 template<typename T>
-GLboolean Quaternion<T>::operator == (const Quaternion<T>& q)
+bool Quaternion<T>::operator == (const Quaternion<T>& q)
 {
 	return w == q.w && x == q.x && y == q.y && z == q.z;
 }
 
 template<typename T>
-GLboolean Quaternion<T>::operator != (const Quaternion<T>& q)
+bool Quaternion<T>::operator != (const Quaternion<T>& q)
 {
 	return !(*this == q);
 }

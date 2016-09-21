@@ -1,7 +1,6 @@
 #pragma once
 
-#include "RefCounted.h"
-#include "GL\glew.h"
+#include "../common/AutoPTR.h"
 
 class Base : public RefCounted
 {
@@ -9,5 +8,5 @@ public:
 	Base() {}
 	virtual ~Base() = 0 {}
 
-	virtual GLboolean Init() { return GL_TRUE; }
+	virtual bool Init() { return true; }
 };

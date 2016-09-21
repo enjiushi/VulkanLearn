@@ -1,6 +1,6 @@
 #pragma once
 #include "Base.h"
-#include "AutoPTR.h"
+#include "../common/AutoPTR.h"
 
 class BaseObject;
 
@@ -10,13 +10,13 @@ public:
 	BaseComponent(void);
 	virtual ~BaseComponent(void) = 0;
 
-	virtual void Update(GLfloat delta, GLboolean isDirtr = GL_FALSE) {}
+	virtual void Update(float delta, bool isDirtr = false) {}
 
 	void SetObject(BaseObject* pObj) { m_object = pObj; }
 	const BaseObject* GetObject() const { return m_object; }
 
 protected:
-	GLboolean m_isDirty;
+	bool m_isDirty;
 
 	BaseObject* m_object;
 };

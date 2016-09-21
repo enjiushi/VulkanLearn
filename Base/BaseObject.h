@@ -1,11 +1,10 @@
 #pragma once
-#include "RefCounted.h"
-#include <GL\glew.h>
+#include "../common/RefCounted.h"
 #include <vector>
-#include "AutoPTR.h"
+#include "../common/AutoPTR.h"
 #include "BaseComponent.h"
-#include "Matrix.h"
-#include "Quaternion.h"
+#include "../Maths/Matrix.h"
+#include "../Maths/Quaternion.h"
 
 class BaseObject : public RefCounted
 {
@@ -15,30 +14,30 @@ public:
 
 public:
 	void AddComponent(BaseComponent* pComp);
-	void DelComponent(GLuint index);
-	BaseComponent* GetComponent(GLuint index);
+	void DelComponent(uint32_t index);
+	BaseComponent* GetComponent(uint32_t index);
 
 	void AddChild(BaseObject* pObj);
-	void DelChild(GLuint index);
-	BaseObject* GetChild(GLuint index);
+	void DelChild(uint32_t index);
+	BaseObject* GetChild(uint32_t index);
 
-	GLboolean ContainComponent(const BaseComponent* pComp) const;
-	GLboolean ContainObject(const BaseObject* pObj) const;
+	bool ContainComponent(const BaseComponent* pComp) const;
+	bool ContainObject(const BaseObject* pObj) const;
 
-	void SetPos(const Vector3f& v) { m_localPosition = v; m_isDirty = GL_TRUE; }
-	void SetPos(GLfloat x, GLfloat y, GLfloat z) { m_localPosition = Vector3f(x, y, z); m_isDirty = GL_TRUE; }
-	void SetPosX(GLfloat x) { m_localPosition.x = x; m_isDirty = GL_TRUE; }
-	void SetPosY(GLfloat y) { m_localPosition.y = y; m_isDirty = GL_TRUE; }
-	void SetPosZ(GLfloat z) { m_localPosition.z = z; m_isDirty = GL_TRUE; }
+	void SetPos(const Vector3f& v) { m_localPosition = v; m_isDirty = true; }
+	void SetPos(float x, float y, float z) { m_localPosition = Vector3f(x, y, z); m_isDirty = true; }
+	void SetPosX(float x) { m_localPosition.x = x; m_isDirty = true; }
+	void SetPosY(float y) { m_localPosition.y = y; m_isDirty = true; }
+	void SetPosZ(float z) { m_localPosition.z = z; m_isDirty = true; }
 
 	void SetRotation(const Matrix3f& m);
 	void SetRotation(const Quaternionf& q);
 
-	void Rotate(const Vector3f& v, GLfloat angle);
+	void Rotate(const Vector3f& v, float angle);
 
-	GLboolean IsDirty() const { return m_isDirty; }
+	bool IsDirty() const { return m_isDirty; }
 
-	virtual void Update(GLfloat delta, GLboolean isParentDirty = GL_FALSE);
+	virtual void Update(float delta, bool isParentDirty = false);
 
 	Vector3f GetLocalPosition() const { return m_localPosition; }
 	Vector3f GetWorldPosition() const { return m_worldPosition; }
@@ -74,5 +73,5 @@ protected:
 	Matrix3f	m_worldRotationM;
 	Quaternionf m_worldRotationQ;
 
-	GLboolean	m_isDirty;
+	bool		m_isDirty;
 };
