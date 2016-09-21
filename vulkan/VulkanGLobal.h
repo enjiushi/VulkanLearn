@@ -1,4 +1,4 @@
-#include "../base/BaseSingleton.h"
+#include "../common/Singleton.h"
 #include "vulkan.h"
 #include <vector>
 
