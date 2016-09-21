@@ -1,47 +1,42 @@
 #include <windows.h>
-#include "VulkanLearn/VulkanLearn.h"
-
-VulkanInstance* pVulkanInst;
+#include "vulkan\VulkanGLobal.h"
 
 #if defined(_WIN32)
 // Windows entry point
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	if (pVulkanInst)
-		pVulkanInst->HandleMsg(hWnd, uMsg, wParam, lParam);
+	VulkanGlobal::GetInstance()->HandleMsg(hWnd, uMsg, wParam, lParam);
 	return (DefWindowProc(hWnd, uMsg, wParam, lParam));
 }
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 #endif
 {
-	VulkanInstance vulkanInst;
-	pVulkanInst = &vulkanInst;
-	vulkanInst.InitVulkanInstance();
-	vulkanInst.InitPhysicalDevice();
-	vulkanInst.InitVulkanDevice();
-	vulkanInst.SetupWindow(hInstance, WndProc);
-	vulkanInst.InitSurface();
-	vulkanInst.InitSwapchain();
-	vulkanInst.InitQueue();
+	VulkanGlobal::GetInstance()->InitVulkanInstance();
+	VulkanGlobal::GetInstance()->InitPhysicalDevice();
+	VulkanGlobal::GetInstance()->InitVulkanDevice();
+	VulkanGlobal::GetInstance()->SetupWindow(hInstance, WndProc);
+	VulkanGlobal::GetInstance()->InitSurface();
+	VulkanGlobal::GetInstance()->InitSwapchain();
+	VulkanGlobal::GetInstance()->InitQueue();
 
-	vulkanInst.InitCommandPool();
-	vulkanInst.InitSetupCommandBuffer();
-	vulkanInst.InitSwapchainImgs();
-	vulkanInst.InitDepthStencil();
-	vulkanInst.InitRenderpass();
-	vulkanInst.InitFrameBuffer();
-	vulkanInst.InitVertices();
-	vulkanInst.InitUniforms();
-	vulkanInst.InitDescriptorSetLayout();
-	vulkanInst.InitPipelineCache();
-	vulkanInst.InitPipeline();
-	vulkanInst.InitDescriptorPool();
-	vulkanInst.InitDescriptorSet();
-	vulkanInst.InitDrawCmdBuffers();
-	vulkanInst.InitSemaphore();
-	vulkanInst.EndSetup();
+	VulkanGlobal::GetInstance()->InitCommandPool();
+	VulkanGlobal::GetInstance()->InitSetupCommandBuffer();
+	VulkanGlobal::GetInstance()->InitSwapchainImgs();
+	VulkanGlobal::GetInstance()->InitDepthStencil();
+	VulkanGlobal::GetInstance()->InitRenderpass();
+	VulkanGlobal::GetInstance()->InitFrameBuffer();
+	VulkanGlobal::GetInstance()->InitVertices();
+	VulkanGlobal::GetInstance()->InitUniforms();
+	VulkanGlobal::GetInstance()->InitDescriptorSetLayout();
+	VulkanGlobal::GetInstance()->InitPipelineCache();
+	VulkanGlobal::GetInstance()->InitPipeline();
+	VulkanGlobal::GetInstance()->InitDescriptorPool();
+	VulkanGlobal::GetInstance()->InitDescriptorSet();
+	VulkanGlobal::GetInstance()->InitDrawCmdBuffers();
+	VulkanGlobal::GetInstance()->InitSemaphore();
+	VulkanGlobal::GetInstance()->EndSetup();
 
-	vulkanInst.Update();
+	VulkanGlobal::GetInstance()->Update();
 }
 
