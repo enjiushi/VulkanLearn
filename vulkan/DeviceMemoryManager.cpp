@@ -8,6 +8,12 @@ DeviceMemoryManager::~DeviceMemoryManager()
 bool DeviceMemoryManager::AllocateMemory(uint32_t byteSize)
 {
 	ReleaseMemory();
+
+	VkMemoryAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = byteSize;
+
+	return true;
 }
 
 void DeviceMemoryManager::ReleaseMemory()

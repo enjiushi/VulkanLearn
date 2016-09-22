@@ -6,17 +6,6 @@
 #include <fstream>
 #include <array>
 
-VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT flags,
-	VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location,
-	int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData) {
-
-	OutputDebugStringA(pLayerPrefix);
-	OutputDebugStringA(" ");
-	OutputDebugStringA(pMessage);
-	OutputDebugStringA("\n");
-	return VK_FALSE;
-}
-
 void VulkanGlobal::InitVulkanInstance()
 {
 	VkApplicationInfo appInfo = {};
@@ -42,38 +31,19 @@ void VulkanGlobal::InitVulkanInstance()
 	instCreateInfo.enabledLayerCount = (int32_t)layers.size();
 	instCreateInfo.ppEnabledLayerNames = layers.data();
 
-	CHECK_VK_ERROR(vkCreateInstance(&instCreateInfo, nullptr, &m_vulkanInst));
-
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, CreateDebugReportCallbackEXT);
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, DebugReportMessageEXT);
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, DestroyDebugReportCallbackEXT);
-
-	VkDebugReportCallbackCreateInfoEXT callbackCreateInfo = {};
-	callbackCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
-	callbackCreateInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT |
-		VK_DEBUG_REPORT_WARNING_BIT_EXT |
-		VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-	callbackCreateInfo.pfnCallback = &MyDebugReportCallback;
-	callbackCreateInfo.pUserData = NULL;
-
-	VkResult res = m_fpCreateDebugReportCallbackEXT(m_vulkanInst, &callbackCreateInfo, NULL, &m_debugCallback);
-	ASSERTION(res == VK_SUCCESS);
-
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceCapabilitiesKHR);
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceFormatsKHR);
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfacePresentModesKHR);
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceSupportKHR);
+	m_vulkanInst = VulkanInstance::CreateVulkanInstance(instCreateInfo);
+	assert(m_vulkanInst != nullptr);
 }
 
 void VulkanGlobal::InitPhysicalDevice()
 {
 	//Get an available physical device
 	uint32_t gpuCount = 0;
-	vkEnumeratePhysicalDevices(m_vulkanInst, &gpuCount, nullptr);
+	vkEnumeratePhysicalDevices(m_vulkanInst->GetDeviceHandle(), &gpuCount, nullptr);
 	ASSERTION(gpuCount > 0);
 	std::vector<VkPhysicalDevice> physicalDevices;
 	physicalDevices.resize(gpuCount);
-	vkEnumeratePhysicalDevices(m_vulkanInst, &gpuCount, physicalDevices.data());
+	vkEnumeratePhysicalDevices(m_vulkanInst->GetDeviceHandle(), &gpuCount, physicalDevices.data());
 	m_physicalDevice = physicalDevices[0];
 
 	//Get queue properties from physical device
@@ -296,7 +266,7 @@ void VulkanGlobal::InitSurface()
 	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 	surfaceCreateInfo.hinstance = (HINSTANCE)m_hPlatformInst;
 	surfaceCreateInfo.hwnd = (HWND)m_hWindow;
-	CHECK_VK_ERROR(vkCreateWin32SurfaceKHR(m_vulkanInst, &surfaceCreateInfo, nullptr, &m_surface));
+	CHECK_VK_ERROR(vkCreateWin32SurfaceKHR(m_vulkanInst->GetDeviceHandle(), &surfaceCreateInfo, nullptr, &m_surface));
 #endif
 
 	//Get all queues information whether they support presentation or not
@@ -1257,4 +1227,32 @@ void VulkanGlobal::Draw()
 	m_fpQueuePresentKHR(m_queue, &presentInfo);
 
 	CHECK_VK_ERROR(vkQueueWaitIdle(m_queue));
+}
+
+void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
+{
+	InitVulkanInstance();
+	InitPhysicalDevice();
+	InitVulkanDevice();
+	SetupWindow(hInstance, wndproc);
+	InitSurface();
+	InitSwapchain();
+	InitQueue();
+
+	InitCommandPool();
+	InitSetupCommandBuffer();
+	InitSwapchainImgs();
+	InitDepthStencil();
+	InitRenderpass();
+	InitFrameBuffer();
+	InitVertices();
+	InitUniforms();
+	InitDescriptorSetLayout();
+	InitPipelineCache();
+	InitPipeline();
+	InitDescriptorPool();
+	InitDescriptorSet();
+	InitDrawCmdBuffers();
+	InitSemaphore();
+	EndSetup();
 }

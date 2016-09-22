@@ -2,6 +2,8 @@
 #include <assert.h>
 #endif
 
+#include <iostream>
+
 #define EXTENSION_VULKAN_SURFACE "VK_KHR_surface"  
 #define EXTENSION_VULKAN_SURFACE_WIN32 "VK_KHR_win32_surface"
 #define EXTENSION_VULKAN_VALIDATION_LAYER "VK_LAYER_LUNARG_standard_validation"
@@ -17,6 +19,13 @@
 	VkResult result = vkExpress; \
 	assert(result == VK_SUCCESS); \
 	} 
+#define RETURN_FALSE_VK_RESULT(vkExpress) { \
+	VkResult result = vkExpress;	\
+	if (result != VK_SUCCESS)	{	\
+		std::cout << "Vulkan call failed, error code:" << result << std::endl;	\
+		return false;	\
+	}	\
+}	
 #define ASSERTION(express) assert(express);
 #else
 #define CHECK_ERROR(vkExpress) vkExpress;
@@ -41,3 +50,5 @@
         exit(1);                                                        \
     }                                                                   \
 }
+
+#define SAFE_DELETE(x) if (x) { delete x; x = nullptr; }

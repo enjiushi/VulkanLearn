@@ -11,7 +11,6 @@ public:
 			return instance;
 
 		instance = new T;
-		instance->Init();
 		return instance;
 	}
 

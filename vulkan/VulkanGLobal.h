@@ -1,5 +1,6 @@
 #include "../common/Singleton.h"
 #include "vulkan.h"
+#include "VulkanInstance.h"
 #include <vector>
 
 typedef struct _swapchainImg
@@ -40,6 +41,9 @@ typedef struct _buffer
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
 public:
+#if defined(_WIN32)
+	void Init(HINSTANCE hInstance, WNDPROC wndproc);
+#endif
 	void InitVulkanInstance();
 	void InitPhysicalDevice();
 	void InitVulkanDevice();
@@ -78,7 +82,7 @@ public:
 	static const uint32_t				WINDOW_HEIGHT = 768;
 
 protected:
-	VkInstance							m_vulkanInst;
+	AutoPTR<VulkanInstance>				m_vulkanInst;
 	VkSurfaceKHR						m_surface;
 
 	VkPhysicalDevice					m_physicalDevice;
@@ -95,16 +99,6 @@ protected:
 	std::vector<VkQueueFamilyProperties>	m_queueProperties;
 
 	VkQueue								m_queue;
-
-	PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR	m_fpGetPhysicalDeviceSurfaceCapabilitiesKHR;
-	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR		m_fpGetPhysicalDeviceSurfaceFormatsKHR;
-	PFN_vkGetPhysicalDeviceSurfacePresentModesKHR	m_fpGetPhysicalDeviceSurfacePresentModesKHR;
-	PFN_vkGetPhysicalDeviceSurfaceSupportKHR		m_fpGetPhysicalDeviceSurfaceSupportKHR;
-
-	PFN_vkCreateDebugReportCallbackEXT				m_fpCreateDebugReportCallbackEXT;
-	PFN_vkDebugReportMessageEXT						m_fpDebugReportMessageEXT;
-	PFN_vkDestroyDebugReportCallbackEXT				m_fpDestroyDebugReportCallbackEXT;
-	VkDebugReportCallbackEXT						m_debugCallback;
 
 	PFN_vkCreateSwapchainKHR						m_fpCreateSwapchainKHR;
 	PFN_vkDestroySwapchainKHR						m_fpDestroySwapchainKHR;
