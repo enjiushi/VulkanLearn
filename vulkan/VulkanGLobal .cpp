@@ -37,58 +37,18 @@ void VulkanGlobal::InitVulkanInstance()
 
 void VulkanGlobal::InitPhysicalDevice()
 {
-	//Get an available physical device
-	uint32_t gpuCount = 0;
-	vkEnumeratePhysicalDevices(m_vulkanInst->GetDeviceHandle(), &gpuCount, nullptr);
-	ASSERTION(gpuCount > 0);
-	std::vector<VkPhysicalDevice> physicalDevices;
-	physicalDevices.resize(gpuCount);
-	vkEnumeratePhysicalDevices(m_vulkanInst->GetDeviceHandle(), &gpuCount, physicalDevices.data());
-	m_physicalDevice = physicalDevices[0];
-
-	//Get queue properties from physical device
-	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(m_physicalDevice, &queueFamilyCount, nullptr);
-	ASSERTION(queueFamilyCount > 0);
-	m_queueProperties.resize(queueFamilyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(m_physicalDevice, &queueFamilyCount, m_queueProperties.data());
-
-	//Get physical device properties
-	vkGetPhysicalDeviceProperties(m_physicalDevice, &m_physicalDeviceProperties);
-	vkGetPhysicalDeviceFeatures(m_physicalDevice, &m_physicalDeviceFeatures);
-	vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &m_physicalDeviceMemoryProperties);
-
-	//Get depth stencil format
-	std::vector<VkFormat> formats =
-	{
-		VK_FORMAT_D32_SFLOAT_S8_UINT,
-		VK_FORMAT_D32_SFLOAT,
-		VK_FORMAT_D24_UNORM_S8_UINT,
-		VK_FORMAT_D16_UNORM_S8_UINT,
-		VK_FORMAT_D16_UNORM
-	};
-
-	for (uint32_t i = 0; i < formats.size(); i++)
-	{
-		VkFormatProperties prop;
-		vkGetPhysicalDeviceFormatProperties(m_physicalDevice, formats[i], &prop);
-		if (prop.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
-		{
-			m_depthStencil.format = formats[i];
-			break;
-		}
-	}
+	m_physicalDevice = PhysicalDevice::AcquirePhysicalDevice(m_vulkanInst);
 }
 
 void VulkanGlobal::InitVulkanDevice()
 {
 	uint32_t queueIndex = 0;
-	for (; queueIndex < m_queueProperties.size(); queueIndex++)
+	for (; queueIndex < m_physicalDevice->GetQueueProperties().size(); queueIndex++)
 	{
-		if (m_queueProperties[queueIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		if (m_physicalDevice->GetQueueProperties()[queueIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT)
 			break;
 	}
-	ASSERTION(queueIndex < m_queueProperties.size());
+	ASSERTION(queueIndex < m_physicalDevice->GetQueueProperties().size());
 	m_graphicQueueIndex = queueIndex;
 
 	std::array<float, 1> queueProperties = { 0.0f };
@@ -106,7 +66,7 @@ void VulkanGlobal::InitVulkanDevice()
 	deviceCreateInfo.enabledExtensionCount = extensions.size();
 	deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
-	CHECK_VK_ERROR(vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &m_device));
+	CHECK_VK_ERROR(vkCreateDevice(m_physicalDevice->GetDeviceHandle(), &deviceCreateInfo, nullptr, &m_device));
 
 	GET_DEVICE_PROC_ADDR(m_device, CreateSwapchainKHR);
 	GET_DEVICE_PROC_ADDR(m_device, DestroySwapchainKHR);
@@ -270,10 +230,10 @@ void VulkanGlobal::InitSurface()
 #endif
 
 	//Get all queues information whether they support presentation or not
-	std::vector<VkBool32> supportPresent(m_queueProperties.size());
-	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
+	std::vector<VkBool32> supportPresent(m_physicalDevice->GetQueueProperties().size());
+	for (uint32_t i = 0; i < m_physicalDevice->GetQueueProperties().size(); i++)
 	{
-		CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice, m_graphicQueueIndex, m_surface, &supportPresent[i]));
+		CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice->GetDeviceHandle(), m_graphicQueueIndex, m_surface, &supportPresent[i]));
 	}
 
 	//Store the first one supports presentation
@@ -288,10 +248,10 @@ void VulkanGlobal::InitSurface()
 
 	//Get surface's format
 	uint32_t formatCount = 0;
-	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, nullptr));
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice->GetDeviceHandle(), m_surface, &formatCount, nullptr));
 	ASSERTION(formatCount > 0);
 	std::vector<VkSurfaceFormatKHR> formats(formatCount);
-	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, formats.data()));
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice->GetDeviceHandle(), m_surface, &formatCount, formats.data()));
 	m_surfaceFormat = formats[0];
 }
 
@@ -299,14 +259,14 @@ void VulkanGlobal::InitSwapchain()
 {
 	//Get surface capabilities
 	VkSurfaceCapabilitiesKHR surfCap = {};
-	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice, m_surface, &surfCap));
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice->GetDeviceHandle(), m_surface, &surfCap));
 
 	//Get present modes
 	uint32_t presentModeCount = 0;
-	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &presentModeCount, nullptr));
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice->GetDeviceHandle(), m_surface, &presentModeCount, nullptr));
 	ASSERTION(presentModeCount > 0);
 	std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &presentModeCount, presentModes.data()));
+	CHECK_VK_ERROR(vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice->GetDeviceHandle(), m_surface, &presentModeCount, presentModes.data()));
 
 	// Prefer mailbox mode if present, it's the lowest latency non-tearing present  mode
 	VkPresentModeKHR swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
@@ -487,7 +447,7 @@ void VulkanGlobal::InitDepthStencil()
 	//create image of depth stencil
 	VkImageCreateInfo dsCreateInfo = {};
 	dsCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	dsCreateInfo.format = m_depthStencil.format;
+	dsCreateInfo.format = m_physicalDevice->GetDepthStencilFormat();
 	dsCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	dsCreateInfo.arrayLayers = 1;
 	dsCreateInfo.extent.depth = 1;
@@ -515,7 +475,7 @@ void VulkanGlobal::InitDepthStencil()
 	{
 		if (typeBits & 1)
 		{
-			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
 			{
 				memoryAllocateInfo.memoryTypeIndex = typeIndex;
 				break;
@@ -534,7 +494,7 @@ void VulkanGlobal::InitDepthStencil()
 	VkImageViewCreateInfo dsImageViewCreateInfo = {};
 	dsImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	dsImageViewCreateInfo.image = m_depthStencil.image;
-	dsImageViewCreateInfo.format = m_depthStencil.format;
+	dsImageViewCreateInfo.format = m_physicalDevice->GetDepthStencilFormat();
 	dsImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	dsImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 	dsImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
@@ -582,7 +542,7 @@ void VulkanGlobal::InitRenderpass()
 
 	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachmentDescs[1].format = m_depthStencil.format;
+	attachmentDescs[1].format = m_physicalDevice->GetDepthStencilFormat();
 	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -668,7 +628,7 @@ void VulkanGlobal::InitVertices()
 	{
 		if (typeBits & 1)
 		{
-			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
 			{
 				allocateInfo.memoryTypeIndex = typeIndex;
 				break;
@@ -701,7 +661,7 @@ void VulkanGlobal::InitVertices()
 	{
 		if (typeBits & 1)
 		{
-			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
 			{
 				allocateInfo.memoryTypeIndex = typeIndex;
 				break;
@@ -730,7 +690,7 @@ void VulkanGlobal::InitVertices()
 	{
 		if (typeBits & 1)
 		{
-			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
 			{
 				allocateInfo.memoryTypeIndex = typeIndex;
 				break;
@@ -762,7 +722,7 @@ void VulkanGlobal::InitVertices()
 	{
 		if (typeBits & 1)
 		{
-			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
 			{
 				allocateInfo.memoryTypeIndex = typeIndex;
 				break;
@@ -866,7 +826,7 @@ void VulkanGlobal::InitUniforms()
 	{
 		if (typeBits & 1)
 		{
-			if (m_physicalDeviceMemoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
 			{
 				allocateInfo.memoryTypeIndex = typeIndex;
 				break;

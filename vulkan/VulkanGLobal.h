@@ -1,6 +1,7 @@
 #include "../common/Singleton.h"
 #include "vulkan.h"
 #include "VulkanInstance.h"
+#include "PhysicalDevice.h"
 #include <vector>
 
 typedef struct _swapchainImg
@@ -83,20 +84,15 @@ public:
 
 protected:
 	AutoPTR<VulkanInstance>				m_vulkanInst;
-	VkSurfaceKHR						m_surface;
+	AutoPTR<PhysicalDevice>				m_physicalDevice;
 
-	VkPhysicalDevice					m_physicalDevice;
-	VkPhysicalDeviceProperties			m_physicalDeviceProperties;
-	VkPhysicalDeviceFeatures			m_physicalDeviceFeatures;
-	VkPhysicalDeviceMemoryProperties	m_physicalDeviceMemoryProperties;
+	VkSurfaceKHR						m_surface;
 
 	VkDevice							m_device;
 	VkSwapchainKHR						m_swapchain;
 
 	uint32_t							m_graphicQueueIndex;
 	uint32_t							m_presentQueueIndex;
-
-	std::vector<VkQueueFamilyProperties>	m_queueProperties;
 
 	VkQueue								m_queue;
 
