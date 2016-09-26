@@ -48,10 +48,5 @@ bool VulkanInstance::Init(const VkInstanceCreateInfo& info)
 
 	RETURN_FALSE_VK_RESULT(m_fpCreateDebugReportCallbackEXT(m_vulkanInst, &callbackCreateInfo, NULL, &m_debugCallback));
 
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceCapabilitiesKHR);
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceFormatsKHR);
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfacePresentModesKHR);
-	GET_INSTANCE_PROC_ADDR(m_vulkanInst, GetPhysicalDeviceSurfaceSupportKHR);
-
 	return true;
 }

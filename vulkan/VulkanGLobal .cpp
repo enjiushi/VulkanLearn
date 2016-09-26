@@ -35,9 +35,9 @@ void VulkanGlobal::InitVulkanInstance()
 	assert(m_vulkanInst != nullptr);
 }
 
-void VulkanGlobal::InitPhysicalDevice()
+void VulkanGlobal::InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd)
 {
-	m_physicalDevice = PhysicalDevice::AcquirePhysicalDevice(m_vulkanInst);
+	m_physicalDevice = PhysicalDevice::AcquirePhysicalDevice(m_vulkanInst, hInstance, hWnd);
 }
 
 void VulkanGlobal::InitVulkanDevice()
@@ -224,7 +224,7 @@ void VulkanGlobal::InitSurface()
 	std::vector<VkBool32> supportPresent(m_physicalDevice->GetQueueProperties().size());
 	for (uint32_t i = 0; i < m_physicalDevice->GetQueueProperties().size(); i++)
 	{
-		CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice->GetDeviceHandle(), m_physicalDevice->GetGraphicQueueIndex(), m_surface, &supportPresent[i]));
+		CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice->GetDeviceHandle(), i, m_surface, &supportPresent[i]));
 	}
 
 	//Store the first one supports presentation
@@ -1182,11 +1182,11 @@ void VulkanGlobal::Draw()
 
 void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
 {
-	InitVulkanInstance();
-	InitPhysicalDevice();
-	InitVulkanDevice();
 	SetupWindow(hInstance, wndproc);
+	InitVulkanInstance();
+	InitPhysicalDevice(m_hPlatformInst, m_hWindow);
 	InitSurface();
+	InitVulkanDevice();
 	InitSwapchain();
 	InitQueue();
 

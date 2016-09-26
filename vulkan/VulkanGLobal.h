@@ -46,7 +46,7 @@ public:
 	void Init(HINSTANCE hInstance, WNDPROC wndproc);
 #endif
 	void InitVulkanInstance();
-	void InitPhysicalDevice();
+	void InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd);
 	void InitVulkanDevice();
 	void InitQueue();
 #if defined(_WIN32)
