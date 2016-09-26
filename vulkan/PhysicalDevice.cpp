@@ -98,16 +98,16 @@ bool PhysicalDevice::Init(const VulkanInstance* pVulkanInstance, HINSTANCE hInst
 	surfaceInfo.hinstance = hInst;
 	surfaceInfo.hwnd = hWnd;
 
-	CHECK_VK_ERROR(m_fpCreateWin32SurfaceKHR(pVulkanInstance->GetDeviceHandle(), &surfaceInfo, nullptr, &m_surface));
+	RETURN_FALSE_VK_RESULT(m_fpCreateWin32SurfaceKHR(pVulkanInstance->GetDeviceHandle(), &surfaceInfo, nullptr, &m_surface));
 #endif
 
-	CHECK_VK_ERROR(m_fpGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice, m_surface, &m_surfaceCap));
+	RETURN_FALSE_VK_RESULT(m_fpGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice, m_surface, &m_surfaceCap));
 
 	std::vector<VkBool32> supports;
 	supports.resize(m_queueProperties.size());
 	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
 	{
-		CHECK_VK_ERROR(m_fpGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice, i, m_surface, &supports[i]));
+		RETURN_FALSE_VK_RESULT(m_fpGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice, i, m_surface, &supports[i]));
 	}
 
 	m_presentQueueIndex = -1;
@@ -123,14 +123,14 @@ bool PhysicalDevice::Init(const VulkanInstance* pVulkanInstance, HINSTANCE hInst
 	ASSERTION(m_presentQueueIndex != -1);
 
 	uint32_t formatCount;
-	CHECK_VK_ERROR(m_fpGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, nullptr));
+	RETURN_FALSE_VK_RESULT(m_fpGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, nullptr));
 	m_surfaceFormats.resize(formatCount);
-	CHECK_VK_ERROR(m_fpGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, m_surfaceFormats.data()));
+	RETURN_FALSE_VK_RESULT(m_fpGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, m_surfaceFormats.data()));
 
 	uint32_t presentModeCount = -1;
-	CHECK_VK_ERROR(m_fpGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &presentModeCount, nullptr));
+	RETURN_FALSE_VK_RESULT(m_fpGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &presentModeCount, nullptr));
 	m_presentModes.resize(presentModeCount);
-	CHECK_VK_ERROR(m_fpGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &presentModeCount, m_presentModes.data()));
+	RETURN_FALSE_VK_RESULT(m_fpGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &presentModeCount, m_presentModes.data()));
 
 	// Prefer mailbox mode if present, it's the lowest latency non-tearing present  mode
 	VkPresentModeKHR swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;

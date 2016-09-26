@@ -37,7 +37,7 @@ bool VulkanDevice::Init(const VulkanInstance* pInst, const PhysicalDevice* pPhyi
 	deviceCreateInfo.enabledExtensionCount = extensions.size();
 	deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
-	CHECK_VK_ERROR(vkCreateDevice(m_pPhysicalDevice->GetDeviceHandle(), &deviceCreateInfo, nullptr, &m_device));
+	RETURN_FALSE_VK_RESULT(vkCreateDevice(m_pPhysicalDevice->GetDeviceHandle(), &deviceCreateInfo, nullptr, &m_device));
 
 	return true;
 }

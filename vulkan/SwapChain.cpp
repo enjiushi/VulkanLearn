@@ -69,5 +69,7 @@ bool SwapChain::Init(const PhysicalDevice* pPhyisicalDevice, const VulkanDevice*
 	swapchainCreateInfo.imageColorSpace = pPhyisicalDevice->GetSurfaceFormat().colorSpace;
 	swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
-	CHECK_VK_ERROR(m_fpCreateSwapchainKHR(m_pDevice->GetDeviceHandle(), &swapchainCreateInfo, nullptr, &m_swapchain));
+	RETURN_FALSE_VK_RESULT(m_fpCreateSwapchainKHR(m_pDevice->GetDeviceHandle(), &swapchainCreateInfo, nullptr, &m_swapchain));
+
+	return true;
 }
