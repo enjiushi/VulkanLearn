@@ -13,6 +13,7 @@ public:
 	~PhysicalDevice();
 
 	const VkPhysicalDevice GetDeviceHandle() const { return m_physicalDevice; }
+	const VkSurfaceKHR GetSurfaceHandle() const { return m_surface; }
 	const VkPhysicalDeviceProperties& GetPhysicalDeviceProperties() const { return m_physicalDeviceProperties; }
 	const VkPhysicalDeviceFeatures& GetPhysicalDeviceFeatures() const { return m_physicalDeviceFeatures; }
 	const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const {
@@ -26,6 +27,8 @@ public:
 	const uint32_t GetPresentQueueIndex() const { return m_presentQueueIndex; }
 
 	const VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surfaceFormats[0]; }
+	const std::vector<VkPresentModeKHR>& GetPresentModes() const { return m_presentModes; }
+	const VkSurfaceCapabilitiesKHR GetSurfaceCap() const { return m_surfaceCap; }
 
 protected:
 	PhysicalDevice() : m_physicalDevice(0) {}
