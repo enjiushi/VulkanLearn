@@ -11,6 +11,11 @@ public:
 	static SwapChain* CreateSwapChain(const PhysicalDevice* pPhyisicalDevice, const VulkanDevice* pDevice);
 	~SwapChain();
 
+	const VkSwapchainKHR GetDeviceHandle() const { return m_swapchain; }
+
+	PFN_vkAcquireNextImageKHR GetAcquireNextImageFuncPtr() const { return m_fpAcquireNextImageKHR; }
+	PFN_vkQueuePresentKHR GetQueuePresentFuncPtr() const { return m_fpQueuePresentKHR; }
+
 protected:
 	SwapChain() : m_swapchain(0) {}
 	bool Init(const PhysicalDevice* pPhyisicalDevice, const VulkanDevice* pDevice);

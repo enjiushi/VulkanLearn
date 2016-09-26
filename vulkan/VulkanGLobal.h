@@ -3,6 +3,8 @@
 #include "vulkan.h"
 #include "VulkanInstance.h"
 #include "PhysicalDevice.h"
+#include "VulkanDevice.h"
+#include "SwapChain.h"
 #include <vector>
 
 typedef struct _swapchainImg
@@ -86,31 +88,14 @@ public:
 protected:
 	AutoPTR<VulkanInstance>				m_vulkanInst;
 	AutoPTR<PhysicalDevice>				m_physicalDevice;
-
-	VkSurfaceKHR						m_surface;
-
-	VkDevice							m_device;
-	VkSwapchainKHR						m_swapchain;
-
-	uint32_t							m_presentQueueIndex;
+	AutoPTR<VulkanDevice>				m_pDevice;
+	AutoPTR<SwapChain>					m_pSwapchain;
 
 	VkQueue								m_queue;
-
-	PFN_vkCreateSwapchainKHR						m_fpCreateSwapchainKHR;
-	PFN_vkDestroySwapchainKHR						m_fpDestroySwapchainKHR;
-	PFN_vkGetSwapchainImagesKHR						m_fpGetSwapchainImagesKHR;
-	PFN_vkAcquireNextImageKHR						m_fpAcquireNextImageKHR;
-	PFN_vkQueuePresentKHR							m_fpQueuePresentKHR;
-
-	VkSurfaceFormatKHR					m_surfaceFormat;
-
-	uint32_t							m_width;
-	uint32_t							m_height;
 
 	VkCommandPool						m_commandPool;
 	VkCommandBuffer						m_setupCommandBuffer;
 
-	uint32_t							m_swapchainImgCount;
 	SwapchainImg						m_swapchainImg;
 	DepthStencil						m_depthStencil;
 
