@@ -66,5 +66,17 @@ bool PhysicalDevice::Init(const VulkanInstance* pVulkanInstance)
 		}
 	}
 
+	m_graphicQueueIndex = -1;
+	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
+	{
+		if (m_queueProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		{
+			m_graphicQueueIndex = i;
+			break;
+		}
+	}
+
+	ASSERTION(m_graphicQueueIndex != -1);
+
 	return true;
 }

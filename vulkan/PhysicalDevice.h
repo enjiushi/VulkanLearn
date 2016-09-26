@@ -20,6 +20,8 @@ public:
 	const std::vector<VkQueueFamilyProperties>& GetQueueProperties() const { return m_queueProperties; }
 	const VkFormat GetDepthStencilFormat() const { return m_depthStencilFormat; }
 
+	const uint32_t GetGraphicQueueIndex() const { return m_graphicQueueIndex; }
+
 protected:
 	PhysicalDevice() : m_physicalDevice(0) {}
 	bool Init(const VulkanInstance* pVulkanInstance);
@@ -32,4 +34,6 @@ protected:
 
 	std::vector<VkQueueFamilyProperties>	m_queueProperties;
 	VkFormat							m_depthStencilFormat;
+
+	uint32_t							m_graphicQueueIndex;
 };

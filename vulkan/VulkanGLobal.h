@@ -91,7 +91,6 @@ protected:
 	VkDevice							m_device;
 	VkSwapchainKHR						m_swapchain;
 
-	uint32_t							m_graphicQueueIndex;
 	uint32_t							m_presentQueueIndex;
 
 	VkQueue								m_queue;

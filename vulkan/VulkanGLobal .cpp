@@ -42,19 +42,10 @@ void VulkanGlobal::InitPhysicalDevice()
 
 void VulkanGlobal::InitVulkanDevice()
 {
-	uint32_t queueIndex = 0;
-	for (; queueIndex < m_physicalDevice->GetQueueProperties().size(); queueIndex++)
-	{
-		if (m_physicalDevice->GetQueueProperties()[queueIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-			break;
-	}
-	ASSERTION(queueIndex < m_physicalDevice->GetQueueProperties().size());
-	m_graphicQueueIndex = queueIndex;
-
 	std::array<float, 1> queueProperties = { 0.0f };
 	VkDeviceQueueCreateInfo deviceQueueCreateInfo = {};
 	deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	deviceQueueCreateInfo.queueFamilyIndex = m_graphicQueueIndex;
+	deviceQueueCreateInfo.queueFamilyIndex = m_physicalDevice->GetGraphicQueueIndex();
 	deviceQueueCreateInfo.queueCount = queueProperties.size();
 	deviceQueueCreateInfo.pQueuePriorities = queueProperties.data();
 
@@ -216,7 +207,7 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void VulkanGlobal::InitQueue()
 {
-	vkGetDeviceQueue(m_device, m_graphicQueueIndex, 0, &m_queue);
+	vkGetDeviceQueue(m_device, m_physicalDevice->GetGraphicQueueIndex(), 0, &m_queue);
 }
 
 void VulkanGlobal::InitSurface()
@@ -233,7 +224,7 @@ void VulkanGlobal::InitSurface()
 	std::vector<VkBool32> supportPresent(m_physicalDevice->GetQueueProperties().size());
 	for (uint32_t i = 0; i < m_physicalDevice->GetQueueProperties().size(); i++)
 	{
-		CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice->GetDeviceHandle(), m_graphicQueueIndex, m_surface, &supportPresent[i]));
+		CHECK_VK_ERROR(vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice->GetDeviceHandle(), m_physicalDevice->GetGraphicQueueIndex(), m_surface, &supportPresent[i]));
 	}
 
 	//Store the first one supports presentation
@@ -363,7 +354,7 @@ void VulkanGlobal::InitCommandPool()
 {
 	VkCommandPoolCreateInfo commandPoolCreateInfo = {};
 	commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	commandPoolCreateInfo.queueFamilyIndex = m_graphicQueueIndex;
+	commandPoolCreateInfo.queueFamilyIndex = m_physicalDevice->GetGraphicQueueIndex();
 	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	CHECK_VK_ERROR(vkCreateCommandPool(m_device, &commandPoolCreateInfo, nullptr, &m_commandPool));
 }
@@ -510,9 +501,9 @@ void VulkanGlobal::InitDepthStencil()
 	barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	barrier.dstQueueFamilyIndex = m_graphicQueueIndex;
+	barrier.dstQueueFamilyIndex = m_physicalDevice->GetGraphicQueueIndex();
 	barrier.srcAccessMask = 0;
-	barrier.srcQueueFamilyIndex = m_graphicQueueIndex;
+	barrier.srcQueueFamilyIndex = m_physicalDevice->GetGraphicQueueIndex();
 	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 	barrier.subresourceRange.baseArrayLayer = 0;
 	barrier.subresourceRange.layerCount = 1;
