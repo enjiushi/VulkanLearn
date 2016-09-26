@@ -1,8 +1,8 @@
+#pragma once
 #include "../common/RefCounted.h"
 #include "vulkan.h"
 #include "VulkanInstance.h"
 #include "PhysicalDevice.h"
-#include "VulkanInstance.h"
 #include <vector>
 
 class VulkanDevice : public RefCounted

@@ -1,3 +1,4 @@
+#pragma once
 #include "../common/RefCounted.h"
 #include "vulkan.h"
 #include "VulkanInstance.h"

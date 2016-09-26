@@ -1,3 +1,4 @@
+#pragma once
 #include "VulkanBase.h"
 
 class DeviceMemoryManager : public VulkanBase

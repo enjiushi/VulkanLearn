@@ -1,3 +1,4 @@
+#pragma once
 #include "vulkan.h"
 
 class VulkanBase
