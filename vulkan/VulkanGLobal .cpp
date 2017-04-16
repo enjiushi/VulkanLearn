@@ -31,18 +31,22 @@ void VulkanGlobal::InitVulkanInstance()
 	instCreateInfo.enabledLayerCount = (int32_t)layers.size();
 	instCreateInfo.ppEnabledLayerNames = layers.data();
 
-	m_vulkanInst = VulkanInstance::CreateVulkanInstance(instCreateInfo);
+	m_vulkanInst = std::make_shared<VulkanInstance>(VulkanInstance());
+	m_vulkanInst->Init(instCreateInfo);
 	assert(m_vulkanInst != nullptr);
 }
 
 void VulkanGlobal::InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd)
 {
-	m_physicalDevice = PhysicalDevice::AcquirePhysicalDevice(m_vulkanInst, hInstance, hWnd);
+	m_physicalDevice = std::make_shared<PhysicalDevice>(PhysicalDevice());
+	m_physicalDevice->Init(m_vulkanInst, hInstance, hWnd);
+	ASSERTION(m_physicalDevice != nullptr);
 }
 
 void VulkanGlobal::InitVulkanDevice()
 {
-	m_pDevice = VulkanDevice::CreateVulkanDevice(m_vulkanInst, m_physicalDevice);
+	m_pDevice = std::make_shared<VulkanDevice>(VulkanDevice());
+	m_pDevice->Init(m_vulkanInst, m_physicalDevice);
 	ASSERTION(m_pDevice != nullptr);
 }
 
@@ -196,7 +200,8 @@ void VulkanGlobal::InitSurface()
 
 void VulkanGlobal::InitSwapchain()
 {
-	m_pSwapchain = SwapChain::CreateSwapChain(m_physicalDevice, m_pDevice);
+	m_pSwapchain = std::make_shared<SwapChain>(SwapChain());
+	m_pSwapchain->Init(m_physicalDevice, m_pDevice);
 	ASSERTION(m_pSwapchain != nullptr);
 }
 

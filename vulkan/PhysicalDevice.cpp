@@ -4,21 +4,12 @@
 
 PhysicalDevice::~PhysicalDevice()
 {
-	m_fpDestroySurfaceKHR(m_pVulkanInstance->GetDeviceHandle(), m_surface, nullptr);
-}
-
-PhysicalDevice* PhysicalDevice::AcquirePhysicalDevice(const VulkanInstance* pVulkanInstance, HINSTANCE hInst, HWND hWnd)
-{
-	PhysicalDevice* pRet = new PhysicalDevice();
-	if (pRet && pRet->Init(pVulkanInstance, hInst, hWnd))
-		return pRet;
-
-	SAFE_DELETE(pRet);
-	return pRet;
+	if (m_pVulkanInstance.get())
+		m_fpDestroySurfaceKHR(m_pVulkanInstance->GetDeviceHandle(), m_surface, nullptr);
 }
 
 #if defined(_WIN32)
-bool PhysicalDevice::Init(const VulkanInstance* pVulkanInstance, HINSTANCE hInst, HWND hWnd)
+bool PhysicalDevice::Init(const std::shared_ptr<VulkanInstance> pVulkanInstance, HINSTANCE hInst, HWND hWnd)
 #endif
 {
 	//Get an available physical device

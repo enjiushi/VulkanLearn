@@ -3,20 +3,11 @@
 
 SwapChain::~SwapChain()
 {
-	m_fpDestroySwapchainKHR(m_pDevice->GetDeviceHandle(), m_swapchain, nullptr);
+	if (m_pDevice.get())
+		m_fpDestroySwapchainKHR(m_pDevice->GetDeviceHandle(), m_swapchain, nullptr);
 }
 
-SwapChain* SwapChain::CreateSwapChain(const PhysicalDevice* pPhyisicalDevice, const VulkanDevice* pDevice)
-{
-	SwapChain* pRet = new SwapChain;
-	if (pRet && pRet->Init(pPhyisicalDevice, pDevice))
-		return pRet;
-
-	SAFE_DELETE(pRet);
-	return pRet;
-}
-
-bool SwapChain::Init(const PhysicalDevice* pPhyisicalDevice, const VulkanDevice* pDevice)
+bool SwapChain::Init(const std::shared_ptr<PhysicalDevice> pPhyisicalDevice, const std::shared_ptr<VulkanDevice> pDevice)
 {
 	m_pDevice = pDevice;
 	m_pPhysicalDevice = pPhyisicalDevice;

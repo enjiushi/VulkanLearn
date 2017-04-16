@@ -6,6 +6,7 @@
 #include "VulkanDevice.h"
 #include "SwapChain.h"
 #include <vector>
+#include <memory>
 
 typedef struct _swapchainImg
 {
@@ -86,10 +87,10 @@ public:
 	static const uint32_t				WINDOW_HEIGHT = 768;
 
 protected:
-	AutoPTR<VulkanInstance>				m_vulkanInst;
-	AutoPTR<PhysicalDevice>				m_physicalDevice;
-	AutoPTR<VulkanDevice>				m_pDevice;
-	AutoPTR<SwapChain>					m_pSwapchain;
+	std::shared_ptr<VulkanInstance>		m_vulkanInst;
+	std::shared_ptr<PhysicalDevice>		m_physicalDevice;
+	std::shared_ptr<VulkanDevice>		m_pDevice;
+	std::shared_ptr<SwapChain>			m_pSwapchain;
 
 	VkQueue								m_queue;
 

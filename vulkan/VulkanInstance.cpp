@@ -20,16 +20,6 @@ VulkanInstance::~VulkanInstance()
 		vkDestroyInstance(m_vulkanInst, nullptr);
 }
 
-VulkanInstance* VulkanInstance::CreateVulkanInstance(const VkInstanceCreateInfo& info)
-{
-	VulkanInstance* vulkanInst = new VulkanInstance();
-	if (vulkanInst && vulkanInst->Init(info))
-		return vulkanInst;
-
-	SAFE_DELETE(vulkanInst);
-	return nullptr;
-}
-
 bool VulkanInstance::Init(const VkInstanceCreateInfo& info)
 {
 	RETURN_FALSE_VK_RESULT(vkCreateInstance(&info, nullptr, &m_vulkanInst));

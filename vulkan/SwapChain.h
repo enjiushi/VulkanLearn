@@ -4,11 +4,11 @@
 #include "PhysicalDevice.h"
 #include "VulkanDevice.h"
 #include <vector>
+#include <memory>
 
-class SwapChain : public RefCounted
+class SwapChain
 {
 public:
-	static SwapChain* CreateSwapChain(const PhysicalDevice* pPhyisicalDevice, const VulkanDevice* pDevice);
 	~SwapChain();
 
 	const VkSwapchainKHR GetDeviceHandle() const { return m_swapchain; }
@@ -16,14 +16,12 @@ public:
 	PFN_vkAcquireNextImageKHR GetAcquireNextImageFuncPtr() const { return m_fpAcquireNextImageKHR; }
 	PFN_vkQueuePresentKHR GetQueuePresentFuncPtr() const { return m_fpQueuePresentKHR; }
 
-protected:
-	SwapChain() : m_swapchain(0) {}
-	bool Init(const PhysicalDevice* pPhyisicalDevice, const VulkanDevice* pDevice);
+	bool Init(const std::shared_ptr<PhysicalDevice> pPhyisicalDevice, const std::shared_ptr<VulkanDevice> pDevice);
 
 protected:
 	VkSwapchainKHR						m_swapchain;
-	AutoPTR<VulkanDevice>				m_pDevice;
-	AutoPTR<PhysicalDevice>				m_pPhysicalDevice;
+	std::shared_ptr<VulkanDevice>		m_pDevice;
+	std::shared_ptr<PhysicalDevice>		m_pPhysicalDevice;
 
 	PFN_vkCreateSwapchainKHR			m_fpCreateSwapchainKHR;
 	PFN_vkDestroySwapchainKHR			m_fpDestroySwapchainKHR;

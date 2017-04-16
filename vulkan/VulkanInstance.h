@@ -8,21 +8,17 @@
 #define EXTENSION_VULKAN_DEBUG_REPORT "VK_EXT_debug_report"
 #define EXTENSION_VULKAN_SWAPCHAIN "VK_KHR_swapchain"
 
-class VulkanInstance : public RefCounted
+class VulkanInstance
 {
 public:
-	static VulkanInstance* CreateVulkanInstance(const VkInstanceCreateInfo&);
 	~VulkanInstance();
 
 	VkInstance GetDeviceHandle() { return m_vulkanInst; }
 	const VkInstance GetDeviceHandle() const { return m_vulkanInst; }
 
-protected:
-	VulkanInstance() : m_vulkanInst(0) {}
-
 	bool Init(const VkInstanceCreateInfo&);
 
-protected:
+private:
 	VkInstance	m_vulkanInst;
 
 	PFN_vkCreateDebugReportCallbackEXT				m_fpCreateDebugReportCallbackEXT;

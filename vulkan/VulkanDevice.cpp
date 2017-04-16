@@ -7,17 +7,7 @@ VulkanDevice::~VulkanDevice()
 	vkDestroyDevice(m_device, nullptr);
 }
 
-VulkanDevice* VulkanDevice::CreateVulkanDevice(const VulkanInstance* pInst, const PhysicalDevice* pPhyisicalDevice)
-{
-	VulkanDevice* pRet = new VulkanDevice;
-	if (pRet && pRet->Init(pInst, pPhyisicalDevice))
-		return pRet;
-
-	SAFE_DELETE(pRet);
-	return pRet;
-}
-
-bool VulkanDevice::Init(const VulkanInstance* pInst, const PhysicalDevice* pPhyisicalDevice)
+bool VulkanDevice::Init(const std::shared_ptr<VulkanInstance> pInst, const std::shared_ptr<PhysicalDevice> pPhyisicalDevice)
 {
 	m_pVulkanInst = pInst;
 	m_pPhysicalDevice = pPhyisicalDevice;

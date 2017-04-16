@@ -5,20 +5,17 @@
 #include "PhysicalDevice.h"
 #include <vector>
 
-class VulkanDevice : public RefCounted
+class VulkanDevice
 {
 public:
-	static VulkanDevice* CreateVulkanDevice(const VulkanInstance* pInst, const PhysicalDevice* pPhyisicalDevice);
 	~VulkanDevice();
 
 	const VkDevice GetDeviceHandle() const { return m_device; }
 
-protected:
-	VulkanDevice() : m_device(0) {}
-	bool Init(const VulkanInstance* pInst, const PhysicalDevice* pPhyisicalDevice);
+	bool Init(const std::shared_ptr<VulkanInstance> pInst, const std::shared_ptr<PhysicalDevice> pPhyisicalDevice);
 
 protected:
 	VkDevice							m_device;
-	AutoPTR<PhysicalDevice>				m_pPhysicalDevice;
-	AutoPTR<VulkanInstance>				m_pVulkanInst;
+	std::shared_ptr<PhysicalDevice>	m_pPhysicalDevice;
+	std::shared_ptr<VulkanInstance>		m_pVulkanInst;
 };

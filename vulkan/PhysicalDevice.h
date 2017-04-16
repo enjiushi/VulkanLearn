@@ -3,13 +3,11 @@
 #include "vulkan.h"
 #include "VulkanInstance.h"
 #include <vector>
+#include <memory>
 
-class PhysicalDevice : public RefCounted
+class PhysicalDevice
 {
 public:
-#if defined(_WIN32)
-	static PhysicalDevice* AcquirePhysicalDevice(const VulkanInstance* pVulkanInstance, HINSTANCE hInst, HWND hWnd);
-#endif
 	~PhysicalDevice();
 
 	const VkPhysicalDevice GetDeviceHandle() const { return m_physicalDevice; }
@@ -30,14 +28,12 @@ public:
 	const std::vector<VkPresentModeKHR>& GetPresentModes() const { return m_presentModes; }
 	const VkSurfaceCapabilitiesKHR GetSurfaceCap() const { return m_surfaceCap; }
 
-protected:
-	PhysicalDevice() : m_physicalDevice(0) {}
 #if defined(_WIN32)
-	bool Init(const VulkanInstance* pVulkanInstance, HINSTANCE hInst, HWND hWnd);
+	bool Init(const std::shared_ptr<VulkanInstance> pVulkanInstance, HINSTANCE hInst, HWND hWnd);
 #endif
 
-protected:
-	AutoPTR<VulkanInstance>				m_pVulkanInstance;
+private:
+	std::shared_ptr<VulkanInstance>		m_pVulkanInstance;
 	VkPhysicalDevice					m_physicalDevice;
 	VkPhysicalDeviceProperties			m_physicalDeviceProperties;
 	VkPhysicalDeviceFeatures			m_physicalDeviceFeatures;
