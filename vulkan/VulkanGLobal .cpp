@@ -733,7 +733,7 @@ void VulkanGlobal::InitUniforms()
 
 	void* pData;
 	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.memory, 0, m_uniformBuffer.info.size, 0, &pData));
-	memcpy(pData, &m_mvp, sizeof(MVP));
+	memcpy(pData, &m_mvp, sizeof(m_mvp.model) + sizeof(m_mvp.view) + sizeof(m_mvp.projection));
 	vkUnmapMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.memory);
 
 	m_mvp.mvpDescriptor.buffer = m_uniformBuffer.buffer;
