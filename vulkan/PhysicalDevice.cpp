@@ -123,32 +123,6 @@ bool PhysicalDevice::Init(const std::shared_ptr<VulkanInstance> pVulkanInstance,
 	m_presentModes.resize(presentModeCount);
 	RETURN_FALSE_VK_RESULT(m_fpGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface, &presentModeCount, m_presentModes.data()));
 
-	// Prefer mailbox mode if present, it's the lowest latency non-tearing present  mode
-	VkPresentModeKHR swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
-	for (size_t i = 0; i < presentModeCount; i++)
-	{
-		if (m_presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
-		{
-			swapchainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-			break;
-		}
-		if ((swapchainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR) && (m_presentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR))
-		{
-			swapchainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-		}
-	}
-
-	//Don't know what's this
-	VkSurfaceTransformFlagsKHR preTransform;
-	if (m_surfaceCap.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
-	{
-		preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-	}
-	else
-	{
-		preTransform = m_surfaceCap.currentTransform;
-	}
-
 	m_pVulkanInstance = pVulkanInstance;
 	return true;
 }
