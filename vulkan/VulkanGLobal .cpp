@@ -1071,8 +1071,6 @@ void VulkanGlobal::Draw()
 	presentInfo.pWaitSemaphores = &m_renderDone;
 	presentInfo.pImageIndices = &m_currentBufferIndex;
 	m_pSwapchain->GetQueuePresentFuncPtr()(m_queue, &presentInfo);
-
-	CHECK_VK_ERROR(vkQueueWaitIdle(m_queue));
 }
 
 void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
