@@ -528,7 +528,7 @@ void VulkanGlobal::InitVertices()
 
 	void* pData;
 	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), stageVertexBuffer.memory, 0, stageVertexBuffer.reqs.size, 0, &pData));
-	memcpy(pData, vertices, stageVertexBuffer.reqs.size);
+	memcpy(pData, vertices, stageVertexBuffer.info.size);
 	vkUnmapMemory(m_pDevice->GetDeviceHandle(), stageVertexBuffer.memory);
 
 
@@ -589,7 +589,7 @@ void VulkanGlobal::InitVertices()
 	CHECK_VK_ERROR(vkBindBufferMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.buffer, stageIndexBuffer.memory, 0));
 
 	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.memory, 0, stageIndexBuffer.reqs.size, 0, &pData));
-	memcpy(pData, indices, stageIndexBuffer.reqs.size);
+	memcpy(pData, indices, stageIndexBuffer.info.size);
 	vkUnmapMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.memory);
 
 
@@ -640,8 +640,8 @@ void VulkanGlobal::InitVertices()
 	barriers[1].size = stageIndexBuffer.info.size;
 
 	vkCmdPipelineBarrier(m_setupCommandBuffer,
-		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		VK_PIPELINE_STAGE_HOST_BIT,
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
 		0,
 		0, nullptr,
 		2, &barriers[0],
@@ -669,8 +669,8 @@ void VulkanGlobal::InitVertices()
 	barriers[1].buffer = m_indexBuffer.buffer;
 
 	vkCmdPipelineBarrier(m_setupCommandBuffer,
-		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
 		0,
 		0, nullptr,
 		2, &barriers[0],
