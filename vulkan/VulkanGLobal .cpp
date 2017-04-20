@@ -5,6 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include <array>
+#include "../thread/ThreadCoordinator.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -1044,6 +1045,15 @@ void VulkanGlobal::EndSetup()
 	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), m_commandPool, 1, &m_setupCommandBuffer);
 }
 
+#include <random>
+
+int Fab(int n)
+{
+	if (n == 0 || n == 1)
+		return n;
+	return Fab(n - 1) + Fab(n - 2);
+}
+
 void VulkanGlobal::Draw()
 {
 	CHECK_VK_ERROR(m_pSwapchain->GetAcquireNextImageFuncPtr()(m_pDevice->GetDeviceHandle(), m_pSwapchain->GetDeviceHandle(), UINT64_MAX, m_swapchainAcquireDone, nullptr, &m_currentBufferIndex));
@@ -1071,6 +1081,14 @@ void VulkanGlobal::Draw()
 	presentInfo.pWaitSemaphores = &m_renderDone;
 	presentInfo.pImageIndices = &m_currentBufferIndex;
 	m_pSwapchain->GetQueuePresentFuncPtr()(m_queue, &presentInfo);
+
+	std::random_device rseed;
+	std::mt19937 rng(rseed());
+	std::uniform_int<int> dist(0, 50);
+
+	int r = dist(rng);
+	std::cout << "Fab:" << r << std::endl;
+	ThreadCoordinator::GetInstance()->AppendJob([r]() {Fab(r); std::cout << "Fab:" << r << " Done" << std::endl; });
 }
 
 void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
