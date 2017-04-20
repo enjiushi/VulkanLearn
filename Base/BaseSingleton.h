@@ -2,7 +2,7 @@
 #include "Base.h"
 
 template <typename T>
-class Singleton : public Base
+class BaseSingleton : public Base
 {
 public:
 	static T* GetInstance()
@@ -17,6 +17,6 @@ public:
 	}
 
 protected:
-	Singleton<T>() {}
-	~Singleton<T>() {}
+	BaseSingleton<T>() {}
+	~BaseSingleton<T>() {}
 };
