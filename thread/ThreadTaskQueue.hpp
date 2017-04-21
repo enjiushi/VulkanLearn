@@ -48,7 +48,7 @@ private:
 			{
 				std::find_if(m_threadWorkers.begin(), m_threadWorkers.end(), [&job, &shouldExit](std::shared_ptr<ThreadWorker>& worker)
 				{
-					bool isFree = worker->IsFree();
+					bool isFree = worker->IsTaskQueueFree();
 					if (isFree)
 					{
 						worker->AppendJob(job);
