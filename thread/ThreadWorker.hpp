@@ -52,12 +52,12 @@ public:
 				job = m_jobQueue.front();
 				m_jobQueue.pop();
 				m_isWorking = true;
-				m_condition.notify_one();
 			}
 			job();
 			{
 				std::unique_lock<std::mutex> lock(m_queueMutex);
 				m_isWorking = false;
+				m_condition.notify_one();
 			}
 		}
 	}

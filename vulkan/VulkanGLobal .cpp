@@ -1084,7 +1084,7 @@ void VulkanGlobal::Draw()
 
 	std::random_device rseed;
 	std::mt19937 rng(rseed());
-	std::uniform_int<int> dist(0, 50);
+	std::uniform_int<int> dist(0, 30);
 
 	int r = dist(rng);
 	std::cout << "Fab:" << r << std::endl;
