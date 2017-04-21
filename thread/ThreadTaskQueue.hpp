@@ -93,20 +93,17 @@ private:
 			bool shouldExit = false;
 			while (!shouldExit)
 			{
-				std::find_if(m_threadWorkers.begin(), m_threadWorkers.end(), [&job, &shouldExit](std::shared_ptr<ThreadWorker>& worker)
+				bool isFree = m_threadWorkers[m_currentWorkerIndex]->IsTaskQueueFree();
+				if (isFree)
 				{
-					bool isFree = worker->IsTaskQueueFree();
-					if (isFree)
-					{
-						worker->AppendJob(job);
-						shouldExit = true;
-						return true;
-					}
-					else
-						return false;
+					m_threadWorkers[m_currentWorkerIndex]->AppendJob(job);
+					shouldExit = true;
+				}
 
-				});
+				// Circular
+				m_currentWorkerIndex = (m_currentWorkerIndex + 1) % m_threadWorkers.size();
 			}
+
 			{
 				std::unique_lock<std::mutex> lock(m_queueMutex);
 				m_isSearchingThread = false;
@@ -122,4 +119,5 @@ private:
 	std::vector<std::shared_ptr<ThreadWorker>> m_threadWorkers;
 	bool m_isSearchingThread = false;
 	bool m_isDestroying = false;
+	uint32_t m_currentWorkerIndex = 0;
 };
