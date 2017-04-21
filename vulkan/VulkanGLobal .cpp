@@ -6,6 +6,8 @@
 #include <fstream>
 #include <array>
 #include "../thread/ThreadCoordinator.h"
+#include "../maths/Matrix.h"
+#include <math.h>
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -732,11 +734,54 @@ void VulkanGlobal::InitUniforms()
 	memset(m_mvp.vulkanNDC, 0, sizeof(m_mvp.vulkanNDC));
 	memset(m_mvp.mvp, 0, sizeof(m_mvp.mvp));
 
+	Matrix4f model;
+
+	Matrix4f view;
+	Vector3f up = { 0, 1, 0 };
+	//Vector3f look = { 1, -1, -1 };
+	Vector3f look = { 0, 0, -1 };
+	look.Normalize();
+	Vector3f position = { 0, 0, 5 };
+	Vector3f xaxis = up ^ look.Negativate();
+	xaxis.Normalize();
+	Vector3f yaxis = look ^ xaxis;
+	yaxis.Normalize();
+
+	view.c[0] = xaxis;
+	view.c[1] = yaxis;
+	view.c[2] = look;
+	view.c[3] = position;
+	view.Inverse();
+
+	Matrix4f projection;
+	float aspect = 1024.0 / 768.0;
+	float fov = 3.1415 / 2.0;
+	float nearPlane = 1;
+	float farPlane = 10;
+
+	projection.c[0] = { 1.0f / (nearPlane * std::tanf(fov / 2.0f) * aspect), 0, 0, 0 };
+	projection.c[1] = { 0, 1.0f / (nearPlane * std::tanf(fov / 2.0f)), 0, 0 };
+	projection.c[2] = { 0, 0, (nearPlane + farPlane) / (nearPlane - farPlane), -1 };
+	projection.c[3] = { 0, 0, 2.0f * nearPlane * farPlane / (nearPlane - farPlane), 0 };
+
+	Matrix4f vulkanNDC;
+	vulkanNDC.c[1].y = -1.0f;
+	vulkanNDC.c[2].z = vulkanNDC.c[3].z = 0.5f;
+
+	Matrix4f mvp = vulkanNDC * projection * view * model;
+
+	memcpy_s(m_mvp.model, sizeof(m_mvp.model), &model, sizeof(model));
+	memcpy_s(m_mvp.view, sizeof(m_mvp.view), &view, sizeof(view));
+	memcpy_s(m_mvp.projection, sizeof(m_mvp.projection), &projection, sizeof(projection));
+	memcpy_s(m_mvp.vulkanNDC, sizeof(m_mvp.vulkanNDC), &vulkanNDC, sizeof(vulkanNDC));
+	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
+
+	/*
 	m_mvp.model[0] = m_mvp.model[5] = m_mvp.model[10] = m_mvp.model[15] = 1.0f;
 	m_mvp.view[0] = m_mvp.view[5] = m_mvp.view[10] = m_mvp.view[15] = 1.0f;
 	m_mvp.projection[0] = m_mvp.projection[5] = m_mvp.projection[10] = m_mvp.projection[15] = 1.0f;
 	m_mvp.vulkanNDC[0] = m_mvp.vulkanNDC[5] = m_mvp.vulkanNDC[10] = m_mvp.vulkanNDC[15] = 1.0f;
-	m_mvp.mvp[0] = m_mvp.mvp[5] = m_mvp.mvp[10] = m_mvp.mvp[15] = 1.0f;
+	m_mvp.mvp[0] = m_mvp.mvp[5] = m_mvp.mvp[10] = m_mvp.mvp[15] = 1.0f;*/
 
 	void* pData;
 	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.memory, 0, m_uniformBuffer.info.size, 0, &pData));
