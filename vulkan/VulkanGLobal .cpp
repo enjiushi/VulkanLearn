@@ -184,6 +184,7 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 		DestroyWindow(hWnd);
 		PostQuitMessage(0);
+		ThreadCoordinator::Free();
 		break;
 	}
 }

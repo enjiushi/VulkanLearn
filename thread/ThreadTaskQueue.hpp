@@ -20,6 +20,19 @@ public:
 		}
 	}
 
+	~ThreadTaskQueue()
+	{
+		if (m_worker.joinable())
+		{
+			WaitForEmptyQueue();
+			std::unique_lock<std::mutex> lock(m_queueMutex);
+			m_isDestroying = true;
+			lock.unlock();
+			m_condition.notify_one();
+			m_worker.join();
+		}
+	}
+
 public:
 	void AddJob(std::function<void()> job)
 	{
@@ -30,9 +43,18 @@ public:
 
 	void WaitForFree()
 	{
-		std::unique_lock<std::mutex> lock(m_queueMutex);
-		m_condition.wait(lock, [this]() { return m_taskQueue.empty(); });
+		WaitForEmptyQueue();
+		WaitForWorkersAllFree();
+	}
 
+	void WaitForEmptyQueue()
+	{
+		std::unique_lock<std::mutex> lock(m_queueMutex);
+		m_condition.wait(lock, [this]() { return m_taskQueue.empty() && !m_isSearchingThread; });
+	}
+
+	void WaitForWorkersAllFree()
+	{
 		std::for_each(m_threadWorkers.begin(), m_threadWorkers.end(), [this](std::shared_ptr<ThreadWorker>& worker)
 		{
 			worker->WaitForFree();
@@ -53,9 +75,18 @@ private:
 			std::function<void()> job;
 			{
 				std::unique_lock<std::mutex> lock(m_queueMutex);
-				m_condition.wait(lock, [this]() { return !m_taskQueue.empty(); });
+				m_condition.wait(lock, [this]() { return !m_taskQueue.empty() || m_isDestroying; });
+
+				if (m_isDestroying)
+				{
+					break;
+				}
+
 				job = m_taskQueue.front();
 				m_taskQueue.pop();
+
+				m_isSearchingThread = true;
+
 				m_condition.notify_one();
 			}
 
@@ -76,6 +107,10 @@ private:
 
 				});
 			}
+			{
+				std::unique_lock<std::mutex> lock(m_queueMutex);
+				m_isSearchingThread = false;
+			}
 		}
 	}
 
@@ -85,4 +120,6 @@ private:
 	std::condition_variable m_condition;
 	std::queue<std::function<void()>> m_taskQueue;
 	std::vector<std::shared_ptr<ThreadWorker>> m_threadWorkers;
+	bool m_isSearchingThread = false;
+	bool m_isDestroying = false;
 };

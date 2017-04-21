@@ -13,6 +13,19 @@ public:
 		m_worker = std::thread(&ThreadWorker::Loop, this);
 	}
 
+	~ThreadWorker()
+	{
+		if (m_worker.joinable())
+		{
+			WaitForFree();
+			std::unique_lock<std::mutex> lock(m_queueMutex);
+			m_isDestroying = true;
+			lock.unlock();
+			m_condition.notify_one();
+			m_worker.join();
+		}
+	}
+
 public:
 	void AppendJob(std::function<void()> job)
 	{
@@ -48,7 +61,13 @@ public:
 			std::function<void()> job;
 			{
 				std::unique_lock<std::mutex> lock(m_queueMutex);
-				m_condition.wait(lock, [this] { return !m_jobQueue.empty(); });
+				m_condition.wait(lock, [this] { return !m_jobQueue.empty() || m_isDestroying; });
+
+				if (m_isDestroying)
+				{
+					break;
+				}
+
 				job = m_jobQueue.front();
 				m_jobQueue.pop();
 				m_isWorking = true;
@@ -74,5 +93,6 @@ private:
 	std::condition_variable m_condition;
 	std::queue<std::function<void()>> m_jobQueue;
 	bool m_isWorking = false;
+	bool m_isDestroying = false;
 	const int32_t m_jobQueueSize = 2;
 };

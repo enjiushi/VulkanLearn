@@ -6,15 +6,27 @@ class Singleton
 public:
 	static T* GetInstance()
 	{
-		static T* instance = nullptr;
-		if (instance)
-			return instance;
+		if (m_instance)
+			return m_instance;
 
-		instance = new T;
-		return instance;
+		m_instance = new T;
+		return m_instance;
+	}
+
+	static void Free()
+	{
+		if (m_instance)
+			delete m_instance;
+		m_instance = nullptr;
 	}
 
 protected:
 	Singleton<T>() {}
-	~Singleton<T>() {}
+	virtual ~Singleton<T>() {}
+
+protected:
+	static T* m_instance;
 };
+
+template <typename T>
+T* Singleton<T>::m_instance = nullptr;
