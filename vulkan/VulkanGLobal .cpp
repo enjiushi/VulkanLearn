@@ -699,7 +699,7 @@ void VulkanGlobal::InitUniforms()
 {
 	//Create uniform buffer
 	m_uniformBuffer.info.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-	m_uniformBuffer.info.size = sizeof(MVP);
+	m_uniformBuffer.info.size = sizeof(m_mvp.model) * 5;
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_uniformBuffer.info, nullptr, &m_uniformBuffer.buffer));
 
 	vkGetBufferMemoryRequirements(m_pDevice->GetDeviceHandle(), m_uniformBuffer.buffer, &m_uniformBuffer.reqs);
@@ -729,18 +729,23 @@ void VulkanGlobal::InitUniforms()
 	memset(m_mvp.model, 0, sizeof(m_mvp.model));
 	memset(m_mvp.view, 0, sizeof(m_mvp.view));
 	memset(m_mvp.projection, 0, sizeof(m_mvp.projection));
+	memset(m_mvp.vulkanNDC, 0, sizeof(m_mvp.vulkanNDC));
+	memset(m_mvp.mvp, 0, sizeof(m_mvp.mvp));
+
 	m_mvp.model[0] = m_mvp.model[5] = m_mvp.model[10] = m_mvp.model[15] = 1.0f;
 	m_mvp.view[0] = m_mvp.view[5] = m_mvp.view[10] = m_mvp.view[15] = 1.0f;
 	m_mvp.projection[0] = m_mvp.projection[5] = m_mvp.projection[10] = m_mvp.projection[15] = 1.0f;
+	m_mvp.vulkanNDC[0] = m_mvp.vulkanNDC[5] = m_mvp.vulkanNDC[10] = m_mvp.vulkanNDC[15] = 1.0f;
+	m_mvp.mvp[0] = m_mvp.mvp[5] = m_mvp.mvp[10] = m_mvp.mvp[15] = 1.0f;
 
 	void* pData;
 	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.memory, 0, m_uniformBuffer.info.size, 0, &pData));
-	memcpy(pData, &m_mvp, sizeof(m_mvp.model) + sizeof(m_mvp.view) + sizeof(m_mvp.projection));
+	memcpy(pData, &m_mvp, sizeof(m_mvp.model) * 5);
 	vkUnmapMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.memory);
 
 	m_mvp.mvpDescriptor.buffer = m_uniformBuffer.buffer;
 	m_mvp.mvpDescriptor.offset = 0;
-	m_mvp.mvpDescriptor.range = sizeof(m_mvp.model) + sizeof(m_mvp.view) + sizeof(m_mvp.projection);
+	m_mvp.mvpDescriptor.range = sizeof(m_mvp.model) * 5;
 
 	//Setup a barrier to let shader know its latest updated information in buffer
 	VkBufferMemoryBarrier barrier = {};
@@ -748,12 +753,12 @@ void VulkanGlobal::InitUniforms()
 	barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
 	barrier.dstAccessMask = VK_ACCESS_UNIFORM_READ_BIT;
 	barrier.offset = 0;
-	barrier.size = sizeof(MVP);
+	barrier.size = sizeof(m_mvp.model) * 5;
 	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 
 	vkCmdPipelineBarrier(m_setupCommandBuffer,
 		VK_PIPELINE_STAGE_HOST_BIT,
-		VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+		VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
 		0,
 		0, nullptr,
 		1, &barrier,
@@ -767,9 +772,9 @@ void VulkanGlobal::InitDescriptorSetLayout()
 		{
 			0,	//binding
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	//type
-		1,
-		VK_SHADER_STAGE_VERTEX_BIT,
-		nullptr
+			1,
+			VK_SHADER_STAGE_VERTEX_BIT,
+			nullptr
 		},
 	};
 
@@ -867,8 +872,8 @@ void VulkanGlobal::InitPipeline()
 	pipelineInfo.renderPass = m_renderpass;
 	pipelineInfo.layout = m_pipelineLayout;
 
-	VkShaderModule vertex_module = InitShaderModule("data/shaders/simple_vert.spv");
-	VkShaderModule fragment_module = InitShaderModule("data/shaders/simple_frag.spv");
+	VkShaderModule vertex_module = InitShaderModule("data/shaders/simple.vert.spv");
+	VkShaderModule fragment_module = InitShaderModule("data/shaders/simple.frag.spv");
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
 	shaderStages[0] = shaderStages[1] = {};
@@ -1046,15 +1051,6 @@ void VulkanGlobal::EndSetup()
 	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), m_commandPool, 1, &m_setupCommandBuffer);
 }
 
-#include <random>
-
-int Fab(int n)
-{
-	if (n == 0 || n == 1)
-		return n;
-	return Fab(n - 1) + Fab(n - 2);
-}
-
 void VulkanGlobal::Draw()
 {
 	CHECK_VK_ERROR(m_pSwapchain->GetAcquireNextImageFuncPtr()(m_pDevice->GetDeviceHandle(), m_pSwapchain->GetDeviceHandle(), UINT64_MAX, m_swapchainAcquireDone, nullptr, &m_currentBufferIndex));
@@ -1083,13 +1079,7 @@ void VulkanGlobal::Draw()
 	presentInfo.pImageIndices = &m_currentBufferIndex;
 	m_pSwapchain->GetQueuePresentFuncPtr()(m_queue, &presentInfo);
 
-	std::random_device rseed;
-	std::mt19937 rng(rseed());
-	std::uniform_int<int> dist(0, 30);
-
-	int r = dist(rng);
-	std::cout << "Fab:" << r << std::endl;
-	ThreadCoordinator::GetInstance()->AppendJob([r]() {Fab(r); std::cout << "Fab:" << r << " Done" << std::endl; });
+	vkQueueWaitIdle(m_queue);
 }
 
 void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)

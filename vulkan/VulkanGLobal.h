@@ -27,6 +27,8 @@ typedef struct _mvp
 	float	model[16];
 	float	view[16];
 	float	projection[16];
+	float	vulkanNDC[16];
+	float	mvp[16];
 
 	VkDescriptorBufferInfo mvpDescriptor;
 }MVP;

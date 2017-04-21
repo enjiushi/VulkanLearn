@@ -5,7 +5,16 @@
 
 layout (location = 0) in vec3 inPos;
 
+layout (binding = 0) uniform UBO
+{
+	mat4 model;
+	mat4 view;
+	mat4 projection;
+	mat4 vulkanNDC;
+	mat4 mvp;
+}ubo;
+
 void main() 
 {
-	gl_Position =  vec4(inPos.xyz, 1.0);
+	gl_Position = ubo.mvp * vec4(inPos.xyz, 1.0);
 }
