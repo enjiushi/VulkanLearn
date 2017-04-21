@@ -41,9 +41,9 @@ public:
 	T Length() const;
 
 	Vector3& Normalize();
-	const Vector3 Normalize() const;
+	const Vector3 Normal() const;
 
-	Vector3& Negative();
+	Vector3& Negativate();
 	const Vector3 Negative() const;
 
 	static const Vector3 Forward() { return Vector3<T>(0.0, 0.0, 1.0); }

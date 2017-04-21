@@ -40,9 +40,9 @@ public:
 	T Length() const;
 
 	Vector2& Normalize();
-	const Vector2 Normalize() const;
+	const Vector2 Normal() const;
 
-	Vector2& Negative();
+	Vector2& Negativate();
 	const Vector2 Negative() const;
 
 public:

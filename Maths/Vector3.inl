@@ -167,13 +167,13 @@ Vector3<T>& Vector3<T>::Normalize()
 }
 
 template <typename T>
-const Vector3<T> Vector3<T>::Normalize() const
+const Vector3<T> Vector3<T>::Normal() const
 {
 	return *this / Length();
 }
 
 template <typename T>
-Vector3<T>& Vector3<T>::Negative()
+Vector3<T>& Vector3<T>::Negativate()
 {
 	x = -x;
 	y = -y;

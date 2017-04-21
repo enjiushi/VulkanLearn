@@ -187,7 +187,7 @@ Vector4<T>& Vector4<T>::Normalize()
 }
 
 template <typename T>
-const Vector4<T> Vector4<T>::Normalize() const
+const Vector4<T> Vector4<T>::Normal() const
 {
 	return *this / Length();
 }

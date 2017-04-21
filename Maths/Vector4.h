@@ -47,7 +47,7 @@ public:
 	T Length() const;
 
 	Vector4<T>& Normalize();
-	const Vector4 Normalize() const;
+	const Vector4 Normal() const;
 	Vector4<T>& DivHomograph();
 
 	Vector3<T> xyz() const;
