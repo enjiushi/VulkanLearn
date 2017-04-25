@@ -6,6 +6,7 @@ set(NAME VulkanLearn)
 project(${NAME} CXX)
 
 include_directories(external/vulkan)
+include_directories(external/assimp)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -13,7 +14,7 @@ find_library(VULKAN_LIB NAMES vulkan-1 vulkan PATHS ${CMAKE_SOURCE_DIR}/lib/vulk
 find_library(ASSIMP_LIB NAMES assimp PATHS ${CMAKE_SOURCE_DIR}/lib/assimp)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVK_USE_PLATFORM_WIN32_KHR")
-
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 
 function(buildExample EXAMPLE)
 	#file(GLOB PROJECT_HEADER ${EXAMPLE}/*.h)
@@ -36,6 +37,7 @@ function(buildExample EXAMPLE)
 	source_group("thread\\" FILES ${THREAD})
 	source_group("shaders\\" FILES ${SHADER})
 	target_link_libraries(${EXAMPLE} ${VULKAN_LIB} ${ASSIMP_LIB})
+
 endfunction(buildExample)
 
 function(buildExamples EXAMPLES)
@@ -43,6 +45,13 @@ function(buildExamples EXAMPLES)
 		buildExample(${EXAMPLE})
 	endforeach(EXAMPLE)
 endfunction(buildExamples)
+
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/" )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/" )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/" )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/" )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/" )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/" )
 
 set(PROJECTS VulkanLearn)
 buildExamples(${PROJECTS})
