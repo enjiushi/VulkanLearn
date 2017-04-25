@@ -1,7 +1,7 @@
 #pragma once
 #include "../common/Singleton.h"
 #include "vulkan.h"
-#include "VulkanInstance.h"
+#include "Instance.h"
 #include "PhysicalDevice.h"
 #include "VulkanDevice.h"
 #include "SwapChain.h"
@@ -91,7 +91,7 @@ public:
 	static const uint32_t				WINDOW_HEIGHT = 768;
 
 protected:
-	std::shared_ptr<VulkanInstance>		m_vulkanInst;
+	std::shared_ptr<Instance>		m_vulkanInst;
 	std::shared_ptr<PhysicalDevice>		m_physicalDevice;
 	std::shared_ptr<VulkanDevice>		m_pDevice;
 	std::shared_ptr<SwapChain>			m_pSwapchain;

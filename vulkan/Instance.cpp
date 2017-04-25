@@ -1,4 +1,4 @@
-#include "VulkanInstance.h"
+#include "Instance.h"
 #include "../common/Macros.h"
 
 VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT flags,
@@ -14,13 +14,13 @@ VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT flags
 	return VK_FALSE;
 }
 
-VulkanInstance::~VulkanInstance()
+Instance::~Instance()
 {
 	if (m_vulkanInst)
 		vkDestroyInstance(m_vulkanInst, nullptr);
 }
 
-bool VulkanInstance::Init(const VkInstanceCreateInfo& info)
+bool Instance::Init(const VkInstanceCreateInfo& info)
 {
 	RETURN_FALSE_VK_RESULT(vkCreateInstance(&info, nullptr, &m_vulkanInst));
 

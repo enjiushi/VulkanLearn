@@ -7,7 +7,7 @@ VulkanDevice::~VulkanDevice()
 	vkDestroyDevice(m_device, nullptr);
 }
 
-bool VulkanDevice::Init(const std::shared_ptr<VulkanInstance> pInst, const std::shared_ptr<PhysicalDevice> pPhyisicalDevice)
+bool VulkanDevice::Init(const std::shared_ptr<Instance> pInst, const std::shared_ptr<PhysicalDevice> pPhyisicalDevice)
 {
 	m_pVulkanInst = pInst;
 	m_pPhysicalDevice = pPhyisicalDevice;

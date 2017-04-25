@@ -1,5 +1,5 @@
 #include "PhysicalDevice.h"
-#include "VulkanInstance.h"
+#include "Instance.h"
 #include "../common/Macros.h"
 
 PhysicalDevice::~PhysicalDevice()
@@ -9,7 +9,7 @@ PhysicalDevice::~PhysicalDevice()
 }
 
 #if defined(_WIN32)
-bool PhysicalDevice::Init(const std::shared_ptr<VulkanInstance> pVulkanInstance, HINSTANCE hInst, HWND hWnd)
+bool PhysicalDevice::Init(const std::shared_ptr<Instance> pVulkanInstance, HINSTANCE hInst, HWND hWnd)
 #endif
 {
 	//Get an available physical device

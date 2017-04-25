@@ -8,10 +8,10 @@
 #define EXTENSION_VULKAN_DEBUG_REPORT "VK_EXT_debug_report"
 #define EXTENSION_VULKAN_SWAPCHAIN "VK_KHR_swapchain"
 
-class VulkanInstance
+class Instance
 {
 public:
-	~VulkanInstance();
+	~Instance();
 
 	VkInstance GetDeviceHandle() { return m_vulkanInst; }
 	const VkInstance GetDeviceHandle() const { return m_vulkanInst; }

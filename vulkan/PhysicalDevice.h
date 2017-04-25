@@ -1,7 +1,7 @@
 #pragma once
 #include "../common/RefCounted.h"
 #include "vulkan.h"
-#include "VulkanInstance.h"
+#include "Instance.h"
 #include <vector>
 #include <memory>
 
@@ -29,11 +29,11 @@ public:
 	const VkSurfaceCapabilitiesKHR GetSurfaceCap() const { return m_surfaceCap; }
 
 #if defined(_WIN32)
-	bool Init(const std::shared_ptr<VulkanInstance> pVulkanInstance, HINSTANCE hInst, HWND hWnd);
+	bool Init(const std::shared_ptr<Instance> pVulkanInstance, HINSTANCE hInst, HWND hWnd);
 #endif
 
 private:
-	std::shared_ptr<VulkanInstance>		m_pVulkanInstance;
+	std::shared_ptr<Instance>			m_pVulkanInstance;
 	VkPhysicalDevice					m_physicalDevice;
 	VkPhysicalDeviceProperties			m_physicalDeviceProperties;
 	VkPhysicalDeviceFeatures			m_physicalDeviceFeatures;
