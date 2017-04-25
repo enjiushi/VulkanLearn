@@ -15,4 +15,5 @@ public:
 protected:
 	VkBuffer			m_buffer;
 	VkBufferCreateInfo	m_info;
+	std::shared_ptr<DeviceMemoryManager> m_pMemMgr;
 };
