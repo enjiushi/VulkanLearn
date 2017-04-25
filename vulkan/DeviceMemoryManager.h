@@ -1,11 +1,10 @@
 #pragma once
-#include "VulkanBase.h"
+#include "DeviceObjectBase.h"
 
-class DeviceMemoryManager : public VulkanBase
+class DeviceMemoryManager : public DeviceObjectBase
 {
 public:
-	DeviceMemoryManager() : VulkanBase(), m_memory(0) {}
-	DeviceMemoryManager(VkDevice device) : VulkanBase(device), m_memory(0) {}
+	DeviceMemoryManager() {}
 	~DeviceMemoryManager();
 
 public:

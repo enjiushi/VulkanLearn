@@ -21,6 +21,6 @@ void DeviceMemoryManager::ReleaseMemory()
 	if (m_memory == 0)
 		return;
 
-	vkFreeMemory(m_device, m_memory, nullptr);
+	vkFreeMemory(m_device.GetDeviceHandle(), m_memory, nullptr);
 	m_memory = 0;
 }

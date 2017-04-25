@@ -11,6 +11,8 @@ public:
 	~Device();
 
 	const VkDevice GetDeviceHandle() const { return m_device; }
+	const std::shared_ptr<PhysicalDevice> GetPhysicalDevice() const { return m_pPhysicalDevice; }
+	const std::shared_ptr<Instance> GetInstance() const { return m_pVulkanInst; }
 
 	bool Init(const std::shared_ptr<Instance> pInst, const std::shared_ptr<PhysicalDevice> pPhyisicalDevice);
 

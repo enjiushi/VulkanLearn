@@ -1,6 +1,6 @@
 #pragma once
 #include "../common/AutoPTR.h"
-#include "VulkanBase.h"
+#include "vulkan.h"
 
 #define EXTENSION_VULKAN_SURFACE "VK_KHR_surface"  
 #define EXTENSION_VULKAN_SURFACE_WIN32 "VK_KHR_win32_surface"
