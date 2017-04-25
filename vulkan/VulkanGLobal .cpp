@@ -665,11 +665,6 @@ void VulkanGlobal::InitUniforms()
 {
 	uint32_t totalUniformBytes = sizeof(m_mvp.model) * 5 + sizeof(m_mvp.camPos);
 
-	//Create uniform buffer
-	m_uniformBuffer.info.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-	m_uniformBuffer.info.size = totalUniformBytes;
-	//CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_uniformBuffer.info, nullptr, &m_uniformBuffer.buffer));
-
 	memset(m_mvp.model, 0, sizeof(m_mvp.model));
 	memset(m_mvp.view, 0, sizeof(m_mvp.view));
 	memset(m_mvp.projection, 0, sizeof(m_mvp.projection));
@@ -721,25 +716,40 @@ void VulkanGlobal::InitUniforms()
 	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
 	memcpy_s(m_mvp.camPos, sizeof(m_mvp.camPos), &camPos, sizeof(camPos));
 
-	m_uniformBuffer.buffer.Init(m_pDevice, m_uniformBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, &m_mvp);
+	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, totalUniformBytes, m_pMemoryMgr, &m_mvp);
+	m_uniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes, m_pMemoryMgr);
 
-	//m_pMemoryMgr->AllocateMemChunk(m_uniformBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &m_mvp);
-
-	m_mvp.mvpDescriptor.buffer = m_uniformBuffer.buffer.GetDeviceHandle();
-	m_mvp.mvpDescriptor.offset = 0;
-	m_mvp.mvpDescriptor.range = totalUniformBytes;
+	//m_uniformBuffer.buffer.Init(m_pDevice, m_uniformBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, &m_mvp);
 
 	//Setup a barrier to let shader know its latest updated information in buffer
 	VkBufferMemoryBarrier barrier = {};
-	barrier.buffer = m_uniformBuffer.buffer.GetDeviceHandle();
+	barrier.buffer = pStagingBuffer->GetDeviceHandle();
 	barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-	barrier.dstAccessMask = VK_ACCESS_UNIFORM_READ_BIT;
+	barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 	barrier.offset = 0;
 	barrier.size = totalUniformBytes;
 	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 
 	vkCmdPipelineBarrier(m_setupCommandBuffer,
 		VK_PIPELINE_STAGE_HOST_BIT,
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		0,
+		0, nullptr,
+		1, &barrier,
+		0, nullptr);
+
+	VkBufferCopy copy = {};
+	copy.dstOffset = 0;
+	copy.srcOffset = 0;
+	copy.size = m_uniformBuffer->GetBufferInfo().size;
+	vkCmdCopyBuffer(m_setupCommandBuffer, pStagingBuffer->GetDeviceHandle(), m_uniformBuffer->GetDeviceHandle(), 1, &copy);
+
+	barrier.buffer = m_uniformBuffer->GetDeviceHandle();
+	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	vkCmdPipelineBarrier(m_setupCommandBuffer,
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
 		VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
 		0,
 		0, nullptr,
@@ -927,15 +937,15 @@ void VulkanGlobal::InitDescriptorSet()
 
 	std::vector<VkWriteDescriptorSet> writeDescSet;
 	writeDescSet.resize(1);
-
+	
+	VkDescriptorBufferInfo info = m_uniformBuffer->GetDescBufferInfo();
 	writeDescSet[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	writeDescSet[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	writeDescSet[0].dstBinding = 0;
 	writeDescSet[0].dstSet = m_descriptorSet;
-	writeDescSet[0].pBufferInfo = &m_mvp.mvpDescriptor;
+	writeDescSet[0].pBufferInfo = &info;
 	writeDescSet[0].descriptorCount = 1;
 
-	//vkUpdateDescriptorSets(m_device, 1, &writeDescSet[0], 0, nullptr);
 	vkUpdateDescriptorSets(m_pDevice->GetDeviceHandle(), writeDescSet.size(), writeDescSet.data(), 0, nullptr);
 }
 

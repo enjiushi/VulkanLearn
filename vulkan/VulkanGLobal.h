@@ -11,6 +11,7 @@
 #include "Buffer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "UniformBuffer.h"
 
 typedef struct _swapchainImg
 {
@@ -113,7 +114,7 @@ protected:
 
 	std::shared_ptr<VertexBuffer>		m_vertexBuffer;
 	std::shared_ptr<IndexBuffer>		m_indexBuffer;
-	Buffer1								m_uniformBuffer;
+	std::shared_ptr<UniformBuffer>		m_uniformBuffer;
 
 	MVP									m_mvp;
 
