@@ -20,6 +20,14 @@ Instance::~Instance()
 		vkDestroyInstance(m_vulkanInst, nullptr);
 }
 
+std::shared_ptr<Instance> Instance::Create(const VkInstanceCreateInfo& info)
+{
+	std::shared_ptr<Instance> pInstance = std::make_shared<Instance>();
+	if (pInstance.get() && pInstance->Init(info))
+		return pInstance;
+	return nullptr;
+}
+
 bool Instance::Init(const VkInstanceCreateInfo& info)
 {
 	RETURN_FALSE_VK_RESULT(vkCreateInstance(&info, nullptr, &m_vulkanInst));

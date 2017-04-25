@@ -1,15 +1,25 @@
 #include "SwapChain.h"
 #include "../common/Macros.h"
 
+std::shared_ptr<SwapChain> SwapChain::Create(const std::shared_ptr<Device>& pDevice)
+{
+	std::shared_ptr<SwapChain> pSwapChain = std::make_shared<SwapChain>();
+	if (pSwapChain.get() && pSwapChain->Init(pDevice))
+		return pSwapChain;
+
+	return nullptr;
+}
+
 SwapChain::~SwapChain()
 {
 	if (m_pDevice.get())
 		m_fpDestroySwapchainKHR(m_pDevice->GetDeviceHandle(), m_swapchain, nullptr);
 }
 
-bool SwapChain::Init(const std::shared_ptr<Device> pDevice)
+bool SwapChain::Init(const std::shared_ptr<Device>& pDevice)
 {
-	m_pDevice = pDevice;
+	if (!DeviceObjectBase::Init(pDevice))
+		return false;
 
 	GET_DEVICE_PROC_ADDR(pDevice->GetDeviceHandle(), CreateSwapchainKHR);
 	GET_DEVICE_PROC_ADDR(pDevice->GetDeviceHandle(), DestroySwapchainKHR);

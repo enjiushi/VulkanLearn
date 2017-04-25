@@ -10,6 +10,11 @@ class PhysicalDevice
 public:
 	~PhysicalDevice();
 
+#if defined(_WIN32)
+	bool Init(const std::shared_ptr<Instance>& pVulkanInstance, HINSTANCE hInst, HWND hWnd);
+#endif
+
+public:
 	const VkPhysicalDevice GetDeviceHandle() const { return m_physicalDevice; }
 	const VkSurfaceKHR GetSurfaceHandle() const { return m_surface; }
 	const VkPhysicalDeviceProperties& GetPhysicalDeviceProperties() const { return m_physicalDeviceProperties; }
@@ -28,9 +33,8 @@ public:
 	const std::vector<VkPresentModeKHR>& GetPresentModes() const { return m_presentModes; }
 	const VkSurfaceCapabilitiesKHR GetSurfaceCap() const { return m_surfaceCap; }
 
-#if defined(_WIN32)
-	bool Init(const std::shared_ptr<Instance> pVulkanInstance, HINSTANCE hInst, HWND hWnd);
-#endif
+public:
+	static std::shared_ptr<PhysicalDevice> Create(const std::shared_ptr<Instance>& pVulkanInstance, HINSTANCE hInst, HWND hWnd);
 
 private:
 	std::shared_ptr<Instance>			m_pVulkanInstance;

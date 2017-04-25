@@ -1,5 +1,5 @@
 #pragma once
-#include "../common/AutoPTR.h"
+#include <memory>
 #include "vulkan.h"
 
 #define EXTENSION_VULKAN_SURFACE "VK_KHR_surface"  
@@ -17,6 +17,9 @@ public:
 	const VkInstance GetDeviceHandle() const { return m_vulkanInst; }
 
 	bool Init(const VkInstanceCreateInfo&);
+
+public:
+	static std::shared_ptr<Instance> Create(const VkInstanceCreateInfo&);
 
 private:
 	VkInstance	m_vulkanInst;

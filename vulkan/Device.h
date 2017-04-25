@@ -1,5 +1,4 @@
 #pragma once
-#include "../common/RefCounted.h"
 #include "vulkan.h"
 #include "Instance.h"
 #include "PhysicalDevice.h"
@@ -10,11 +9,15 @@ class Device
 public:
 	~Device();
 
+	bool Init(const std::shared_ptr<Instance>& pInst, const std::shared_ptr<PhysicalDevice>& pPhyisicalDevice);
+
+public:
 	const VkDevice GetDeviceHandle() const { return m_device; }
 	const std::shared_ptr<PhysicalDevice> GetPhysicalDevice() const { return m_pPhysicalDevice; }
 	const std::shared_ptr<Instance> GetInstance() const { return m_pVulkanInst; }
 
-	bool Init(const std::shared_ptr<Instance> pInst, const std::shared_ptr<PhysicalDevice> pPhyisicalDevice);
+public:
+	static std::shared_ptr<Device> Create(const std::shared_ptr<Instance>& pInstance, const std::shared_ptr<PhysicalDevice> pPhyisicalDevice);
 
 protected:
 	VkDevice							m_device;

@@ -7,7 +7,15 @@ Device::~Device()
 	vkDestroyDevice(m_device, nullptr);
 }
 
-bool Device::Init(const std::shared_ptr<Instance> pInst, const std::shared_ptr<PhysicalDevice> pPhyisicalDevice)
+std::shared_ptr<Device> Device::Create(const std::shared_ptr<Instance>& pInstance, const std::shared_ptr<PhysicalDevice> pPhyisicalDevice)
+{
+	std::shared_ptr<Device> pDevice = std::make_shared<Device>();
+	if (pDevice.get() && pDevice->Init(pInstance, pPhyisicalDevice))
+		return pDevice;
+	return nullptr;
+}
+
+bool Device::Init(const std::shared_ptr<Instance>& pInst, const std::shared_ptr<PhysicalDevice>& pPhyisicalDevice)
 {
 	m_pVulkanInst = pInst;
 	m_pPhysicalDevice = pPhyisicalDevice;

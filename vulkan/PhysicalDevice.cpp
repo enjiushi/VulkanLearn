@@ -8,8 +8,16 @@ PhysicalDevice::~PhysicalDevice()
 		m_fpDestroySurfaceKHR(m_pVulkanInstance->GetDeviceHandle(), m_surface, nullptr);
 }
 
+std::shared_ptr<PhysicalDevice> PhysicalDevice::Create(const std::shared_ptr<Instance>& pVulkanInstance, HINSTANCE hInst, HWND hWnd)
+{
+	std::shared_ptr<PhysicalDevice> pPhysicalDevice = std::make_shared<PhysicalDevice>();
+	if (pPhysicalDevice.get() && pPhysicalDevice->Init(pVulkanInstance, hInst, hWnd))
+		return pPhysicalDevice;
+	return nullptr;
+}
+
 #if defined(_WIN32)
-bool PhysicalDevice::Init(const std::shared_ptr<Instance> pVulkanInstance, HINSTANCE hInst, HWND hWnd)
+bool PhysicalDevice::Init(const std::shared_ptr<Instance>& pVulkanInstance, HINSTANCE hInst, HWND hWnd)
 #endif
 {
 	//Get an available physical device

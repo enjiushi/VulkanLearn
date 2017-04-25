@@ -4,11 +4,15 @@
 class DeviceMemoryManager : public DeviceObjectBase
 {
 public:
-	DeviceMemoryManager() {}
 	~DeviceMemoryManager();
+
+	bool Init(const std::shared_ptr<Device>& pDevice) override;
 
 public:
 	bool AllocateMemory(uint32_t byteSize);
+
+public:
+	static std::shared_ptr<DeviceMemoryManager> Create(const std::shared_ptr<Device>& pDevice);
 
 protected:
 	void ReleaseMemory();
