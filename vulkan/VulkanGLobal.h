@@ -8,6 +8,7 @@
 #include <vector>
 #include <memory>
 #include "DeviceMemoryManager.h"
+#include "Buffer.h"
 
 typedef struct _swapchainImg
 {
@@ -39,14 +40,12 @@ typedef struct _mvp
 typedef struct _buffer
 {
 	_buffer() { info = {}; info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO; }
-	VkDeviceMemory						memory;
-	VkBuffer							buffer;
-	VkMemoryRequirements				reqs;
+	Buffer								buffer;
 	VkBufferCreateInfo					info;
 	VkVertexInputBindingDescription		bindingDesc;
 	uint32_t							count;
 	std::vector<VkVertexInputAttributeDescription>	attribDesc;
-}Buffer;
+}Buffer1;
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
@@ -110,9 +109,9 @@ protected:
 	VkRenderPass						m_renderpass;
 	std::vector<VkFramebuffer>			m_framebuffers;
 
-	Buffer								m_vertexBuffer;
-	Buffer								m_indexBuffer;
-	Buffer								m_uniformBuffer;
+	Buffer1								m_vertexBuffer;
+	Buffer1								m_indexBuffer;
+	Buffer1								m_uniformBuffer;
 
 	MVP									m_mvp;
 

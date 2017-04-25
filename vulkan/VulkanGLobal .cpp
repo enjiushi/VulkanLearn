@@ -11,6 +11,7 @@
 #include "Importer.hpp"
 #include "scene.h"
 #include "postprocess.h"
+#include "Buffer.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -570,7 +571,7 @@ void VulkanGlobal::InitVertices()
 		pIndices[i * 3 + 2] = pMesh->mFaces[i].mIndices[2];
 	}
 
-	Buffer stageVertexBuffer, stageIndexBuffer;
+	Buffer1 stageVertexBuffer, stageIndexBuffer;
 
 	VkMemoryAllocateInfo allocateInfo = {};
 	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -581,29 +582,43 @@ void VulkanGlobal::InitVertices()
 	stageVertexBuffer.info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	stageVertexBuffer.info.size = verticesNumBytes;
 	stageVertexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+	/*
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &stageVertexBuffer.info, nullptr, &stageVertexBuffer.buffer));
-	m_pMemoryMgr->AllocateMemChunk(stageVertexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pVertices);
+	m_pMemoryMgr->AllocateMemChunk(stageVertexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pVertices);*/
+
+	stageVertexBuffer.buffer.Init(m_pDevice, stageVertexBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, pVertices);
 
 
 	//Create vertex buffer
 	m_vertexBuffer.info.size = verticesNumBytes;
 	m_vertexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 	m_vertexBuffer.count = pMesh->mNumVertices;
+
+	/*
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_vertexBuffer.info, nullptr, &m_vertexBuffer.buffer));
-	m_pMemoryMgr->AllocateMemChunk(m_vertexBuffer.buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	m_pMemoryMgr->AllocateMemChunk(m_vertexBuffer.buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);*/
+
+	m_vertexBuffer.buffer.Init(m_pDevice, m_vertexBuffer.info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_pMemoryMgr);
 
 	//Create staging index buffer
 	stageIndexBuffer.info.size = indicesNumBytes;
 	stageIndexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+	/*
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &stageIndexBuffer.info, nullptr, &stageIndexBuffer.buffer));
-	m_pMemoryMgr->AllocateMemChunk(stageIndexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pIndices);
+	m_pMemoryMgr->AllocateMemChunk(stageIndexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pIndices);*/
+
+	stageIndexBuffer.buffer.Init(m_pDevice, stageIndexBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, pIndices);
 
 	//Create index buffer
 	m_indexBuffer.info.size = indicesNumBytes;
 	m_indexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 	m_indexBuffer.count = pMesh->mNumFaces * 3;
+	/*
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_indexBuffer.info, nullptr, &m_indexBuffer.buffer));
-	m_pMemoryMgr->AllocateMemChunk(m_indexBuffer.buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	m_pMemoryMgr->AllocateMemChunk(m_indexBuffer.buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);*/
+	m_indexBuffer.buffer.Init(m_pDevice, m_indexBuffer.info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_pMemoryMgr);
 
 	//Setup a barrier for staging buffers
 	VkBufferMemoryBarrier barriers[2] = {};
@@ -612,7 +627,7 @@ void VulkanGlobal::InitVertices()
 	barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 	barriers[0].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
 	barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barriers[0].buffer = stageVertexBuffer.buffer;
+	barriers[0].buffer = stageVertexBuffer.buffer.GetDeviceHandle();
 	barriers[0].offset = 0;
 	barriers[0].size = stageVertexBuffer.info.size;
 
@@ -620,7 +635,7 @@ void VulkanGlobal::InitVertices()
 	barriers[1].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 	barriers[1].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
 	barriers[1].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barriers[1].buffer = stageIndexBuffer.buffer;
+	barriers[1].buffer = stageIndexBuffer.buffer.GetDeviceHandle();
 	barriers[1].offset = 0;
 	barriers[1].size = stageIndexBuffer.info.size;
 
@@ -638,20 +653,20 @@ void VulkanGlobal::InitVertices()
 	copy.dstOffset = 0;
 	copy.srcOffset = 0;
 	copy.size = stageVertexBuffer.info.size;
-	vkCmdCopyBuffer(m_setupCommandBuffer, stageVertexBuffer.buffer, m_vertexBuffer.buffer, 1, &copy);
+	vkCmdCopyBuffer(m_setupCommandBuffer, stageVertexBuffer.buffer.GetDeviceHandle(), m_vertexBuffer.buffer.GetDeviceHandle(), 1, &copy);
 
 	//Copy index buffer
 	copy.size = stageIndexBuffer.info.size;
-	vkCmdCopyBuffer(m_setupCommandBuffer, stageIndexBuffer.buffer, m_indexBuffer.buffer, 1, &copy);
+	vkCmdCopyBuffer(m_setupCommandBuffer, stageIndexBuffer.buffer.GetDeviceHandle(), m_indexBuffer.buffer.GetDeviceHandle(), 1, &copy);
 
 	//Setup a barrier for memory changes
 	barriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	barriers[0].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-	barriers[0].buffer = m_vertexBuffer.buffer;
+	barriers[0].buffer = m_vertexBuffer.buffer.GetDeviceHandle();
 
 	barriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	barriers[1].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;	//not sure if it's the same as vertex buffer
-	barriers[1].buffer = m_indexBuffer.buffer;
+	barriers[1].buffer = m_indexBuffer.buffer.GetDeviceHandle();
 
 	vkCmdPipelineBarrier(m_setupCommandBuffer,
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -690,7 +705,7 @@ void VulkanGlobal::InitUniforms()
 	//Create uniform buffer
 	m_uniformBuffer.info.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 	m_uniformBuffer.info.size = totalUniformBytes;
-	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_uniformBuffer.info, nullptr, &m_uniformBuffer.buffer));
+	//CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_uniformBuffer.info, nullptr, &m_uniformBuffer.buffer));
 
 	memset(m_mvp.model, 0, sizeof(m_mvp.model));
 	memset(m_mvp.view, 0, sizeof(m_mvp.view));
@@ -743,15 +758,17 @@ void VulkanGlobal::InitUniforms()
 	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
 	memcpy_s(m_mvp.camPos, sizeof(m_mvp.camPos), &camPos, sizeof(camPos));
 
-	m_pMemoryMgr->AllocateMemChunk(m_uniformBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &m_mvp);
+	m_uniformBuffer.buffer.Init(m_pDevice, m_uniformBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, &m_mvp);
 
-	m_mvp.mvpDescriptor.buffer = m_uniformBuffer.buffer;
+	//m_pMemoryMgr->AllocateMemChunk(m_uniformBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &m_mvp);
+
+	m_mvp.mvpDescriptor.buffer = m_uniformBuffer.buffer.GetDeviceHandle();
 	m_mvp.mvpDescriptor.offset = 0;
 	m_mvp.mvpDescriptor.range = totalUniformBytes;
 
 	//Setup a barrier to let shader know its latest updated information in buffer
 	VkBufferMemoryBarrier barrier = {};
-	barrier.buffer = m_uniformBuffer.buffer;
+	barrier.buffer = m_uniformBuffer.buffer.GetDeviceHandle();
 	barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
 	barrier.dstAccessMask = VK_ACCESS_UNIFORM_READ_BIT;
 	barrier.offset = 0;
@@ -1016,8 +1033,9 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		vkCmdBindPipeline(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
 		VkDeviceSize deviceSize[1] = { 0 };
-		vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &m_vertexBuffer.buffer, deviceSize);
-		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+		VkBuffer vertexBuffer = m_vertexBuffer.buffer.GetDeviceHandle();
+		vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &vertexBuffer, deviceSize);
+		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_indexBuffer.buffer.GetDeviceHandle(), 0, VK_INDEX_TYPE_UINT32);
 
 		vkCmdDrawIndexed(m_drawCmdBuffers[i], m_indexBuffer.count, 1, 0, 0, 0);
 

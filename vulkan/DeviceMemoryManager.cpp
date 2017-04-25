@@ -35,7 +35,7 @@ void DeviceMemoryManager::AllocateMemChunk(VkBuffer buffer, uint32_t memoryPrope
 
 	CHECK_VK_ERROR(vkBindBufferMemory(GetDevice()->GetDeviceHandle(), buffer, m_memoryPool[typeIndex].memory, state.startByte));
 
-	if (pData != nullptr)
+	if (pData != nullptr && (memoryPropertyBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
 	{
 		void* pDeviceData;
 		CHECK_VK_ERROR(vkMapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[typeIndex].memory, state.startByte, state.numBytes, 0, &pDeviceData));
