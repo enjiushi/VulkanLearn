@@ -43,8 +43,7 @@ void VulkanGlobal::InitVulkanInstance()
 
 void VulkanGlobal::InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd)
 {
-	m_physicalDevice = std::make_shared<PhysicalDevice>(PhysicalDevice());
-	m_physicalDevice->Init(m_vulkanInst, hInstance, hWnd);
+	m_physicalDevice = PhysicalDevice::Create(m_vulkanInst, hInstance, hWnd);
 	ASSERTION(m_physicalDevice != nullptr);
 }
 
