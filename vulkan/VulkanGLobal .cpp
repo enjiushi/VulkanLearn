@@ -8,6 +8,9 @@
 #include "../thread/ThreadCoordinator.h"
 #include "../maths/Matrix.h"
 #include <math.h>
+#include "Importer.hpp"
+#include "scene.h"
+#include "postprocess.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -487,21 +490,90 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	float vertices[] =
-	{
-		-1.0, -1.0, 0.0,
-		1.0, -1.0, 0.0,
-		0.0, 1.0, 0.0
-	};
+	Assimp::Importer imp;
+	const aiScene* pScene = nullptr;
+	pScene = imp.ReadFile("data/models/sphere.obj", aiProcess_Triangulate | aiProcess_GenSmoothNormals);
 
-	int32_t indices[] = { 0, 1, 2 };
+	aiMesh* pMesh = pScene->mMeshes[0];
+
+	uint32_t vertexSize = 0;
+	if (pMesh->HasPositions())
+		vertexSize += 3 * sizeof(float);
+	if (pMesh->HasNormals())
+		vertexSize += 3 * sizeof(float);
+	//FIXME: hard-coded index 0 here, we don't have more than 1 color for now
+	if (pMesh->HasVertexColors(0))
+		vertexSize += 4 * sizeof(float);
+	//FIXME: hard-coded index 0 here, we don't have more than 1 texture coord for now
+	if (pMesh->HasTextureCoords(0))
+		vertexSize += 3 * sizeof(float);
+	if (pMesh->HasTangentsAndBitangents())
+		vertexSize += 6 * sizeof(float);
+
+	float* pVertices = new float[pMesh->mNumVertices * 9];
+	uint32_t verticesNumBytes = pMesh->mNumVertices * vertexSize;
+	uint32_t count = 0;
+
+	for (uint32_t i = 0; i < pMesh->mNumVertices; i++)
+	{
+		uint32_t offset = i * vertexSize / sizeof(float);
+		count = 0;
+		if (pMesh->HasPositions())
+		{
+			pVertices[offset] = pMesh->mVertices[i].x;
+			pVertices[offset + 1] = pMesh->mVertices[i].y;
+			pVertices[offset + 2] = pMesh->mVertices[i].z;
+			count += 3;
+		}
+		if (pMesh->HasNormals())
+		{
+			pVertices[offset + count] = pMesh->mNormals[i].x;
+			pVertices[offset + count + 1] = pMesh->mNormals[i].y;
+			pVertices[offset + count + 2] = pMesh->mNormals[i].z;
+			count += 3;
+		}
+		if (pMesh->HasVertexColors(0))
+		{
+			pVertices[offset + count] = pMesh->mColors[i][0].r;
+			pVertices[offset + count + 1] = pMesh->mColors[i][0].g;
+			pVertices[offset + count + 2] = pMesh->mColors[i][0].b;
+			pVertices[offset + count + 3] = pMesh->mColors[i][0].a;
+			count += 4;
+		}
+		if (pMesh->HasTextureCoords(0))
+		{
+			pVertices[offset + count] = pMesh->mTextureCoords[0][i].x;
+			pVertices[offset + count + 1] = pMesh->mTextureCoords[0][i].y;
+			pVertices[offset + count + 2] = pMesh->mTextureCoords[0][i].z;
+			count += 3;
+		}
+		if (pMesh->HasTangentsAndBitangents())
+		{
+			pVertices[offset + count] = pMesh->mTangents[i].x;
+			pVertices[offset + count + 1] = pMesh->mTangents[i].y;
+			pVertices[offset + count + 2] = pMesh->mTangents[i].z;
+			pVertices[offset + count + 3] = pMesh->mBitangents[i].x;
+			pVertices[offset + count + 4] = pMesh->mBitangents[i].y;
+			pVertices[offset + count + 5] = pMesh->mBitangents[i].z;
+			count += 6;
+		}
+	}
+
+	uint32_t* pIndices = new uint32_t[pMesh->mNumFaces * 3];
+	uint32_t indicesNumBytes = pMesh->mNumFaces * 3 * sizeof(uint32_t);
+	for (size_t i = 0; i < pMesh->mNumFaces; i++)
+	{
+		pIndices[i * 3] = pMesh->mFaces[i].mIndices[0];
+		pIndices[i * 3 + 1] = pMesh->mFaces[i].mIndices[1];
+		pIndices[i * 3 + 2] = pMesh->mFaces[i].mIndices[2];
+	}
 
 	Buffer stageVertexBuffer, stageIndexBuffer;
 
 
 	//Create staging vertex buffer
 	stageVertexBuffer.info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	stageVertexBuffer.info.size = sizeof(vertices);
+	stageVertexBuffer.info.size = verticesNumBytes;
 	stageVertexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &stageVertexBuffer.info, nullptr, &stageVertexBuffer.buffer));
 
@@ -532,13 +604,14 @@ void VulkanGlobal::InitVertices()
 
 	void* pData;
 	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), stageVertexBuffer.memory, 0, stageVertexBuffer.reqs.size, 0, &pData));
-	memcpy(pData, vertices, stageVertexBuffer.info.size);
+	memcpy(pData, pVertices, stageVertexBuffer.info.size);
 	vkUnmapMemory(m_pDevice->GetDeviceHandle(), stageVertexBuffer.memory);
 
 
 	//Create vertex buffer
-	m_vertexBuffer.info.size = sizeof(vertices);
+	m_vertexBuffer.info.size = verticesNumBytes;
 	m_vertexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	m_vertexBuffer.count = pMesh->mNumVertices;
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_vertexBuffer.info, nullptr, &m_vertexBuffer.buffer));
 	vkGetBufferMemoryRequirements(m_pDevice->GetDeviceHandle(), m_vertexBuffer.buffer, &m_vertexBuffer.reqs);
 
@@ -565,7 +638,7 @@ void VulkanGlobal::InitVertices()
 
 
 	//Create staging index buffer
-	stageIndexBuffer.info.size = sizeof(indices);
+	stageIndexBuffer.info.size = indicesNumBytes;
 	stageIndexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &stageIndexBuffer.info, nullptr, &stageIndexBuffer.buffer));
@@ -593,13 +666,14 @@ void VulkanGlobal::InitVertices()
 	CHECK_VK_ERROR(vkBindBufferMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.buffer, stageIndexBuffer.memory, 0));
 
 	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.memory, 0, stageIndexBuffer.reqs.size, 0, &pData));
-	memcpy(pData, indices, stageIndexBuffer.info.size);
+	memcpy(pData, pIndices, stageIndexBuffer.info.size);
 	vkUnmapMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.memory);
 
 
 	//Create index buffer
-	m_indexBuffer.info.size = sizeof(indices);
+	m_indexBuffer.info.size = indicesNumBytes;
 	m_indexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+	m_indexBuffer.count = pMesh->mNumFaces * 3;
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_indexBuffer.info, nullptr, &m_indexBuffer.buffer));
 	vkGetBufferMemoryRequirements(m_pDevice->GetDeviceHandle(), m_indexBuffer.buffer, &m_indexBuffer.reqs);
 
@@ -682,19 +756,24 @@ void VulkanGlobal::InitVertices()
 
 	//Binding and attributes information
 	m_vertexBuffer.bindingDesc.binding = 0;		//hard coded 0
-	m_vertexBuffer.bindingDesc.stride = sizeof(float) * 3;	//xyzrgb, all hard coded, mockup code, don't care, just for learning
+	m_vertexBuffer.bindingDesc.stride = vertexSize;	//xyzrgb, all hard coded, mockup code, don't care, just for learning
 	m_vertexBuffer.bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-	m_vertexBuffer.attribDesc.resize(1);
+	m_vertexBuffer.attribDesc.resize(3);
 	m_vertexBuffer.attribDesc[0].binding = 0;
 	m_vertexBuffer.attribDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	m_vertexBuffer.attribDesc[0].location = 0;	//layout location 0 in shader
 	m_vertexBuffer.attribDesc[0].offset = 0;
-	/*
+	
 	m_vertexBuffer.attribDesc[1].binding = 0;
-	m_vertexBuffer.attribDesc[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+	m_vertexBuffer.attribDesc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 	m_vertexBuffer.attribDesc[1].location = 1;
 	m_vertexBuffer.attribDesc[1].offset = sizeof(float) * 3;	//after xyz*/
+
+	m_vertexBuffer.attribDesc[2].binding = 0;
+	m_vertexBuffer.attribDesc[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+	m_vertexBuffer.attribDesc[2].location = 2;
+	m_vertexBuffer.attribDesc[2].offset = sizeof(float) * 6;	//after xyz*/
 }
 
 void VulkanGlobal::InitUniforms()
@@ -741,7 +820,7 @@ void VulkanGlobal::InitUniforms()
 	//Vector3f look = { 1, -1, -1 };
 	Vector3f look = { 0, 0, -1 };
 	look.Normalize();
-	Vector3f position = { 0, 0, 5 };
+	Vector3f position = { 0, 0, 50 };
 	Vector3f xaxis = up ^ look.Negativate();
 	xaxis.Normalize();
 	Vector3f yaxis = look ^ xaxis;
@@ -757,7 +836,7 @@ void VulkanGlobal::InitUniforms()
 	float aspect = 1024.0 / 768.0;
 	float fov = 3.1415 / 2.0;
 	float nearPlane = 1;
-	float farPlane = 10;
+	float farPlane = 200;
 
 	projection.c[0] = { 1.0f / (nearPlane * std::tanf(fov / 2.0f) * aspect), 0, 0, 0 };
 	projection.c[1] = { 0, 1.0f / (nearPlane * std::tanf(fov / 2.0f)), 0, 0 };
@@ -880,7 +959,7 @@ void VulkanGlobal::InitPipeline()
 	VkPipelineRasterizationStateCreateInfo rsCreateInfo = {};
 	rsCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rsCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-	rsCreateInfo.cullMode = VK_CULL_MODE_NONE;
+	rsCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
 	rsCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rsCreateInfo.lineWidth = 1.0f;
 	rsCreateInfo.depthClampEnable = VK_FALSE;
@@ -1062,7 +1141,7 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &m_vertexBuffer.buffer, deviceSize);
 		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-		vkCmdDrawIndexed(m_drawCmdBuffers[i], 3, 1, 0, 0, 0);
+		vkCmdDrawIndexed(m_drawCmdBuffers[i], m_indexBuffer.count, 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(m_drawCmdBuffers[i]);
 

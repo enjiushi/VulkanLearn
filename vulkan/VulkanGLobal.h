@@ -42,6 +42,7 @@ typedef struct _buffer
 	VkMemoryRequirements				reqs;
 	VkBufferCreateInfo					info;
 	VkVertexInputBindingDescription		bindingDesc;
+	uint32_t							count;
 	std::vector<VkVertexInputAttributeDescription>	attribDesc;
 }Buffer;
 
