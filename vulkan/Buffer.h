@@ -10,7 +10,9 @@ public:
 
 public:
 	VkBuffer GetDeviceHandle() const { return m_buffer; }
+	const VkBufferCreateInfo& GetBufferInfo() const { return m_info; }
 
 protected:
-	VkBuffer m_buffer;
+	VkBuffer			m_buffer;
+	VkBufferCreateInfo	m_info;
 };

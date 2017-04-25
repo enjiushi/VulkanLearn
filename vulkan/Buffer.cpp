@@ -12,5 +12,7 @@ bool Buffer::Init(const std::shared_ptr<Device>& pDevice, const VkBufferCreateIn
 
 	CHECK_VK_ERROR(vkCreateBuffer(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_buffer));
 	pMemMgr->AllocateMemChunk(m_buffer, memoryPropertyFlag, pData);
+
+	m_info = info;
 	return true;
 }

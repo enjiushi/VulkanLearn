@@ -9,6 +9,7 @@
 #include <memory>
 #include "DeviceMemoryManager.h"
 #include "Buffer.h"
+#include "VertexBuffer.h"
 
 typedef struct _swapchainImg
 {

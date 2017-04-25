@@ -12,6 +12,7 @@
 #include "scene.h"
 #include "postprocess.h"
 #include "Buffer.h"
+#include "StagingBuffer.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -571,13 +572,16 @@ void VulkanGlobal::InitVertices()
 		pIndices[i * 3 + 2] = pMesh->mFaces[i].mIndices[2];
 	}
 
-	Buffer1 stageVertexBuffer, stageIndexBuffer;
+	std::shared_ptr<StagingBuffer> stageVertexBuffer, stageIndexBuffer;
+
+	stageVertexBuffer = StagingBuffer::Create(m_pDevice, verticesNumBytes, m_pMemoryMgr, pVertices);
 
 	VkMemoryAllocateInfo allocateInfo = {};
 	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	uint32_t typeIndex = 0;
 	uint32_t typeBits = 0;
 
+	/*
 	//Create staging vertex buffer
 	stageVertexBuffer.info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	stageVertexBuffer.info.size = verticesNumBytes;
@@ -585,9 +589,9 @@ void VulkanGlobal::InitVertices()
 
 	/*
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &stageVertexBuffer.info, nullptr, &stageVertexBuffer.buffer));
-	m_pMemoryMgr->AllocateMemChunk(stageVertexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pVertices);*/
+	m_pMemoryMgr->AllocateMemChunk(stageVertexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pVertices);
 
-	stageVertexBuffer.buffer.Init(m_pDevice, stageVertexBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, pVertices);
+	stageVertexBuffer.buffer.Init(m_pDevice, stageVertexBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, pVertices);*/
 
 
 	//Create vertex buffer
@@ -601,15 +605,18 @@ void VulkanGlobal::InitVertices()
 
 	m_vertexBuffer.buffer.Init(m_pDevice, m_vertexBuffer.info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_pMemoryMgr);
 
+	stageIndexBuffer = StagingBuffer::Create(m_pDevice, indicesNumBytes, m_pMemoryMgr, pIndices);
+
+	/*
 	//Create staging index buffer
 	stageIndexBuffer.info.size = indicesNumBytes;
 	stageIndexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
 	/*
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &stageIndexBuffer.info, nullptr, &stageIndexBuffer.buffer));
-	m_pMemoryMgr->AllocateMemChunk(stageIndexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pIndices);*/
+	m_pMemoryMgr->AllocateMemChunk(stageIndexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pIndices);
 
-	stageIndexBuffer.buffer.Init(m_pDevice, stageIndexBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, pIndices);
+	stageIndexBuffer.buffer.Init(m_pDevice, stageIndexBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, pIndices);*/
 
 	//Create index buffer
 	m_indexBuffer.info.size = indicesNumBytes;
@@ -627,17 +634,17 @@ void VulkanGlobal::InitVertices()
 	barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 	barriers[0].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
 	barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barriers[0].buffer = stageVertexBuffer.buffer.GetDeviceHandle();
+	barriers[0].buffer = stageVertexBuffer->GetDeviceHandle();
 	barriers[0].offset = 0;
-	barriers[0].size = stageVertexBuffer.info.size;
+	barriers[0].size = stageVertexBuffer->GetBufferInfo().size;
 
 	barriers[1] = {};
 	barriers[1].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 	barriers[1].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
 	barriers[1].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barriers[1].buffer = stageIndexBuffer.buffer.GetDeviceHandle();
+	barriers[1].buffer = stageIndexBuffer->GetDeviceHandle();
 	barriers[1].offset = 0;
-	barriers[1].size = stageIndexBuffer.info.size;
+	barriers[1].size = stageIndexBuffer->GetBufferInfo().size;
 
 	vkCmdPipelineBarrier(m_setupCommandBuffer,
 		VK_PIPELINE_STAGE_HOST_BIT,
@@ -652,12 +659,12 @@ void VulkanGlobal::InitVertices()
 	VkBufferCopy copy = {};
 	copy.dstOffset = 0;
 	copy.srcOffset = 0;
-	copy.size = stageVertexBuffer.info.size;
-	vkCmdCopyBuffer(m_setupCommandBuffer, stageVertexBuffer.buffer.GetDeviceHandle(), m_vertexBuffer.buffer.GetDeviceHandle(), 1, &copy);
+	copy.size = stageVertexBuffer->GetBufferInfo().size;
+	vkCmdCopyBuffer(m_setupCommandBuffer, stageVertexBuffer->GetDeviceHandle(), m_vertexBuffer.buffer.GetDeviceHandle(), 1, &copy);
 
 	//Copy index buffer
-	copy.size = stageIndexBuffer.info.size;
-	vkCmdCopyBuffer(m_setupCommandBuffer, stageIndexBuffer.buffer.GetDeviceHandle(), m_indexBuffer.buffer.GetDeviceHandle(), 1, &copy);
+	copy.size = stageIndexBuffer->GetBufferInfo().size;
+	vkCmdCopyBuffer(m_setupCommandBuffer, stageIndexBuffer->GetDeviceHandle(), m_indexBuffer.buffer.GetDeviceHandle(), 1, &copy);
 
 	//Setup a barrier for memory changes
 	barriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
