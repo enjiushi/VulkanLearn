@@ -582,7 +582,7 @@ void VulkanGlobal::InitVertices()
 	stageVertexBuffer.info.size = verticesNumBytes;
 	stageVertexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &stageVertexBuffer.info, nullptr, &stageVertexBuffer.buffer));
-	m_pMemoryMgr->AllocateMem(stageVertexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pVertices);
+	m_pMemoryMgr->AllocateMemChunk(stageVertexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pVertices);
 
 
 	//Create vertex buffer
@@ -590,20 +590,20 @@ void VulkanGlobal::InitVertices()
 	m_vertexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 	m_vertexBuffer.count = pMesh->mNumVertices;
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_vertexBuffer.info, nullptr, &m_vertexBuffer.buffer));
-	m_pMemoryMgr->AllocateMem(m_vertexBuffer.buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	m_pMemoryMgr->AllocateMemChunk(m_vertexBuffer.buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	//Create staging index buffer
 	stageIndexBuffer.info.size = indicesNumBytes;
 	stageIndexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &stageIndexBuffer.info, nullptr, &stageIndexBuffer.buffer));
-	m_pMemoryMgr->AllocateMem(stageIndexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pIndices);
+	m_pMemoryMgr->AllocateMemChunk(stageIndexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pIndices);
 
 	//Create index buffer
 	m_indexBuffer.info.size = indicesNumBytes;
 	m_indexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 	m_indexBuffer.count = pMesh->mNumFaces * 3;
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_indexBuffer.info, nullptr, &m_indexBuffer.buffer));
-	m_pMemoryMgr->AllocateMem(m_indexBuffer.buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	m_pMemoryMgr->AllocateMemChunk(m_indexBuffer.buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	//Setup a barrier for staging buffers
 	VkBufferMemoryBarrier barriers[2] = {};
@@ -743,7 +743,7 @@ void VulkanGlobal::InitUniforms()
 	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
 	memcpy_s(m_mvp.camPos, sizeof(m_mvp.camPos), &camPos, sizeof(camPos));
 
-	m_pMemoryMgr->AllocateMem(m_uniformBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &m_mvp);
+	m_pMemoryMgr->AllocateMemChunk(m_uniformBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &m_mvp);
 
 	m_mvp.mvpDescriptor.buffer = m_uniformBuffer.buffer;
 	m_mvp.mvpDescriptor.offset = 0;

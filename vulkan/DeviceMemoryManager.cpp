@@ -23,7 +23,7 @@ std::shared_ptr<DeviceMemoryManager> DeviceMemoryManager::Create(const std::shar
 	return nullptr;
 }
 
-void DeviceMemoryManager::AllocateMem(VkBuffer buffer, uint32_t memoryPropertyBits, const void* pData)
+void DeviceMemoryManager::AllocateMemChunk(VkBuffer buffer, uint32_t memoryPropertyBits, const void* pData)
 {
 	VkMemoryRequirements reqs;
 	vkGetBufferMemoryRequirements(GetDevice()->GetDeviceHandle(), buffer, &reqs);
@@ -85,13 +85,14 @@ void DeviceMemoryManager::AllocateMemory(uint32_t numBytes, uint32_t memoryTypeB
 	}
 }
 
-bool DeviceMemoryManager::GetDeviceHandle(uint32_t typeIndex, VkDeviceMemory& deviceHandle)
+void DeviceMemoryManager::FreeMemChunk(VkBuffer buffer)
 {
-	if (m_memoryPool.find(typeIndex) == m_memoryPool.end())
-		return false;
+	auto resultIter = m_bufferBindingTable.find(buffer);
+	if (resultIter == m_bufferBindingTable.end())
+		return;
 
-	deviceHandle = m_memoryPool[typeIndex].memory;
-	return true;
+	auto toRemove = m_memoryPool[resultIter->second.typeIndex].memoryConsumeState.begin() + resultIter->second.comsumeStateIndex;
+	m_memoryPool[resultIter->second.typeIndex].memoryConsumeState.erase(toRemove);
 }
 
 bool DeviceMemoryManager::FindFreeMemoryChunk(uint32_t typeIndex, uint32_t numBytes, uint32_t& stateIndex, MemoryConsumeState& state)

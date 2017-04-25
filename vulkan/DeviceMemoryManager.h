@@ -29,14 +29,14 @@ public:
 	~DeviceMemoryManager();
 
 	bool Init(const std::shared_ptr<Device>& pDevice) override;
-	void AllocateMem(VkBuffer buffer, uint32_t memoryPropertyBits, const void* pData = nullptr);
+	void AllocateMemChunk(VkBuffer buffer, uint32_t memoryPropertyBits, const void* pData = nullptr);
+	void FreeMemChunk(VkBuffer buffer);
 
 public:
 	static std::shared_ptr<DeviceMemoryManager> Create(const std::shared_ptr<Device>& pDevice);
 
 protected:
 	void AllocateMemory(uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& stateIndex, MemoryConsumeState& state);
-	bool GetDeviceHandle(uint32_t typeIndex, VkDeviceMemory& deviceHandle);
 	bool FindFreeMemoryChunk(uint32_t typeIndex, uint32_t numBytes, uint32_t& stateIndex, MemoryConsumeState& state);
 	void ReleaseMemory();
 
