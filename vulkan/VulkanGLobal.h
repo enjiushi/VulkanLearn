@@ -3,7 +3,7 @@
 #include "vulkan.h"
 #include "Instance.h"
 #include "PhysicalDevice.h"
-#include "VulkanDevice.h"
+#include "Device.h"
 #include "SwapChain.h"
 #include <vector>
 #include <memory>
@@ -91,9 +91,9 @@ public:
 	static const uint32_t				WINDOW_HEIGHT = 768;
 
 protected:
-	std::shared_ptr<Instance>		m_vulkanInst;
+	std::shared_ptr<Instance>			m_vulkanInst;
 	std::shared_ptr<PhysicalDevice>		m_physicalDevice;
-	std::shared_ptr<VulkanDevice>		m_pDevice;
+	std::shared_ptr<Device>				m_pDevice;
 	std::shared_ptr<SwapChain>			m_pSwapchain;
 
 	VkQueue								m_queue;

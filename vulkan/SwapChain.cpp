@@ -7,7 +7,7 @@ SwapChain::~SwapChain()
 		m_fpDestroySwapchainKHR(m_pDevice->GetDeviceHandle(), m_swapchain, nullptr);
 }
 
-bool SwapChain::Init(const std::shared_ptr<PhysicalDevice> pPhyisicalDevice, const std::shared_ptr<VulkanDevice> pDevice)
+bool SwapChain::Init(const std::shared_ptr<PhysicalDevice> pPhyisicalDevice, const std::shared_ptr<Device> pDevice)
 {
 	m_pDevice = pDevice;
 	m_pPhysicalDevice = pPhyisicalDevice;

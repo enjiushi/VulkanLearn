@@ -1,13 +1,13 @@
-#include "VulkanDevice.h"
+#include "Device.h"
 #include "../common/Macros.h"
 #include <array>
 
-VulkanDevice::~VulkanDevice()
+Device::~Device()
 {
 	vkDestroyDevice(m_device, nullptr);
 }
 
-bool VulkanDevice::Init(const std::shared_ptr<Instance> pInst, const std::shared_ptr<PhysicalDevice> pPhyisicalDevice)
+bool Device::Init(const std::shared_ptr<Instance> pInst, const std::shared_ptr<PhysicalDevice> pPhyisicalDevice)
 {
 	m_pVulkanInst = pInst;
 	m_pPhysicalDevice = pPhyisicalDevice;

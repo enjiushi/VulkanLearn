@@ -2,7 +2,7 @@
 #include "../common/RefCounted.h"
 #include "vulkan.h"
 #include "PhysicalDevice.h"
-#include "VulkanDevice.h"
+#include "Device.h"
 #include <vector>
 #include <memory>
 
@@ -16,11 +16,11 @@ public:
 	PFN_vkAcquireNextImageKHR GetAcquireNextImageFuncPtr() const { return m_fpAcquireNextImageKHR; }
 	PFN_vkQueuePresentKHR GetQueuePresentFuncPtr() const { return m_fpQueuePresentKHR; }
 
-	bool Init(const std::shared_ptr<PhysicalDevice> pPhyisicalDevice, const std::shared_ptr<VulkanDevice> pDevice);
+	bool Init(const std::shared_ptr<PhysicalDevice> pPhyisicalDevice, const std::shared_ptr<Device> pDevice);
 
 protected:
 	VkSwapchainKHR						m_swapchain;
-	std::shared_ptr<VulkanDevice>		m_pDevice;
+	std::shared_ptr<Device>				m_pDevice;
 	std::shared_ptr<PhysicalDevice>		m_pPhysicalDevice;
 
 	PFN_vkCreateSwapchainKHR			m_fpCreateSwapchainKHR;

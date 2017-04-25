@@ -5,10 +5,10 @@
 #include "PhysicalDevice.h"
 #include <vector>
 
-class VulkanDevice
+class Device
 {
 public:
-	~VulkanDevice();
+	~Device();
 
 	const VkDevice GetDeviceHandle() const { return m_device; }
 
