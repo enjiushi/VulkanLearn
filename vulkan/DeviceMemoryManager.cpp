@@ -28,25 +28,28 @@ void DeviceMemoryManager::AllocateMem(VkBuffer buffer, uint32_t memoryPropertyBi
 	VkMemoryRequirements reqs;
 	vkGetBufferMemoryRequirements(GetDevice()->GetDeviceHandle(), buffer, &reqs);
 
-	VkDeviceMemory memory;
+	uint32_t typeIndex;
+	uint32_t stateIndex;
 	MemoryConsumeState state;
-	state.buffer = buffer;
-	AllocateMemory(reqs.size, reqs.memoryTypeBits, memoryPropertyBits, memory, state);
+	AllocateMemory(reqs.size, reqs.memoryTypeBits, memoryPropertyBits, typeIndex, stateIndex, state);
 
-	CHECK_VK_ERROR(vkBindBufferMemory(GetDevice()->GetDeviceHandle(), buffer, memory, state.startByte));
+	CHECK_VK_ERROR(vkBindBufferMemory(GetDevice()->GetDeviceHandle(), buffer, m_memoryPool[typeIndex].memory, state.startByte));
 
 	if (pData != nullptr)
 	{
 		void* pDeviceData;
-		CHECK_VK_ERROR(vkMapMemory(GetDevice()->GetDeviceHandle(), memory, state.startByte, state.endByte - state.startByte + 1, 0, &pDeviceData));
-		memcpy_s(pDeviceData, state.endByte - state.startByte + 1, pData, state.endByte - state.startByte + 1);
-		vkUnmapMemory(GetDevice()->GetDeviceHandle(), memory);
+		CHECK_VK_ERROR(vkMapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[typeIndex].memory, state.startByte, state.numBytes, 0, &pDeviceData));
+		memcpy_s(pDeviceData, state.numBytes, pData, state.numBytes);
+		vkUnmapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[typeIndex].memory);
 	}
+
+	m_bufferBindingTable[buffer].typeIndex = typeIndex;
+	m_bufferBindingTable[buffer].comsumeStateIndex = stateIndex;
 }
 
-void DeviceMemoryManager::AllocateMemory(uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, VkDeviceMemory& memory, MemoryConsumeState& state)
+void DeviceMemoryManager::AllocateMemory(uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& stateIndex, MemoryConsumeState& state)
 {
-	uint32_t typeIndex = 0;
+	typeIndex = 0;
 	uint32_t typeBits = memoryTypeBits;
 	while (typeBits)
 	{
@@ -75,14 +78,10 @@ void DeviceMemoryManager::AllocateMemory(uint32_t numBytes, uint32_t memoryTypeB
 		m_memoryPool[typeIndex] = node;
 	}
 
-	if (!FindFreeMemorySegment(typeIndex, numBytes, state))
+	if (!FindFreeMemoryChunk(typeIndex, numBytes, stateIndex, state))
 	{ 
 		// Should create a larger chunck of memory, do it later
 		assert(false);
-	}
-	else
-	{
-		memory = m_memoryPool[typeIndex].memory;
 	}
 }
 
@@ -95,23 +94,26 @@ bool DeviceMemoryManager::GetDeviceHandle(uint32_t typeIndex, VkDeviceMemory& de
 	return true;
 }
 
-bool DeviceMemoryManager::FindFreeMemorySegment(uint32_t typeIndex, uint32_t numBytes, MemoryConsumeState& state)
+bool DeviceMemoryManager::FindFreeMemoryChunk(uint32_t typeIndex, uint32_t numBytes, uint32_t& stateIndex, MemoryConsumeState& state)
 {
-	auto consumeState = m_memoryPool[typeIndex].memoryConsumeState;
+	auto& consumeState = m_memoryPool[typeIndex].memoryConsumeState;
 
-	uint32_t offset = 0;
+ 	uint32_t offset = 0;
+	uint32_t endByte = 0;
 	for (uint32_t i = 0; i < consumeState.size(); i++)
 	{
-		if (offset + numBytes < consumeState[i].startByte)
+		endByte = offset + numBytes - 1;
+		if (endByte < consumeState[i].startByte)
 		{
 			state.startByte = offset;
-			state.endByte = offset + numBytes;
+			state.numBytes = numBytes;
 			consumeState.insert(consumeState.begin() + i, state);
+			stateIndex = i;
 			return true;
 		}
 		else
 		{
-			offset += consumeState[i].endByte;
+			offset = consumeState[i].startByte + consumeState[i].numBytes;
 		}
 	}
 
@@ -119,8 +121,9 @@ bool DeviceMemoryManager::FindFreeMemorySegment(uint32_t typeIndex, uint32_t num
 		return false;
 
 	state.startByte = offset;
-	state.endByte = offset + numBytes;
-	m_memoryPool[typeIndex].memoryConsumeState.push_back(state);
+	state.numBytes = numBytes;
+	consumeState.push_back(state);
+	stateIndex = consumeState.size() - 1;
 	return true;
 }
 

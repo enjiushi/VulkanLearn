@@ -6,9 +6,8 @@ class DeviceMemoryManager : public DeviceObjectBase
 {
 	typedef struct _MemoryConsumeState
 	{
-		VkBuffer buffer;
 		uint32_t startByte = 0;
-		uint32_t endByte = 0;
+		uint32_t numBytes = 0;
 	}MemoryConsumeState;
 
 	typedef struct _MemoryNode
@@ -17,6 +16,12 @@ class DeviceMemoryManager : public DeviceObjectBase
 		VkDeviceMemory memory;
 		std::vector<MemoryConsumeState> memoryConsumeState;
 	}MemoryNode;
+
+	typedef struct _BufferBindingInfo
+	{
+		uint32_t typeIndex;
+		uint32_t comsumeStateIndex;
+	}BufferBindingInfo;
 
 	static const uint32_t MEMORY_ALLOCATE_INC = 1024 * 1024;
 
@@ -30,11 +35,12 @@ public:
 	static std::shared_ptr<DeviceMemoryManager> Create(const std::shared_ptr<Device>& pDevice);
 
 protected:
-	void AllocateMemory(uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, VkDeviceMemory& memory, MemoryConsumeState& state);
+	void AllocateMemory(uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& stateIndex, MemoryConsumeState& state);
 	bool GetDeviceHandle(uint32_t typeIndex, VkDeviceMemory& deviceHandle);
-	bool FindFreeMemorySegment(uint32_t typeIndex, uint32_t numBytes, MemoryConsumeState& state);
+	bool FindFreeMemoryChunk(uint32_t typeIndex, uint32_t numBytes, uint32_t& stateIndex, MemoryConsumeState& state);
 	void ReleaseMemory();
 
 protected:
-	std::map<uint32_t, MemoryNode> m_memoryPool;
+	std::map<uint32_t, MemoryNode>			m_memoryPool;
+	std::map<VkBuffer, BufferBindingInfo>	m_bufferBindingTable;
 };
