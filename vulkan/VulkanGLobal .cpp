@@ -204,8 +204,7 @@ void VulkanGlobal::InitSurface()
 
 void VulkanGlobal::InitSwapchain()
 {
-	m_pSwapchain = std::make_shared<SwapChain>(SwapChain());
-	m_pSwapchain->Init(m_pDevice);
+	m_pSwapchain = SwapChain::Create(m_pDevice);
 	ASSERTION(m_pSwapchain != nullptr);
 }
 
