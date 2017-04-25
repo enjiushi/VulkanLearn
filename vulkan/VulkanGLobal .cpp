@@ -37,8 +37,7 @@ void VulkanGlobal::InitVulkanInstance()
 	instCreateInfo.enabledLayerCount = (int32_t)layers.size();
 	instCreateInfo.ppEnabledLayerNames = layers.data();
 
-	m_vulkanInst = std::make_shared<Instance>(Instance());
-	m_vulkanInst->Init(instCreateInfo);
+	m_vulkanInst = Instance::Create(instCreateInfo);
 	assert(m_vulkanInst != nullptr);
 }
 
