@@ -849,11 +849,16 @@ void VulkanGlobal::InitUniforms()
 
 	Matrix4f mvp = vulkanNDC * projection * view * model;
 
+	Vector3f camPos = position;
+
 	memcpy_s(m_mvp.model, sizeof(m_mvp.model), &model, sizeof(model));
 	memcpy_s(m_mvp.view, sizeof(m_mvp.view), &view, sizeof(view));
 	memcpy_s(m_mvp.projection, sizeof(m_mvp.projection), &projection, sizeof(projection));
 	memcpy_s(m_mvp.vulkanNDC, sizeof(m_mvp.vulkanNDC), &vulkanNDC, sizeof(vulkanNDC));
 	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
+	memcpy_s(m_mvp.camPos, sizeof(m_mvp.camPos), &camPos, sizeof(camPos));
+
+	uint32_t totalUniformBytes = sizeof(m_mvp.model) * 5 + sizeof(m_mvp.camPos);
 
 	/*
 	m_mvp.model[0] = m_mvp.model[5] = m_mvp.model[10] = m_mvp.model[15] = 1.0f;
@@ -864,12 +869,12 @@ void VulkanGlobal::InitUniforms()
 
 	void* pData;
 	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.memory, 0, m_uniformBuffer.info.size, 0, &pData));
-	memcpy(pData, &m_mvp, sizeof(m_mvp.model) * 5);
+	memcpy(pData, &m_mvp, totalUniformBytes);
 	vkUnmapMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.memory);
 
 	m_mvp.mvpDescriptor.buffer = m_uniformBuffer.buffer;
 	m_mvp.mvpDescriptor.offset = 0;
-	m_mvp.mvpDescriptor.range = sizeof(m_mvp.model) * 5;
+	m_mvp.mvpDescriptor.range = totalUniformBytes;
 
 	//Setup a barrier to let shader know its latest updated information in buffer
 	VkBufferMemoryBarrier barrier = {};
@@ -877,7 +882,7 @@ void VulkanGlobal::InitUniforms()
 	barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
 	barrier.dstAccessMask = VK_ACCESS_UNIFORM_READ_BIT;
 	barrier.offset = 0;
-	barrier.size = sizeof(m_mvp.model) * 5;
+	barrier.size = totalUniformBytes;
 	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 
 	vkCmdPipelineBarrier(m_setupCommandBuffer,
@@ -1100,7 +1105,7 @@ void VulkanGlobal::InitDrawCmdBuffers()
 
 		std::vector<VkClearValue> clearValues =
 		{
-			{ 0.0f, 0.0f, 0.0f, 0.0f },
+			{ 0.2f, 0.2f, 0.2f, 0.2f },
 			{ 1.0f, 0 }
 		};
 
