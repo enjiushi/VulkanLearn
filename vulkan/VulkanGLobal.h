@@ -7,6 +7,7 @@
 #include "SwapChain.h"
 #include <vector>
 #include <memory>
+#include "DeviceMemoryManager.h"
 
 typedef struct _swapchainImg
 {
@@ -66,6 +67,7 @@ public:
 
 	void InitCommandPool();
 	void InitSetupCommandBuffer();
+	void InitMemoryMgr();
 	void InitSwapchainImgs();
 	void InitDepthStencil();
 	void InitRenderpass();
@@ -95,6 +97,7 @@ protected:
 	std::shared_ptr<PhysicalDevice>		m_physicalDevice;
 	std::shared_ptr<Device>				m_pDevice;
 	std::shared_ptr<SwapChain>			m_pSwapchain;
+	std::shared_ptr<DeviceMemoryManager>m_pMemoryMgr;
 
 	VkQueue								m_queue;
 
