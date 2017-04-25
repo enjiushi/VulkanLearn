@@ -110,7 +110,7 @@ protected:
 	VkRenderPass						m_renderpass;
 	std::vector<VkFramebuffer>			m_framebuffers;
 
-	Buffer1								m_vertexBuffer;
+	std::shared_ptr<VertexBuffer>		m_vertexBuffer;
 	Buffer1								m_indexBuffer;
 	Buffer1								m_uniformBuffer;
 
