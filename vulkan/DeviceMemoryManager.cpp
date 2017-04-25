@@ -120,7 +120,7 @@ bool DeviceMemoryManager::FindFreeMemorySegment(uint32_t typeIndex, uint32_t num
 
 	state.startByte = offset;
 	state.endByte = offset + numBytes;
-	consumeState.push_back(state);
+	m_memoryPool[typeIndex].memoryConsumeState.push_back(state);
 	return true;
 }
 
