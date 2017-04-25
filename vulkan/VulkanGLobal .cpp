@@ -595,64 +595,15 @@ void VulkanGlobal::InitVertices()
 	//Create staging index buffer
 	stageIndexBuffer.info.size = indicesNumBytes;
 	stageIndexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &stageIndexBuffer.info, nullptr, &stageIndexBuffer.buffer));
-	vkGetBufferMemoryRequirements(m_pDevice->GetDeviceHandle(), stageIndexBuffer.buffer, &stageIndexBuffer.reqs);
-
-	allocateInfo.allocationSize = stageIndexBuffer.reqs.size;
-
-	typeIndex = 0;
-	typeBits = stageIndexBuffer.reqs.memoryTypeBits;
-	while (typeBits)
-	{
-		if (typeBits & 1)
-		{
-			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-			{
-				allocateInfo.memoryTypeIndex = typeIndex;
-				break;
-			}
-		}
-		typeIndex++;
-		typeBits >>= 1;
-	}
-
-	CHECK_VK_ERROR(vkAllocateMemory(m_pDevice->GetDeviceHandle(), &allocateInfo, nullptr, &stageIndexBuffer.memory));
-	CHECK_VK_ERROR(vkBindBufferMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.buffer, stageIndexBuffer.memory, 0));
-
-	void* pData;
-	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.memory, 0, stageIndexBuffer.reqs.size, 0, &pData));
-	memcpy(pData, pIndices, stageIndexBuffer.info.size);
-	vkUnmapMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.memory);
-
+	m_pMemoryMgr->AllocateMem(stageIndexBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pIndices);
 
 	//Create index buffer
 	m_indexBuffer.info.size = indicesNumBytes;
 	m_indexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 	m_indexBuffer.count = pMesh->mNumFaces * 3;
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_indexBuffer.info, nullptr, &m_indexBuffer.buffer));
-	vkGetBufferMemoryRequirements(m_pDevice->GetDeviceHandle(), m_indexBuffer.buffer, &m_indexBuffer.reqs);
-
-	allocateInfo.allocationSize = m_indexBuffer.reqs.size;
-
-	typeIndex = 0;
-	typeBits = m_indexBuffer.reqs.memoryTypeBits;
-	while (typeBits)
-	{
-		if (typeBits & 1)
-		{
-			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-			{
-				allocateInfo.memoryTypeIndex = typeIndex;
-				break;
-			}
-		}
-		typeIndex++;
-		typeBits >>= 1;
-	}
-
-	CHECK_VK_ERROR(vkAllocateMemory(m_pDevice->GetDeviceHandle(), &allocateInfo, nullptr, &m_indexBuffer.memory));
-	CHECK_VK_ERROR(vkBindBufferMemory(m_pDevice->GetDeviceHandle(), m_indexBuffer.buffer, m_indexBuffer.memory, 0));
+	m_pMemoryMgr->AllocateMem(m_indexBuffer.buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	//Setup a barrier for staging buffers
 	VkBufferMemoryBarrier barriers[2] = {};
