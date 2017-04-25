@@ -692,30 +692,6 @@ void VulkanGlobal::InitUniforms()
 	m_uniformBuffer.info.size = totalUniformBytes;
 	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_uniformBuffer.info, nullptr, &m_uniformBuffer.buffer));
 
-	vkGetBufferMemoryRequirements(m_pDevice->GetDeviceHandle(), m_uniformBuffer.buffer, &m_uniformBuffer.reqs);
-	VkMemoryAllocateInfo allocateInfo = {};
-	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocateInfo.allocationSize = m_uniformBuffer.reqs.size;
-
-	uint32_t typeIndex = 0;
-	uint32_t typeBits = m_uniformBuffer.reqs.memoryTypeBits;
-	while (typeBits)
-	{
-		if (typeBits & 1)
-		{
-			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-			{
-				allocateInfo.memoryTypeIndex = typeIndex;
-				break;
-			}
-		}
-		typeIndex++;
-		typeBits >>= 1;
-	}
-
-	CHECK_VK_ERROR(vkAllocateMemory(m_pDevice->GetDeviceHandle(), &allocateInfo, nullptr, &m_uniformBuffer.memory));
-	CHECK_VK_ERROR(vkBindBufferMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.buffer, m_uniformBuffer.memory, 0));
-
 	memset(m_mvp.model, 0, sizeof(m_mvp.model));
 	memset(m_mvp.view, 0, sizeof(m_mvp.view));
 	memset(m_mvp.projection, 0, sizeof(m_mvp.projection));
@@ -767,17 +743,7 @@ void VulkanGlobal::InitUniforms()
 	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
 	memcpy_s(m_mvp.camPos, sizeof(m_mvp.camPos), &camPos, sizeof(camPos));
 
-	/*
-	m_mvp.model[0] = m_mvp.model[5] = m_mvp.model[10] = m_mvp.model[15] = 1.0f;
-	m_mvp.view[0] = m_mvp.view[5] = m_mvp.view[10] = m_mvp.view[15] = 1.0f;
-	m_mvp.projection[0] = m_mvp.projection[5] = m_mvp.projection[10] = m_mvp.projection[15] = 1.0f;
-	m_mvp.vulkanNDC[0] = m_mvp.vulkanNDC[5] = m_mvp.vulkanNDC[10] = m_mvp.vulkanNDC[15] = 1.0f;
-	m_mvp.mvp[0] = m_mvp.mvp[5] = m_mvp.mvp[10] = m_mvp.mvp[15] = 1.0f;*/
-
-	void* pData;
-	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.memory, 0, m_uniformBuffer.info.size, 0, &pData));
-	memcpy(pData, &m_mvp, totalUniformBytes);
-	vkUnmapMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.memory);
+	m_pMemoryMgr->AllocateMem(m_uniformBuffer.buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &m_mvp);
 
 	m_mvp.mvpDescriptor.buffer = m_uniformBuffer.buffer;
 	m_mvp.mvpDescriptor.offset = 0;
