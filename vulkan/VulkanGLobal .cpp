@@ -602,11 +602,7 @@ void VulkanGlobal::InitVertices()
 
 	m_vertexBuffer = VertexBuffer::Create(m_pDevice, verticesNumBytes, bindingDesc, attribDesc, m_pMemoryMgr);
 
-
-	m_indexBuffer.info.size = indicesNumBytes;
-	m_indexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-	m_indexBuffer.count = pMesh->mNumFaces * 3;
-	m_indexBuffer.buffer.Init(m_pDevice, m_indexBuffer.info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_pMemoryMgr);
+	m_indexBuffer = IndexBuffer::Create(m_pDevice, indicesNumBytes, VK_INDEX_TYPE_UINT32, m_pMemoryMgr);
 
 	//Setup a barrier for staging buffers
 	VkBufferMemoryBarrier barriers[2] = {};
@@ -645,7 +641,7 @@ void VulkanGlobal::InitVertices()
 
 	//Copy index buffer
 	copy.size = stageIndexBuffer->GetBufferInfo().size;
-	vkCmdCopyBuffer(m_setupCommandBuffer, stageIndexBuffer->GetDeviceHandle(), m_indexBuffer.buffer.GetDeviceHandle(), 1, &copy);
+	vkCmdCopyBuffer(m_setupCommandBuffer, stageIndexBuffer->GetDeviceHandle(), m_indexBuffer->GetDeviceHandle(), 1, &copy);
 
 	//Setup a barrier for memory changes
 	barriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -654,7 +650,7 @@ void VulkanGlobal::InitVertices()
 
 	barriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	barriers[1].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;	//not sure if it's the same as vertex buffer
-	barriers[1].buffer = m_indexBuffer.buffer.GetDeviceHandle();
+	barriers[1].buffer = m_indexBuffer->GetDeviceHandle();
 
 	vkCmdPipelineBarrier(m_setupCommandBuffer,
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -1002,9 +998,9 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		VkDeviceSize deviceSize[1] = { 0 };
 		VkBuffer vertexBuffer = m_vertexBuffer->GetDeviceHandle();
 		vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &vertexBuffer, deviceSize);
-		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_indexBuffer.buffer.GetDeviceHandle(), 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_indexBuffer->GetDeviceHandle(), 0, m_indexBuffer->GetType());
 
-		vkCmdDrawIndexed(m_drawCmdBuffers[i], m_indexBuffer.count, 1, 0, 0, 0);
+		vkCmdDrawIndexed(m_drawCmdBuffers[i], m_indexBuffer->GetCount(), 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(m_drawCmdBuffers[i]);
 

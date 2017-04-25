@@ -10,6 +10,7 @@
 #include "DeviceMemoryManager.h"
 #include "Buffer.h"
 #include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 typedef struct _swapchainImg
 {
@@ -111,7 +112,7 @@ protected:
 	std::vector<VkFramebuffer>			m_framebuffers;
 
 	std::shared_ptr<VertexBuffer>		m_vertexBuffer;
-	Buffer1								m_indexBuffer;
+	std::shared_ptr<IndexBuffer>		m_indexBuffer;
 	Buffer1								m_uniformBuffer;
 
 	MVP									m_mvp;
