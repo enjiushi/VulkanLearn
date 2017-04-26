@@ -99,7 +99,6 @@ protected:
 	std::shared_ptr<PhysicalDevice>		m_physicalDevice;
 	std::shared_ptr<Device>				m_pDevice;
 	std::shared_ptr<SwapChain>			m_pSwapchain;
-	std::shared_ptr<DeviceMemoryManager>m_pMemoryMgr;
 
 	VkQueue								m_queue;
 

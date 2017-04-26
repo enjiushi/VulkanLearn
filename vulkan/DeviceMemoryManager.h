@@ -1,8 +1,9 @@
 #pragma once
-#include "DeviceObjectBase.h"
+
+#include "DeviceObjSingleton.h"
 #include <map>
 
-class DeviceMemoryManager : public DeviceObjectBase
+class DeviceMemoryManager : public DeviceObjSingleton<DeviceMemoryManager>
 {
 	typedef struct _MemoryConsumeState
 	{

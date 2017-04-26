@@ -7,8 +7,7 @@ class IndexBuffer : public Buffer
 public:
 	bool Init(const std::shared_ptr<Device>& pDevice,
 		uint32_t numBytes,
-		VkIndexType type,
-		const std::shared_ptr<DeviceMemoryManager>& pMemMgr);
+		VkIndexType type);
 
 public:
 	VkIndexType GetType() const { return m_type; }
@@ -17,8 +16,7 @@ public:
 public:
 	static std::shared_ptr<IndexBuffer> Create(const std::shared_ptr<Device>& pDevice,
 		uint32_t numBytes,
-		VkIndexType type,
-		const std::shared_ptr<DeviceMemoryManager>& pMemMgr);
+		VkIndexType type);
 
 protected:
 	VkIndexType m_type;

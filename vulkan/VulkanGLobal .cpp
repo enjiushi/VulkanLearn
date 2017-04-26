@@ -277,8 +277,9 @@ void VulkanGlobal::InitSetupCommandBuffer()
 
 void VulkanGlobal::InitMemoryMgr()
 {
-	m_pMemoryMgr = DeviceMemoryManager::Create(m_pDevice);
-	assert(m_pMemoryMgr != nullptr);
+	//m_pMemoryMgr = DeviceMemoryManager::Create(m_pDevice);
+	//assert(m_pMemoryMgr != nullptr);
+	DeviceMemoryManager::GetInstance()->Init(m_pDevice);
 }
 
 void VulkanGlobal::InitSwapchainImgs()
@@ -573,8 +574,8 @@ void VulkanGlobal::InitVertices()
 	}
 
 	std::shared_ptr<StagingBuffer> stageVertexBuffer, stageIndexBuffer;
-	stageVertexBuffer = StagingBuffer::Create(m_pDevice, verticesNumBytes, m_pMemoryMgr, pVertices);
-	stageIndexBuffer = StagingBuffer::Create(m_pDevice, indicesNumBytes, m_pMemoryMgr, pIndices);
+	stageVertexBuffer = StagingBuffer::Create(m_pDevice, verticesNumBytes, pVertices);
+	stageIndexBuffer = StagingBuffer::Create(m_pDevice, indicesNumBytes, pIndices);
 
 	//Binding and attributes information
 	VkVertexInputBindingDescription bindingDesc = {};
@@ -600,9 +601,9 @@ void VulkanGlobal::InitVertices()
 	attribDesc[2].location = 2;
 	attribDesc[2].offset = sizeof(float) * 6;	//after xyz*/
 
-	m_vertexBuffer = VertexBuffer::Create(m_pDevice, verticesNumBytes, bindingDesc, attribDesc, m_pMemoryMgr);
+	m_vertexBuffer = VertexBuffer::Create(m_pDevice, verticesNumBytes, bindingDesc, attribDesc);
 
-	m_indexBuffer = IndexBuffer::Create(m_pDevice, indicesNumBytes, VK_INDEX_TYPE_UINT32, m_pMemoryMgr);
+	m_indexBuffer = IndexBuffer::Create(m_pDevice, indicesNumBytes, VK_INDEX_TYPE_UINT32);
 
 	//Setup a barrier for staging buffers
 	VkBufferMemoryBarrier barriers[2] = {};
@@ -716,8 +717,8 @@ void VulkanGlobal::InitUniforms()
 	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
 	memcpy_s(m_mvp.camPos, sizeof(m_mvp.camPos), &camPos, sizeof(camPos));
 
-	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, totalUniformBytes, m_pMemoryMgr, &m_mvp);
-	m_uniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes, m_pMemoryMgr);
+	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, totalUniformBytes, &m_mvp);
+	m_uniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
 
 	//m_uniformBuffer.buffer.Init(m_pDevice, m_uniformBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, &m_mvp);
 

@@ -6,8 +6,7 @@ class UniformBuffer : public Buffer
 {
 public:
 	bool Init(const std::shared_ptr<Device>& pDevice,
-		uint32_t numBytes,
-		const std::shared_ptr<DeviceMemoryManager>& pMemMgr);
+		uint32_t numBytes);
 
 public:
 	VkDescriptorBufferInfo GetDescBufferInfo() const 
@@ -21,6 +20,5 @@ public:
 
 public:
 	static std::shared_ptr<UniformBuffer> Create(const std::shared_ptr<Device>& pDevice,
-		uint32_t numBytes,
-		const std::shared_ptr<DeviceMemoryManager>& pMemMgr);
+		uint32_t numBytes);
 };

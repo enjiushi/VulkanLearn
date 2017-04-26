@@ -9,7 +9,7 @@ DeviceMemoryManager::~DeviceMemoryManager()
 
 bool DeviceMemoryManager::Init(const std::shared_ptr<Device>& pDevice)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjSingleton<DeviceMemoryManager>::Init(pDevice))
 		return false;
 
 	return true;

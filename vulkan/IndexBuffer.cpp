@@ -2,15 +2,14 @@
 
 bool IndexBuffer::Init(const std::shared_ptr<Device>& pDevice,
 	uint32_t numBytes,
-	VkIndexType type,
-	const std::shared_ptr<DeviceMemoryManager>& pMemMgr)
+	VkIndexType type)
 {
 	VkBufferCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 	info.size = numBytes;
 
-	if (!Buffer::Init(pDevice, info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, pMemMgr))
+	if (!Buffer::Init(pDevice, info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return false;
 
 	m_type = type;
@@ -33,11 +32,10 @@ bool IndexBuffer::Init(const std::shared_ptr<Device>& pDevice,
 
 std::shared_ptr<IndexBuffer> IndexBuffer::Create(const std::shared_ptr<Device>& pDevice,
 	uint32_t numBytes,
-	VkIndexType type,
-	const std::shared_ptr<DeviceMemoryManager>& pMemMgr)
+	VkIndexType type)
 {
 	std::shared_ptr<IndexBuffer> pIndexBuffer = std::make_shared<IndexBuffer>();
-	if (pIndexBuffer.get() && pIndexBuffer->Init(pDevice, numBytes, type, pMemMgr))
+	if (pIndexBuffer.get() && pIndexBuffer->Init(pDevice, numBytes, type))
 		return pIndexBuffer;
 	return nullptr;
 }

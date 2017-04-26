@@ -8,8 +8,7 @@ public:
 	bool Init(const std::shared_ptr<Device>& pDevice, 
 		uint32_t numBytes,
 		const VkVertexInputBindingDescription& bindingDesc,
-		const std::vector<VkVertexInputAttributeDescription>& attribDesc,
-		const std::shared_ptr<DeviceMemoryManager>& pMemMgr);
+		const std::vector<VkVertexInputAttributeDescription>& attribDesc);
 
 public:
 	const VkVertexInputBindingDescription& GetBindingDesc() const { return m_bindingDesc; }
@@ -20,8 +19,7 @@ public:
 	static std::shared_ptr<VertexBuffer> Create(const std::shared_ptr<Device>& pDevice, 
 		uint32_t numBytes,
 		const VkVertexInputBindingDescription& bindingDesc,
-		const std::vector<VkVertexInputAttributeDescription>& attribDesc,
-		const std::shared_ptr<DeviceMemoryManager>& pMemMgr);
+		const std::vector<VkVertexInputAttributeDescription>& attribDesc);
 
 protected:
 	VkVertexInputBindingDescription					m_bindingDesc;
