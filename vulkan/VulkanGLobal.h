@@ -100,7 +100,7 @@ protected:
 	std::shared_ptr<Device>				m_pDevice;
 	std::shared_ptr<SwapChain>			m_pSwapchain;
 
-	VkQueue								m_queue;
+	//VkQueue								m_queue;
 
 	VkCommandPool						m_commandPool;
 	VkCommandBuffer						m_setupCommandBuffer;

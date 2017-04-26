@@ -1,4 +1,5 @@
 #include "Device.h"
+#include "Queue.h"
 #include "../common/Macros.h"
 #include <array>
 
@@ -11,7 +12,11 @@ std::shared_ptr<Device> Device::Create(const std::shared_ptr<Instance>& pInstanc
 {
 	std::shared_ptr<Device> pDevice = std::make_shared<Device>();
 	if (pDevice.get() && pDevice->Init(pInstance, pPhyisicalDevice))
+	{
+		pDevice->m_pGraphicQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetGraphicQueueIndex());
+		pDevice->m_pPresentQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetPresentQueueIndex());
 		return pDevice;
+	}
 	return nullptr;
 }
 

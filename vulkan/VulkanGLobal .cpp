@@ -13,6 +13,7 @@
 #include "postprocess.h"
 #include "Buffer.h"
 #include "StagingBuffer.h"
+#include "Queue.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -197,7 +198,6 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void VulkanGlobal::InitQueue()
 {
-	vkGetDeviceQueue(m_pDevice->GetDeviceHandle(), m_physicalDevice->GetGraphicQueueIndex(), 0, &m_queue);
 }
 
 void VulkanGlobal::InitSurface()
@@ -1039,8 +1039,8 @@ void VulkanGlobal::EndSetup()
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &m_setupCommandBuffer;
 
-	CHECK_VK_ERROR(vkQueueSubmit(m_queue, 1, &submitInfo, nullptr));
-	vkQueueWaitIdle(m_queue);
+	CHECK_VK_ERROR(vkQueueSubmit(m_pDevice->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
+	vkQueueWaitIdle(m_pDevice->GetGraphicQueue()->GetDeviceHandle());
 
 	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), m_commandPool, 1, &m_setupCommandBuffer);
 }
@@ -1061,7 +1061,7 @@ void VulkanGlobal::Draw()
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = &m_renderDone;
 
-	vkQueueSubmit(m_queue, 1, &submitInfo, nullptr);
+	vkQueueSubmit(m_pDevice->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr);
 
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -1071,9 +1071,9 @@ void VulkanGlobal::Draw()
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = &m_renderDone;
 	presentInfo.pImageIndices = &m_currentBufferIndex;
-	m_pSwapchain->GetQueuePresentFuncPtr()(m_queue, &presentInfo);
+	m_pSwapchain->GetQueuePresentFuncPtr()(m_pDevice->GetPresentQueue()->GetDeviceHandle(), &presentInfo);
 
-	vkQueueWaitIdle(m_queue);
+	vkQueueWaitIdle(m_pDevice->GetPresentQueue()->GetDeviceHandle());
 }
 
 void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
