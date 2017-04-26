@@ -1,4 +1,5 @@
 #include "StagingBuffer.h"
+#include "GlobalDeviceObjects.h"
 
 bool StagingBuffer::Init(const std::shared_ptr<Device>& pDevice,
 	uint32_t numBytes,
@@ -22,4 +23,9 @@ std::shared_ptr<StagingBuffer> StagingBuffer::Create(const std::shared_ptr<Devic
 	if (pStagingBuffer.get() && pStagingBuffer->Init(pDevice, numBytes, pData))
 		return pStagingBuffer;
 	return nullptr;
+}
+
+void StagingBuffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes)
+{
+	GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->UpdateMemChunk(this, m_memProperty, pData, offset, numBytes);
 }

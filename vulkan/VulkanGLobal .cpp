@@ -279,7 +279,7 @@ void VulkanGlobal::InitMemoryMgr()
 {
 	//m_pMemoryMgr = DeviceMemoryManager::Create(m_pDevice);
 	//assert(m_pMemoryMgr != nullptr);
-	DeviceMemoryManager::GetInstance()->Init(m_pDevice);
+	//DeviceMemoryManager::GetInstance()->Init(m_pDevice);
 }
 
 void VulkanGlobal::InitSwapchainImgs()
@@ -1039,8 +1039,8 @@ void VulkanGlobal::EndSetup()
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &m_setupCommandBuffer;
 
-	CHECK_VK_ERROR(vkQueueSubmit(m_pDevice->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
-	vkQueueWaitIdle(m_pDevice->GetGraphicQueue()->GetDeviceHandle());
+	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
+	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
 
 	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), m_commandPool, 1, &m_setupCommandBuffer);
 }
@@ -1061,7 +1061,7 @@ void VulkanGlobal::Draw()
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = &m_renderDone;
 
-	vkQueueSubmit(m_pDevice->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr);
+	vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr);
 
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -1071,9 +1071,9 @@ void VulkanGlobal::Draw()
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = &m_renderDone;
 	presentInfo.pImageIndices = &m_currentBufferIndex;
-	m_pSwapchain->GetQueuePresentFuncPtr()(m_pDevice->GetPresentQueue()->GetDeviceHandle(), &presentInfo);
+	m_pSwapchain->GetQueuePresentFuncPtr()(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle(), &presentInfo);
 
-	vkQueueWaitIdle(m_pDevice->GetPresentQueue()->GetDeviceHandle());
+	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle());
 }
 
 void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
@@ -1083,6 +1083,7 @@ void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
 	InitPhysicalDevice(m_hPlatformInst, m_hWindow);
 	InitSurface();
 	InitVulkanDevice();
+	GlobalDeviceObjects::GetInstance()->Init(m_pDevice);
 	InitSwapchain();
 	InitQueue();
 

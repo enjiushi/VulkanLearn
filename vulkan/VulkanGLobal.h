@@ -12,6 +12,7 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "UniformBuffer.h"
+#include "GlobalDeviceObjects.h"
 
 typedef struct _swapchainImg
 {

@@ -1,11 +1,12 @@
 #pragma once
 
-#include "DeviceObjSingleton.h"
+#include "DeviceObjectBase.h"
 #include <map>
 
 class Buffer;
+class StagingBuffer;
 
-class DeviceMemoryManager : public DeviceObjSingleton<DeviceMemoryManager>
+class DeviceMemoryManager : public DeviceObjectBase
 {
 	typedef struct _MemoryConsumeState
 	{
@@ -49,4 +50,5 @@ protected:
 	std::map<const Buffer*, BufferBindingInfo>	m_bufferBindingTable;
 
 	friend class Buffer;
+	friend class StagingBuffer;
 };
