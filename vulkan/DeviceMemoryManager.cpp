@@ -1,4 +1,5 @@
 #include "DeviceMemoryManager.h"
+#include "Buffer.h"
 #include "../common/Macros.h"
 #include <algorithm>
 
@@ -23,17 +24,17 @@ std::shared_ptr<DeviceMemoryManager> DeviceMemoryManager::Create(const std::shar
 	return nullptr;
 }
 
-void DeviceMemoryManager::AllocateMemChunk(VkBuffer buffer, uint32_t memoryPropertyBits, const void* pData)
+void DeviceMemoryManager::AllocateMemChunk(const Buffer* pBuffer, uint32_t memoryPropertyBits, const void* pData)
 {
 	VkMemoryRequirements reqs;
-	vkGetBufferMemoryRequirements(GetDevice()->GetDeviceHandle(), buffer, &reqs);
+	vkGetBufferMemoryRequirements(GetDevice()->GetDeviceHandle(), pBuffer->GetDeviceHandle(), &reqs);
 
 	uint32_t typeIndex;
 	uint32_t stateIndex;
 	MemoryConsumeState state;
 	AllocateMemory(reqs.size, reqs.memoryTypeBits, memoryPropertyBits, typeIndex, stateIndex, state);
 
-	CHECK_VK_ERROR(vkBindBufferMemory(GetDevice()->GetDeviceHandle(), buffer, m_memoryPool[typeIndex].memory, state.startByte));
+	CHECK_VK_ERROR(vkBindBufferMemory(GetDevice()->GetDeviceHandle(), pBuffer->GetDeviceHandle(), m_memoryPool[typeIndex].memory, state.startByte));
 
 	if (pData != nullptr && (memoryPropertyBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
 	{
@@ -43,8 +44,8 @@ void DeviceMemoryManager::AllocateMemChunk(VkBuffer buffer, uint32_t memoryPrope
 		vkUnmapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[typeIndex].memory);
 	}
 
-	m_bufferBindingTable[buffer].typeIndex = typeIndex;
-	m_bufferBindingTable[buffer].comsumeStateIndex = stateIndex;
+	m_bufferBindingTable[pBuffer].typeIndex = typeIndex;
+	m_bufferBindingTable[pBuffer].comsumeStateIndex = stateIndex;
 }
 
 void DeviceMemoryManager::AllocateMemory(uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& stateIndex, MemoryConsumeState& state)
@@ -85,9 +86,9 @@ void DeviceMemoryManager::AllocateMemory(uint32_t numBytes, uint32_t memoryTypeB
 	}
 }
 
-void DeviceMemoryManager::FreeMemChunk(VkBuffer buffer)
+void DeviceMemoryManager::FreeMemChunk(const Buffer* pBuffer)
 {
-	auto resultIter = m_bufferBindingTable.find(buffer);
+	auto resultIter = m_bufferBindingTable.find(pBuffer);
 	if (resultIter == m_bufferBindingTable.end())
 		return;
 

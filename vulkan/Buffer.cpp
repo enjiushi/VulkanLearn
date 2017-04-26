@@ -3,7 +3,7 @@
 Buffer::~Buffer()
 {
 	vkDestroyBuffer(GetDevice()->GetDeviceHandle(), m_buffer, nullptr);
-	DeviceMemoryManager::GetInstance()->FreeMemChunk(GetDeviceHandle());
+	DeviceMemoryManager::GetInstance()->FreeMemChunk(this);
 }
 
 bool Buffer::Init(const std::shared_ptr<Device>& pDevice, const VkBufferCreateInfo& info, uint32_t memoryPropertyFlag, const void* pData)
@@ -12,7 +12,7 @@ bool Buffer::Init(const std::shared_ptr<Device>& pDevice, const VkBufferCreateIn
 		return false;
 
 	CHECK_VK_ERROR(vkCreateBuffer(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_buffer));
-	DeviceMemoryManager::GetInstance()->AllocateMemChunk(m_buffer, memoryPropertyFlag, pData);
+	DeviceMemoryManager::GetInstance()->AllocateMemChunk(this, memoryPropertyFlag, pData);
 
 	m_info = info;
 	return true;
