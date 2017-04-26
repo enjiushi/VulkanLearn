@@ -26,7 +26,7 @@ class DeviceMemoryManager : public DeviceObjSingleton<DeviceMemoryManager>
 		uint32_t comsumeStateIndex;
 	}BufferBindingInfo;
 
-	static const uint32_t MEMORY_ALLOCATE_INC = 1024 * 1024;
+	static const uint32_t MEMORY_ALLOCATE_INC = 1024 * 1024 * 64;
 
 public:
 	~DeviceMemoryManager();
@@ -37,10 +37,11 @@ public:
 	static std::shared_ptr<DeviceMemoryManager> Create(const std::shared_ptr<Device>& pDevice);
 
 protected:
-	void FreeMemChunk(const Buffer* pBuffer);
 	void AllocateMemChunk(const Buffer* pBuffer, uint32_t memoryPropertyBits, const void* pData = nullptr);
+	bool UpdateMemChunk(const Buffer* pBuffer, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes);
 	void AllocateMemory(uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& stateIndex, MemoryConsumeState& state);
 	bool FindFreeMemoryChunk(uint32_t typeIndex, uint32_t numBytes, uint32_t& stateIndex, MemoryConsumeState& state);
+	void FreeMemChunk(const Buffer* pBuffer);
 	void ReleaseMemory();
 
 protected:

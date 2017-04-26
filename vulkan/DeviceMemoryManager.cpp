@@ -36,16 +36,28 @@ void DeviceMemoryManager::AllocateMemChunk(const Buffer* pBuffer, uint32_t memor
 
 	CHECK_VK_ERROR(vkBindBufferMemory(GetDevice()->GetDeviceHandle(), pBuffer->GetDeviceHandle(), m_memoryPool[typeIndex].memory, state.startByte));
 
-	if (pData != nullptr && (memoryPropertyBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
-	{
-		void* pDeviceData;
-		CHECK_VK_ERROR(vkMapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[typeIndex].memory, state.startByte, state.numBytes, 0, &pDeviceData));
-		memcpy_s(pDeviceData, state.numBytes, pData, state.numBytes);
-		vkUnmapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[typeIndex].memory);
-	}
-
 	m_bufferBindingTable[pBuffer].typeIndex = typeIndex;
 	m_bufferBindingTable[pBuffer].comsumeStateIndex = stateIndex;
+
+	UpdateMemChunk(pBuffer, memoryPropertyBits, pData, state.startByte, state.numBytes);
+}
+
+bool DeviceMemoryManager::UpdateMemChunk(const Buffer* pBuffer, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes)
+{
+	if (m_bufferBindingTable.find(pBuffer) == m_bufferBindingTable.end())
+		return false;
+
+	if (memoryPropertyBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT == 0)
+		return false;
+
+	if (pData == nullptr)
+		return false;
+
+	void* pDeviceData;
+	CHECK_VK_ERROR(vkMapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[m_bufferBindingTable[pBuffer].typeIndex].memory, offset, numBytes, 0, &pDeviceData));
+	memcpy_s(pDeviceData, numBytes, pData, numBytes);
+	vkUnmapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[m_bufferBindingTable[pBuffer].typeIndex].memory);
+	return true;
 }
 
 void DeviceMemoryManager::AllocateMemory(uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& stateIndex, MemoryConsumeState& state)
