@@ -7,7 +7,10 @@ class StagingBufferManager : public DeviceObjectBase
 	typedef struct _PendingBufferInfo
 	{
 		const Buffer* pBuffer;
-		uint32_t offset;
+		uint32_t dstOffset;
+		VkPipelineStageFlagBits dstStage;
+		VkAccessFlags dstAccess;
+		uint32_t srcOffset;
 		uint32_t numBytes;
 	}PendingBufferInfo;
 
@@ -20,7 +23,7 @@ public:
 	void FlushData();
 
 protected:
-	void UpdateByteStream(const Buffer* pBuffer, const void* pData, uint32_t offset, uint32_t numBytes);
+	void UpdateByteStream(const Buffer* pBuffer, const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
 
 protected:
 	std::shared_ptr<StagingBuffer>	m_pStagingBufferPool;

@@ -574,8 +574,10 @@ void VulkanGlobal::InitVertices()
 	}
 
 	std::shared_ptr<StagingBuffer> stageVertexBuffer, stageIndexBuffer;
-	stageVertexBuffer = StagingBuffer::Create(m_pDevice, verticesNumBytes, pVertices);
-	stageIndexBuffer = StagingBuffer::Create(m_pDevice, indicesNumBytes, pIndices);
+	stageVertexBuffer = StagingBuffer::Create(m_pDevice, verticesNumBytes);
+	stageVertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, (VkPipelineStageFlagBits)0, 0);
+	stageIndexBuffer = StagingBuffer::Create(m_pDevice, indicesNumBytes);
+	stageIndexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes, (VkPipelineStageFlagBits)0, 0);
 
 	//Binding and attributes information
 	VkVertexInputBindingDescription bindingDesc = {};
@@ -717,7 +719,8 @@ void VulkanGlobal::InitUniforms()
 	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
 	memcpy_s(m_mvp.camPos, sizeof(m_mvp.camPos), &camPos, sizeof(camPos));
 
-	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, totalUniformBytes, &m_mvp);
+	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, totalUniformBytes);
+	pStagingBuffer->UpdateByteStream(&m_mvp, 0, totalUniformBytes, (VkPipelineStageFlagBits)0, 0);
 	m_uniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
 
 	//m_uniformBuffer.buffer.Init(m_pDevice, m_uniformBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, &m_mvp);

@@ -53,8 +53,15 @@ bool DeviceMemoryManager::UpdateMemChunk(const Buffer* pBuffer, uint32_t memoryP
 	if (pData == nullptr)
 		return false;
 
+	BufferBindingInfo bindingInfo = m_bufferBindingTable[pBuffer];
+	MemoryNode node = m_memoryPool[bindingInfo.typeIndex];
+	MemoryConsumeState state = node.memoryConsumeState[bindingInfo.comsumeStateIndex];
+
+	// If numbytes is larger than buffer's bytes, use buffer bytes
+	uint32_t updateNumBytes = numBytes > state.numBytes ? state.numBytes : numBytes;
+
 	void* pDeviceData;
-	CHECK_VK_ERROR(vkMapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[m_bufferBindingTable[pBuffer].typeIndex].memory, offset, numBytes, 0, &pDeviceData));
+	CHECK_VK_ERROR(vkMapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[bindingInfo.typeIndex].memory, state.startByte + offset, updateNumBytes, 0, &pDeviceData));
 	memcpy_s(pDeviceData, numBytes, pData, numBytes);
 	vkUnmapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[m_bufferBindingTable[pBuffer].typeIndex].memory);
 	return true;
