@@ -573,12 +573,13 @@ void VulkanGlobal::InitVertices()
 		pIndices[i * 3 + 2] = pMesh->mFaces[i].mIndices[2];
 	}
 
+	/*
 	std::shared_ptr<StagingBuffer> stageVertexBuffer, stageIndexBuffer;
 	stageVertexBuffer = StagingBuffer::Create(m_pDevice, verticesNumBytes);
 	stageVertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, (VkPipelineStageFlagBits)0, 0);
 	stageIndexBuffer = StagingBuffer::Create(m_pDevice, indicesNumBytes);
 	stageIndexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes, (VkPipelineStageFlagBits)0, 0);
-
+	*/
 	//Binding and attributes information
 	VkVertexInputBindingDescription bindingDesc = {};
 	bindingDesc.binding = 0;		//hard coded 0
@@ -604,9 +605,10 @@ void VulkanGlobal::InitVertices()
 	attribDesc[2].offset = sizeof(float) * 6;	//after xyz*/
 
 	m_vertexBuffer = VertexBuffer::Create(m_pDevice, verticesNumBytes, bindingDesc, attribDesc);
-
+	m_vertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
 	m_indexBuffer = IndexBuffer::Create(m_pDevice, indicesNumBytes, VK_INDEX_TYPE_UINT32);
-
+	m_indexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	/*
 	//Setup a barrier for staging buffers
 	VkBufferMemoryBarrier barriers[2] = {};
 
@@ -661,7 +663,7 @@ void VulkanGlobal::InitVertices()
 		0,
 		0, nullptr,
 		2, &barriers[0],
-		0, nullptr);
+		0, nullptr);*/
 }
 
 void VulkanGlobal::InitUniforms()
@@ -721,7 +723,6 @@ void VulkanGlobal::InitUniforms()
 
 	m_uniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
 	m_uniformBuffer->UpdateByteStream(&m_mvp, 0, totalUniformBytes, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT);
-	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -1009,6 +1010,8 @@ void VulkanGlobal::EndSetup()
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
 
 	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), m_commandPool, 1, &m_setupCommandBuffer);
+
+	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 }
 
 void VulkanGlobal::Draw()
