@@ -608,62 +608,6 @@ void VulkanGlobal::InitVertices()
 	m_vertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
 	m_indexBuffer = IndexBuffer::Create(m_pDevice, indicesNumBytes, VK_INDEX_TYPE_UINT32);
 	m_indexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
-	/*
-	//Setup a barrier for staging buffers
-	VkBufferMemoryBarrier barriers[2] = {};
-
-	barriers[0] = {};
-	barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-	barriers[0].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-	barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barriers[0].buffer = stageVertexBuffer->GetDeviceHandle();
-	barriers[0].offset = 0;
-	barriers[0].size = stageVertexBuffer->GetBufferInfo().size;
-
-	barriers[1] = {};
-	barriers[1].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-	barriers[1].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-	barriers[1].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barriers[1].buffer = stageIndexBuffer->GetDeviceHandle();
-	barriers[1].offset = 0;
-	barriers[1].size = stageIndexBuffer->GetBufferInfo().size;
-
-	vkCmdPipelineBarrier(m_setupCommandBuffer,
-		VK_PIPELINE_STAGE_HOST_BIT,
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		0,
-		0, nullptr,
-		2, &barriers[0],
-		0, nullptr);
-
-	//Transfer data from staging buffers to device local buffers
-	//Copy vertex buffer
-	VkBufferCopy copy = {};
-	copy.dstOffset = 0;
-	copy.srcOffset = 0;
-	copy.size = stageVertexBuffer->GetBufferInfo().size;
-	vkCmdCopyBuffer(m_setupCommandBuffer, stageVertexBuffer->GetDeviceHandle(), m_vertexBuffer->GetDeviceHandle(), 1, &copy);
-
-	//Copy index buffer
-	copy.size = stageIndexBuffer->GetBufferInfo().size;
-	vkCmdCopyBuffer(m_setupCommandBuffer, stageIndexBuffer->GetDeviceHandle(), m_indexBuffer->GetDeviceHandle(), 1, &copy);
-
-	//Setup a barrier for memory changes
-	barriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barriers[0].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-	barriers[0].buffer = m_vertexBuffer->GetDeviceHandle();
-
-	barriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barriers[1].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;	//not sure if it's the same as vertex buffer
-	barriers[1].buffer = m_indexBuffer->GetDeviceHandle();
-
-	vkCmdPipelineBarrier(m_setupCommandBuffer,
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
-		0,
-		0, nullptr,
-		2, &barriers[0],
-		0, nullptr);*/
 }
 
 void VulkanGlobal::InitUniforms()
