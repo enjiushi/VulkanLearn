@@ -2,6 +2,7 @@
 #include "GlobalDeviceObjects.h"
 #include "CommandPool.h"
 #include <algorithm>
+#include "Queue.h"
 
 bool StagingBufferManager::Init(const std::shared_ptr<Device>& pDevice)
 {
@@ -20,6 +21,7 @@ std::shared_ptr<StagingBufferManager> StagingBufferManager::Create(const std::sh
 	return nullptr;
 }
 
+// FIXEME: this function should replace native device objects with wrapper class
 void StagingBufferManager::FlushData()
 {
 	// FIXME: Use native device objects here for now
@@ -58,7 +60,7 @@ void StagingBufferManager::FlushData()
 	std::map<VkPipelineStageFlagBits, std::vector<VkBufferMemoryBarrier>> barrierTable;
 	std::for_each(m_pendingUpdateBuffer.begin(), m_pendingUpdateBuffer.end(), [&](const PendingBufferInfo& info)
 	{
-		VkBufferMemoryBarrier barrier;
+		VkBufferMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		barrier.dstAccessMask = info.dstAccess;
@@ -80,6 +82,18 @@ void StagingBufferManager::FlushData()
 			pair.second.size(), pair.second.data(),
 			0, nullptr);
 	});
+
+	CHECK_VK_ERROR(vkEndCommandBuffer(cmdBuffer));
+
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &cmdBuffer;
+
+	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
+	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
+
+	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool()->GetDeviceHandle(), 1, &cmdBuffer);
 }
 
 void StagingBufferManager::UpdateByteStream(const Buffer* pBuffer, const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess)
