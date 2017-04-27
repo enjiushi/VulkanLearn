@@ -14,7 +14,7 @@
 #include "Buffer.h"
 #include "StagingBuffer.h"
 #include "Queue.h"
-
+#include "StagingBufferManager.h"
 void VulkanGlobal::InitVulkanInstance()
 {
 	VkApplicationInfo appInfo = {};
@@ -719,46 +719,9 @@ void VulkanGlobal::InitUniforms()
 	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
 	memcpy_s(m_mvp.camPos, sizeof(m_mvp.camPos), &camPos, sizeof(camPos));
 
-	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, totalUniformBytes);
-	pStagingBuffer->UpdateByteStream(&m_mvp, 0, totalUniformBytes, (VkPipelineStageFlagBits)0, 0);
 	m_uniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
-
-	//m_uniformBuffer.buffer.Init(m_pDevice, m_uniformBuffer.info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_pMemoryMgr, &m_mvp);
-
-	//Setup a barrier to let shader know its latest updated information in buffer
-	VkBufferMemoryBarrier barrier = {};
-	barrier.buffer = pStagingBuffer->GetDeviceHandle();
-	barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-	barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barrier.offset = 0;
-	barrier.size = totalUniformBytes;
-	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-
-	vkCmdPipelineBarrier(m_setupCommandBuffer,
-		VK_PIPELINE_STAGE_HOST_BIT,
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		0,
-		0, nullptr,
-		1, &barrier,
-		0, nullptr);
-
-	VkBufferCopy copy = {};
-	copy.dstOffset = 0;
-	copy.srcOffset = 0;
-	copy.size = m_uniformBuffer->GetBufferInfo().size;
-	vkCmdCopyBuffer(m_setupCommandBuffer, pStagingBuffer->GetDeviceHandle(), m_uniformBuffer->GetDeviceHandle(), 1, &copy);
-
-	barrier.buffer = m_uniformBuffer->GetDeviceHandle();
-	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-	vkCmdPipelineBarrier(m_setupCommandBuffer,
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-		0,
-		0, nullptr,
-		1, &barrier,
-		0, nullptr);
+	m_uniformBuffer->UpdateByteStream(&m_mvp, 0, totalUniformBytes, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT);
+	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
