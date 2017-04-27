@@ -12,6 +12,7 @@ public:
 public:
 	// Temp function
 	VkCommandBuffer AllocateCommandBuffer();
+	VkCommandPool GetDeviceHandle() const { return m_commandPool; }
 
 public:
 	static std::shared_ptr<CommandPool> Create(const std::shared_ptr<Device>& pDevice, const VkCommandPoolCreateInfo& info);
