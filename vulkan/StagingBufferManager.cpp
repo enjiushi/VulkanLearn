@@ -94,11 +94,14 @@ void StagingBufferManager::FlushData()
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
 
 	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool()->GetDeviceHandle(), 1, &cmdBuffer);
+
+	m_pendingUpdateBuffer.clear();
 }
 
 void StagingBufferManager::UpdateByteStream(const Buffer* pBuffer, const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess)
 {
-	m_pendingUpdateBuffer.push_back({ pBuffer, offset, dstStage, dstAccess, m_usedNumBytes, numBytes });
+	uint32_t currentOffset = m_usedNumBytes;
+	m_pendingUpdateBuffer.push_back({ pBuffer, offset, dstStage, dstAccess, currentOffset, numBytes });
 	m_usedNumBytes += numBytes;
 
 	if (m_usedNumBytes > m_pStagingBufferPool->GetBufferInfo().size)
@@ -109,5 +112,5 @@ void StagingBufferManager::UpdateByteStream(const Buffer* pBuffer, const void* p
 		assert(false);
 	}
 
-	m_pStagingBufferPool->UpdateByteStream(pData, offset, numBytes, dstStage, dstAccess);
+	m_pStagingBufferPool->UpdateByteStream(pData, currentOffset, numBytes, dstStage, dstAccess);
 }
