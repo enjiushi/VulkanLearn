@@ -1,9 +1,10 @@
 #pragma once
 #include "DeviceMemoryManager.h"
+#include "MemoryConsumer.h"
 
 class StagingBufferManager;
 
-class Buffer : DeviceObjectBase
+class Buffer : public DeviceObjectBase, public MemoryConsumer
 {
 public:
 	~Buffer();
@@ -14,6 +15,11 @@ public:
 	VkBuffer GetDeviceHandle() const { return m_buffer; }
 	const VkBufferCreateInfo& GetBufferInfo() const { return m_info; }
 	virtual void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
+	virtual uint32_t GetMemoryProperty() const override { return m_memProperty; }
+	virtual VkMemoryRequirements GetMemoryReqirments() const override;
+
+protected:
+	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const override;
 
 protected:
 	VkBuffer					m_buffer;

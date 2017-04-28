@@ -26,3 +26,15 @@ void Buffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBy
 {
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->UpdateByteStream(this, pData, offset, numBytes, dstStage, dstAccess);
 }
+
+VkMemoryRequirements Buffer::GetMemoryReqirments() const
+{
+	VkMemoryRequirements reqs;
+	vkGetBufferMemoryRequirements(GetDevice()->GetDeviceHandle(), GetDeviceHandle(), &reqs);
+	return reqs;
+}
+
+void Buffer::BindMemory(VkDeviceMemory memory, uint32_t offset) const
+{
+	CHECK_VK_ERROR(vkBindBufferMemory(GetDevice()->GetDeviceHandle(), GetDeviceHandle(), memory, offset));
+}
