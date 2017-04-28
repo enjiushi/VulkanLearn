@@ -94,6 +94,8 @@ void StagingBufferManager::FlushData()
 	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
 
+	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool()->GetDeviceHandle(), 1, &cmdBuffer);
+
 	m_pendingUpdateBuffer.clear();
 }
 
