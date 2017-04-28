@@ -28,6 +28,7 @@ void StagingBufferManager::FlushData()
 	VkCommandBuffer cmdBuffer = GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool()->AllocateCommandBuffer();
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 	vkBeginCommandBuffer(cmdBuffer, &beginInfo);
 
 	VkBufferMemoryBarrier barrier = {};
@@ -92,8 +93,6 @@ void StagingBufferManager::FlushData()
 
 	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
-
-	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool()->GetDeviceHandle(), 1, &cmdBuffer);
 
 	m_pendingUpdateBuffer.clear();
 }
