@@ -4,6 +4,7 @@
 #include <map>
 
 class Buffer;
+class Image;
 class StagingBuffer;
 class MemoryConsumer;
 
@@ -28,7 +29,7 @@ class DeviceMemoryManager : public DeviceObjectBase
 		uint32_t comsumeStateIndex;
 	}BindingInfo;
 
-	static const uint32_t MEMORY_ALLOCATE_INC = 1024 * 1024 * 64;
+	static const uint32_t MEMORY_ALLOCATE_INC = 1024 * 1024 * 512;
 
 public:
 	~DeviceMemoryManager();
@@ -51,5 +52,6 @@ protected:
 	std::map<const MemoryConsumer*, BindingInfo>	m_bufferBindingTable;
 
 	friend class Buffer;
+	friend class Image;
 	friend class StagingBuffer;
 };
