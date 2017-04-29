@@ -3,9 +3,6 @@
 #include "DeviceObjectBase.h"
 #include <map>
 
-class Buffer;
-class Image;
-class StagingBuffer;
 class MemoryConsumer;
 
 class DeviceMemoryManager : public DeviceObjectBase
@@ -29,7 +26,7 @@ class DeviceMemoryManager : public DeviceObjectBase
 		uint32_t comsumeStateIndex;
 	}BindingInfo;
 
-	static const uint32_t MEMORY_ALLOCATE_INC = 1024 * 1024 * 512;
+	static const uint32_t MEMORY_ALLOCATE_INC = 1024 * 1024 * 128;
 
 public:
 	~DeviceMemoryManager();
