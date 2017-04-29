@@ -30,15 +30,16 @@ void DeviceMemoryManager::AllocateMemChunk(const MemoryConsumer* pConsumer, uint
 
 	uint32_t typeIndex;
 	uint32_t stateIndex;
-	MemoryConsumeState state;
-	AllocateMemory(reqs.size, reqs.memoryTypeBits, memoryPropertyBits, typeIndex, stateIndex, state);
+	uint32_t offset;
+	AllocateMemory(pConsumer, reqs.size, reqs.memoryTypeBits, memoryPropertyBits, typeIndex, offset);
 
-	pConsumer->BindMemory(m_memoryPool[typeIndex].memory, state.startByte);
+	pConsumer->BindMemory(m_memoryPool[typeIndex].memory, offset);
 
 	m_bufferBindingTable[pConsumer].typeIndex = typeIndex;
-	m_bufferBindingTable[pConsumer].comsumeStateIndex = stateIndex;
+	m_bufferBindingTable[pConsumer].startByte = offset;
+	m_bufferBindingTable[pConsumer].numBytes = reqs.size;
 
-	UpdateMemChunk(pConsumer, memoryPropertyBits, pData, state.startByte, state.numBytes);
+	UpdateMemChunk(pConsumer, memoryPropertyBits, pData, offset, reqs.size);
 }
 
 bool DeviceMemoryManager::UpdateMemChunk(const MemoryConsumer* pConsumer, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes)
@@ -53,20 +54,18 @@ bool DeviceMemoryManager::UpdateMemChunk(const MemoryConsumer* pConsumer, uint32
 		return false;
 
 	BindingInfo bindingInfo = m_bufferBindingTable[pConsumer];
-	MemoryNode node = m_memoryPool[bindingInfo.typeIndex];
-	MemoryConsumeState state = node.memoryConsumeState[bindingInfo.comsumeStateIndex];
 
 	// If numbytes is larger than buffer's bytes, use buffer bytes
-	uint32_t updateNumBytes = numBytes > state.numBytes ? state.numBytes : numBytes;
+	uint32_t updateNumBytes = numBytes > bindingInfo.numBytes ? bindingInfo.numBytes : numBytes;
 
 	void* pDeviceData;
-	CHECK_VK_ERROR(vkMapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[bindingInfo.typeIndex].memory, state.startByte + offset, updateNumBytes, 0, &pDeviceData));
+	CHECK_VK_ERROR(vkMapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[bindingInfo.typeIndex].memory, bindingInfo.startByte + offset, updateNumBytes, 0, &pDeviceData));
 	memcpy_s(pDeviceData, numBytes, pData, numBytes);
 	vkUnmapMemory(GetDevice()->GetDeviceHandle(), m_memoryPool[m_bufferBindingTable[pConsumer].typeIndex].memory);
 	return true;
 }
 
-void DeviceMemoryManager::AllocateMemory(uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& stateIndex, MemoryConsumeState& state)
+void DeviceMemoryManager::AllocateMemory(const MemoryConsumer* pMemConsumer, uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& offset)
 {
 	typeIndex = 0;
 	uint32_t typeBits = memoryTypeBits;
@@ -97,7 +96,7 @@ void DeviceMemoryManager::AllocateMemory(uint32_t numBytes, uint32_t memoryTypeB
 		m_memoryPool[typeIndex] = node;
 	}
 
-	if (!FindFreeMemoryChunk(typeIndex, numBytes, stateIndex, state))
+	if (!FindFreeMemoryChunk(pMemConsumer, typeIndex, numBytes, offset))
 	{ 
 		// Should create a larger chunck of memory, do it later
 		assert(false);
@@ -106,44 +105,46 @@ void DeviceMemoryManager::AllocateMemory(uint32_t numBytes, uint32_t memoryTypeB
 
 void DeviceMemoryManager::FreeMemChunk(const MemoryConsumer* pConsumer)
 {
-	auto resultIter = m_bufferBindingTable.find(pConsumer);
-	if (resultIter == m_bufferBindingTable.end())
+	auto bindingIter = m_bufferBindingTable.find(pConsumer);
+	if (bindingIter == m_bufferBindingTable.end())
 		return;
 
-	auto toRemove = m_memoryPool[resultIter->second.typeIndex].memoryConsumeState.begin() + resultIter->second.comsumeStateIndex;
-	m_memoryPool[resultIter->second.typeIndex].memoryConsumeState.erase(toRemove);
+	MemoryNode& node = m_memoryPool[bindingIter->second.typeIndex];
+	auto memIter = std::find_if(node.bindingConsumerList.begin(), node.bindingConsumerList.end(), [pConsumer](const MemoryConsumer* pMemConsumer)
+	{
+		return pMemConsumer == pConsumer;
+	});
+	if (memIter == node.bindingConsumerList.end())
+		return;
+
+	m_bufferBindingTable.erase(pConsumer);
+	node.bindingConsumerList.erase(memIter);
 }
 
-bool DeviceMemoryManager::FindFreeMemoryChunk(uint32_t typeIndex, uint32_t numBytes, uint32_t& stateIndex, MemoryConsumeState& state)
+bool DeviceMemoryManager::FindFreeMemoryChunk(const MemoryConsumer* pMemConsumer, uint32_t typeIndex, uint32_t numBytes, uint32_t& offset)
 {
-	auto& consumeState = m_memoryPool[typeIndex].memoryConsumeState;
-
- 	uint32_t offset = 0;
+ 	offset = 0;
 	uint32_t endByte = 0;
-	for (uint32_t i = 0; i < consumeState.size(); i++)
+	for (uint32_t i = 0; i < m_memoryPool[typeIndex].bindingConsumerList.size(); i++)
 	{
+		BindingInfo bindingInfo = m_bufferBindingTable[m_memoryPool[typeIndex].bindingConsumerList[i]];
+
 		endByte = offset + numBytes - 1;
-		if (endByte < consumeState[i].startByte)
+		if (endByte < bindingInfo.startByte)
 		{
-			state.startByte = offset;
-			state.numBytes = numBytes;
-			consumeState.insert(consumeState.begin() + i, state);
-			stateIndex = i;
+			m_memoryPool[typeIndex].bindingConsumerList.insert(m_memoryPool[typeIndex].bindingConsumerList.begin() + i, pMemConsumer);
 			return true;
 		}
 		else
 		{
-			offset = consumeState[i].startByte + consumeState[i].numBytes;
+			offset = bindingInfo.startByte + bindingInfo.numBytes;
 		}
 	}
 
 	if (offset + numBytes > m_memoryPool[typeIndex].numBytes)
 		return false;
 
-	state.startByte = offset;
-	state.numBytes = numBytes;
-	consumeState.push_back(state);
-	stateIndex = consumeState.size() - 1;
+	m_memoryPool[typeIndex].bindingConsumerList.push_back(pMemConsumer);
 	return true;
 }
 

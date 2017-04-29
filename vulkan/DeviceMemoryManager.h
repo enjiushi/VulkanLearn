@@ -7,23 +7,18 @@ class MemoryConsumer;
 
 class DeviceMemoryManager : public DeviceObjectBase
 {
-	typedef struct _MemoryConsumeState
-	{
-		uint32_t startByte = 0;
-		uint32_t numBytes = 0;
-	}MemoryConsumeState;
-
 	typedef struct _MemoryNode
 	{
 		uint32_t numBytes = 0;
 		VkDeviceMemory memory;
-		std::vector<MemoryConsumeState> memoryConsumeState;
+		std::vector<const MemoryConsumer*> bindingConsumerList;
 	}MemoryNode;
 
 	typedef struct _BindingInfo
 	{
 		uint32_t typeIndex;
-		uint32_t comsumeStateIndex;
+		uint32_t startByte = 0;
+		uint32_t numBytes = 0;
 	}BindingInfo;
 
 	static const uint32_t MEMORY_ALLOCATE_INC = 1024 * 1024 * 128;
@@ -39,8 +34,8 @@ public:
 protected:
 	void AllocateMemChunk(const MemoryConsumer* pConsumer, uint32_t memoryPropertyBits, const void* pData = nullptr);
 	bool UpdateMemChunk(const MemoryConsumer* pConsumer, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes);
-	void AllocateMemory(uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& stateIndex, MemoryConsumeState& state);
-	bool FindFreeMemoryChunk(uint32_t typeIndex, uint32_t numBytes, uint32_t& stateIndex, MemoryConsumeState& state);
+	void AllocateMemory(const MemoryConsumer* pMemConsumer, uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& offset);
+	bool FindFreeMemoryChunk(const MemoryConsumer* pMemConsumer, uint32_t typeIndex, uint32_t numBytes, uint32_t& offset);
 	void FreeMemChunk(const MemoryConsumer* pConsumer);
 	void ReleaseMemory();
 
