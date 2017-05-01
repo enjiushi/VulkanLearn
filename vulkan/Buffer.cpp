@@ -5,7 +5,8 @@
 
 Buffer::~Buffer()
 {
-	vkDestroyBuffer(GetDevice()->GetDeviceHandle(), m_buffer, nullptr);
+	if (m_buffer)
+		vkDestroyBuffer(GetDevice()->GetDeviceHandle(), m_buffer, nullptr);
 	GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->FreeMemChunk(this);
 }
 
@@ -20,6 +21,14 @@ bool Buffer::Init(const std::shared_ptr<Device>& pDevice, const VkBufferCreateIn
 	m_info = info;
 	m_memProperty = memoryPropertyFlag;
 	return true;
+}
+
+std::shared_ptr<Buffer> Buffer::Create(const std::shared_ptr<Device>& pDevice, const VkBufferCreateInfo& info, uint32_t memoryPropertyFlag)
+{
+	std::shared_ptr<Buffer> pBuffer = std::make_shared<Buffer>();
+	if (pBuffer.get() && pBuffer->Init(pDevice, info, memoryPropertyFlag))
+		return pBuffer;
+	return nullptr;
 }
 
 void Buffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess)
