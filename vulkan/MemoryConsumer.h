@@ -9,6 +9,9 @@ public:
 	virtual VkMemoryRequirements GetMemoryReqirments() const = 0;
 	virtual void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess) = 0;
 
+	// Buffer: true, Image: false
+	virtual bool BufferOrImage() const = 0;
+
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const = 0;
 

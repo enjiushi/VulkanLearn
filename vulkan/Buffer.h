@@ -20,6 +20,7 @@ public:
 	virtual void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
 	virtual uint32_t GetMemoryProperty() const override { return m_memProperty; }
 	virtual VkMemoryRequirements GetMemoryReqirments() const override;
+	virtual bool BufferOrImage() const override { return true; }
 
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const override;

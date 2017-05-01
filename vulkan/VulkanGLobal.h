@@ -13,20 +13,13 @@
 #include "IndexBuffer.h"
 #include "UniformBuffer.h"
 #include "GlobalDeviceObjects.h"
+#include "DepthStencilBuffer.h"
 
 typedef struct _swapchainImg
 {
 	std::vector<VkImage>				images;
 	std::vector<VkImageView>			views;
 }SwapchainImg;
-
-typedef struct _depthStencil
-{
-	VkFormat							format;
-	VkDeviceMemory						memory;
-	VkImage								image;
-	VkImageView							view;
-}DepthStencil;
 
 typedef struct _mvp
 {
@@ -107,7 +100,7 @@ protected:
 	VkCommandBuffer						m_setupCommandBuffer;
 
 	SwapchainImg						m_swapchainImg;
-	DepthStencil						m_depthStencil;
+	std::shared_ptr<DepthStencilBuffer>	m_pDSBuffer;
 
 	VkRenderPass						m_renderpass;
 	std::vector<VkFramebuffer>			m_framebuffers;

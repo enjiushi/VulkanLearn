@@ -40,7 +40,8 @@ protected:
 	void ReleaseMemory();
 
 protected:
-	std::map<uint32_t, MemoryNode>			m_memoryPool;
+	std::map<uint32_t, MemoryNode>					m_bufferMemPool;
+	std::map<const MemoryConsumer*, MemoryNode>		m_imageMemPool;
 	std::map<const MemoryConsumer*, BindingInfo>	m_bufferBindingTable;
 
 	friend class Buffer;

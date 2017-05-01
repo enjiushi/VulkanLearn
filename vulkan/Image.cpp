@@ -4,6 +4,7 @@
 
 Image::~Image()
 {
+	vkDestroyImageView(GetDevice()->GetDeviceHandle(), m_view, nullptr);
 	vkDestroyImage(GetDevice()->GetDeviceHandle(), m_image, nullptr);
 	GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->FreeMemChunk(this);
 }

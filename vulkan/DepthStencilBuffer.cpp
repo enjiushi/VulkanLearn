@@ -18,8 +18,20 @@ bool DepthStencilBuffer::Init(const std::shared_ptr<Device>& pDevice, VkFormat f
 	if (!Image::Init(pDevice, dsCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return false;
 
-	m_width = width;
-	m_height = height;
+	//Create depth stencil image view
+	m_viewInfo = {};
+	m_viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	m_viewInfo.image = m_image;
+	m_viewInfo.format = m_info.format;
+	m_viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	m_viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	m_viewInfo.subresourceRange.baseArrayLayer = 0;
+	m_viewInfo.subresourceRange.layerCount = 1;
+	m_viewInfo.subresourceRange.baseMipLevel = 0;
+	m_viewInfo.subresourceRange.levelCount = 1;
+
+	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &m_viewInfo, nullptr, &m_view));
+
 	return true;
 }
 

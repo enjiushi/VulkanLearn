@@ -15,6 +15,7 @@
 #include "StagingBuffer.h"
 #include "Queue.h"
 #include "StagingBufferManager.h"
+
 void VulkanGlobal::InitVulkanInstance()
 {
 	VkApplicationInfo appInfo = {};
@@ -341,69 +342,11 @@ void VulkanGlobal::InitSwapchainImgs()
 
 void VulkanGlobal::InitDepthStencil()
 {
-	//create image of depth stencil
-	VkImageCreateInfo dsCreateInfo = {};
-	dsCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	dsCreateInfo.format = m_physicalDevice->GetDepthStencilFormat();
-	dsCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-	dsCreateInfo.arrayLayers = 1;
-	dsCreateInfo.extent.depth = 1;
-	dsCreateInfo.extent.width = m_physicalDevice->GetSurfaceCap().currentExtent.width;
-	dsCreateInfo.extent.height = m_physicalDevice->GetSurfaceCap().currentExtent.height;
-	dsCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	dsCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	dsCreateInfo.mipLevels = 1;
-	dsCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	dsCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-
-	CHECK_VK_ERROR(vkCreateImage(m_pDevice->GetDeviceHandle(), &dsCreateInfo, nullptr, &m_depthStencil.image));
-
-	//Get memory requirements from depth stencil image
-	VkMemoryRequirements dsReq = {};
-	vkGetImageMemoryRequirements(m_pDevice->GetDeviceHandle(), m_depthStencil.image, &dsReq);
-
-	VkMemoryAllocateInfo memoryAllocateInfo = {};
-	memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memoryAllocateInfo.allocationSize = dsReq.size;
-
-	uint32_t typeBits = dsReq.memoryTypeBits;
-	uint32_t typeIndex = 0;
-	while (typeBits)
-	{
-		if (typeBits & 1)
-		{
-			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-			{
-				memoryAllocateInfo.memoryTypeIndex = typeIndex;
-				break;
-			}
-		}
-		typeBits >>= 1;
-		typeIndex++;
-	}
-
-	CHECK_VK_ERROR(vkAllocateMemory(m_pDevice->GetDeviceHandle(), &memoryAllocateInfo, nullptr, &m_depthStencil.memory));
-
-	//Bind memory to depth stencil image
-	CHECK_VK_ERROR(vkBindImageMemory(m_pDevice->GetDeviceHandle(), m_depthStencil.image, m_depthStencil.memory, 0));
-
-	//Create depth stencil image view
-	VkImageViewCreateInfo dsImageViewCreateInfo = {};
-	dsImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	dsImageViewCreateInfo.image = m_depthStencil.image;
-	dsImageViewCreateInfo.format = m_physicalDevice->GetDepthStencilFormat();
-	dsImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	dsImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-	dsImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-	dsImageViewCreateInfo.subresourceRange.layerCount = 1;
-	dsImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-	dsImageViewCreateInfo.subresourceRange.levelCount = 1;
-
-	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &dsImageViewCreateInfo, nullptr, &m_depthStencil.view));
+	m_pDSBuffer = DepthStencilBuffer::Create(m_pDevice);
 
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barrier.image = m_depthStencil.image;
+	barrier.image = m_pDSBuffer->GetDeviceHandle();
 	barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
@@ -474,7 +417,7 @@ void VulkanGlobal::InitFrameBuffer()
 {
 	m_framebuffers.resize(m_physicalDevice->GetSurfaceCap().maxImageCount);
 	std::vector<VkImageView> attachments(2);
-	attachments[1] = m_depthStencil.view;
+	attachments[1] = m_pDSBuffer->GetViewDeviceHandle();
 
 	for (uint32_t i = 0; i < m_physicalDevice->GetSurfaceCap().maxImageCount; i++)
 	{
