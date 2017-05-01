@@ -1,12 +1,18 @@
 #pragma once
 #include "../common/Singleton.h"
 #include "vulkan.h"
-#include "VulkanInstance.h"
+#include "Instance.h"
 #include "PhysicalDevice.h"
-#include "VulkanDevice.h"
+#include "Device.h"
 #include "SwapChain.h"
 #include <vector>
 #include <memory>
+#include "DeviceMemoryManager.h"
+#include "Buffer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+#include "UniformBuffer.h"
+#include "GlobalDeviceObjects.h"
 
 typedef struct _swapchainImg
 {
@@ -29,6 +35,7 @@ typedef struct _mvp
 	float	projection[16];
 	float	vulkanNDC[16];
 	float	mvp[16];
+	float   camPos[3];
 
 	VkDescriptorBufferInfo mvpDescriptor;
 }MVP;
@@ -37,13 +44,12 @@ typedef struct _mvp
 typedef struct _buffer
 {
 	_buffer() { info = {}; info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO; }
-	VkDeviceMemory						memory;
-	VkBuffer							buffer;
-	VkMemoryRequirements				reqs;
+	Buffer								buffer;
 	VkBufferCreateInfo					info;
 	VkVertexInputBindingDescription		bindingDesc;
+	uint32_t							count;
 	std::vector<VkVertexInputAttributeDescription>	attribDesc;
-}Buffer;
+}Buffer1;
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
@@ -64,6 +70,7 @@ public:
 
 	void InitCommandPool();
 	void InitSetupCommandBuffer();
+	void InitMemoryMgr();
 	void InitSwapchainImgs();
 	void InitDepthStencil();
 	void InitRenderpass();
@@ -89,12 +96,12 @@ public:
 	static const uint32_t				WINDOW_HEIGHT = 768;
 
 protected:
-	std::shared_ptr<VulkanInstance>		m_vulkanInst;
+	std::shared_ptr<Instance>			m_vulkanInst;
 	std::shared_ptr<PhysicalDevice>		m_physicalDevice;
-	std::shared_ptr<VulkanDevice>		m_pDevice;
+	std::shared_ptr<Device>				m_pDevice;
 	std::shared_ptr<SwapChain>			m_pSwapchain;
 
-	VkQueue								m_queue;
+	//VkQueue								m_queue;
 
 	VkCommandPool						m_commandPool;
 	VkCommandBuffer						m_setupCommandBuffer;
@@ -105,9 +112,9 @@ protected:
 	VkRenderPass						m_renderpass;
 	std::vector<VkFramebuffer>			m_framebuffers;
 
-	Buffer								m_vertexBuffer;
-	Buffer								m_indexBuffer;
-	Buffer								m_uniformBuffer;
+	std::shared_ptr<VertexBuffer>		m_vertexBuffer;
+	std::shared_ptr<IndexBuffer>		m_indexBuffer;
+	std::shared_ptr<UniformBuffer>		m_uniformBuffer;
 
 	MVP									m_mvp;
 

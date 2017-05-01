@@ -8,7 +8,13 @@
 #include "../thread/ThreadCoordinator.h"
 #include "../maths/Matrix.h"
 #include <math.h>
-
+#include "Importer.hpp"
+#include "scene.h"
+#include "postprocess.h"
+#include "Buffer.h"
+#include "StagingBuffer.h"
+#include "Queue.h"
+#include "StagingBufferManager.h"
 void VulkanGlobal::InitVulkanInstance()
 {
 	VkApplicationInfo appInfo = {};
@@ -34,22 +40,19 @@ void VulkanGlobal::InitVulkanInstance()
 	instCreateInfo.enabledLayerCount = (int32_t)layers.size();
 	instCreateInfo.ppEnabledLayerNames = layers.data();
 
-	m_vulkanInst = std::make_shared<VulkanInstance>(VulkanInstance());
-	m_vulkanInst->Init(instCreateInfo);
+	m_vulkanInst = Instance::Create(instCreateInfo);
 	assert(m_vulkanInst != nullptr);
 }
 
 void VulkanGlobal::InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd)
 {
-	m_physicalDevice = std::make_shared<PhysicalDevice>(PhysicalDevice());
-	m_physicalDevice->Init(m_vulkanInst, hInstance, hWnd);
+	m_physicalDevice = PhysicalDevice::Create(m_vulkanInst, hInstance, hWnd);
 	ASSERTION(m_physicalDevice != nullptr);
 }
 
 void VulkanGlobal::InitVulkanDevice()
 {
-	m_pDevice = std::make_shared<VulkanDevice>(VulkanDevice());
-	m_pDevice->Init(m_vulkanInst, m_physicalDevice);
+	m_pDevice = Device::Create(m_vulkanInst, m_physicalDevice);
 	ASSERTION(m_pDevice != nullptr);
 }
 
@@ -195,7 +198,6 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void VulkanGlobal::InitQueue()
 {
-	vkGetDeviceQueue(m_pDevice->GetDeviceHandle(), m_physicalDevice->GetGraphicQueueIndex(), 0, &m_queue);
 }
 
 void VulkanGlobal::InitSurface()
@@ -204,8 +206,7 @@ void VulkanGlobal::InitSurface()
 
 void VulkanGlobal::InitSwapchain()
 {
-	m_pSwapchain = std::make_shared<SwapChain>(SwapChain());
-	m_pSwapchain->Init(m_physicalDevice, m_pDevice);
+	m_pSwapchain = SwapChain::Create(m_pDevice);
 	ASSERTION(m_pSwapchain != nullptr);
 }
 
@@ -272,6 +273,13 @@ void VulkanGlobal::InitSetupCommandBuffer()
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	CHECK_VK_ERROR(vkBeginCommandBuffer(m_setupCommandBuffer, &beginInfo));
+}
+
+void VulkanGlobal::InitMemoryMgr()
+{
+	//m_pMemoryMgr = DeviceMemoryManager::Create(m_pDevice);
+	//assert(m_pMemoryMgr != nullptr);
+	//DeviceMemoryManager::GetInstance()->Init(m_pDevice);
 }
 
 void VulkanGlobal::InitSwapchainImgs()
@@ -487,246 +495,124 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	float vertices[] =
+	Assimp::Importer imp;
+	const aiScene* pScene = nullptr;
+	pScene = imp.ReadFile("data/models/sphere.obj", aiProcess_Triangulate | aiProcess_GenSmoothNormals);
+
+	aiMesh* pMesh = pScene->mMeshes[0];
+
+	uint32_t vertexSize = 0;
+	if (pMesh->HasPositions())
+		vertexSize += 3 * sizeof(float);
+	if (pMesh->HasNormals())
+		vertexSize += 3 * sizeof(float);
+	//FIXME: hard-coded index 0 here, we don't have more than 1 color for now
+	if (pMesh->HasVertexColors(0))
+		vertexSize += 4 * sizeof(float);
+	//FIXME: hard-coded index 0 here, we don't have more than 1 texture coord for now
+	if (pMesh->HasTextureCoords(0))
+		vertexSize += 3 * sizeof(float);
+	if (pMesh->HasTangentsAndBitangents())
+		vertexSize += 6 * sizeof(float);
+
+	float* pVertices = new float[pMesh->mNumVertices * 9];
+	uint32_t verticesNumBytes = pMesh->mNumVertices * vertexSize;
+	uint32_t count = 0;
+
+	for (uint32_t i = 0; i < pMesh->mNumVertices; i++)
 	{
-		-1.0, -1.0, 0.0,
-		1.0, -1.0, 0.0,
-		0.0, 1.0, 0.0
-	};
-
-	int32_t indices[] = { 0, 1, 2 };
-
-	Buffer stageVertexBuffer, stageIndexBuffer;
-
-
-	//Create staging vertex buffer
-	stageVertexBuffer.info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	stageVertexBuffer.info.size = sizeof(vertices);
-	stageVertexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &stageVertexBuffer.info, nullptr, &stageVertexBuffer.buffer));
-
-	vkGetBufferMemoryRequirements(m_pDevice->GetDeviceHandle(), stageVertexBuffer.buffer, &stageVertexBuffer.reqs);
-
-	VkMemoryAllocateInfo allocateInfo = {};
-	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocateInfo.allocationSize = stageVertexBuffer.reqs.size;
-
-	uint32_t typeIndex = 0;
-	uint32_t typeBits = stageVertexBuffer.reqs.memoryTypeBits;
-	while (typeBits)
-	{
-		if (typeBits & 1)
+		uint32_t offset = i * vertexSize / sizeof(float);
+		count = 0;
+		if (pMesh->HasPositions())
 		{
-			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-			{
-				allocateInfo.memoryTypeIndex = typeIndex;
-				break;
-			}
+			pVertices[offset] = pMesh->mVertices[i].x;
+			pVertices[offset + 1] = pMesh->mVertices[i].y;
+			pVertices[offset + 2] = pMesh->mVertices[i].z;
+			count += 3;
 		}
-		typeBits >>= 1;
-		typeIndex++;
+		if (pMesh->HasNormals())
+		{
+			pVertices[offset + count] = pMesh->mNormals[i].x;
+			pVertices[offset + count + 1] = pMesh->mNormals[i].y;
+			pVertices[offset + count + 2] = pMesh->mNormals[i].z;
+			count += 3;
+		}
+		if (pMesh->HasVertexColors(0))
+		{
+			pVertices[offset + count] = pMesh->mColors[i][0].r;
+			pVertices[offset + count + 1] = pMesh->mColors[i][0].g;
+			pVertices[offset + count + 2] = pMesh->mColors[i][0].b;
+			pVertices[offset + count + 3] = pMesh->mColors[i][0].a;
+			count += 4;
+		}
+		if (pMesh->HasTextureCoords(0))
+		{
+			pVertices[offset + count] = pMesh->mTextureCoords[0][i].x;
+			pVertices[offset + count + 1] = pMesh->mTextureCoords[0][i].y;
+			pVertices[offset + count + 2] = pMesh->mTextureCoords[0][i].z;
+			count += 3;
+		}
+		if (pMesh->HasTangentsAndBitangents())
+		{
+			pVertices[offset + count] = pMesh->mTangents[i].x;
+			pVertices[offset + count + 1] = pMesh->mTangents[i].y;
+			pVertices[offset + count + 2] = pMesh->mTangents[i].z;
+			pVertices[offset + count + 3] = pMesh->mBitangents[i].x;
+			pVertices[offset + count + 4] = pMesh->mBitangents[i].y;
+			pVertices[offset + count + 5] = pMesh->mBitangents[i].z;
+			count += 6;
+		}
 	}
 
-	CHECK_VK_ERROR(vkAllocateMemory(m_pDevice->GetDeviceHandle(), &allocateInfo, nullptr, &stageVertexBuffer.memory));
-	CHECK_VK_ERROR(vkBindBufferMemory(m_pDevice->GetDeviceHandle(), stageVertexBuffer.buffer, stageVertexBuffer.memory, 0));
-
-	void* pData;
-	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), stageVertexBuffer.memory, 0, stageVertexBuffer.reqs.size, 0, &pData));
-	memcpy(pData, vertices, stageVertexBuffer.info.size);
-	vkUnmapMemory(m_pDevice->GetDeviceHandle(), stageVertexBuffer.memory);
-
-
-	//Create vertex buffer
-	m_vertexBuffer.info.size = sizeof(vertices);
-	m_vertexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_vertexBuffer.info, nullptr, &m_vertexBuffer.buffer));
-	vkGetBufferMemoryRequirements(m_pDevice->GetDeviceHandle(), m_vertexBuffer.buffer, &m_vertexBuffer.reqs);
-
-	allocateInfo.allocationSize = m_vertexBuffer.reqs.size;
-
-	typeIndex = 0;
-	typeBits = m_vertexBuffer.reqs.memoryTypeBits;
-	while (typeBits)
+	uint32_t* pIndices = new uint32_t[pMesh->mNumFaces * 3];
+	uint32_t indicesNumBytes = pMesh->mNumFaces * 3 * sizeof(uint32_t);
+	for (size_t i = 0; i < pMesh->mNumFaces; i++)
 	{
-		if (typeBits & 1)
-		{
-			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-			{
-				allocateInfo.memoryTypeIndex = typeIndex;
-				break;
-			}
-		}
-		typeIndex++;
-		typeBits >>= 1;
+		pIndices[i * 3] = pMesh->mFaces[i].mIndices[0];
+		pIndices[i * 3 + 1] = pMesh->mFaces[i].mIndices[1];
+		pIndices[i * 3 + 2] = pMesh->mFaces[i].mIndices[2];
 	}
 
-	CHECK_VK_ERROR(vkAllocateMemory(m_pDevice->GetDeviceHandle(), &allocateInfo, nullptr, &m_vertexBuffer.memory));
-	CHECK_VK_ERROR(vkBindBufferMemory(m_pDevice->GetDeviceHandle(), m_vertexBuffer.buffer, m_vertexBuffer.memory, 0));
-
-
-	//Create staging index buffer
-	stageIndexBuffer.info.size = sizeof(indices);
-	stageIndexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
-	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &stageIndexBuffer.info, nullptr, &stageIndexBuffer.buffer));
-	vkGetBufferMemoryRequirements(m_pDevice->GetDeviceHandle(), stageIndexBuffer.buffer, &stageIndexBuffer.reqs);
-
-	allocateInfo.allocationSize = stageIndexBuffer.reqs.size;
-
-	typeIndex = 0;
-	typeBits = stageIndexBuffer.reqs.memoryTypeBits;
-	while (typeBits)
-	{
-		if (typeBits & 1)
-		{
-			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-			{
-				allocateInfo.memoryTypeIndex = typeIndex;
-				break;
-			}
-		}
-		typeIndex++;
-		typeBits >>= 1;
-	}
-
-	CHECK_VK_ERROR(vkAllocateMemory(m_pDevice->GetDeviceHandle(), &allocateInfo, nullptr, &stageIndexBuffer.memory));
-	CHECK_VK_ERROR(vkBindBufferMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.buffer, stageIndexBuffer.memory, 0));
-
-	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.memory, 0, stageIndexBuffer.reqs.size, 0, &pData));
-	memcpy(pData, indices, stageIndexBuffer.info.size);
-	vkUnmapMemory(m_pDevice->GetDeviceHandle(), stageIndexBuffer.memory);
-
-
-	//Create index buffer
-	m_indexBuffer.info.size = sizeof(indices);
-	m_indexBuffer.info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_indexBuffer.info, nullptr, &m_indexBuffer.buffer));
-	vkGetBufferMemoryRequirements(m_pDevice->GetDeviceHandle(), m_indexBuffer.buffer, &m_indexBuffer.reqs);
-
-	allocateInfo.allocationSize = m_indexBuffer.reqs.size;
-
-	typeIndex = 0;
-	typeBits = m_indexBuffer.reqs.memoryTypeBits;
-	while (typeBits)
-	{
-		if (typeBits & 1)
-		{
-			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-			{
-				allocateInfo.memoryTypeIndex = typeIndex;
-				break;
-			}
-		}
-		typeIndex++;
-		typeBits >>= 1;
-	}
-
-	CHECK_VK_ERROR(vkAllocateMemory(m_pDevice->GetDeviceHandle(), &allocateInfo, nullptr, &m_indexBuffer.memory));
-	CHECK_VK_ERROR(vkBindBufferMemory(m_pDevice->GetDeviceHandle(), m_indexBuffer.buffer, m_indexBuffer.memory, 0));
-
-	//Setup a barrier for staging buffers
-	VkBufferMemoryBarrier barriers[2] = {};
-
-	barriers[0] = {};
-	barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-	barriers[0].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-	barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barriers[0].buffer = stageVertexBuffer.buffer;
-	barriers[0].offset = 0;
-	barriers[0].size = stageVertexBuffer.info.size;
-
-	barriers[1] = {};
-	barriers[1].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-	barriers[1].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-	barriers[1].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barriers[1].buffer = stageIndexBuffer.buffer;
-	barriers[1].offset = 0;
-	barriers[1].size = stageIndexBuffer.info.size;
-
-	vkCmdPipelineBarrier(m_setupCommandBuffer,
-		VK_PIPELINE_STAGE_HOST_BIT,
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		0,
-		0, nullptr,
-		2, &barriers[0],
-		0, nullptr);
-
-	//Transfer data from staging buffers to device local buffers
-	//Copy vertex buffer
-	VkBufferCopy copy = {};
-	copy.dstOffset = 0;
-	copy.srcOffset = 0;
-	copy.size = stageVertexBuffer.info.size;
-	vkCmdCopyBuffer(m_setupCommandBuffer, stageVertexBuffer.buffer, m_vertexBuffer.buffer, 1, &copy);
-
-	//Copy index buffer
-	copy.size = stageIndexBuffer.info.size;
-	vkCmdCopyBuffer(m_setupCommandBuffer, stageIndexBuffer.buffer, m_indexBuffer.buffer, 1, &copy);
-
-	//Setup a barrier for memory changes
-	barriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barriers[0].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-	barriers[0].buffer = m_vertexBuffer.buffer;
-
-	barriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barriers[1].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;	//not sure if it's the same as vertex buffer
-	barriers[1].buffer = m_indexBuffer.buffer;
-
-	vkCmdPipelineBarrier(m_setupCommandBuffer,
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
-		0,
-		0, nullptr,
-		2, &barriers[0],
-		0, nullptr);
-
-	//Binding and attributes information
-	m_vertexBuffer.bindingDesc.binding = 0;		//hard coded 0
-	m_vertexBuffer.bindingDesc.stride = sizeof(float) * 3;	//xyzrgb, all hard coded, mockup code, don't care, just for learning
-	m_vertexBuffer.bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-	m_vertexBuffer.attribDesc.resize(1);
-	m_vertexBuffer.attribDesc[0].binding = 0;
-	m_vertexBuffer.attribDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	m_vertexBuffer.attribDesc[0].location = 0;	//layout location 0 in shader
-	m_vertexBuffer.attribDesc[0].offset = 0;
 	/*
-	m_vertexBuffer.attribDesc[1].binding = 0;
-	m_vertexBuffer.attribDesc[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-	m_vertexBuffer.attribDesc[1].location = 1;
-	m_vertexBuffer.attribDesc[1].offset = sizeof(float) * 3;	//after xyz*/
+	std::shared_ptr<StagingBuffer> stageVertexBuffer, stageIndexBuffer;
+	stageVertexBuffer = StagingBuffer::Create(m_pDevice, verticesNumBytes);
+	stageVertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, (VkPipelineStageFlagBits)0, 0);
+	stageIndexBuffer = StagingBuffer::Create(m_pDevice, indicesNumBytes);
+	stageIndexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes, (VkPipelineStageFlagBits)0, 0);
+	*/
+	//Binding and attributes information
+	VkVertexInputBindingDescription bindingDesc = {};
+	bindingDesc.binding = 0;		//hard coded 0
+	bindingDesc.stride = vertexSize;	//xyzrgb, all hard coded, mockup code, don't care, just for learning
+	bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	std::vector<VkVertexInputAttributeDescription> attribDesc;
+	attribDesc.resize(3);
+
+	attribDesc[0].binding = 0;
+	attribDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attribDesc[0].location = 0;	//layout location 0 in shader
+	attribDesc[0].offset = 0;
+
+	attribDesc[1].binding = 0;
+	attribDesc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attribDesc[1].location = 1;
+	attribDesc[1].offset = sizeof(float) * 3;	//after xyz*/
+
+	attribDesc[2].binding = 0;
+	attribDesc[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attribDesc[2].location = 2;
+	attribDesc[2].offset = sizeof(float) * 6;	//after xyz*/
+
+	m_vertexBuffer = VertexBuffer::Create(m_pDevice, verticesNumBytes, bindingDesc, attribDesc);
+	m_vertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	m_indexBuffer = IndexBuffer::Create(m_pDevice, indicesNumBytes, VK_INDEX_TYPE_UINT32);
+	m_indexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
 }
 
 void VulkanGlobal::InitUniforms()
 {
-	//Create uniform buffer
-	m_uniformBuffer.info.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-	m_uniformBuffer.info.size = sizeof(m_mvp.model) * 5;
-	CHECK_VK_ERROR(vkCreateBuffer(m_pDevice->GetDeviceHandle(), &m_uniformBuffer.info, nullptr, &m_uniformBuffer.buffer));
-
-	vkGetBufferMemoryRequirements(m_pDevice->GetDeviceHandle(), m_uniformBuffer.buffer, &m_uniformBuffer.reqs);
-	VkMemoryAllocateInfo allocateInfo = {};
-	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocateInfo.allocationSize = m_uniformBuffer.reqs.size;
-
-	uint32_t typeIndex = 0;
-	uint32_t typeBits = m_uniformBuffer.reqs.memoryTypeBits;
-	while (typeBits)
-	{
-		if (typeBits & 1)
-		{
-			if (m_physicalDevice->GetPhysicalDeviceMemoryProperties().memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-			{
-				allocateInfo.memoryTypeIndex = typeIndex;
-				break;
-			}
-		}
-		typeIndex++;
-		typeBits >>= 1;
-	}
-
-	CHECK_VK_ERROR(vkAllocateMemory(m_pDevice->GetDeviceHandle(), &allocateInfo, nullptr, &m_uniformBuffer.memory));
-	CHECK_VK_ERROR(vkBindBufferMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.buffer, m_uniformBuffer.memory, 0));
+	uint32_t totalUniformBytes = sizeof(m_mvp.model) * 5 + sizeof(m_mvp.camPos);
 
 	memset(m_mvp.model, 0, sizeof(m_mvp.model));
 	memset(m_mvp.view, 0, sizeof(m_mvp.view));
@@ -741,7 +627,7 @@ void VulkanGlobal::InitUniforms()
 	//Vector3f look = { 1, -1, -1 };
 	Vector3f look = { 0, 0, -1 };
 	look.Normalize();
-	Vector3f position = { 0, 0, 5 };
+	Vector3f position = { 0, 0, 50 };
 	Vector3f xaxis = up ^ look.Negativate();
 	xaxis.Normalize();
 	Vector3f yaxis = look ^ xaxis;
@@ -757,7 +643,7 @@ void VulkanGlobal::InitUniforms()
 	float aspect = 1024.0 / 768.0;
 	float fov = 3.1415 / 2.0;
 	float nearPlane = 1;
-	float farPlane = 10;
+	float farPlane = 200;
 
 	projection.c[0] = { 1.0f / (nearPlane * std::tanf(fov / 2.0f) * aspect), 0, 0, 0 };
 	projection.c[1] = { 0, 1.0f / (nearPlane * std::tanf(fov / 2.0f)), 0, 0 };
@@ -770,44 +656,17 @@ void VulkanGlobal::InitUniforms()
 
 	Matrix4f mvp = vulkanNDC * projection * view * model;
 
+	Vector3f camPos = position;
+
 	memcpy_s(m_mvp.model, sizeof(m_mvp.model), &model, sizeof(model));
 	memcpy_s(m_mvp.view, sizeof(m_mvp.view), &view, sizeof(view));
 	memcpy_s(m_mvp.projection, sizeof(m_mvp.projection), &projection, sizeof(projection));
 	memcpy_s(m_mvp.vulkanNDC, sizeof(m_mvp.vulkanNDC), &vulkanNDC, sizeof(vulkanNDC));
 	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
+	memcpy_s(m_mvp.camPos, sizeof(m_mvp.camPos), &camPos, sizeof(camPos));
 
-	/*
-	m_mvp.model[0] = m_mvp.model[5] = m_mvp.model[10] = m_mvp.model[15] = 1.0f;
-	m_mvp.view[0] = m_mvp.view[5] = m_mvp.view[10] = m_mvp.view[15] = 1.0f;
-	m_mvp.projection[0] = m_mvp.projection[5] = m_mvp.projection[10] = m_mvp.projection[15] = 1.0f;
-	m_mvp.vulkanNDC[0] = m_mvp.vulkanNDC[5] = m_mvp.vulkanNDC[10] = m_mvp.vulkanNDC[15] = 1.0f;
-	m_mvp.mvp[0] = m_mvp.mvp[5] = m_mvp.mvp[10] = m_mvp.mvp[15] = 1.0f;*/
-
-	void* pData;
-	CHECK_VK_ERROR(vkMapMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.memory, 0, m_uniformBuffer.info.size, 0, &pData));
-	memcpy(pData, &m_mvp, sizeof(m_mvp.model) * 5);
-	vkUnmapMemory(m_pDevice->GetDeviceHandle(), m_uniformBuffer.memory);
-
-	m_mvp.mvpDescriptor.buffer = m_uniformBuffer.buffer;
-	m_mvp.mvpDescriptor.offset = 0;
-	m_mvp.mvpDescriptor.range = sizeof(m_mvp.model) * 5;
-
-	//Setup a barrier to let shader know its latest updated information in buffer
-	VkBufferMemoryBarrier barrier = {};
-	barrier.buffer = m_uniformBuffer.buffer;
-	barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-	barrier.dstAccessMask = VK_ACCESS_UNIFORM_READ_BIT;
-	barrier.offset = 0;
-	barrier.size = sizeof(m_mvp.model) * 5;
-	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-
-	vkCmdPipelineBarrier(m_setupCommandBuffer,
-		VK_PIPELINE_STAGE_HOST_BIT,
-		VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-		0,
-		0, nullptr,
-		1, &barrier,
-		0, nullptr);
+	m_uniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
+	m_uniformBuffer->UpdateByteStream(&m_mvp, 0, totalUniformBytes, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT);
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -880,7 +739,7 @@ void VulkanGlobal::InitPipeline()
 	VkPipelineRasterizationStateCreateInfo rsCreateInfo = {};
 	rsCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rsCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-	rsCreateInfo.cullMode = VK_CULL_MODE_NONE;
+	rsCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
 	rsCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rsCreateInfo.lineWidth = 1.0f;
 	rsCreateInfo.depthClampEnable = VK_FALSE;
@@ -938,12 +797,12 @@ void VulkanGlobal::InitPipeline()
 	VkPipelineVertexInputStateCreateInfo vertexCreateInfo = {};
 	vertexCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vertexCreateInfo.vertexBindingDescriptionCount = 1;
-	vertexCreateInfo.pVertexBindingDescriptions = &m_vertexBuffer.bindingDesc;
-	vertexCreateInfo.vertexAttributeDescriptionCount = m_vertexBuffer.attribDesc.size();
-	vertexCreateInfo.pVertexAttributeDescriptions = m_vertexBuffer.attribDesc.data();
+	vertexCreateInfo.pVertexBindingDescriptions = &m_vertexBuffer->GetBindingDesc();
+	vertexCreateInfo.vertexAttributeDescriptionCount = m_vertexBuffer->GetAttribDesc().size();
+	vertexCreateInfo.pVertexAttributeDescriptions = m_vertexBuffer->GetAttribDesc().data();
 	pipelineInfo.pVertexInputState = &vertexCreateInfo;
 
-	CHECK_VK_ERROR(vkCreateGraphicsPipelines(m_pDevice->GetDeviceHandle(), m_pipelineCache, 1, &pipelineInfo, nullptr, &m_pipeline));
+	CHECK_VK_ERROR(vkCreateGraphicsPipelines(m_pDevice->GetDeviceHandle(), 0, 1, &pipelineInfo, nullptr, &m_pipeline));
 }
 
 VkShaderModule VulkanGlobal::InitShaderModule(const char* shaderPath)
@@ -990,15 +849,15 @@ void VulkanGlobal::InitDescriptorSet()
 
 	std::vector<VkWriteDescriptorSet> writeDescSet;
 	writeDescSet.resize(1);
-
+	
+	VkDescriptorBufferInfo info = m_uniformBuffer->GetDescBufferInfo();
 	writeDescSet[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	writeDescSet[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	writeDescSet[0].dstBinding = 0;
 	writeDescSet[0].dstSet = m_descriptorSet;
-	writeDescSet[0].pBufferInfo = &m_mvp.mvpDescriptor;
+	writeDescSet[0].pBufferInfo = &info;
 	writeDescSet[0].descriptorCount = 1;
 
-	//vkUpdateDescriptorSets(m_device, 1, &writeDescSet[0], 0, nullptr);
 	vkUpdateDescriptorSets(m_pDevice->GetDeviceHandle(), writeDescSet.size(), writeDescSet.data(), 0, nullptr);
 }
 
@@ -1021,7 +880,7 @@ void VulkanGlobal::InitDrawCmdBuffers()
 
 		std::vector<VkClearValue> clearValues =
 		{
-			{ 0.0f, 0.0f, 0.0f, 0.0f },
+			{ 0.2f, 0.2f, 0.2f, 0.2f },
 			{ 1.0f, 0 }
 		};
 
@@ -1059,10 +918,11 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		vkCmdBindPipeline(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
 		VkDeviceSize deviceSize[1] = { 0 };
-		vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &m_vertexBuffer.buffer, deviceSize);
-		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+		VkBuffer vertexBuffer = m_vertexBuffer->GetDeviceHandle();
+		vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &vertexBuffer, deviceSize);
+		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_indexBuffer->GetDeviceHandle(), 0, m_indexBuffer->GetType());
 
-		vkCmdDrawIndexed(m_drawCmdBuffers[i], 3, 1, 0, 0, 0);
+		vkCmdDrawIndexed(m_drawCmdBuffers[i], m_indexBuffer->GetCount(), 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(m_drawCmdBuffers[i]);
 
@@ -1090,10 +950,12 @@ void VulkanGlobal::EndSetup()
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &m_setupCommandBuffer;
 
-	CHECK_VK_ERROR(vkQueueSubmit(m_queue, 1, &submitInfo, nullptr));
-	vkQueueWaitIdle(m_queue);
+	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
+	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
 
 	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), m_commandPool, 1, &m_setupCommandBuffer);
+
+	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 }
 
 void VulkanGlobal::Draw()
@@ -1112,7 +974,7 @@ void VulkanGlobal::Draw()
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = &m_renderDone;
 
-	vkQueueSubmit(m_queue, 1, &submitInfo, nullptr);
+	vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr);
 
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -1122,9 +984,9 @@ void VulkanGlobal::Draw()
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = &m_renderDone;
 	presentInfo.pImageIndices = &m_currentBufferIndex;
-	m_pSwapchain->GetQueuePresentFuncPtr()(m_queue, &presentInfo);
+	m_pSwapchain->GetQueuePresentFuncPtr()(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle(), &presentInfo);
 
-	vkQueueWaitIdle(m_queue);
+	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle());
 }
 
 void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
@@ -1134,11 +996,13 @@ void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
 	InitPhysicalDevice(m_hPlatformInst, m_hWindow);
 	InitSurface();
 	InitVulkanDevice();
+	GlobalDeviceObjects::GetInstance()->Init(m_pDevice);
 	InitSwapchain();
 	InitQueue();
 
 	InitCommandPool();
 	InitSetupCommandBuffer();
+	InitMemoryMgr();
 	InitSwapchainImgs();
 	InitDepthStencil();
 	InitRenderpass();

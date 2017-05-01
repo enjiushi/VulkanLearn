@@ -14,5 +14,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 {
 	VulkanGlobal::GetInstance()->Init(hInstance, WndProc);
 	VulkanGlobal::GetInstance()->Update();
+	VulkanGlobal::Free();
+	GlobalDeviceObjects::Free();
 }
 

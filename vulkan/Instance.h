@@ -1,6 +1,7 @@
 #pragma once
-#include "../common/AutoPTR.h"
-#include "VulkanBase.h"
+#include <memory>
+#include "vulkan.h"
+#include "../common/Macros.h"
 
 #define EXTENSION_VULKAN_SURFACE "VK_KHR_surface"  
 #define EXTENSION_VULKAN_SURFACE_WIN32 "VK_KHR_win32_surface"
@@ -8,15 +9,18 @@
 #define EXTENSION_VULKAN_DEBUG_REPORT "VK_EXT_debug_report"
 #define EXTENSION_VULKAN_SWAPCHAIN "VK_KHR_swapchain"
 
-class VulkanInstance
+class Instance
 {
 public:
-	~VulkanInstance();
+	~Instance();
 
 	VkInstance GetDeviceHandle() { return m_vulkanInst; }
 	const VkInstance GetDeviceHandle() const { return m_vulkanInst; }
 
 	bool Init(const VkInstanceCreateInfo&);
+
+public:
+	static std::shared_ptr<Instance> Create(const VkInstanceCreateInfo&);
 
 private:
 	VkInstance	m_vulkanInst;
