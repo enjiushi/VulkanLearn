@@ -276,46 +276,12 @@ void VulkanGlobal::InitSetupCommandBuffer()
 
 void VulkanGlobal::InitMemoryMgr()
 {
-	//m_pMemoryMgr = DeviceMemoryManager::Create(m_pDevice);
-	//assert(m_pMemoryMgr != nullptr);
-	//DeviceMemoryManager::GetInstance()->Init(m_pDevice);
 }
 
 void VulkanGlobal::InitSwapchainImgs()
 {
-	m_swapchainImgs = SwapChainImage::Create(m_pDevice);
-
-	/*
-	m_swapchainImg.images.resize(m_physicalDevice->GetSurfaceCap().maxImageCount);
-	m_swapchainImg.views.resize(m_physicalDevice->GetSurfaceCap().maxImageCount);
-	uint32_t count = 0;
-	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), &count, nullptr));
-	ASSERTION(count == m_physicalDevice->GetSurfaceCap().maxImageCount);
-	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), &count, m_swapchainImg.images.data()));*/
-
 	for (uint32_t i = 0; i < m_physicalDevice->GetSurfaceCap().maxImageCount; i++)
 	{
-		/*
-		//Create image view
-		VkImageViewCreateInfo imageViewCreateInfo = {};
-		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCreateInfo.format = m_physicalDevice->GetSurfaceFormat().format;
-		imageViewCreateInfo.image = m_swapchainImg.images[i];
-		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-		imageViewCreateInfo.subresourceRange.layerCount = 1;
-		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-		imageViewCreateInfo.subresourceRange.levelCount = 1;
-		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		imageViewCreateInfo.components =
-		{
-			VK_COMPONENT_SWIZZLE_R,
-			VK_COMPONENT_SWIZZLE_G,
-			VK_COMPONENT_SWIZZLE_B,
-			VK_COMPONENT_SWIZZLE_A
-		};
-		CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &imageViewCreateInfo, nullptr, &m_swapchainImg.views[i]));*/
-
 		//Change image layout
 		VkImageMemoryBarrier imageBarrier = {};
 		imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -325,7 +291,7 @@ void VulkanGlobal::InitSwapchainImgs()
 		imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 		imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier.image = m_swapchainImgs[i]->GetDeviceHandle();
+		imageBarrier.image = GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i)->GetDeviceHandle();
 		imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		imageBarrier.subresourceRange.baseMipLevel = 0;
 		imageBarrier.subresourceRange.levelCount = 1;
@@ -423,7 +389,7 @@ void VulkanGlobal::InitFrameBuffer()
 
 	for (uint32_t i = 0; i < m_physicalDevice->GetSurfaceCap().maxImageCount; i++)
 	{
-		attachments[0] = m_swapchainImgs[i]->GetViewDeviceHandle();
+		attachments[0] = GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i)->GetViewDeviceHandle();
 
 		VkFramebufferCreateInfo framebufferCreateInfo = {};
 		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -808,16 +774,16 @@ void VulkanGlobal::InitDescriptorSet()
 
 void VulkanGlobal::InitDrawCmdBuffers()
 {
-	m_drawCmdBuffers.resize(m_swapchainImgs.size());
+	m_drawCmdBuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
 
 	VkCommandBufferAllocateInfo cmdAllocInfo = {};
 	cmdAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	cmdAllocInfo.commandPool = m_commandPool;
 	cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	cmdAllocInfo.commandBufferCount = m_swapchainImgs.size();
+	cmdAllocInfo.commandBufferCount = GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount();
 	CHECK_VK_ERROR(vkAllocateCommandBuffers(m_pDevice->GetDeviceHandle(), &cmdAllocInfo, m_drawCmdBuffers.data()));
 
-	for (size_t i = 0; i < m_swapchainImgs.size(); i++)
+	for (size_t i = 0; i < GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
 		VkCommandBufferBeginInfo cmdBeginInfo = {};
 		cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

@@ -5,7 +5,7 @@
 class SwapChainImage : public Image
 {
 public:
-	static std::vector<std::shared_ptr<SwapChainImage>> Create(const std::shared_ptr<Device>& pDevice);
+	static std::vector<std::shared_ptr<SwapChainImage>> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<SwapChain>& pSwapChain);
 
 protected:
 	bool Init(const std::shared_ptr<Device>& pDevice, VkImage rawImageHandle);

@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include "DeviceObjectBase.h"
+#include "SwapChainImage.h"
 
 class SwapChain : public DeviceObjectBase
 {
@@ -15,6 +16,8 @@ public:
 	bool Init(const std::shared_ptr<Device>& pDevice) override;
 
 	const VkSwapchainKHR GetDeviceHandle() const { return m_swapchain; }
+	const std::shared_ptr<SwapChainImage> GetSwapChainImage(uint32_t index) { assert(index < m_swapchainImages.size()); return m_swapchainImages[index]; }
+	uint32_t GetSwapChainImageCount() const { return m_swapchainImages.size(); }
 
 	PFN_vkAcquireNextImageKHR GetAcquireNextImageFuncPtr() const { return m_fpAcquireNextImageKHR; }
 	PFN_vkQueuePresentKHR GetQueuePresentFuncPtr() const { return m_fpQueuePresentKHR; }
@@ -31,4 +34,6 @@ protected:
 	PFN_vkGetSwapchainImagesKHR			m_fpGetSwapchainImagesKHR;
 	PFN_vkAcquireNextImageKHR			m_fpAcquireNextImageKHR;
 	PFN_vkQueuePresentKHR				m_fpQueuePresentKHR;
+
+	std::vector<std::shared_ptr<SwapChainImage>> m_swapchainImages;
 };

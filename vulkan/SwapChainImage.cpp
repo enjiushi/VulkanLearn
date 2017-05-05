@@ -40,13 +40,13 @@ bool SwapChainImage::Init(const std::shared_ptr<Device>& pDevice, VkImage rawIma
 	return true;
 }
 
-std::vector<std::shared_ptr<SwapChainImage>> SwapChainImage::Create(const std::shared_ptr<Device>& pDevice)
+std::vector<std::shared_ptr<SwapChainImage>> SwapChainImage::Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<SwapChain>& pSwapChain)
 {
 	std::vector<VkImage> rawImgList;
 	uint32_t count;
-	CHECK_VK_ERROR((GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetGetSwapchainImagesFuncPtr())(pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), &count, nullptr));
+	CHECK_VK_ERROR((pSwapChain->GetGetSwapchainImagesFuncPtr())(pDevice->GetDeviceHandle(), pSwapChain->GetDeviceHandle(), &count, nullptr));
 	rawImgList.resize(count);
-	CHECK_VK_ERROR((GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetGetSwapchainImagesFuncPtr())(pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), &count, rawImgList.data()));
+	CHECK_VK_ERROR((pSwapChain->GetGetSwapchainImagesFuncPtr())(pDevice->GetDeviceHandle(), pSwapChain->GetDeviceHandle(), &count, rawImgList.data()));
 
 	std::vector<std::shared_ptr<SwapChainImage>> imgList;
 	for (uint32_t i = 0; i < count; i++)

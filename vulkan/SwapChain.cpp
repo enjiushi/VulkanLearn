@@ -5,7 +5,10 @@ std::shared_ptr<SwapChain> SwapChain::Create(const std::shared_ptr<Device>& pDev
 {
 	std::shared_ptr<SwapChain> pSwapChain = std::make_shared<SwapChain>();
 	if (pSwapChain.get() && pSwapChain->Init(pDevice))
+	{
+		pSwapChain->m_swapchainImages = SwapChainImage::Create(pDevice, pSwapChain);
 		return pSwapChain;
+	}
 
 	return nullptr;
 }
