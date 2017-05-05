@@ -92,7 +92,6 @@ protected:
 	std::shared_ptr<Instance>			m_vulkanInst;
 	std::shared_ptr<PhysicalDevice>		m_physicalDevice;
 	std::shared_ptr<Device>				m_pDevice;
-	std::shared_ptr<SwapChain>			m_pSwapchain;
 
 	//VkQueue								m_queue;
 

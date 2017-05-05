@@ -3,6 +3,7 @@
 #include "CommandPool.h"
 #include "DeviceMemoryManager.h"
 #include "StagingBufferManager.h"
+#include "SwapChain.h"
 
 bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 {
@@ -24,6 +25,8 @@ bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 	info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 	info.size = UNIFORM_BUFFER_SIZE;
 	m_pBigUniformBuffer = Buffer::Create(pDevice, info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	m_pSwapChain = SwapChain::Create(pDevice);
 
 	return true;
 }

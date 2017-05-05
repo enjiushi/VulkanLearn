@@ -207,8 +207,6 @@ void VulkanGlobal::InitSurface()
 
 void VulkanGlobal::InitSwapchain()
 {
-	m_pSwapchain = SwapChain::Create(m_pDevice);
-	ASSERTION(m_pSwapchain != nullptr);
 }
 
 void VulkanGlobal::Update()
@@ -288,9 +286,9 @@ void VulkanGlobal::InitSwapchainImgs()
 	m_swapchainImg.images.resize(m_physicalDevice->GetSurfaceCap().maxImageCount);
 	m_swapchainImg.views.resize(m_physicalDevice->GetSurfaceCap().maxImageCount);
 	uint32_t count = 0;
-	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_pDevice->GetDeviceHandle(), m_pSwapchain->GetDeviceHandle(), &count, nullptr));
+	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), &count, nullptr));
 	ASSERTION(count == m_physicalDevice->GetSurfaceCap().maxImageCount);
-	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_pDevice->GetDeviceHandle(), m_pSwapchain->GetDeviceHandle(), &count, m_swapchainImg.images.data()));
+	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), &count, m_swapchainImg.images.data()));
 
 	for (uint32_t i = 0; i < m_physicalDevice->GetSurfaceCap().maxImageCount; i++)
 	{
@@ -903,7 +901,7 @@ void VulkanGlobal::EndSetup()
 
 void VulkanGlobal::Draw()
 {
-	CHECK_VK_ERROR(m_pSwapchain->GetAcquireNextImageFuncPtr()(m_pDevice->GetDeviceHandle(), m_pSwapchain->GetDeviceHandle(), UINT64_MAX, m_swapchainAcquireDone, nullptr, &m_currentBufferIndex));
+	CHECK_VK_ERROR(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetAcquireNextImageFuncPtr()(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), UINT64_MAX, m_swapchainAcquireDone, nullptr, &m_currentBufferIndex));
 
 	VkPipelineStageFlags flag = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
@@ -922,12 +920,12 @@ void VulkanGlobal::Draw()
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.swapchainCount = 1;
-	VkSwapchainKHR swapchain = (m_pSwapchain->GetDeviceHandle());
+	VkSwapchainKHR swapchain = (GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle());
 	presentInfo.pSwapchains = &swapchain;
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = &m_renderDone;
 	presentInfo.pImageIndices = &m_currentBufferIndex;
-	m_pSwapchain->GetQueuePresentFuncPtr()(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle(), &presentInfo);
+	GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetQueuePresentFuncPtr()(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle(), &presentInfo);
 
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle());
 }
