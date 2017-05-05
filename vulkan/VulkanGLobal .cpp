@@ -283,15 +283,19 @@ void VulkanGlobal::InitMemoryMgr()
 
 void VulkanGlobal::InitSwapchainImgs()
 {
+	m_swapchainImgs = SwapChainImage::Create(m_pDevice);
+
+	/*
 	m_swapchainImg.images.resize(m_physicalDevice->GetSurfaceCap().maxImageCount);
 	m_swapchainImg.views.resize(m_physicalDevice->GetSurfaceCap().maxImageCount);
 	uint32_t count = 0;
 	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), &count, nullptr));
 	ASSERTION(count == m_physicalDevice->GetSurfaceCap().maxImageCount);
-	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), &count, m_swapchainImg.images.data()));
+	CHECK_VK_ERROR(vkGetSwapchainImagesKHR(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), &count, m_swapchainImg.images.data()));*/
 
 	for (uint32_t i = 0; i < m_physicalDevice->GetSurfaceCap().maxImageCount; i++)
 	{
+		/*
 		//Create image view
 		VkImageViewCreateInfo imageViewCreateInfo = {};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -310,7 +314,7 @@ void VulkanGlobal::InitSwapchainImgs()
 			VK_COMPONENT_SWIZZLE_B,
 			VK_COMPONENT_SWIZZLE_A
 		};
-		CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &imageViewCreateInfo, nullptr, &m_swapchainImg.views[i]));
+		CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &imageViewCreateInfo, nullptr, &m_swapchainImg.views[i]));*/
 
 		//Change image layout
 		VkImageMemoryBarrier imageBarrier = {};
@@ -321,7 +325,7 @@ void VulkanGlobal::InitSwapchainImgs()
 		imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 		imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier.image = m_swapchainImg.images[i];
+		imageBarrier.image = m_swapchainImgs[i]->GetDeviceHandle();
 		imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		imageBarrier.subresourceRange.baseMipLevel = 0;
 		imageBarrier.subresourceRange.levelCount = 1;
@@ -419,7 +423,7 @@ void VulkanGlobal::InitFrameBuffer()
 
 	for (uint32_t i = 0; i < m_physicalDevice->GetSurfaceCap().maxImageCount; i++)
 	{
-		attachments[0] = m_swapchainImg.views[i];
+		attachments[0] = m_swapchainImgs[i]->GetViewDeviceHandle();
 
 		VkFramebufferCreateInfo framebufferCreateInfo = {};
 		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -804,16 +808,16 @@ void VulkanGlobal::InitDescriptorSet()
 
 void VulkanGlobal::InitDrawCmdBuffers()
 {
-	m_drawCmdBuffers.resize(m_swapchainImg.images.size());
+	m_drawCmdBuffers.resize(m_swapchainImgs.size());
 
 	VkCommandBufferAllocateInfo cmdAllocInfo = {};
 	cmdAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	cmdAllocInfo.commandPool = m_commandPool;
 	cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	cmdAllocInfo.commandBufferCount = m_swapchainImg.images.size();
+	cmdAllocInfo.commandBufferCount = m_swapchainImgs.size();
 	CHECK_VK_ERROR(vkAllocateCommandBuffers(m_pDevice->GetDeviceHandle(), &cmdAllocInfo, m_drawCmdBuffers.data()));
 
-	for (size_t i = 0; i < m_swapchainImg.images.size(); i++)
+	for (size_t i = 0; i < m_swapchainImgs.size(); i++)
 	{
 		VkCommandBufferBeginInfo cmdBeginInfo = {};
 		cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

@@ -1,6 +1,7 @@
 #include "Image.h"
 #include "GlobalDeviceObjects.h"
 #include "DeviceMemoryManager.h"
+#include "SwapChain.h"
 
 Image::~Image()
 {
@@ -19,6 +20,16 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const VkImageCreateInfo
 
 	m_info = info;
 	m_memProperty = memoryPropertyFlag;
+	return true;
+}
+
+bool Image::Init(const std::shared_ptr<Device>& pDevice, VkImage img)
+{
+	if (!DeviceObjectBase::Init(pDevice))
+		return false;
+
+	m_image = img;
+
 	return true;
 }
 

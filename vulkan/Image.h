@@ -3,6 +3,8 @@
 #include "DeviceObjectBase.h"
 #include "MemoryConsumer.h"
 
+class SwapChain;
+
 class Image : public DeviceObjectBase, public MemoryConsumer
 {
 public:
@@ -22,6 +24,7 @@ public:
 
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const override;
+	bool Init(const std::shared_ptr<Device>& pDevice, VkImage img);
 
 protected:
 	VkImage						m_image;

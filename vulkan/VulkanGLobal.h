@@ -14,6 +14,7 @@
 #include "UniformBuffer.h"
 #include "GlobalDeviceObjects.h"
 #include "DepthStencilBuffer.h"
+#include "SwapChainImage.h"
 
 typedef struct _swapchainImg
 {
@@ -98,7 +99,8 @@ protected:
 	VkCommandPool						m_commandPool;
 	VkCommandBuffer						m_setupCommandBuffer;
 
-	SwapchainImg						m_swapchainImg;
+	std::vector<std::shared_ptr<SwapChainImage>> m_swapchainImgs;
+	//SwapchainImg						m_swapchainImg;
 	std::shared_ptr<DepthStencilBuffer>	m_pDSBuffer;
 
 	VkRenderPass						m_renderpass;

@@ -18,6 +18,7 @@ public:
 
 	PFN_vkAcquireNextImageKHR GetAcquireNextImageFuncPtr() const { return m_fpAcquireNextImageKHR; }
 	PFN_vkQueuePresentKHR GetQueuePresentFuncPtr() const { return m_fpQueuePresentKHR; }
+	PFN_vkGetSwapchainImagesKHR GetGetSwapchainImagesFuncPtr() const { return m_fpGetSwapchainImagesKHR; }
 
 public:
 	static std::shared_ptr<SwapChain> Create(const std::shared_ptr<Device>& pDevice);
