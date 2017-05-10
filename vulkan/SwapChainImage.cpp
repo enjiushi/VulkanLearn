@@ -7,6 +7,8 @@ bool SwapChainImage::Init(const std::shared_ptr<Device>& pDevice, VkImage rawIma
 	if (!Image::Init(pDevice, rawImageHandle))
 		return false;
 
+	m_shouldDestoryRawImage = false;
+
 	m_info = {};
 	m_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	m_info.format = pDevice->GetPhysicalDevice()->GetSurfaceFormat().format;
