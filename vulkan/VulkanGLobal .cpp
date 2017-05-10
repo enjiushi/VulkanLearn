@@ -280,32 +280,6 @@ void VulkanGlobal::InitMemoryMgr()
 
 void VulkanGlobal::InitSwapchainImgs()
 {
-	for (uint32_t i = 0; i < m_physicalDevice->GetSurfaceCap().maxImageCount; i++)
-	{
-		//Change image layout
-		VkImageMemoryBarrier imageBarrier = {};
-		imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		imageBarrier.srcAccessMask = 0;
-		imageBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier.image = GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i)->GetDeviceHandle();
-		imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		imageBarrier.subresourceRange.baseMipLevel = 0;
-		imageBarrier.subresourceRange.levelCount = 1;
-		imageBarrier.subresourceRange.baseArrayLayer = 0;
-		imageBarrier.subresourceRange.layerCount = 1;
-
-		vkCmdPipelineBarrier(m_setupCommandBuffer,
-			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &imageBarrier);
-	}
 }
 
 void VulkanGlobal::InitDepthStencil()
@@ -867,6 +841,7 @@ void VulkanGlobal::EndSetup()
 	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), m_commandPool, 1, &m_setupCommandBuffer);
 
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
+	GlobalDeviceObjects::GetInstance()->GetSwapChain()->EnsureSwapChainImageLayout();
 }
 
 void VulkanGlobal::Draw()
