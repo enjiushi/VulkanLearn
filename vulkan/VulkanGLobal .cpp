@@ -285,29 +285,6 @@ void VulkanGlobal::InitSwapchainImgs()
 void VulkanGlobal::InitDepthStencil()
 {
 	m_pDSBuffer = DepthStencilBuffer::Create(m_pDevice);
-
-	VkImageMemoryBarrier barrier = {};
-	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barrier.image = m_pDSBuffer->GetDeviceHandle();
-	barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	barrier.dstQueueFamilyIndex = m_physicalDevice->GetGraphicQueueIndex();
-	barrier.srcAccessMask = 0;
-	barrier.srcQueueFamilyIndex = m_physicalDevice->GetGraphicQueueIndex();
-	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-	barrier.subresourceRange.baseArrayLayer = 0;
-	barrier.subresourceRange.layerCount = 1;
-	barrier.subresourceRange.baseMipLevel = 0;
-	barrier.subresourceRange.levelCount = 1;
-
-	vkCmdPipelineBarrier(m_setupCommandBuffer,
-		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		0,
-		0, nullptr,
-		0, nullptr,
-		1, &barrier);
 }
 
 void VulkanGlobal::InitRenderpass()
