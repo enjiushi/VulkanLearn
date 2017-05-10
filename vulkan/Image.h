@@ -21,6 +21,7 @@ public:
 	virtual VkImageViewCreateInfo GetViewInfo() const { return m_viewInfo; }
 	virtual VkImageView GetViewDeviceHandle() const { return m_view; }
 	virtual bool BufferOrImage() const override { return false; }
+	virtual void EnsureImageLayout() = 0;
 
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const override;

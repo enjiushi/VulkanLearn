@@ -51,3 +51,8 @@ void Image::BindMemory(VkDeviceMemory memory, uint32_t offset) const
 {
 	CHECK_VK_ERROR(vkBindImageMemory(GetDevice()->GetDeviceHandle(), GetDeviceHandle(), memory, offset));
 }
+
+void Image::EnsureImageLayout()
+{
+
+}

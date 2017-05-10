@@ -842,6 +842,7 @@ void VulkanGlobal::EndSetup()
 
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 	GlobalDeviceObjects::GetInstance()->GetSwapChain()->EnsureSwapChainImageLayout();
+	m_pDSBuffer->EnsureImageLayout();
 }
 
 void VulkanGlobal::Draw()
