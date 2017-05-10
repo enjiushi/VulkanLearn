@@ -30,6 +30,8 @@ protected:
 	VkImage						m_image;
 	VkImageCreateInfo			m_info;
 
+	bool						m_shouldDestoryRawImage = true;
+
 	// Put image view here, maybe for now, since I don't need one image with multiple view at this moment
 	VkImageViewCreateInfo		m_viewInfo;
 	VkImageView					m_view;
