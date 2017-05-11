@@ -290,7 +290,7 @@ void VulkanGlobal::InitDepthStencil()
 void VulkanGlobal::InitRenderpass()
 {
 	std::vector<VkAttachmentDescription> attachmentDescs(2);
-	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	attachmentDescs[0].format = m_physicalDevice->GetSurfaceFormat().format;
 	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -299,7 +299,7 @@ void VulkanGlobal::InitRenderpass()
 	attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
 
-	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	attachmentDescs[1].format = m_physicalDevice->GetDepthStencilFormat();
 	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -322,12 +322,23 @@ void VulkanGlobal::InitRenderpass()
 	subpass.pDepthStencilAttachment = &dsAttach;
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
+	VkSubpassDependency subpassDependency = {};
+	subpassDependency.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	subpassDependency.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependency.dstSubpass = 0;
+	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subpassDependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
 	VkRenderPassCreateInfo renderpassCreateInfo = {};
 	renderpassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	renderpassCreateInfo.attachmentCount = attachmentDescs.size();
 	renderpassCreateInfo.pAttachments = attachmentDescs.data();
 	renderpassCreateInfo.subpassCount = 1;
 	renderpassCreateInfo.pSubpasses = &subpass;
+	renderpassCreateInfo.dependencyCount = 1;
+	renderpassCreateInfo.pDependencies = &subpassDependency;
 
 	CHECK_VK_ERROR(vkCreateRenderPass(m_pDevice->GetDeviceHandle(), &renderpassCreateInfo, nullptr, &m_renderpass));
 }
@@ -818,8 +829,8 @@ void VulkanGlobal::EndSetup()
 	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), m_commandPool, 1, &m_setupCommandBuffer);
 
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
-	GlobalDeviceObjects::GetInstance()->GetSwapChain()->EnsureSwapChainImageLayout();
-	m_pDSBuffer->EnsureImageLayout();
+	//GlobalDeviceObjects::GetInstance()->GetSwapChain()->EnsureSwapChainImageLayout();
+	//m_pDSBuffer->EnsureImageLayout();
 }
 
 void VulkanGlobal::Draw()
