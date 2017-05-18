@@ -10,6 +10,7 @@ layout (location = 2) in vec3 inUv;
 layout (location = 0) out vec3 outNormal;
 layout (location = 1) out vec3 outUv;
 layout (location = 2) out vec3 outViewDir;
+layout (location = 3) out vec3 outWorldPos;
 
 layout (binding = 0) uniform UBO
 {
@@ -27,6 +28,6 @@ void main()
 	outNormal = inNormal;
 	outUv = inUv;
 
-	vec4 worldPos = ubo.model * vec4(inPos.xyz, 1.0);
-	outViewDir = normalize(ubo.camPos - worldPos.xyz);
+	outWorldPos = (ubo.model * vec4(inPos.xyz, 1.0)).xyz;
+	outViewDir = normalize(ubo.camPos - outWorldPos.xyz);
 }
