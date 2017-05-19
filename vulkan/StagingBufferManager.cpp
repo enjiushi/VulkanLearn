@@ -97,6 +97,7 @@ void StagingBufferManager::FlushData()
 	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool()->GetDeviceHandle(), 1, &cmdBuffer);
 
 	m_pendingUpdateBuffer.clear();
+	m_usedNumBytes = 0;
 }
 
 void StagingBufferManager::UpdateByteStream(const Buffer* pBuffer, const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess)
