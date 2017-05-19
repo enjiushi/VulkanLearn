@@ -11,6 +11,7 @@ layout (location = 0) out vec3 outNormal;
 layout (location = 1) out vec3 outUv;
 layout (location = 2) out vec3 outViewDir;
 layout (location = 3) out vec3 outWorldPos;
+layout (location = 4) out float outRoughness;
 
 layout (binding = 0) uniform UBO
 {
@@ -20,6 +21,7 @@ layout (binding = 0) uniform UBO
 	mat4 vulkanNDC;
 	mat4 mvp;
 	vec3 camPos;
+	float roughness;
 }ubo;
 
 void main() 
@@ -30,4 +32,5 @@ void main()
 
 	outWorldPos = (ubo.model * vec4(inPos.xyz, 1.0)).xyz;
 	outViewDir = normalize(ubo.camPos - outWorldPos.xyz);
+	outRoughness = ubo.roughness;
 }

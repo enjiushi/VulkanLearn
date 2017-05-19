@@ -30,8 +30,7 @@ typedef struct _mvp
 	float	vulkanNDC[16];
 	float	mvp[16];
 	float   camPos[3];
-
-	VkDescriptorBufferInfo mvpDescriptor;
+	float	roughness;
 }MVP;
 
 
@@ -128,6 +127,8 @@ protected:
 	VkSemaphore							m_renderDone;
 
 	uint32_t							m_currentBufferIndex = 0;
+
+	float								m_roughness = 0.1;
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;

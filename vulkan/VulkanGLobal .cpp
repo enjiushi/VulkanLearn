@@ -183,6 +183,29 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 	SetFocus(m_hWindow);
 }
 
+#if defined(_WIN32)
+#define KEY_ESCAPE VK_ESCAPE 
+#define KEY_F1 VK_F1
+#define KEY_F2 VK_F2
+#define KEY_F3 VK_F3
+#define KEY_F4 VK_F4
+#define KEY_F5 VK_F5
+#define KEY_W 0x57
+#define KEY_A 0x41
+#define KEY_S 0x53
+#define KEY_D 0x44
+#define KEY_P 0x50
+#define KEY_SPACE 0x20
+#define KEY_KPADD 0x6B
+#define KEY_KPSUB 0x6D
+#define KEY_B 0x42
+#define KEY_F 0x46
+#define KEY_L 0x4C
+#define KEY_N 0x4E
+#define KEY_O 0x4F
+#define KEY_T 0x54
+#endif
+
 void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
@@ -191,6 +214,27 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		DestroyWindow(hWnd);
 		PostQuitMessage(0);
 		ThreadCoordinator::Free();
+		break;
+
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case KEY_ESCAPE:
+			PostQuitMessage(0);
+			break;
+		}
+
+		switch (wParam)
+		{
+		case KEY_W:
+			m_roughness += 0.005f;
+			m_roughness = m_roughness > 1.0f ? 1.0f : m_roughness;
+			break;
+		case KEY_S:
+			m_roughness -= 0.005f;
+			m_roughness = m_roughness < 0.0f ? 0.0f : m_roughness;
+			break;
+		}
 		break;
 	}
 }
@@ -485,13 +529,15 @@ void VulkanGlobal::InitVertices()
 
 void VulkanGlobal::InitUniforms()
 {
-	uint32_t totalUniformBytes = sizeof(m_mvp.model) * 5 + sizeof(m_mvp.camPos);
+	uint32_t totalUniformBytes = sizeof(MVP);
 
+	memset(&m_mvp, 0, sizeof(MVP));
+	/*
 	memset(m_mvp.model, 0, sizeof(m_mvp.model));
 	memset(m_mvp.view, 0, sizeof(m_mvp.view));
 	memset(m_mvp.projection, 0, sizeof(m_mvp.projection));
 	memset(m_mvp.vulkanNDC, 0, sizeof(m_mvp.vulkanNDC));
-	memset(m_mvp.mvp, 0, sizeof(m_mvp.mvp));
+	memset(m_mvp.mvp, 0, sizeof(m_mvp.mvp));*/
 
 	Matrix4f model;
 
@@ -537,8 +583,10 @@ void VulkanGlobal::InitUniforms()
 	memcpy_s(m_mvp.vulkanNDC, sizeof(m_mvp.vulkanNDC), &vulkanNDC, sizeof(vulkanNDC));
 	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
 	memcpy_s(m_mvp.camPos, sizeof(m_mvp.camPos), &camPos, sizeof(camPos));
+	memcpy_s(&m_mvp.roughness, sizeof(m_mvp.roughness), &m_roughness, sizeof(m_roughness));
 
-	m_uniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
+	if (!m_uniformBuffer.get())
+		m_uniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
 	m_uniformBuffer->UpdateByteStream(&m_mvp, 0, totalUniformBytes, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT);
 }
 
@@ -552,7 +600,7 @@ void VulkanGlobal::InitDescriptorSetLayout()
 			1,
 			VK_SHADER_STAGE_VERTEX_BIT,
 			nullptr
-		},
+		}
 	};
 
 	VkDescriptorSetLayoutCreateInfo dslayoutInfo = {};
@@ -835,6 +883,9 @@ void VulkanGlobal::EndSetup()
 
 void VulkanGlobal::Draw()
 {
+	InitUniforms();
+	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
+
 	CHECK_VK_ERROR(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetAcquireNextImageFuncPtr()(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), UINT64_MAX, m_swapchainAcquireDone, nullptr, &m_currentBufferIndex));
 
 	VkPipelineStageFlags flag = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
