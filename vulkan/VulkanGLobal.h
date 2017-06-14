@@ -15,6 +15,7 @@
 #include "GlobalDeviceObjects.h"
 #include "DepthStencilBuffer.h"
 #include "SwapChainImage.h"
+#include "RenderPass.h"
 
 typedef struct _swapchainImg
 {
@@ -100,7 +101,7 @@ protected:
 
 	std::shared_ptr<DepthStencilBuffer>	m_pDSBuffer;
 
-	VkRenderPass						m_renderpass;
+	std::shared_ptr<RenderPass>			m_renderpass;
 	std::vector<VkFramebuffer>			m_framebuffers;
 
 	std::shared_ptr<VertexBuffer>		m_vertexBuffer;

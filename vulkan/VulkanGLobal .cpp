@@ -384,7 +384,7 @@ void VulkanGlobal::InitRenderpass()
 	renderpassCreateInfo.dependencyCount = 1;
 	renderpassCreateInfo.pDependencies = &subpassDependency;
 
-	CHECK_VK_ERROR(vkCreateRenderPass(m_pDevice->GetDeviceHandle(), &renderpassCreateInfo, nullptr, &m_renderpass));
+	m_renderpass = RenderPass::Create(m_pDevice, renderpassCreateInfo);
 }
 
 void VulkanGlobal::InitFrameBuffer()
@@ -404,7 +404,7 @@ void VulkanGlobal::InitFrameBuffer()
 		framebufferCreateInfo.layers = 1;
 		framebufferCreateInfo.width = m_physicalDevice->GetSurfaceCap().currentExtent.width;
 		framebufferCreateInfo.height = m_physicalDevice->GetSurfaceCap().currentExtent.height;
-		framebufferCreateInfo.renderPass = m_renderpass;
+		framebufferCreateInfo.renderPass = m_renderpass->GetDeviceHandle();
 
 		CHECK_VK_ERROR(vkCreateFramebuffer(m_pDevice->GetDeviceHandle(), &framebufferCreateInfo, nullptr, &m_framebuffers[i]));
 	}
@@ -694,7 +694,7 @@ void VulkanGlobal::InitPipeline()
 	pipelineInfo.pRasterizationState = &rsCreateInfo;
 	pipelineInfo.pViewportState = &vpCreateInfo;
 	pipelineInfo.pDynamicState = &dynamicStateCreateInfo;
-	pipelineInfo.renderPass = m_renderpass;
+	pipelineInfo.renderPass = m_renderpass->GetDeviceHandle();
 	pipelineInfo.layout = m_pipelineLayout;
 
 	VkShaderModule vertex_module = InitShaderModule("data/shaders/simple.vert.spv");
@@ -809,7 +809,7 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.clearValueCount = clearValues.size();
 		renderPassBeginInfo.pClearValues = clearValues.data();
-		renderPassBeginInfo.renderPass = m_renderpass;
+		renderPassBeginInfo.renderPass = m_renderpass->GetDeviceHandle();
 		renderPassBeginInfo.framebuffer = m_framebuffers[i];
 		renderPassBeginInfo.renderArea.extent.width = m_physicalDevice->GetSurfaceCap().currentExtent.width;
 		renderPassBeginInfo.renderArea.extent.height = m_physicalDevice->GetSurfaceCap().currentExtent.height;
