@@ -755,22 +755,22 @@ void VulkanGlobal::InitDescriptorPool()
 {
 	VkDescriptorPoolSize descPoolSize = {};
 	descPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descPoolSize.descriptorCount = 3;
+	descPoolSize.descriptorCount = 1;
 
 	VkDescriptorPoolCreateInfo descPoolInfo = {};
 	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descPoolInfo.pPoolSizes = &descPoolSize;
 	descPoolInfo.poolSizeCount = 1;
-	descPoolInfo.maxSets = 12;
+	descPoolInfo.maxSets = 1;
 
-	CHECK_VK_ERROR(vkCreateDescriptorPool(m_pDevice->GetDeviceHandle(), &descPoolInfo, nullptr, &m_descriptorPool));
+	m_descriptorPool = DescriptorPool::Create(m_pDevice, descPoolInfo);
 }
 
 void VulkanGlobal::InitDescriptorSet()
 {
 	VkDescriptorSetAllocateInfo descAllocInfo = {};
 	descAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	descAllocInfo.descriptorPool = m_descriptorPool;
+	descAllocInfo.descriptorPool = m_descriptorPool->GetDeviceHandle();
 
 	std::vector<VkDescriptorSetLayout> list = m_pipelineLayout->GetDescriptorSetLayoutDeviceHandleList();
 	descAllocInfo.descriptorSetCount = list.size();

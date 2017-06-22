@@ -18,6 +18,7 @@
 #include "RenderPass.h"
 #include "DescriptorSetLayout.h"
 #include "PipelineLayout.h"
+#include "DescriptorPool.h"
 
 typedef struct _swapchainImg
 {
@@ -118,7 +119,7 @@ protected:
 	VkPipeline							m_pipeline;
 	VkPipelineCache						m_pipelineCache;
 
-	VkDescriptorPool					m_descriptorPool;
+	std::shared_ptr<DescriptorPool>		m_descriptorPool;
 	VkDescriptorSet						m_descriptorSet;
 
 	std::vector<VkCommandBuffer>		m_drawCmdBuffers;
