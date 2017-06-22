@@ -15,6 +15,7 @@ public:
 public:
 	VkPipelineLayout GetDeviceHandle() const { return m_pipelineLayout; }
 	const DescriptorSetLayoutList GetDescriptorSetLayout() const { return m_descriptorSetLayoutList; }
+	const std::vector<VkDescriptorSetLayout> GetDescriptorSetLayoutDeviceHandleList();
 
 public:
 	static std::shared_ptr<PipelineLayout> Create(const std::shared_ptr<Device>& pDevice,

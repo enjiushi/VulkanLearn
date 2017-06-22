@@ -592,7 +592,7 @@ void VulkanGlobal::InitUniforms()
 
 void VulkanGlobal::InitDescriptorSetLayout()
 {
-	m_dsLayoutBinding =
+	std::vector<VkDescriptorSetLayoutBinding> dsLayoutBindings = 
 	{
 		{
 			0,	//binding
@@ -603,6 +603,14 @@ void VulkanGlobal::InitDescriptorSetLayout()
 		}
 	};
 
+	m_descriptorSetLayout = DescriptorSetLayout::Create(m_pDevice, dsLayoutBindings);
+
+	DescriptorSetLayoutList list =
+	{
+		m_descriptorSetLayout,
+	};
+	m_pipelineLayout = PipelineLayout::Create(m_pDevice, list);
+	/*
 	VkDescriptorSetLayoutCreateInfo dslayoutInfo = {};
 	dslayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	dslayoutInfo.bindingCount = m_dsLayoutBinding.size();
@@ -613,7 +621,7 @@ void VulkanGlobal::InitDescriptorSetLayout()
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;
 	pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-	CHECK_VK_ERROR(vkCreatePipelineLayout(m_pDevice->GetDeviceHandle(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout));
+	CHECK_VK_ERROR(vkCreatePipelineLayout(m_pDevice->GetDeviceHandle(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout));*/
 }
 
 void VulkanGlobal::InitPipelineCache()
@@ -695,7 +703,7 @@ void VulkanGlobal::InitPipeline()
 	pipelineInfo.pViewportState = &vpCreateInfo;
 	pipelineInfo.pDynamicState = &dynamicStateCreateInfo;
 	pipelineInfo.renderPass = m_renderpass->GetDeviceHandle();
-	pipelineInfo.layout = m_pipelineLayout;
+	pipelineInfo.layout = m_pipelineLayout->GetDeviceHandle();
 
 	VkShaderModule vertex_module = InitShaderModule("data/shaders/simple.vert.spv");
 	VkShaderModule fragment_module = InitShaderModule("data/shaders/simple.frag.spv");
@@ -763,8 +771,10 @@ void VulkanGlobal::InitDescriptorSet()
 	VkDescriptorSetAllocateInfo descAllocInfo = {};
 	descAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	descAllocInfo.descriptorPool = m_descriptorPool;
-	descAllocInfo.descriptorSetCount = 1;
-	descAllocInfo.pSetLayouts = &m_descriptorSetLayout;
+
+	std::vector<VkDescriptorSetLayout> list = m_pipelineLayout->GetDescriptorSetLayoutDeviceHandleList();
+	descAllocInfo.descriptorSetCount = list.size();
+	descAllocInfo.pSetLayouts = list.data();
 
 	CHECK_VK_ERROR(vkAllocateDescriptorSets(m_pDevice->GetDeviceHandle(), &descAllocInfo, &m_descriptorSet));
 
@@ -834,7 +844,7 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		vkCmdSetViewport(m_drawCmdBuffers[i], 0, 1, &viewport);
 		vkCmdSetScissor(m_drawCmdBuffers[i], 0, 1, &scissorRect);
 
-		vkCmdBindDescriptorSets(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
+		vkCmdBindDescriptorSets(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout->GetDeviceHandle(), 0, 1, &m_descriptorSet, 0, nullptr);
 
 		vkCmdBindPipeline(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 

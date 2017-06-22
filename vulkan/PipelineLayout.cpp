@@ -9,10 +9,7 @@ bool PipelineLayout::Init(const std::shared_ptr<Device>& pDevice,
 
 	m_descriptorSetLayoutList = descriptorSetLayoutList;
 
-	std::vector<VkDescriptorSetLayout> dsLayoutDeviceHandleList;
-	dsLayoutDeviceHandleList.resize(m_descriptorSetLayoutList.size());
-	for (uint32_t i = 0; i < m_descriptorSetLayoutList.size(); i++)
-		dsLayoutDeviceHandleList[i] = m_descriptorSetLayoutList[i]->GetDeviceHandle();
+	std::vector<VkDescriptorSetLayout> dsLayoutDeviceHandleList = GetDescriptorSetLayoutDeviceHandleList();
 
 	VkPipelineLayoutCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -30,4 +27,13 @@ std::shared_ptr<PipelineLayout> PipelineLayout::Create(const std::shared_ptr<Dev
 	if (pPipelineLayout.get() && pPipelineLayout->Init(pDevice, descriptorSetLayoutList))
 		return pPipelineLayout;
 	return nullptr;
+}
+
+const std::vector<VkDescriptorSetLayout> PipelineLayout::GetDescriptorSetLayoutDeviceHandleList()
+{
+	std::vector<VkDescriptorSetLayout> dsLayoutDeviceHandleList;
+	dsLayoutDeviceHandleList.resize(m_descriptorSetLayoutList.size());
+	for (uint32_t i = 0; i < m_descriptorSetLayoutList.size(); i++)
+		dsLayoutDeviceHandleList[i] = m_descriptorSetLayoutList[i]->GetDeviceHandle();
+	return dsLayoutDeviceHandleList;
 }

@@ -16,6 +16,8 @@
 #include "DepthStencilBuffer.h"
 #include "SwapChainImage.h"
 #include "RenderPass.h"
+#include "DescriptorSetLayout.h"
+#include "PipelineLayout.h"
 
 typedef struct _swapchainImg
 {
@@ -110,9 +112,8 @@ protected:
 
 	MVP									m_mvp;
 
-	std::vector<VkDescriptorSetLayoutBinding> m_dsLayoutBinding;
-	VkDescriptorSetLayout				m_descriptorSetLayout;
-	VkPipelineLayout					m_pipelineLayout;
+	std::shared_ptr<DescriptorSetLayout> m_descriptorSetLayout;
+	std::shared_ptr<PipelineLayout>		m_pipelineLayout;
 
 	VkPipeline							m_pipeline;
 	VkPipelineCache						m_pipelineCache;
