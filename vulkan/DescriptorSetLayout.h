@@ -5,6 +5,8 @@
 class DescriptorSetLayout : public DeviceObjectBase
 {
 public:
+	~DescriptorSetLayout();
+
 	bool Init(const std::shared_ptr<Device>& pDevice, 
 		const std::vector<VkDescriptorSetLayoutBinding>& dsLayoutBinding);
 

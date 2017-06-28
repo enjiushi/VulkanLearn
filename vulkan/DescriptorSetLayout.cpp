@@ -1,5 +1,10 @@
 #include "DescriptorSetLayout.h"
 
+DescriptorSetLayout::~DescriptorSetLayout()
+{
+	vkDestroyDescriptorSetLayout(GetDevice()->GetDeviceHandle(), m_descriptorSetLayout, nullptr);
+}
+
 bool DescriptorSetLayout::Init(const std::shared_ptr<Device>& pDevice,
 	const std::vector<VkDescriptorSetLayoutBinding>& dsLayoutBinding)
 {

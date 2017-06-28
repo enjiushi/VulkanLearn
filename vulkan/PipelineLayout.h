@@ -9,6 +9,8 @@ typedef std::vector<std::shared_ptr<DescriptorSetLayout>> DescriptorSetLayoutLis
 class PipelineLayout : public DeviceObjectBase
 {
 public:
+	~PipelineLayout();
+
 	bool Init(const std::shared_ptr<Device>& pDevice, 
 		const DescriptorSetLayoutList& descriptorSetLayoutList);
 

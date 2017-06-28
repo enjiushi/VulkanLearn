@@ -5,6 +5,8 @@
 class DescriptorPool : public DeviceObjectBase
 {
 public:
+	~DescriptorPool();
+
 	bool Init(const std::shared_ptr<Device>& pDevice, 
 		const VkDescriptorPoolCreateInfo& info);
 

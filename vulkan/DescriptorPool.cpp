@@ -1,5 +1,10 @@
 #include "DescriptorPool.h"
 
+DescriptorPool::~DescriptorPool()
+{
+	vkDestroyDescriptorPool(GetDevice()->GetDeviceHandle(), m_descriptorPool, nullptr);
+}
+
 bool DescriptorPool::Init(const std::shared_ptr<Device>& pDevice,
 	const VkDescriptorPoolCreateInfo& info)
 {

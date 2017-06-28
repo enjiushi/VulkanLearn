@@ -1,6 +1,11 @@
 #include "PipelineLayout.h"
 #include "DescriptorSetLayout.h"
 
+PipelineLayout::~PipelineLayout()
+{
+	vkDestroyPipelineLayout(GetDevice()->GetDeviceHandle(), m_pipelineLayout, nullptr);
+}
+
 bool PipelineLayout::Init(const std::shared_ptr<Device>& pDevice,
 	const DescriptorSetLayoutList& descriptorSetLayoutList)
 {
