@@ -753,30 +753,28 @@ VkShaderModule VulkanGlobal::InitShaderModule(const char* shaderPath)
 
 void VulkanGlobal::InitDescriptorPool()
 {
-	VkDescriptorPoolSize descPoolSize = {};
-	descPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descPoolSize.descriptorCount = 1;
+	std::vector<VkDescriptorPoolSize> descPoolSize =
+	{
+		{
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2
+		},
+		{
+			VK_DESCRIPTOR_TYPE_SAMPLER, 2
+		}
+	};
 
 	VkDescriptorPoolCreateInfo descPoolInfo = {};
 	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	descPoolInfo.pPoolSizes = &descPoolSize;
-	descPoolInfo.poolSizeCount = 1;
-	descPoolInfo.maxSets = 1;
+	descPoolInfo.pPoolSizes = descPoolSize.data();
+	descPoolInfo.poolSizeCount = descPoolSize.size();
+	descPoolInfo.maxSets = 10;
 
 	m_descriptorPool = DescriptorPool::Create(m_pDevice, descPoolInfo);
 }
 
 void VulkanGlobal::InitDescriptorSet()
 {
-	VkDescriptorSetAllocateInfo descAllocInfo = {};
-	descAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	descAllocInfo.descriptorPool = m_descriptorPool->GetDeviceHandle();
-
-	std::vector<VkDescriptorSetLayout> list = m_pipelineLayout->GetDescriptorSetLayoutDeviceHandleList();
-	descAllocInfo.descriptorSetCount = list.size();
-	descAllocInfo.pSetLayouts = list.data();
-
-	CHECK_VK_ERROR(vkAllocateDescriptorSets(m_pDevice->GetDeviceHandle(), &descAllocInfo, &m_descriptorSet));
+	m_descriptorSet = DescriptorSet::Create(m_pDevice, m_descriptorPool, m_descriptorSetLayout);
 
 	std::vector<VkWriteDescriptorSet> writeDescSet;
 	writeDescSet.resize(1);
@@ -785,7 +783,7 @@ void VulkanGlobal::InitDescriptorSet()
 	writeDescSet[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	writeDescSet[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	writeDescSet[0].dstBinding = 0;
-	writeDescSet[0].dstSet = m_descriptorSet;
+	writeDescSet[0].dstSet = m_descriptorSet->GetDeviceHandle();
 	writeDescSet[0].pBufferInfo = &info;
 	writeDescSet[0].descriptorCount = 1;
 
@@ -844,7 +842,11 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		vkCmdSetViewport(m_drawCmdBuffers[i], 0, 1, &viewport);
 		vkCmdSetScissor(m_drawCmdBuffers[i], 0, 1, &scissorRect);
 
-		vkCmdBindDescriptorSets(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout->GetDeviceHandle(), 0, 1, &m_descriptorSet, 0, nullptr);
+		std::vector<VkDescriptorSet> dsSets =
+		{
+			m_descriptorSet->GetDeviceHandle(),
+		};
+		vkCmdBindDescriptorSets(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
 
 		vkCmdBindPipeline(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
