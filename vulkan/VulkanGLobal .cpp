@@ -610,18 +610,6 @@ void VulkanGlobal::InitDescriptorSetLayout()
 		m_descriptorSetLayout,
 	};
 	m_pipelineLayout = PipelineLayout::Create(m_pDevice, list);
-	/*
-	VkDescriptorSetLayoutCreateInfo dslayoutInfo = {};
-	dslayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	dslayoutInfo.bindingCount = m_dsLayoutBinding.size();
-	dslayoutInfo.pBindings = m_dsLayoutBinding.data();
-	CHECK_VK_ERROR(vkCreateDescriptorSetLayout(m_pDevice->GetDeviceHandle(), &dslayoutInfo, nullptr, &m_descriptorSetLayout));
-
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 1;
-	pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-	CHECK_VK_ERROR(vkCreatePipelineLayout(m_pDevice->GetDeviceHandle(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout));*/
 }
 
 void VulkanGlobal::InitPipelineCache()
