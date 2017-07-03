@@ -762,7 +762,7 @@ void VulkanGlobal::InitDescriptorPool()
 
 void VulkanGlobal::InitDescriptorSet()
 {
-	m_descriptorSet = DescriptorSet::Create(m_pDevice, m_descriptorPool, m_descriptorSetLayout);
+	m_descriptorSet = DescriptorPool::AllocateDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
 
 	std::vector<VkWriteDescriptorSet> writeDescSet;
 	writeDescSet.resize(1);
