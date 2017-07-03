@@ -2,6 +2,7 @@
 #include "GlobalDeviceObjects.h"
 #include "CommandPool.h"
 #include "Queue.h"
+#include "CommandBuffer.h"
 
 bool DepthStencilBuffer::Init(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height)
 {
@@ -59,8 +60,8 @@ std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::Create(const std::shared
 
 void DepthStencilBuffer::EnsureImageLayout()
 {
-	// FIXME: Use native device objects here for now
-	VkCommandBuffer cmdBuffer = GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool()->AllocateCommandBuffer();
+	std::shared_ptr<CommandBuffer> pCmdBuffer = CommandPool::AllocatePrimaryCommandBuffer(GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool());
+	VkCommandBuffer cmdBuffer = pCmdBuffer->GetDeviceHandle();
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -99,6 +100,4 @@ void DepthStencilBuffer::EnsureImageLayout()
 
 	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
-
-	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool()->GetDeviceHandle(), 1, &cmdBuffer);
 }

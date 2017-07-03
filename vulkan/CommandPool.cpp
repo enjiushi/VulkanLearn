@@ -1,4 +1,5 @@
 #include "CommandPool.h"
+#include "CommandBuffer.h"
 
 CommandPool::~CommandPool()
 {
@@ -16,18 +17,9 @@ bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const VkCommandPo
 	return true;
 }
 
-VkCommandBuffer CommandPool::AllocateCommandBuffer()
+std::shared_ptr<CommandBuffer> CommandPool::AllocatePrimaryCommandBuffer(const std::shared_ptr<CommandPool>& pCmdPool)
 {
-	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
-	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	commandBufferAllocateInfo.commandPool = m_commandPool;
-	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	commandBufferAllocateInfo.commandBufferCount = 1;
-
-	VkCommandBuffer cmdBuffer;
-	CHECK_VK_ERROR(vkAllocateCommandBuffers(m_pDevice->GetDeviceHandle(), &commandBufferAllocateInfo, &cmdBuffer));
-
-	return cmdBuffer;
+	return CommandBuffer::Create(pCmdPool->GetDevice(), pCmdPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 }
 
 std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice, const VkCommandPoolCreateInfo& info)

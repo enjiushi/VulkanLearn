@@ -2,6 +2,8 @@
 
 #include "DeviceObjectBase.h"
 
+class CommandBuffer;
+
 class CommandPool : public DeviceObjectBase
 {
 public:
@@ -10,8 +12,7 @@ public:
 	bool Init(const std::shared_ptr<Device>& pDevice, const VkCommandPoolCreateInfo& info);
 
 public:
-	// Temp function
-	VkCommandBuffer AllocateCommandBuffer();
+	static std::shared_ptr<CommandBuffer> AllocatePrimaryCommandBuffer(const std::shared_ptr<CommandPool>& pCmdPool);
 	VkCommandPool GetDeviceHandle() const { return m_commandPool; }
 
 public:

@@ -84,8 +84,6 @@ protected:
 	std::shared_ptr<PhysicalDevice>		m_pPhysicalDevice;
 	std::shared_ptr<Device>				m_pDevice;
 
-	//VkQueue								m_queue;
-
 	VkCommandPool						m_commandPool;
 	VkCommandBuffer						m_setupCommandBuffer;
 
