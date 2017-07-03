@@ -41,19 +41,19 @@ void VulkanGlobal::InitVulkanInstance()
 	instCreateInfo.enabledLayerCount = (int32_t)layers.size();
 	instCreateInfo.ppEnabledLayerNames = layers.data();
 
-	m_vulkanInst = Instance::Create(instCreateInfo);
-	assert(m_vulkanInst != nullptr);
+	m_pVulkanInstance = Instance::Create(instCreateInfo);
+	assert(m_pVulkanInstance != nullptr);
 }
 
 void VulkanGlobal::InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd)
 {
-	m_physicalDevice = PhysicalDevice::Create(m_vulkanInst, hInstance, hWnd);
-	ASSERTION(m_physicalDevice != nullptr);
+	m_pPhysicalDevice = PhysicalDevice::Create(m_pVulkanInstance, hInstance, hWnd);
+	ASSERTION(m_pPhysicalDevice != nullptr);
 }
 
 void VulkanGlobal::InitVulkanDevice()
 {
-	m_pDevice = Device::Create(m_vulkanInst, m_physicalDevice);
+	m_pDevice = Device::Create(m_pVulkanInstance, m_pPhysicalDevice);
 	ASSERTION(m_pDevice != nullptr);
 }
 
@@ -296,7 +296,7 @@ void VulkanGlobal::InitCommandPool()
 {
 	VkCommandPoolCreateInfo commandPoolCreateInfo = {};
 	commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	commandPoolCreateInfo.queueFamilyIndex = m_physicalDevice->GetGraphicQueueIndex();
+	commandPoolCreateInfo.queueFamilyIndex = m_pPhysicalDevice->GetGraphicQueueIndex();
 	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	CHECK_VK_ERROR(vkCreateCommandPool(m_pDevice->GetDeviceHandle(), &commandPoolCreateInfo, nullptr, &m_commandPool));
 }
@@ -336,7 +336,7 @@ void VulkanGlobal::InitRenderpass()
 	std::vector<VkAttachmentDescription> attachmentDescs(2);
 	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	attachmentDescs[0].format = m_physicalDevice->GetSurfaceFormat().format;
+	attachmentDescs[0].format = m_pPhysicalDevice->GetSurfaceFormat().format;
 	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -345,7 +345,7 @@ void VulkanGlobal::InitRenderpass()
 
 	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachmentDescs[1].format = m_physicalDevice->GetDepthStencilFormat();
+	attachmentDescs[1].format = m_pPhysicalDevice->GetDepthStencilFormat();
 	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -384,16 +384,16 @@ void VulkanGlobal::InitRenderpass()
 	renderpassCreateInfo.dependencyCount = 1;
 	renderpassCreateInfo.pDependencies = &subpassDependency;
 
-	m_renderpass = RenderPass::Create(m_pDevice, renderpassCreateInfo);
+	m_pRenderPass = RenderPass::Create(m_pDevice, renderpassCreateInfo);
 }
 
 void VulkanGlobal::InitFrameBuffer()
 {
-	m_framebuffers.resize(m_physicalDevice->GetSurfaceCap().maxImageCount);
+	m_framebuffers.resize(m_pPhysicalDevice->GetSurfaceCap().maxImageCount);
 	std::vector<VkImageView> attachments(2);
 	attachments[1] = m_pDSBuffer->GetViewDeviceHandle();
 
-	for (uint32_t i = 0; i < m_physicalDevice->GetSurfaceCap().maxImageCount; i++)
+	for (uint32_t i = 0; i < m_pPhysicalDevice->GetSurfaceCap().maxImageCount; i++)
 	{
 		attachments[0] = GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i)->GetViewDeviceHandle();
 
@@ -402,9 +402,9 @@ void VulkanGlobal::InitFrameBuffer()
 		framebufferCreateInfo.attachmentCount = 2;
 		framebufferCreateInfo.pAttachments = attachments.data();
 		framebufferCreateInfo.layers = 1;
-		framebufferCreateInfo.width = m_physicalDevice->GetSurfaceCap().currentExtent.width;
-		framebufferCreateInfo.height = m_physicalDevice->GetSurfaceCap().currentExtent.height;
-		framebufferCreateInfo.renderPass = m_renderpass->GetDeviceHandle();
+		framebufferCreateInfo.width = m_pPhysicalDevice->GetSurfaceCap().currentExtent.width;
+		framebufferCreateInfo.height = m_pPhysicalDevice->GetSurfaceCap().currentExtent.height;
+		framebufferCreateInfo.renderPass = m_pRenderPass->GetDeviceHandle();
 
 		CHECK_VK_ERROR(vkCreateFramebuffer(m_pDevice->GetDeviceHandle(), &framebufferCreateInfo, nullptr, &m_framebuffers[i]));
 	}
@@ -514,17 +514,17 @@ void VulkanGlobal::InitVertices()
 	attribDesc[2].location = 2;
 	attribDesc[2].offset = sizeof(float) * 6;	//after xyz*/
 
-	m_vertexBuffer = VertexBuffer::Create(m_pDevice, verticesNumBytes, bindingDesc, attribDesc);
-	m_vertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
-	m_indexBuffer = IndexBuffer::Create(m_pDevice, indicesNumBytes, VK_INDEX_TYPE_UINT32);
-	m_indexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	m_pVertexBuffer = VertexBuffer::Create(m_pDevice, verticesNumBytes, bindingDesc, attribDesc);
+	m_pVertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	m_pIndexBuffer = IndexBuffer::Create(m_pDevice, indicesNumBytes, VK_INDEX_TYPE_UINT32);
+	m_pIndexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
 }
 
 void VulkanGlobal::InitUniforms()
 {
-	uint32_t totalUniformBytes = sizeof(MVP);
+	uint32_t totalUniformBytes = sizeof(GlobalUniforms);
 
-	memset(&m_mvp, 0, sizeof(MVP));
+	memset(&m_globalUniforms, 0, sizeof(GlobalUniforms));
 
 	Matrix4f model;
 
@@ -563,17 +563,17 @@ void VulkanGlobal::InitUniforms()
 
 	Vector3f camPos = position;
 
-	memcpy_s(m_mvp.model, sizeof(m_mvp.model), &model, sizeof(model));
-	memcpy_s(m_mvp.view, sizeof(m_mvp.view), &view, sizeof(view));
-	memcpy_s(m_mvp.projection, sizeof(m_mvp.projection), &projection, sizeof(projection));
-	memcpy_s(m_mvp.vulkanNDC, sizeof(m_mvp.vulkanNDC), &vulkanNDC, sizeof(vulkanNDC));
-	memcpy_s(m_mvp.mvp, sizeof(m_mvp.mvp), &mvp, sizeof(mvp));
-	memcpy_s(m_mvp.camPos, sizeof(m_mvp.camPos), &camPos, sizeof(camPos));
-	memcpy_s(&m_mvp.roughness, sizeof(m_mvp.roughness), &m_roughness, sizeof(m_roughness));
+	memcpy_s(m_globalUniforms.model, sizeof(m_globalUniforms.model), &model, sizeof(model));
+	memcpy_s(m_globalUniforms.view, sizeof(m_globalUniforms.view), &view, sizeof(view));
+	memcpy_s(m_globalUniforms.projection, sizeof(m_globalUniforms.projection), &projection, sizeof(projection));
+	memcpy_s(m_globalUniforms.vulkanNDC, sizeof(m_globalUniforms.vulkanNDC), &vulkanNDC, sizeof(vulkanNDC));
+	memcpy_s(m_globalUniforms.mvp, sizeof(m_globalUniforms.mvp), &mvp, sizeof(mvp));
+	memcpy_s(m_globalUniforms.camPos, sizeof(m_globalUniforms.camPos), &camPos, sizeof(camPos));
+	memcpy_s(&m_globalUniforms.roughness, sizeof(m_globalUniforms.roughness), &m_roughness, sizeof(m_roughness));
 
-	if (!m_uniformBuffer.get())
-		m_uniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
-	m_uniformBuffer->UpdateByteStream(&m_mvp, 0, totalUniformBytes, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT);
+	if (!m_pUniformBuffer.get())
+		m_pUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
+	m_pUniformBuffer->UpdateByteStream(&m_globalUniforms, 0, totalUniformBytes, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT);
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -589,13 +589,13 @@ void VulkanGlobal::InitDescriptorSetLayout()
 		}
 	};
 
-	m_descriptorSetLayout = DescriptorSetLayout::Create(m_pDevice, dsLayoutBindings);
+	m_pDescriptorSetLayout = DescriptorSetLayout::Create(m_pDevice, dsLayoutBindings);
 
 	DescriptorSetLayoutList list =
 	{
-		m_descriptorSetLayout,
+		m_pDescriptorSetLayout,
 	};
-	m_pipelineLayout = PipelineLayout::Create(m_pDevice, list);
+	m_pPipelineLayout = PipelineLayout::Create(m_pDevice, list);
 }
 
 void VulkanGlobal::InitPipelineCache()
@@ -608,20 +608,20 @@ void VulkanGlobal::InitPipelineCache()
 void VulkanGlobal::InitPipeline()
 {
 	GraphicPipeline::SimplePipelineStateCreateInfo info = {};
-	info.pRenderPass = m_renderpass;
-	info.pPipelineLayout = m_pipelineLayout;
-	info.pVertShader = m_vertShader;
-	info.pFragShader = m_fragShader;
-	info.vertexBindingsInfo = { m_vertexBuffer->GetBindingDesc() };
-	info.vertexAttributesInfo = m_vertexBuffer->GetAttribDesc();
+	info.pRenderPass = m_pRenderPass;
+	info.pPipelineLayout = m_pPipelineLayout;
+	info.pVertShader = m_pVertShader;
+	info.pFragShader = m_pFragShader;
+	info.vertexBindingsInfo = { m_pVertexBuffer->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pVertexBuffer->GetAttribDesc();
 
-	m_pipeline = GraphicPipeline::Create(m_pDevice, info);
+	m_pPipeline = GraphicPipeline::Create(m_pDevice, info);
 }
 
 void VulkanGlobal::InitShaderModule(const char* vertShaderPath, const char* fragShaderPath)
 {
-	m_vertShader = ShaderModule::Create(m_pDevice, std::wstring(vertShaderPath, vertShaderPath + strlen(vertShaderPath)));
-	m_fragShader = ShaderModule::Create(m_pDevice, std::wstring(fragShaderPath, fragShaderPath + strlen(fragShaderPath)));
+	m_pVertShader = ShaderModule::Create(m_pDevice, std::wstring(vertShaderPath, vertShaderPath + strlen(vertShaderPath)));
+	m_pFragShader = ShaderModule::Create(m_pDevice, std::wstring(fragShaderPath, fragShaderPath + strlen(fragShaderPath)));
 }
 
 void VulkanGlobal::InitDescriptorPool()
@@ -642,13 +642,13 @@ void VulkanGlobal::InitDescriptorPool()
 	descPoolInfo.poolSizeCount = descPoolSize.size();
 	descPoolInfo.maxSets = 10;
 
-	m_descriptorPool = DescriptorPool::Create(m_pDevice, descPoolInfo);
+	m_pDescriptorPool = DescriptorPool::Create(m_pDevice, descPoolInfo);
 }
 
 void VulkanGlobal::InitDescriptorSet()
 {
-	m_descriptorSet = DescriptorPool::AllocateDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
-	m_descriptorSet->UpdateBuffer(0, m_uniformBuffer->GetDescBufferInfo());
+	m_pDescriptorSet = DescriptorPool::AllocateDescriptorSet(m_pDescriptorPool, m_pDescriptorSetLayout);
+	m_pDescriptorSet->UpdateBuffer(0, m_pUniformBuffer->GetDescBufferInfo());
 }
 
 void VulkanGlobal::InitDrawCmdBuffers()
@@ -678,10 +678,10 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.clearValueCount = clearValues.size();
 		renderPassBeginInfo.pClearValues = clearValues.data();
-		renderPassBeginInfo.renderPass = m_renderpass->GetDeviceHandle();
+		renderPassBeginInfo.renderPass = m_pRenderPass->GetDeviceHandle();
 		renderPassBeginInfo.framebuffer = m_framebuffers[i];
-		renderPassBeginInfo.renderArea.extent.width = m_physicalDevice->GetSurfaceCap().currentExtent.width;
-		renderPassBeginInfo.renderArea.extent.height = m_physicalDevice->GetSurfaceCap().currentExtent.height;
+		renderPassBeginInfo.renderArea.extent.width = m_pPhysicalDevice->GetSurfaceCap().currentExtent.width;
+		renderPassBeginInfo.renderArea.extent.height = m_pPhysicalDevice->GetSurfaceCap().currentExtent.height;
 		renderPassBeginInfo.renderArea.offset.x = 0;
 		renderPassBeginInfo.renderArea.offset.y = 0;
 
@@ -690,14 +690,14 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		VkViewport viewport =
 		{
 			0, 0,
-			m_physicalDevice->GetSurfaceCap().currentExtent.width, m_physicalDevice->GetSurfaceCap().currentExtent.height,
+			m_pPhysicalDevice->GetSurfaceCap().currentExtent.width, m_pPhysicalDevice->GetSurfaceCap().currentExtent.height,
 			0, 1
 		};
 
 		VkRect2D scissorRect =
 		{
 			0, 0,
-			m_physicalDevice->GetSurfaceCap().currentExtent.width, m_physicalDevice->GetSurfaceCap().currentExtent.height
+			m_pPhysicalDevice->GetSurfaceCap().currentExtent.width, m_pPhysicalDevice->GetSurfaceCap().currentExtent.height
 		};
 
 		vkCmdSetViewport(m_drawCmdBuffers[i], 0, 1, &viewport);
@@ -705,18 +705,18 @@ void VulkanGlobal::InitDrawCmdBuffers()
 
 		std::vector<VkDescriptorSet> dsSets =
 		{
-			m_descriptorSet->GetDeviceHandle(),
+			m_pDescriptorSet->GetDeviceHandle(),
 		};
-		vkCmdBindDescriptorSets(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
+		vkCmdBindDescriptorSets(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
 
-		vkCmdBindPipeline(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->GetDeviceHandle());
+		vkCmdBindPipeline(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipeline->GetDeviceHandle());
 
 		VkDeviceSize deviceSize[1] = { 0 };
-		VkBuffer vertexBuffer = m_vertexBuffer->GetDeviceHandle();
+		VkBuffer vertexBuffer = m_pVertexBuffer->GetDeviceHandle();
 		vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &vertexBuffer, deviceSize);
-		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_indexBuffer->GetDeviceHandle(), 0, m_indexBuffer->GetType());
+		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_pIndexBuffer->GetDeviceHandle(), 0, m_pIndexBuffer->GetType());
 
-		vkCmdDrawIndexed(m_drawCmdBuffers[i], m_indexBuffer->GetCount(), 1, 0, 0, 0);
+		vkCmdDrawIndexed(m_drawCmdBuffers[i], m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(m_drawCmdBuffers[i]);
 

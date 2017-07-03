@@ -29,7 +29,7 @@ typedef struct _swapchainImg
 	std::vector<VkImageView>			views;
 }SwapchainImg;
 
-typedef struct _mvp
+typedef struct _GlobalUniforms
 {
 	float	model[16];
 	float	view[16];
@@ -38,7 +38,7 @@ typedef struct _mvp
 	float	mvp[16];
 	float   camPos[3];
 	float	roughness;
-}MVP;
+}GlobalUniforms;
 
 
 typedef struct _buffer
@@ -96,8 +96,8 @@ public:
 	static const uint32_t				WINDOW_HEIGHT = 768;
 
 protected:
-	std::shared_ptr<Instance>			m_vulkanInst;
-	std::shared_ptr<PhysicalDevice>		m_physicalDevice;
+	std::shared_ptr<Instance>			m_pVulkanInstance;
+	std::shared_ptr<PhysicalDevice>		m_pPhysicalDevice;
 	std::shared_ptr<Device>				m_pDevice;
 
 	//VkQueue								m_queue;
@@ -107,26 +107,26 @@ protected:
 
 	std::shared_ptr<DepthStencilBuffer>	m_pDSBuffer;
 
-	std::shared_ptr<RenderPass>			m_renderpass;
+	std::shared_ptr<RenderPass>			m_pRenderPass;
 	std::vector<VkFramebuffer>			m_framebuffers;
 
-	std::shared_ptr<VertexBuffer>		m_vertexBuffer;
-	std::shared_ptr<IndexBuffer>		m_indexBuffer;
-	std::shared_ptr<UniformBuffer>		m_uniformBuffer;
+	std::shared_ptr<VertexBuffer>		m_pVertexBuffer;
+	std::shared_ptr<IndexBuffer>		m_pIndexBuffer;
+	std::shared_ptr<UniformBuffer>		m_pUniformBuffer;
 
-	MVP									m_mvp;
+	GlobalUniforms						m_globalUniforms;
 
-	std::shared_ptr<DescriptorSetLayout>m_descriptorSetLayout;
-	std::shared_ptr<PipelineLayout>		m_pipelineLayout;
+	std::shared_ptr<DescriptorSetLayout>m_pDescriptorSetLayout;
+	std::shared_ptr<PipelineLayout>		m_pPipelineLayout;
 
-	std::shared_ptr<GraphicPipeline>	m_pipeline;
+	std::shared_ptr<GraphicPipeline>	m_pPipeline;
 	VkPipelineCache						m_pipelineCache;
 
-	std::shared_ptr<DescriptorPool>		m_descriptorPool;
-	std::shared_ptr<DescriptorSet>		m_descriptorSet;
+	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
+	std::shared_ptr<DescriptorSet>		m_pDescriptorSet;
 
-	std::shared_ptr<ShaderModule>		m_vertShader;
-	std::shared_ptr<ShaderModule>		m_fragShader;
+	std::shared_ptr<ShaderModule>		m_pVertShader;
+	std::shared_ptr<ShaderModule>		m_pFragShader;
 
 	std::vector<VkCommandBuffer>		m_drawCmdBuffers;
 	VkCommandBuffer						m_prePresentCmdBuffer;
