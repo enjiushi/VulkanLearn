@@ -53,6 +53,6 @@ protected:
 
 	std::shared_ptr<RenderPass>		m_pRenderPass;
 	std::shared_ptr<PipelineLayout> m_pPipelineLayout;
-	std::shared_ptr<ShaderModule>	m_vertShader;
-	std::shared_ptr<ShaderModule>	m_fragShader;
+	std::shared_ptr<ShaderModule>	m_pVertShader;
+	std::shared_ptr<ShaderModule>	m_pFragShader;
 };

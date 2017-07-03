@@ -129,6 +129,11 @@ std::shared_ptr<GraphicPipeline> GraphicPipeline::Create(const std::shared_ptr<D
 	pPipeline->m_info.layout				= info.pPipelineLayout->GetDeviceHandle();
 	pPipeline->m_info.pVertexInputState		= &pPipeline->m_vertexInputCreateInfo;
 
+	pPipeline->m_pRenderPass		= info.pRenderPass;
+	pPipeline->m_pPipelineLayout	= info.pPipelineLayout;
+	pPipeline->m_pVertShader		= info.pVertShader;
+	pPipeline->m_pFragShader		= info.pFragShader;
+
 	if (pPipeline.get() && pPipeline->Init(pDevice))
 		return pPipeline;
 	return nullptr;
