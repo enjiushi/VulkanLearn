@@ -40,17 +40,6 @@ typedef struct _GlobalUniforms
 	float	roughness;
 }GlobalUniforms;
 
-
-typedef struct _buffer
-{
-	_buffer() { info = {}; info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO; }
-	Buffer								buffer;
-	VkBufferCreateInfo					info;
-	VkVertexInputBindingDescription		bindingDesc;
-	uint32_t							count;
-	std::vector<VkVertexInputAttributeDescription>	attribDesc;
-}Buffer1;
-
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
 public:
