@@ -693,20 +693,17 @@ void VulkanGlobal::InitPipeline()
 	pipelineInfo.renderPass = m_renderpass->GetDeviceHandle();
 	pipelineInfo.layout = m_pipelineLayout->GetDeviceHandle();
 
-	VkShaderModule vertex_module = InitShaderModule("data/shaders/simple.vert.spv");
-	VkShaderModule fragment_module = InitShaderModule("data/shaders/simple.frag.spv");
-
 	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
 	shaderStages[0] = shaderStages[1] = {};
 	shaderStages[0].sType = shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 
 	shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
 	shaderStages[0].pName = "main";
-	shaderStages[0].module = vertex_module;
+	shaderStages[0].module = m_vertShader->GetDeviceHandle();
 
 	shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 	shaderStages[1].pName = "main";
-	shaderStages[1].module = fragment_module;
+	shaderStages[1].module = m_fragShader->GetDeviceHandle();
 
 	pipelineInfo.stageCount = shaderStages.size();
 	pipelineInfo.pStages = shaderStages.data();
@@ -722,8 +719,12 @@ void VulkanGlobal::InitPipeline()
 	CHECK_VK_ERROR(vkCreateGraphicsPipelines(m_pDevice->GetDeviceHandle(), 0, 1, &pipelineInfo, nullptr, &m_pipeline));
 }
 
-VkShaderModule VulkanGlobal::InitShaderModule(const char* shaderPath)
+void VulkanGlobal::InitShaderModule(const char* vertShaderPath, const char* fragShaderPath)
 {
+	m_vertShader = ShaderModule::Create(m_pDevice, std::wstring(vertShaderPath, vertShaderPath + strlen(vertShaderPath)));
+	m_fragShader = ShaderModule::Create(m_pDevice, std::wstring(fragShaderPath, fragShaderPath + strlen(fragShaderPath)));
+
+	/*
 	std::ifstream ifs;
 	ifs.open(shaderPath, std::ios::binary);
 	assert(ifs.good());
@@ -736,7 +737,7 @@ VkShaderModule VulkanGlobal::InitShaderModule(const char* shaderPath)
 	shaderModuleCreateInfo.codeSize = buffer.size();
 	shaderModuleCreateInfo.pCode = (uint32_t*)buffer.data();
 	CHECK_VK_ERROR(vkCreateShaderModule(m_pDevice->GetDeviceHandle(), &shaderModuleCreateInfo, nullptr, &module));
-	return module;
+	return module;*/
 }
 
 void VulkanGlobal::InitDescriptorPool()
@@ -924,6 +925,7 @@ void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
 	InitVertices();
 	InitUniforms();
 	InitDescriptorSetLayout();
+	InitShaderModule("data/shaders/simple.vert.spv", "data/shaders/simple.frag.spv");
 	InitPipelineCache();
 	InitPipeline();
 	InitDescriptorPool();

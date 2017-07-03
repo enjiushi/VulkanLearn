@@ -20,6 +20,7 @@
 #include "PipelineLayout.h"
 #include "DescriptorPool.h"
 #include "DescriptorSet.h"
+#include "ShaderModule.h"
 
 typedef struct _swapchainImg
 {
@@ -87,7 +88,7 @@ public:
 	void Draw();
 	void Update();
 
-	VkShaderModule InitShaderModule(const char* shaderPath);
+	void InitShaderModule(const char* vertShaderPath, const char* fragShaderPath);
 
 public:
 	static const uint32_t				WINDOW_WIDTH = 1024;
@@ -122,6 +123,9 @@ protected:
 
 	std::shared_ptr<DescriptorPool>		m_descriptorPool;
 	std::shared_ptr<DescriptorSet>		m_descriptorSet;
+
+	std::shared_ptr<ShaderModule>		m_vertShader;
+	std::shared_ptr<ShaderModule>		m_fragShader;
 
 	std::vector<VkCommandBuffer>		m_drawCmdBuffers;
 	VkCommandBuffer						m_prePresentCmdBuffer;
