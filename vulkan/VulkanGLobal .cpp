@@ -490,13 +490,6 @@ void VulkanGlobal::InitVertices()
 		pIndices[i * 3 + 2] = pMesh->mFaces[i].mIndices[2];
 	}
 
-	/*
-	std::shared_ptr<StagingBuffer> stageVertexBuffer, stageIndexBuffer;
-	stageVertexBuffer = StagingBuffer::Create(m_pDevice, verticesNumBytes);
-	stageVertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, (VkPipelineStageFlagBits)0, 0);
-	stageIndexBuffer = StagingBuffer::Create(m_pDevice, indicesNumBytes);
-	stageIndexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes, (VkPipelineStageFlagBits)0, 0);
-	*/
 	//Binding and attributes information
 	VkVertexInputBindingDescription bindingDesc = {};
 	bindingDesc.binding = 0;		//hard coded 0
@@ -532,18 +525,11 @@ void VulkanGlobal::InitUniforms()
 	uint32_t totalUniformBytes = sizeof(MVP);
 
 	memset(&m_mvp, 0, sizeof(MVP));
-	/*
-	memset(m_mvp.model, 0, sizeof(m_mvp.model));
-	memset(m_mvp.view, 0, sizeof(m_mvp.view));
-	memset(m_mvp.projection, 0, sizeof(m_mvp.projection));
-	memset(m_mvp.vulkanNDC, 0, sizeof(m_mvp.vulkanNDC));
-	memset(m_mvp.mvp, 0, sizeof(m_mvp.mvp));*/
 
 	Matrix4f model;
 
 	Matrix4f view;
 	Vector3f up = { 0, 1, 0 };
-	//Vector3f look = { 1, -1, -1 };
 	Vector3f look = { 0, 0, -1 };
 	look.Normalize();
 	Vector3f position = { 0, 0, 50 };
