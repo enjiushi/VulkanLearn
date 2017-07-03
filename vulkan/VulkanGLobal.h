@@ -21,6 +21,7 @@
 #include "DescriptorPool.h"
 #include "DescriptorSet.h"
 #include "ShaderModule.h"
+#include "GraphicPipeline.h"
 
 typedef struct _swapchainImg
 {
@@ -115,10 +116,10 @@ protected:
 
 	MVP									m_mvp;
 
-	std::shared_ptr<DescriptorSetLayout> m_descriptorSetLayout;
+	std::shared_ptr<DescriptorSetLayout>m_descriptorSetLayout;
 	std::shared_ptr<PipelineLayout>		m_pipelineLayout;
 
-	VkPipeline							m_pipeline;
+	std::shared_ptr<GraphicPipeline>	m_pipeline;
 	VkPipelineCache						m_pipelineCache;
 
 	std::shared_ptr<DescriptorPool>		m_descriptorPool;
