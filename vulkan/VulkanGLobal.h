@@ -23,6 +23,8 @@
 #include "ShaderModule.h"
 #include "GraphicPipeline.h"
 #include "Framebuffer.h"
+#include "CommandBuffer.h"
+#include "CommandPool.h"
 
 typedef struct _GlobalUniforms
 {
@@ -84,8 +86,10 @@ protected:
 	std::shared_ptr<PhysicalDevice>		m_pPhysicalDevice;
 	std::shared_ptr<Device>				m_pDevice;
 
-	VkCommandPool						m_commandPool;
-	VkCommandBuffer						m_setupCommandBuffer;
+	std::shared_ptr<CommandPool>		m_pCommandPool;
+	std::shared_ptr<CommandBuffer>		m_pSetupCmdBuffer;
+	std::shared_ptr<CommandBuffer>		m_pPrePresentCmdBuffer;
+	std::shared_ptr<CommandBuffer>		m_pPostPresentCmdBuffer;
 
 	std::shared_ptr<DepthStencilBuffer>	m_pDSBuffer;
 
@@ -111,8 +115,6 @@ protected:
 	std::shared_ptr<ShaderModule>		m_pFragShader;
 
 	std::vector<VkCommandBuffer>		m_drawCmdBuffers;
-	VkCommandBuffer						m_prePresentCmdBuffer;
-	VkCommandBuffer						m_postPresentCmdBuffer;
 
 	VkSemaphore							m_swapchainAcquireDone;
 	VkSemaphore							m_renderDone;
