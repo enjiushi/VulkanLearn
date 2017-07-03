@@ -389,25 +389,9 @@ void VulkanGlobal::InitRenderpass()
 
 void VulkanGlobal::InitFrameBuffer()
 {
-	m_framebuffers.resize(m_pPhysicalDevice->GetSurfaceCap().maxImageCount);
-	std::vector<VkImageView> attachments(2);
-	attachments[1] = m_pDSBuffer->GetViewDeviceHandle();
-
-	for (uint32_t i = 0; i < m_pPhysicalDevice->GetSurfaceCap().maxImageCount; i++)
-	{
-		attachments[0] = GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i)->GetViewDeviceHandle();
-
-		VkFramebufferCreateInfo framebufferCreateInfo = {};
-		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferCreateInfo.attachmentCount = 2;
-		framebufferCreateInfo.pAttachments = attachments.data();
-		framebufferCreateInfo.layers = 1;
-		framebufferCreateInfo.width = m_pPhysicalDevice->GetSurfaceCap().currentExtent.width;
-		framebufferCreateInfo.height = m_pPhysicalDevice->GetSurfaceCap().currentExtent.height;
-		framebufferCreateInfo.renderPass = m_pRenderPass->GetDeviceHandle();
-
-		CHECK_VK_ERROR(vkCreateFramebuffer(m_pDevice->GetDeviceHandle(), &framebufferCreateInfo, nullptr, &m_framebuffers[i]));
-	}
+	m_framebuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
+	for (uint32_t i = 0; i < m_framebuffers.size(); i++)
+		m_framebuffers[i] = Framebuffer::Create(m_pDevice, GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i), m_pDSBuffer, m_pRenderPass);
 }
 
 void VulkanGlobal::InitVertices()
@@ -679,7 +663,7 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		renderPassBeginInfo.clearValueCount = clearValues.size();
 		renderPassBeginInfo.pClearValues = clearValues.data();
 		renderPassBeginInfo.renderPass = m_pRenderPass->GetDeviceHandle();
-		renderPassBeginInfo.framebuffer = m_framebuffers[i];
+		renderPassBeginInfo.framebuffer = m_framebuffers[i]->GetDeviceHandle();
 		renderPassBeginInfo.renderArea.extent.width = m_pPhysicalDevice->GetSurfaceCap().currentExtent.width;
 		renderPassBeginInfo.renderArea.extent.height = m_pPhysicalDevice->GetSurfaceCap().currentExtent.height;
 		renderPassBeginInfo.renderArea.offset.x = 0;
