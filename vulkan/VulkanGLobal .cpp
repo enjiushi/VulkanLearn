@@ -723,21 +723,6 @@ void VulkanGlobal::InitShaderModule(const char* vertShaderPath, const char* frag
 {
 	m_vertShader = ShaderModule::Create(m_pDevice, std::wstring(vertShaderPath, vertShaderPath + strlen(vertShaderPath)));
 	m_fragShader = ShaderModule::Create(m_pDevice, std::wstring(fragShaderPath, fragShaderPath + strlen(fragShaderPath)));
-
-	/*
-	std::ifstream ifs;
-	ifs.open(shaderPath, std::ios::binary);
-	assert(ifs.good());
-	std::vector<char> buffer;
-	buffer.assign(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
-
-	VkShaderModule module;
-	VkShaderModuleCreateInfo shaderModuleCreateInfo = {};
-	shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	shaderModuleCreateInfo.codeSize = buffer.size();
-	shaderModuleCreateInfo.pCode = (uint32_t*)buffer.data();
-	CHECK_VK_ERROR(vkCreateShaderModule(m_pDevice->GetDeviceHandle(), &shaderModuleCreateInfo, nullptr, &module));
-	return module;*/
 }
 
 void VulkanGlobal::InitDescriptorPool()
