@@ -38,3 +38,42 @@ std::shared_ptr<DescriptorSet> DescriptorSet::Create(const std::shared_ptr<Devic
 		return pDescriptorSet;
 	return nullptr;
 }
+
+void DescriptorSet::UpdateBuffer(uint32_t binding, const VkDescriptorBufferInfo& bufferInfo)
+{
+	std::vector<VkWriteDescriptorSet> writeData = { {} };
+	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	writeData[0].dstBinding = binding;
+	writeData[0].descriptorCount = 1;
+	writeData[0].dstSet = GetDeviceHandle();
+	writeData[0].pBufferInfo = &bufferInfo;
+
+	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+}
+
+void DescriptorSet::UpdateImage(uint32_t binding, const VkDescriptorImageInfo& imageInfo)
+{
+	std::vector<VkWriteDescriptorSet> writeData = { {} };
+	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;;
+	writeData[0].dstBinding = binding;
+	writeData[0].descriptorCount = 1;
+	writeData[0].dstSet = GetDeviceHandle();
+	writeData[0].pImageInfo = &imageInfo;
+
+	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+}
+
+void DescriptorSet::UpdateTexBuffer(uint32_t binding, const VkBufferView& texBufferView)
+{
+	std::vector<VkWriteDescriptorSet> writeData = { {} };
+	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+	writeData[0].dstBinding = binding;
+	writeData[0].descriptorCount = 1;
+	writeData[0].dstSet = GetDeviceHandle();
+	writeData[0].pTexelBufferView = &texBufferView;
+
+	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+}

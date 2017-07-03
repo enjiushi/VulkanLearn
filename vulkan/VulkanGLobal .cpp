@@ -747,7 +747,7 @@ void VulkanGlobal::InitDescriptorPool()
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2
 		},
 		{
-			VK_DESCRIPTOR_TYPE_SAMPLER, 2
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 2
 		}
 	};
 
@@ -763,19 +763,7 @@ void VulkanGlobal::InitDescriptorPool()
 void VulkanGlobal::InitDescriptorSet()
 {
 	m_descriptorSet = DescriptorPool::AllocateDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
-
-	std::vector<VkWriteDescriptorSet> writeDescSet;
-	writeDescSet.resize(1);
-	
-	VkDescriptorBufferInfo info = m_uniformBuffer->GetDescBufferInfo();
-	writeDescSet[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writeDescSet[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	writeDescSet[0].dstBinding = 0;
-	writeDescSet[0].dstSet = m_descriptorSet->GetDeviceHandle();
-	writeDescSet[0].pBufferInfo = &info;
-	writeDescSet[0].descriptorCount = 1;
-
-	vkUpdateDescriptorSets(m_pDevice->GetDeviceHandle(), writeDescSet.size(), writeDescSet.data(), 0, nullptr);
+	m_descriptorSet->UpdateBuffer(0, m_uniformBuffer->GetDescBufferInfo());
 }
 
 void VulkanGlobal::InitDrawCmdBuffers()
