@@ -114,7 +114,8 @@ protected:
 	std::shared_ptr<ShaderModule>		m_pVertShader;
 	std::shared_ptr<ShaderModule>		m_pFragShader;
 
-	std::vector<VkCommandBuffer>		m_drawCmdBuffers;
+	//std::vector<VkCommandBuffer>		m_drawCmdBuffers;
+	std::vector<std::shared_ptr<CommandBuffer>>		m_drawCmdBuffers;
 
 	VkSemaphore							m_swapchainAcquireDone;
 	VkSemaphore							m_renderDone;

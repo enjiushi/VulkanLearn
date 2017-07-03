@@ -13,6 +13,7 @@ public:
 
 public:
 	static std::shared_ptr<CommandBuffer> AllocatePrimaryCommandBuffer(const std::shared_ptr<CommandPool>& pCmdPool);
+	static std::vector<std::shared_ptr<CommandBuffer>> AllocatePrimaryCommandBuffers(const std::shared_ptr<CommandPool>& pCmdPool, uint32_t count);
 	VkCommandPool GetDeviceHandle() const { return m_commandPool; }
 
 public:

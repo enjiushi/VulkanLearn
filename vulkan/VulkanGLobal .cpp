@@ -636,20 +636,13 @@ void VulkanGlobal::InitDescriptorSet()
 
 void VulkanGlobal::InitDrawCmdBuffers()
 {
-	m_drawCmdBuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
-
-	VkCommandBufferAllocateInfo cmdAllocInfo = {};
-	cmdAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	cmdAllocInfo.commandPool = m_pCommandPool->GetDeviceHandle();
-	cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	cmdAllocInfo.commandBufferCount = GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount();
-	CHECK_VK_ERROR(vkAllocateCommandBuffers(m_pDevice->GetDeviceHandle(), &cmdAllocInfo, m_drawCmdBuffers.data()));
+	m_drawCmdBuffers = CommandPool::AllocatePrimaryCommandBuffers(GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
 
 	for (size_t i = 0; i < GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
 		VkCommandBufferBeginInfo cmdBeginInfo = {};
 		cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		CHECK_VK_ERROR(vkBeginCommandBuffer(m_drawCmdBuffers[i], &cmdBeginInfo));
+		CHECK_VK_ERROR(vkBeginCommandBuffer(m_drawCmdBuffers[i]->GetDeviceHandle(), &cmdBeginInfo));
 
 		std::vector<VkClearValue> clearValues =
 		{
@@ -668,7 +661,7 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		renderPassBeginInfo.renderArea.offset.x = 0;
 		renderPassBeginInfo.renderArea.offset.y = 0;
 
-		vkCmdBeginRenderPass(m_drawCmdBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBeginRenderPass(m_drawCmdBuffers[i]->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		VkViewport viewport =
 		{
@@ -683,27 +676,27 @@ void VulkanGlobal::InitDrawCmdBuffers()
 			m_pPhysicalDevice->GetSurfaceCap().currentExtent.width, m_pPhysicalDevice->GetSurfaceCap().currentExtent.height
 		};
 
-		vkCmdSetViewport(m_drawCmdBuffers[i], 0, 1, &viewport);
-		vkCmdSetScissor(m_drawCmdBuffers[i], 0, 1, &scissorRect);
+		vkCmdSetViewport(m_drawCmdBuffers[i]->GetDeviceHandle(), 0, 1, &viewport);
+		vkCmdSetScissor(m_drawCmdBuffers[i]->GetDeviceHandle(), 0, 1, &scissorRect);
 
 		std::vector<VkDescriptorSet> dsSets =
 		{
 			m_pDescriptorSet->GetDeviceHandle(),
 		};
-		vkCmdBindDescriptorSets(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
+		vkCmdBindDescriptorSets(m_drawCmdBuffers[i]->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
 
-		vkCmdBindPipeline(m_drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipeline->GetDeviceHandle());
+		vkCmdBindPipeline(m_drawCmdBuffers[i]->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipeline->GetDeviceHandle());
 
 		VkDeviceSize deviceSize[1] = { 0 };
 		VkBuffer vertexBuffer = m_pVertexBuffer->GetDeviceHandle();
-		vkCmdBindVertexBuffers(m_drawCmdBuffers[i], 0, 1, &vertexBuffer, deviceSize);
-		vkCmdBindIndexBuffer(m_drawCmdBuffers[i], m_pIndexBuffer->GetDeviceHandle(), 0, m_pIndexBuffer->GetType());
+		vkCmdBindVertexBuffers(m_drawCmdBuffers[i]->GetDeviceHandle(), 0, 1, &vertexBuffer, deviceSize);
+		vkCmdBindIndexBuffer(m_drawCmdBuffers[i]->GetDeviceHandle(), m_pIndexBuffer->GetDeviceHandle(), 0, m_pIndexBuffer->GetType());
 
-		vkCmdDrawIndexed(m_drawCmdBuffers[i], m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
+		vkCmdDrawIndexed(m_drawCmdBuffers[i]->GetDeviceHandle(), m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
 
-		vkCmdEndRenderPass(m_drawCmdBuffers[i]);
+		vkCmdEndRenderPass(m_drawCmdBuffers[i]->GetDeviceHandle());
 
-		CHECK_VK_ERROR(vkEndCommandBuffer(m_drawCmdBuffers[i]));
+		CHECK_VK_ERROR(vkEndCommandBuffer(m_drawCmdBuffers[i]->GetDeviceHandle()));
 	}
 }
 
@@ -748,7 +741,8 @@ void VulkanGlobal::Draw()
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &m_drawCmdBuffers[m_currentBufferIndex];
+	VkCommandBuffer cmdBuffer = m_drawCmdBuffers[m_currentBufferIndex]->GetDeviceHandle();
+	submitInfo.pCommandBuffers = &cmdBuffer;
 	submitInfo.pWaitDstStageMask = &flag;
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = &m_swapchainAcquireDone;
