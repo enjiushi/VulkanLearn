@@ -299,12 +299,6 @@ void VulkanGlobal::InitCommandPool()
 
 void VulkanGlobal::InitSetupCommandBuffer()
 {
-	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
-	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	commandBufferAllocateInfo.commandPool = m_pCommandPool->GetDeviceHandle();
-	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	commandBufferAllocateInfo.commandBufferCount = 1;
-
 	m_pSetupCmdBuffer = CommandPool::AllocatePrimaryCommandBuffer(GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool());
 
 	VkCommandBufferBeginInfo beginInfo = {};
