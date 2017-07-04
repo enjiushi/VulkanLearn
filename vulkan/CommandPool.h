@@ -22,4 +22,6 @@ public:
 protected:
 	VkCommandPool			m_commandPool;
 	VkCommandPoolCreateInfo m_info;
+
+	std::vector<std::weak_ptr<CommandBuffer>> m_cmdBufferList;
 };

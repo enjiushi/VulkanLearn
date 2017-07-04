@@ -19,7 +19,9 @@ bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const VkCommandPo
 
 std::shared_ptr<CommandBuffer> CommandPool::AllocatePrimaryCommandBuffer(const std::shared_ptr<CommandPool>& pCmdPool)
 {
-	return CommandBuffer::Create(pCmdPool->GetDevice(), pCmdPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+	std::shared_ptr<CommandBuffer> pCmdBuffer = CommandBuffer::Create(pCmdPool->GetDevice(), pCmdPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+	pCmdPool->m_cmdBufferList.push_back(pCmdBuffer);
+	return pCmdBuffer;
 }
 
 std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocatePrimaryCommandBuffers(const std::shared_ptr<CommandPool>& pCmdPool, uint32_t count)
