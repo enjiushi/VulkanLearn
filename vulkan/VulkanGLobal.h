@@ -106,7 +106,6 @@ protected:
 	std::shared_ptr<PipelineLayout>		m_pPipelineLayout;
 
 	std::shared_ptr<GraphicPipeline>	m_pPipeline;
-	VkPipelineCache						m_pipelineCache;
 
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
 	std::shared_ptr<DescriptorSet>		m_pDescriptorSet;

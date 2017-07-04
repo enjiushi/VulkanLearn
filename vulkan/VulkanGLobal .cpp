@@ -583,9 +583,11 @@ void VulkanGlobal::InitDescriptorSetLayout()
 
 void VulkanGlobal::InitPipelineCache()
 {
+	/*
 	VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
 	pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 	CHECK_VK_ERROR(vkCreatePipelineCache(m_pDevice->GetDeviceHandle(), &pipelineCacheCreateInfo, nullptr, &m_pipelineCache));
+	*/
 }
 
 void VulkanGlobal::InitPipeline()
