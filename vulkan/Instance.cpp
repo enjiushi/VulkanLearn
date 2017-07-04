@@ -17,7 +17,10 @@ VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT flags
 Instance::~Instance()
 {
 	if (m_vulkanInst)
+	{
+		m_fpDestroyDebugReportCallbackEXT(m_vulkanInst, m_debugCallback, nullptr);
 		vkDestroyInstance(m_vulkanInst, nullptr);
+	}
 }
 
 std::shared_ptr<Instance> Instance::Create(const VkInstanceCreateInfo& info)
