@@ -25,6 +25,7 @@
 #include "Framebuffer.h"
 #include "CommandBuffer.h"
 #include "CommandPool.h"
+#include "Semaphore.h"
 
 typedef struct _GlobalUniforms
 {
@@ -116,8 +117,8 @@ protected:
 	//std::vector<VkCommandBuffer>		m_drawCmdBuffers;
 	std::vector<std::shared_ptr<CommandBuffer>>		m_drawCmdBuffers;
 
-	VkSemaphore							m_swapchainAcquireDone;
-	VkSemaphore							m_renderDone;
+	std::shared_ptr<Semaphore>			m_pSwapchainAcquireDone;
+	std::shared_ptr<Semaphore>			m_pRenderDone;
 
 	uint32_t							m_currentBufferIndex = 0;
 

@@ -704,10 +704,8 @@ void VulkanGlobal::InitDrawCmdBuffers()
 
 void VulkanGlobal::InitSemaphore()
 {
-	VkSemaphoreCreateInfo semaphoreInfo = {};
-	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-	CHECK_VK_ERROR(vkCreateSemaphore(m_pDevice->GetDeviceHandle(), &semaphoreInfo, nullptr, &m_swapchainAcquireDone));
-	CHECK_VK_ERROR(vkCreateSemaphore(m_pDevice->GetDeviceHandle(), &semaphoreInfo, nullptr, &m_renderDone));
+	m_pSwapchainAcquireDone = Semaphore::Create(m_pDevice);
+	m_pRenderDone = Semaphore::Create(m_pDevice);
 }
 
 void VulkanGlobal::EndSetup()
@@ -736,7 +734,7 @@ void VulkanGlobal::Draw()
 	InitUniforms();
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 
-	CHECK_VK_ERROR(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetAcquireNextImageFuncPtr()(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), UINT64_MAX, m_swapchainAcquireDone, nullptr, &m_currentBufferIndex));
+	CHECK_VK_ERROR(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetAcquireNextImageFuncPtr()(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), UINT64_MAX, m_pSwapchainAcquireDone->GetDeviceHandle(), nullptr, &m_currentBufferIndex));
 
 	VkPipelineStageFlags flag = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
@@ -747,9 +745,11 @@ void VulkanGlobal::Draw()
 	submitInfo.pCommandBuffers = &cmdBuffer;
 	submitInfo.pWaitDstStageMask = &flag;
 	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = &m_swapchainAcquireDone;
+	VkSemaphore s1 = m_pSwapchainAcquireDone->GetDeviceHandle();
+	VkSemaphore s2 = m_pRenderDone->GetDeviceHandle();
+	submitInfo.pWaitSemaphores = &s1;
 	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = &m_renderDone;
+	submitInfo.pSignalSemaphores = &s2;
 
 	vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr);
 
@@ -759,7 +759,7 @@ void VulkanGlobal::Draw()
 	VkSwapchainKHR swapchain = (GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle());
 	presentInfo.pSwapchains = &swapchain;
 	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = &m_renderDone;
+	presentInfo.pWaitSemaphores = &s2;
 	presentInfo.pImageIndices = &m_currentBufferIndex;
 	GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetQueuePresentFuncPtr()(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle(), &presentInfo);
 
