@@ -294,12 +294,7 @@ void VulkanGlobal::Update()
 
 void VulkanGlobal::InitCommandPool()
 {
-	VkCommandPoolCreateInfo commandPoolCreateInfo = {};
-	commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	commandPoolCreateInfo.queueFamilyIndex = m_pPhysicalDevice->GetGraphicQueueIndex();
-	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-	m_pCommandPool = CommandPool::Create(m_pDevice, commandPoolCreateInfo);
+	m_pCommandPool = CommandPool::Create(m_pDevice);
 }
 
 void VulkanGlobal::InitSetupCommandBuffer()

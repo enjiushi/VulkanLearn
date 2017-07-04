@@ -1,18 +1,23 @@
 #include "CommandPool.h"
 #include "CommandBuffer.h"
+#include "GlobalDeviceObjects.h"
 
 CommandPool::~CommandPool()
 {
 	vkDestroyCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, nullptr);
 }
 
-bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const VkCommandPoolCreateInfo& info)
+bool CommandPool::Init(const std::shared_ptr<Device>& pDevice)
 {
 	if (!DeviceObjectBase::Init(pDevice))
 		return false;
 
-	CHECK_VK_ERROR(vkCreateCommandPool(pDevice->GetDeviceHandle(), &info, nullptr, &m_commandPool));
-	m_info = info;
+	m_info = {};
+	m_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	m_info.queueFamilyIndex = m_pDevice->GetPhysicalDevice()->GetGraphicQueueIndex();
+	m_info.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+
+	CHECK_VK_ERROR(vkCreateCommandPool(pDevice->GetDeviceHandle(), &m_info, nullptr, &m_commandPool));
 
 	return true;
 }
@@ -33,10 +38,10 @@ std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocatePrimaryCommandB
 	return cmdBuffers;
 }
 
-std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice, const VkCommandPoolCreateInfo& info)
+std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice)
 {
 	std::shared_ptr<CommandPool> pCommandPool = std::make_shared<CommandPool>();
-	if (pCommandPool.get() && pCommandPool->Init(pDevice, info))
+	if (pCommandPool.get() && pCommandPool->Init(pDevice))
 		return pCommandPool;
 	return nullptr;
 }

@@ -9,7 +9,7 @@ class CommandPool : public DeviceObjectBase
 public:
 	~CommandPool();
 
-	bool Init(const std::shared_ptr<Device>& pDevice, const VkCommandPoolCreateInfo& info);
+	bool Init(const std::shared_ptr<Device>& pDevice);
 
 public:
 	static std::shared_ptr<CommandBuffer> AllocatePrimaryCommandBuffer(const std::shared_ptr<CommandPool>& pCmdPool);
@@ -17,7 +17,7 @@ public:
 	VkCommandPool GetDeviceHandle() const { return m_commandPool; }
 
 public:
-	static std::shared_ptr<CommandPool> Create(const std::shared_ptr<Device>& pDevice, const VkCommandPoolCreateInfo& info);
+	static std::shared_ptr<CommandPool> Create(const std::shared_ptr<Device>& pDevice);
 
 protected:
 	VkCommandPool			m_commandPool;
