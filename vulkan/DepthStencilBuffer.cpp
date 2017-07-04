@@ -93,11 +93,5 @@ void DepthStencilBuffer::EnsureImageLayout()
 
 	CHECK_VK_ERROR(vkEndCommandBuffer(cmdBuffer));
 
-	VkSubmitInfo submitInfo = {};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &cmdBuffer;
-
-	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
-	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
+	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, true);
 }

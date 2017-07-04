@@ -704,6 +704,7 @@ void VulkanGlobal::EndSetup()
 
 	CHECK_VK_ERROR(vkEndCommandBuffer(m_pSetupCmdBuffer->GetDeviceHandle()));
 
+	/*
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.commandBufferCount = 1;
@@ -714,6 +715,8 @@ void VulkanGlobal::EndSetup()
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
 
 	m_pSetupCmdBuffer.reset();
+	*/
+	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(m_pSetupCmdBuffer, true);
 
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 }
@@ -725,23 +728,12 @@ void VulkanGlobal::Draw()
 
 	CHECK_VK_ERROR(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetAcquireNextImageFuncPtr()(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), UINT64_MAX, m_pSwapchainAcquireDone->GetDeviceHandle(), nullptr, &m_currentBufferIndex));
 
-	VkPipelineStageFlags flag = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	std::vector<std::shared_ptr<Semaphore>> waitSemaphores = { m_pSwapchainAcquireDone };
+	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	std::vector<std::shared_ptr<Semaphore>> signalSemaphores = { m_pRenderDone };
+	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(m_drawCmdBuffers[m_currentBufferIndex], waitSemaphores, waitFlags, signalSemaphores);
 
-	VkSubmitInfo submitInfo = {};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	VkCommandBuffer cmdBuffer = m_drawCmdBuffers[m_currentBufferIndex]->GetDeviceHandle();
-	submitInfo.pCommandBuffers = &cmdBuffer;
-	submitInfo.pWaitDstStageMask = &flag;
-	submitInfo.waitSemaphoreCount = 1;
-	VkSemaphore s1 = m_pSwapchainAcquireDone->GetDeviceHandle();
 	VkSemaphore s2 = m_pRenderDone->GetDeviceHandle();
-	submitInfo.pWaitSemaphores = &s1;
-	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = &s2;
-
-	vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr);
-
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.swapchainCount = 1;

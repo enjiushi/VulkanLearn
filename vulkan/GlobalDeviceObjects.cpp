@@ -27,7 +27,7 @@ bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 	return true;
 }
 
-GlobalDeviceObjects* GloablObjects()
+GlobalDeviceObjects* GlobalObjects()
 {
 	return GlobalDeviceObjects::GetInstance();
 }

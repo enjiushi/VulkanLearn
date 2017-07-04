@@ -36,4 +36,4 @@ protected:
 	static const uint32_t UNIFORM_BUFFER_SIZE = 1024 * 1024 * 8;
 };
 
-GlobalDeviceObjects* GloablObjects();
+GlobalDeviceObjects* GlobalObjects();
