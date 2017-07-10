@@ -24,7 +24,7 @@ std::shared_ptr<DeviceMemoryManager> DeviceMemoryManager::Create(const std::shar
 	return nullptr;
 }
 
-void DeviceMemoryManager::AllocateMemChunk(const MemoryConsumer* pConsumer, uint32_t memoryPropertyBits, const void* pData)
+uint32_t DeviceMemoryManager::AllocateMemChunk(const MemoryConsumer* pConsumer, uint32_t memoryPropertyBits, const void* pData)
 {
 	VkMemoryRequirements reqs = pConsumer->GetMemoryReqirments();
 
@@ -42,10 +42,13 @@ void DeviceMemoryManager::AllocateMemChunk(const MemoryConsumer* pConsumer, uint
 		m_bufferBindingTable[pConsumer].numBytes = reqs.size;
 
 		UpdateMemChunk(pConsumer, memoryPropertyBits, pData, offset, reqs.size);
+
+		return m_bufferBindingTable[pConsumer].startByte;
 	}
 	else
 	{
 		pConsumer->BindMemory(m_imageMemPool[pConsumer].memory, offset);
+		return 0;
 	}
 }
 

@@ -17,6 +17,7 @@ public:
 public:
 	virtual VkBuffer GetDeviceHandle() const { return m_buffer; }
 	const VkBufferCreateInfo& GetBufferInfo() const { return m_info; }
+	uint32_t GetMemOffset() const { return m_offset; }
 	virtual void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
 	virtual uint32_t GetMemoryProperty() const override { return m_memProperty; }
 	virtual VkMemoryRequirements GetMemoryReqirments() const override;
@@ -28,6 +29,7 @@ protected:
 protected:
 	VkBuffer					m_buffer = 0;
 	VkBufferCreateInfo			m_info;
+	uint32_t					m_offset;
 	uint32_t					m_memProperty;
 
 	friend class StagingBufferManager;
