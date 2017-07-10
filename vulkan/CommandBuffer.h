@@ -13,7 +13,7 @@ class FrameBuffer;
 class CommandBuffer : public DeviceObjectBase
 {
 public:
-	typedef struct _CmdBufData
+	typedef struct _DrawCmdData
 	{
 		std::shared_ptr<RenderPass>					pRenderPass;
 		std::shared_ptr<FrameBuffer>				pFrameBuffer;
@@ -24,7 +24,7 @@ public:
 		std::shared_ptr<IndexBuffer>				pIndexBuffer;
 
 		std::vector<VkClearValue>					clearValues;
-	}CmdBufData;
+	}DrawCmdData;
 
 public:
 	~CommandBuffer();
@@ -34,9 +34,9 @@ public:
 public:
 	VkCommandBuffer GetDeviceHandle() const { return m_commandBuffer; }
 	VkCommandBufferAllocateInfo GetAllocateInfo() const { return m_info; }
-	bool DrawCommandsReady() const { return m_drawCommandsReady; }
-	void SetCmdBufData(const CmdBufData& data);
-	void PrepareNormalDrawCommands();
+
+	void PrepareNormalDrawCommands(const DrawCmdData& data);
+	void PrepareSetupCommands();
 
 public:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);
@@ -47,6 +47,5 @@ protected:
 
 	std::shared_ptr<CommandPool>	m_pCommandPool;
 
-	CmdBufData						m_cmdBufData;
-	bool							m_drawCommandsReady = false;
+	DrawCmdData						m_drawCmdData;
 };

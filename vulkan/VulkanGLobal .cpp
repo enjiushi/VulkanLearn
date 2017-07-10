@@ -631,7 +631,7 @@ void VulkanGlobal::InitDrawCmdBuffers()
 
 	for (size_t i = 0; i < GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		CommandBuffer::CmdBufData prepData;
+		CommandBuffer::DrawCmdData prepData;
 		prepData.pFrameBuffer	= m_framebuffers[i];
 		prepData.pRenderPass	= m_pRenderPass;
 		prepData.pPipeline		= m_pPipeline;
@@ -640,7 +640,7 @@ void VulkanGlobal::InitDrawCmdBuffers()
 		prepData.pIndexBuffer	= m_pIndexBuffer;
 		prepData.clearValues	= { { 0.2f, 0.2f, 0.2f, 0.2f }, { 1.0f, 0 } };
 
-		m_drawCmdBuffers[i]->SetCmdBufData(prepData);
+		m_drawCmdBuffers[i]->PrepareNormalDrawCommands(prepData);
 	}
 }
 

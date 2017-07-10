@@ -39,17 +39,9 @@ std::shared_ptr<CommandBuffer> CommandBuffer::Create(const std::shared_ptr<Devic
 	return nullptr;
 }
 
-void CommandBuffer::SetCmdBufData(const CmdBufData& data)
+void CommandBuffer::PrepareNormalDrawCommands(const DrawCmdData& data)
 {
-	m_cmdBufData = data;
-	m_drawCommandsReady = false;
-
-	PrepareNormalDrawCommands();
-}
-void CommandBuffer::PrepareNormalDrawCommands()
-{
-	if (m_drawCommandsReady)
-		return;
+	m_drawCmdData = data;
 
 	VkCommandBufferBeginInfo cmdBeginInfo = {};
 	cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -57,10 +49,10 @@ void CommandBuffer::PrepareNormalDrawCommands()
 
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.clearValueCount = m_cmdBufData.clearValues.size();
-	renderPassBeginInfo.pClearValues = m_cmdBufData.clearValues.data();
-	renderPassBeginInfo.renderPass = m_cmdBufData.pRenderPass->GetDeviceHandle();
-	renderPassBeginInfo.framebuffer = m_cmdBufData.pFrameBuffer->GetDeviceHandle();
+	renderPassBeginInfo.clearValueCount = m_drawCmdData.clearValues.size();
+	renderPassBeginInfo.pClearValues = m_drawCmdData.clearValues.data();
+	renderPassBeginInfo.renderPass = m_drawCmdData.pRenderPass->GetDeviceHandle();
+	renderPassBeginInfo.framebuffer = m_drawCmdData.pFrameBuffer->GetDeviceHandle();
 	renderPassBeginInfo.renderArea.extent.width = GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
 	renderPassBeginInfo.renderArea.extent.height = GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
 	renderPassBeginInfo.renderArea.offset.x = 0;
@@ -85,28 +77,30 @@ void CommandBuffer::PrepareNormalDrawCommands()
 	vkCmdSetScissor(GetDeviceHandle(), 0, 1, &scissorRect);
 
 	std::vector<VkDescriptorSet> dsSets;
-	for (uint32_t i = 0; i < m_cmdBufData.descriptorSets.size(); i++)
-		dsSets.push_back(m_cmdBufData.descriptorSets[i]->GetDeviceHandle());
+	for (uint32_t i = 0; i < m_drawCmdData.descriptorSets.size(); i++)
+		dsSets.push_back(m_drawCmdData.descriptorSets[i]->GetDeviceHandle());
 
-	vkCmdBindDescriptorSets(GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_cmdBufData.pPipeline->GetPipelineLayout()->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
+	vkCmdBindDescriptorSets(GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_drawCmdData.pPipeline->GetPipelineLayout()->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
 
-	vkCmdBindPipeline(GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_cmdBufData.pPipeline->GetDeviceHandle());
+	vkCmdBindPipeline(GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_drawCmdData.pPipeline->GetDeviceHandle());
 
 	std::vector<VkBuffer> vertexBuffers;
 	std::vector<VkDeviceSize> offsets;
-	for (uint32_t i = 0; i < m_cmdBufData.vertexBuffers.size(); i++)
+	for (uint32_t i = 0; i < m_drawCmdData.vertexBuffers.size(); i++)
 	{
-		vertexBuffers.push_back(m_cmdBufData.vertexBuffers[i]->GetDeviceHandle());
+		vertexBuffers.push_back(m_drawCmdData.vertexBuffers[i]->GetDeviceHandle());
 		offsets.push_back(0);
 	}
 	vkCmdBindVertexBuffers(GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(GetDeviceHandle(), m_cmdBufData.pIndexBuffer->GetDeviceHandle(), 0, m_cmdBufData.pIndexBuffer->GetType());
+	vkCmdBindIndexBuffer(GetDeviceHandle(), m_drawCmdData.pIndexBuffer->GetDeviceHandle(), 0, m_drawCmdData.pIndexBuffer->GetType());
 
-	vkCmdDrawIndexed(GetDeviceHandle(), m_cmdBufData.pIndexBuffer->GetCount(), 1, 0, 0, 0);
+	vkCmdDrawIndexed(GetDeviceHandle(), m_drawCmdData.pIndexBuffer->GetCount(), 1, 0, 0, 0);
 
 	vkCmdEndRenderPass(GetDeviceHandle());
 
 	CHECK_VK_ERROR(vkEndCommandBuffer(GetDeviceHandle()));
+}
 
-	m_drawCommandsReady = true;
+void CommandBuffer::PrepareSetupCommands()
+{
 }
