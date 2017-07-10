@@ -6,10 +6,10 @@ class Image;
 class DepthStencilBuffer;
 class RenderPass;
 
-class Framebuffer : public DeviceObjectBase
+class FrameBuffer : public DeviceObjectBase
 {
 public:
-	~Framebuffer();
+	~FrameBuffer();
 
 	bool Init(
 		const std::shared_ptr<Device>& pDevice,
@@ -22,7 +22,7 @@ public:
 	VkFramebufferCreateInfo GetFramebufferInfo() const { return m_info; }
 
 public:
-	static std::shared_ptr<Framebuffer> Create(
+	static std::shared_ptr<FrameBuffer> Create(
 		const std::shared_ptr<Device>& pDevice,
 		const std::shared_ptr<Image>& pImage,
 		const std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer,

@@ -95,7 +95,7 @@ protected:
 	std::shared_ptr<DepthStencilBuffer>	m_pDSBuffer;
 
 	std::shared_ptr<RenderPass>			m_pRenderPass;
-	std::vector<std::shared_ptr<Framebuffer>>m_framebuffers;
+	std::vector<std::shared_ptr<FrameBuffer>>m_framebuffers;
 
 	std::shared_ptr<VertexBuffer>		m_pVertexBuffer;
 	std::shared_ptr<IndexBuffer>		m_pIndexBuffer;

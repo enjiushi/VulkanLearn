@@ -379,7 +379,7 @@ void VulkanGlobal::InitFrameBuffer()
 {
 	m_framebuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
 	for (uint32_t i = 0; i < m_framebuffers.size(); i++)
-		m_framebuffers[i] = Framebuffer::Create(m_pDevice, GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i), m_pDSBuffer, m_pRenderPass);
+		m_framebuffers[i] = FrameBuffer::Create(m_pDevice, GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i), m_pDSBuffer, m_pRenderPass);
 }
 
 void VulkanGlobal::InitVertices()
@@ -631,63 +631,16 @@ void VulkanGlobal::InitDrawCmdBuffers()
 
 	for (size_t i = 0; i < GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		VkCommandBufferBeginInfo cmdBeginInfo = {};
-		cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		CHECK_VK_ERROR(vkBeginCommandBuffer(m_drawCmdBuffers[i]->GetDeviceHandle(), &cmdBeginInfo));
+		CommandBuffer::CmdBufData prepData;
+		prepData.pFrameBuffer	= m_framebuffers[i];
+		prepData.pRenderPass	= m_pRenderPass;
+		prepData.pPipeline		= m_pPipeline;
+		prepData.descriptorSets = { m_pDescriptorSet };
+		prepData.vertexBuffers	= { m_pVertexBuffer };
+		prepData.pIndexBuffer	= m_pIndexBuffer;
+		prepData.clearValues	= { { 0.2f, 0.2f, 0.2f, 0.2f }, { 1.0f, 0 } };
 
-		std::vector<VkClearValue> clearValues =
-		{
-			{ 0.2f, 0.2f, 0.2f, 0.2f },
-			{ 1.0f, 0 }
-		};
-
-		VkRenderPassBeginInfo renderPassBeginInfo = {};
-		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassBeginInfo.clearValueCount = clearValues.size();
-		renderPassBeginInfo.pClearValues = clearValues.data();
-		renderPassBeginInfo.renderPass = m_pRenderPass->GetDeviceHandle();
-		renderPassBeginInfo.framebuffer = m_framebuffers[i]->GetDeviceHandle();
-		renderPassBeginInfo.renderArea.extent.width = m_pPhysicalDevice->GetSurfaceCap().currentExtent.width;
-		renderPassBeginInfo.renderArea.extent.height = m_pPhysicalDevice->GetSurfaceCap().currentExtent.height;
-		renderPassBeginInfo.renderArea.offset.x = 0;
-		renderPassBeginInfo.renderArea.offset.y = 0;
-
-		vkCmdBeginRenderPass(m_drawCmdBuffers[i]->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		VkViewport viewport =
-		{
-			0, 0,
-			m_pPhysicalDevice->GetSurfaceCap().currentExtent.width, m_pPhysicalDevice->GetSurfaceCap().currentExtent.height,
-			0, 1
-		};
-
-		VkRect2D scissorRect =
-		{
-			0, 0,
-			m_pPhysicalDevice->GetSurfaceCap().currentExtent.width, m_pPhysicalDevice->GetSurfaceCap().currentExtent.height
-		};
-
-		vkCmdSetViewport(m_drawCmdBuffers[i]->GetDeviceHandle(), 0, 1, &viewport);
-		vkCmdSetScissor(m_drawCmdBuffers[i]->GetDeviceHandle(), 0, 1, &scissorRect);
-
-		std::vector<VkDescriptorSet> dsSets =
-		{
-			m_pDescriptorSet->GetDeviceHandle(),
-		};
-		vkCmdBindDescriptorSets(m_drawCmdBuffers[i]->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
-
-		vkCmdBindPipeline(m_drawCmdBuffers[i]->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipeline->GetDeviceHandle());
-
-		VkDeviceSize deviceSize[1] = { 0 };
-		VkBuffer vertexBuffer = m_pVertexBuffer->GetDeviceHandle();
-		vkCmdBindVertexBuffers(m_drawCmdBuffers[i]->GetDeviceHandle(), 0, 1, &vertexBuffer, deviceSize);
-		vkCmdBindIndexBuffer(m_drawCmdBuffers[i]->GetDeviceHandle(), m_pIndexBuffer->GetDeviceHandle(), 0, m_pIndexBuffer->GetType());
-
-		vkCmdDrawIndexed(m_drawCmdBuffers[i]->GetDeviceHandle(), m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
-
-		vkCmdEndRenderPass(m_drawCmdBuffers[i]->GetDeviceHandle());
-
-		CHECK_VK_ERROR(vkEndCommandBuffer(m_drawCmdBuffers[i]->GetDeviceHandle()));
+		m_drawCmdBuffers[i]->SetCmdBufData(prepData);
 	}
 }
 
