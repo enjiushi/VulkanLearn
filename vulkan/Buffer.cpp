@@ -16,7 +16,7 @@ bool Buffer::Init(const std::shared_ptr<Device>& pDevice, const VkBufferCreateIn
 		return false;
 
 	CHECK_VK_ERROR(vkCreateBuffer(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_buffer));
-	m_offset = GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->AllocateMemChunk(this, memoryPropertyFlag);
+	GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->AllocateMemChunk(this, memoryPropertyFlag);
 
 	m_info = info;
 	m_memProperty = memoryPropertyFlag;
