@@ -25,6 +25,7 @@ public:
 
 public:
 	VkPipeline GetDeviceHandle() const { return m_pipeline; }
+	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
 
 public:
 	static std::shared_ptr<GraphicPipeline> Create(const std::shared_ptr<Device>& pDevice, const SimplePipelineStateCreateInfo& info);
