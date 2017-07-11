@@ -15,8 +15,6 @@ bool Buffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	m_pSelfConsumer = pSelf;
-
 	CHECK_VK_ERROR(vkCreateBuffer(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_buffer));
 	GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->AllocateMemChunk(this, memoryPropertyFlag);
 
