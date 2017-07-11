@@ -5,9 +5,9 @@
 #include "Queue.h"
 #include "CommandBuffer.h"
 
-bool SwapChainImage::Init(const std::shared_ptr<Device>& pDevice, VkImage rawImageHandle)
+bool SwapChainImage::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<SwapChainImage>& pSelf, VkImage rawImageHandle)
 {
-	if (!Image::Init(pDevice, rawImageHandle))
+	if (!Image::Init(pDevice, pSelf, rawImageHandle))
 		return false;
 
 	m_shouldDestoryRawImage = false;
@@ -64,7 +64,7 @@ std::vector<std::shared_ptr<SwapChainImage>> SwapChainImage::Create(const std::s
 std::shared_ptr<SwapChainImage> SwapChainImage::Create(const std::shared_ptr<Device>& pDevice, VkImage rawImageHandle)
 {
 	std::shared_ptr<SwapChainImage> pImage = std::make_shared<SwapChainImage>();
-	if (pImage.get() && pImage->Init(pDevice, rawImageHandle))
+	if (pImage.get() && pImage->Init(pDevice, pImage, rawImageHandle))
 		return pImage;
 	return nullptr;
 }

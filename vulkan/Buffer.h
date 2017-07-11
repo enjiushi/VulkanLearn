@@ -4,12 +4,12 @@
 
 class StagingBufferManager;
 
-class Buffer : public DeviceObjectBase, public MemoryConsumer
+class Buffer : public DeviceObjectBase<Buffer>, public MemoryConsumer
 {
 public:
 	~Buffer();
 
-	bool Init(const std::shared_ptr<Device>& pDevice, const VkBufferCreateInfo& info, uint32_t memoryPropertyFlag);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Buffer>& pSelf, const VkBufferCreateInfo& info, uint32_t memoryPropertyFlag);
 
 public:
 	static std::shared_ptr<Buffer> Create(const std::shared_ptr<Device>& pDevice, const VkBufferCreateInfo& info, uint32_t memoryPropertyFlag);
@@ -26,9 +26,9 @@ protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const override;
 
 protected:
-	VkBuffer					m_buffer = 0;
-	VkBufferCreateInfo			m_info;
-	uint32_t					m_memProperty;
+	VkBuffer						m_buffer = 0;
+	VkBufferCreateInfo				m_info;
+	uint32_t						m_memProperty;
 
 	friend class StagingBufferManager;
 };

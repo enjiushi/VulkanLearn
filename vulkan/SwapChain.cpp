@@ -7,7 +7,7 @@
 std::shared_ptr<SwapChain> SwapChain::Create(const std::shared_ptr<Device>& pDevice)
 {
 	std::shared_ptr<SwapChain> pSwapChain = std::make_shared<SwapChain>();
-	if (pSwapChain.get() && pSwapChain->Init(pDevice))
+	if (pSwapChain.get() && pSwapChain->Init(pDevice, pSwapChain))
 	{
 		pSwapChain->m_swapchainImages = SwapChainImage::Create(pDevice, pSwapChain);
 		return pSwapChain;
@@ -22,9 +22,9 @@ SwapChain::~SwapChain()
 		m_fpDestroySwapchainKHR(m_pDevice->GetDeviceHandle(), m_swapchain, nullptr);
 }
 
-bool SwapChain::Init(const std::shared_ptr<Device>& pDevice)
+bool SwapChain::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<SwapChain>& pSelf)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	GET_DEVICE_PROC_ADDR(pDevice->GetDeviceHandle(), CreateSwapchainKHR);

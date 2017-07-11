@@ -31,3 +31,8 @@ GlobalDeviceObjects* GlobalObjects()
 {
 	return GlobalDeviceObjects::GetInstance();
 }
+
+GlobalDeviceObjects::~GlobalDeviceObjects()
+{
+
+}

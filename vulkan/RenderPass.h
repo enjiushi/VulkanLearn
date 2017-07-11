@@ -1,6 +1,6 @@
 #include "DeviceObjectBase.h"
 
-class RenderPass : public DeviceObjectBase
+class RenderPass : public DeviceObjectBase<RenderPass>
 {
 public:
 	~RenderPass();
@@ -9,7 +9,7 @@ public:
 	static std::shared_ptr<RenderPass> Create(const std::shared_ptr<Device>& pDevice, const VkRenderPassCreateInfo& renderPassInfo);
 
 protected:
-	bool Init(const std::shared_ptr<Device>& pDevice, const VkRenderPassCreateInfo& renderPassInfo);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<RenderPass>& pSelf, const VkRenderPassCreateInfo& renderPassInfo);
 
 public:
 	VkRenderPass GetDeviceHandle() const { return m_renderPass; }

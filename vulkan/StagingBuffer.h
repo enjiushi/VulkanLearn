@@ -6,6 +6,7 @@ class StagingBuffer : public Buffer
 {
 public:
 	bool Init(const std::shared_ptr<Device>& pDevice, 
+		const std::shared_ptr<StagingBuffer>& pSelf,
 		uint32_t numBytes);
 
 public:

@@ -5,12 +5,13 @@
 class DescriptorPool;
 class DescriptorSetLayout;
 
-class DescriptorSet : public DeviceObjectBase
+class DescriptorSet : public DeviceObjectBase<DescriptorSet>
 {
 public:
 	~DescriptorSet();
 
-	bool Init(const std::shared_ptr<Device>& pDevice, 
+	bool Init(const std::shared_ptr<Device>& pDevice,
+		const std::shared_ptr<DescriptorSet>& pSelf,
 		const std::shared_ptr<DescriptorPool>& pDescriptorPool,
 		const std::shared_ptr<DescriptorSetLayout>& pDescriptorSetLayout);
 

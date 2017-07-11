@@ -7,9 +7,10 @@ PipelineLayout::~PipelineLayout()
 }
 
 bool PipelineLayout::Init(const std::shared_ptr<Device>& pDevice,
+	const std::shared_ptr<PipelineLayout>& pSelf,
 	const DescriptorSetLayoutList& descriptorSetLayoutList)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	m_descriptorSetLayoutList = descriptorSetLayoutList;
@@ -29,7 +30,7 @@ std::shared_ptr<PipelineLayout> PipelineLayout::Create(const std::shared_ptr<Dev
 	const DescriptorSetLayoutList& descriptorSetLayoutList)
 {
 	std::shared_ptr<PipelineLayout> pPipelineLayout = std::make_shared<PipelineLayout>();
-	if (pPipelineLayout.get() && pPipelineLayout->Init(pDevice, descriptorSetLayoutList))
+	if (pPipelineLayout.get() && pPipelineLayout->Init(pDevice, pPipelineLayout, descriptorSetLayoutList))
 		return pPipelineLayout;
 	return nullptr;
 }

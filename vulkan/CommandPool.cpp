@@ -7,9 +7,9 @@ CommandPool::~CommandPool()
 	vkDestroyCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, nullptr);
 }
 
-bool CommandPool::Init(const std::shared_ptr<Device>& pDevice)
+bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pSelf)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	m_info = {};
@@ -41,7 +41,7 @@ std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocatePrimaryCommandB
 std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice)
 {
 	std::shared_ptr<CommandPool> pCommandPool = std::make_shared<CommandPool>();
-	if (pCommandPool.get() && pCommandPool->Init(pDevice))
+	if (pCommandPool.get() && pCommandPool->Init(pDevice, pCommandPool))
 		return pCommandPool;
 	return nullptr;
 }

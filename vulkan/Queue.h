@@ -5,12 +5,12 @@
 class CommandBuffer;
 class Semaphore;
 
-class Queue : public DeviceObjectBase
+class Queue : public DeviceObjectBase<Queue>
 {
 public:
 	~Queue();
 
-	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t queueIndex);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Queue>& pSelf, uint32_t queueIndex);
 
 public:
 	VkQueue GetDeviceHandle() { return m_queue; }

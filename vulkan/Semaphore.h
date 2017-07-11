@@ -4,12 +4,12 @@
 
 class CommandPool;
 
-class Semaphore : public DeviceObjectBase
+class Semaphore : public DeviceObjectBase<Semaphore>
 {
 public:
 	~Semaphore();
 
-	bool Init(const std::shared_ptr<Device>& pDevice);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Semaphore>& pSelf);
 
 public:
 	VkSemaphore GetDeviceHandle() const { return m_semaphore; }

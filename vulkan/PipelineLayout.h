@@ -6,12 +6,13 @@ class DescriptorSetLayout;
 
 typedef std::vector<std::shared_ptr<DescriptorSetLayout>> DescriptorSetLayoutList;
 
-class PipelineLayout : public DeviceObjectBase
+class PipelineLayout : public DeviceObjectBase<PipelineLayout>
 {
 public:
 	~PipelineLayout();
 
-	bool Init(const std::shared_ptr<Device>& pDevice, 
+	bool Init(const std::shared_ptr<Device>& pDevice,
+		const std::shared_ptr<PipelineLayout>& pSelf,
 		const DescriptorSetLayoutList& descriptorSetLayoutList);
 
 public:

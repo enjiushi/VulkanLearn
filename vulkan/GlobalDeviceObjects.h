@@ -15,6 +15,8 @@ class GlobalDeviceObjects : public Singleton<GlobalDeviceObjects>
 public:
 	bool Init(const std::shared_ptr<Device>& pDevice);
 
+	~GlobalDeviceObjects();
+
 public:
 	const std::shared_ptr<Queue> GetGraphicQueue() const { return m_pGraphicQueue; }
 	const std::shared_ptr<Queue> GetPresentQueue() const { return m_pPresentQueue; }

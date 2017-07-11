@@ -1,6 +1,7 @@
 #include "IndexBuffer.h"
 
 bool IndexBuffer::Init(const std::shared_ptr<Device>& pDevice,
+	const std::shared_ptr<IndexBuffer>& pSelf,
 	uint32_t numBytes,
 	VkIndexType type)
 {
@@ -9,7 +10,7 @@ bool IndexBuffer::Init(const std::shared_ptr<Device>& pDevice,
 	info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 	info.size = numBytes;
 
-	if (!Buffer::Init(pDevice, info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+	if (!Buffer::Init(pDevice, pSelf, info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return false;
 
 	m_type = type;
@@ -35,7 +36,7 @@ std::shared_ptr<IndexBuffer> IndexBuffer::Create(const std::shared_ptr<Device>& 
 	VkIndexType type)
 {
 	std::shared_ptr<IndexBuffer> pIndexBuffer = std::make_shared<IndexBuffer>();
-	if (pIndexBuffer.get() && pIndexBuffer->Init(pDevice, numBytes, type))
+	if (pIndexBuffer.get() && pIndexBuffer->Init(pDevice, pIndexBuffer, numBytes, type))
 		return pIndexBuffer;
 	return nullptr;
 }

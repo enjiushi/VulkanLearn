@@ -9,9 +9,9 @@ GraphicPipeline::~GraphicPipeline()
 	vkDestroyPipeline(GetDevice()->GetDeviceHandle(), m_pipeline, nullptr);
 }
 
-bool GraphicPipeline::Init(const std::shared_ptr<Device>& pDevice)
+bool GraphicPipeline::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<GraphicPipeline>& pSelf)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	CHECK_VK_ERROR(vkCreateGraphicsPipelines(m_pDevice->GetDeviceHandle(), 0, 1, &m_info, nullptr, &m_pipeline));
@@ -134,7 +134,7 @@ std::shared_ptr<GraphicPipeline> GraphicPipeline::Create(const std::shared_ptr<D
 	pPipeline->m_pVertShader		= info.pVertShader;
 	pPipeline->m_pFragShader		= info.pFragShader;
 
-	if (pPipeline.get() && pPipeline->Init(pDevice))
+	if (pPipeline.get() && pPipeline->Init(pDevice, pPipeline))
 		return pPipeline;
 	return nullptr;
 }

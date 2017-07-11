@@ -2,12 +2,12 @@
 
 #include "DeviceObjectBase.h"
 
-class ShaderModule : public DeviceObjectBase
+class ShaderModule : public DeviceObjectBase<ShaderModule>
 {
 public:
 	~ShaderModule();
 
-	bool Init(const std::shared_ptr<Device>& pDevice, const std::wstring& path);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<ShaderModule>& pSelf, const std::wstring& path);
 
 public:
 	VkShaderModule GetDeviceHandle() const { return m_shaderModule; }

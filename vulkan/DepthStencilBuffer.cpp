@@ -4,7 +4,7 @@
 #include "Queue.h"
 #include "CommandBuffer.h"
 
-bool DepthStencilBuffer::Init(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height)
+bool DepthStencilBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<DepthStencilBuffer>& pSelf, VkFormat format, uint32_t width, uint32_t height)
 {
 	VkImageCreateInfo dsCreateInfo = {};
 	dsCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -19,7 +19,7 @@ bool DepthStencilBuffer::Init(const std::shared_ptr<Device>& pDevice, VkFormat f
 	dsCreateInfo.mipLevels = 1;
 	dsCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	dsCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	if (!Image::Init(pDevice, dsCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+	if (!Image::Init(pDevice, pSelf, dsCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return false;
 
 	//Create depth stencil image view
@@ -42,7 +42,7 @@ bool DepthStencilBuffer::Init(const std::shared_ptr<Device>& pDevice, VkFormat f
 std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::Create(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height)
 {
 	std::shared_ptr<DepthStencilBuffer> pDSBuffer = std::make_shared<DepthStencilBuffer>();
-	if (pDSBuffer.get() && pDSBuffer->Init(pDevice, format, width, height))
+	if (pDSBuffer.get() && pDSBuffer->Init(pDevice, pDSBuffer, format, width, height))
 		return pDSBuffer;
 	return nullptr;
 }
@@ -53,7 +53,7 @@ std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::Create(const std::shared
 	VkFormat format = pDevice->GetPhysicalDevice()->GetDepthStencilFormat();
 	uint32_t width = pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
 	uint32_t height = pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
-	if (pDSBuffer.get() && pDSBuffer->Init(pDevice, format, width, height))
+	if (pDSBuffer.get() && pDSBuffer->Init(pDevice, pDSBuffer, format, width, height))
 		return pDSBuffer;
 	return nullptr;
 }

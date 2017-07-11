@@ -2,8 +2,11 @@
 
 std::vector<VkDescriptorBufferInfo> UniformBuffer::m_uniformBufferTable;
 
-bool UniformBuffer::Init(const std::shared_ptr<Device>& pDevice, uint32_t numBytes)
+bool UniformBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<UniformBuffer>& pSelf, uint32_t numBytes)
 {
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
+		return false;
+
 	VkDescriptorBufferInfo info = {};
 	info.buffer = GlobalDeviceObjects::GetInstance()->GetBigUniformBuffer()->GetDeviceHandle();
 	uint32_t offset = 0;
@@ -38,7 +41,7 @@ bool UniformBuffer::Init(const std::shared_ptr<Device>& pDevice, uint32_t numByt
 std::shared_ptr<UniformBuffer> UniformBuffer::Create(const std::shared_ptr<Device>& pDevice, uint32_t numBytes)
 {
 	std::shared_ptr<UniformBuffer> pUniformBuffer = std::make_shared<UniformBuffer>();
-	if (pUniformBuffer.get() && pUniformBuffer->Init(pDevice, numBytes))
+	if (pUniformBuffer.get() && pUniformBuffer->Init(pDevice, pUniformBuffer, numBytes))
 		return pUniformBuffer;
 	return nullptr;
 }

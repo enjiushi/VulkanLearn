@@ -8,10 +8,11 @@ DescriptorSet::~DescriptorSet()
 }
 
 bool DescriptorSet::Init(const std::shared_ptr<Device>& pDevice,
+	const std::shared_ptr<DescriptorSet>& pSelf,
 	const std::shared_ptr<DescriptorPool>& pDescriptorPool,
 	const std::shared_ptr<DescriptorSetLayout>& pDescriptorSetLayout)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	VkDescriptorSetAllocateInfo allocateInfo = {};
@@ -34,7 +35,7 @@ std::shared_ptr<DescriptorSet> DescriptorSet::Create(const std::shared_ptr<Devic
 	const std::shared_ptr<DescriptorSetLayout>& pDescriptorSetLayout)
 {
 	std::shared_ptr<DescriptorSet> pDescriptorSet = std::make_shared<DescriptorSet>();
-	if (pDescriptorSet.get() && pDescriptorSet->Init(pDevice, pDescriptorPool, pDescriptorSetLayout))
+	if (pDescriptorSet.get() && pDescriptorSet->Init(pDevice, pDescriptorSet, pDescriptorPool, pDescriptorSetLayout))
 		return pDescriptorSet;
 	return nullptr;
 }

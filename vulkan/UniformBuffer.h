@@ -6,7 +6,8 @@
 class UniformBuffer : public Buffer
 {
 public:
-	bool Init(const std::shared_ptr<Device>& pDevice,
+	bool Init(const std::shared_ptr<Device>& pDevice, 
+		const std::shared_ptr<UniformBuffer>& pSelf,
 		uint32_t numBytes);
 
 public:

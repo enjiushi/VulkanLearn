@@ -6,9 +6,9 @@ ShaderModule::~ShaderModule()
 	vkDestroyShaderModule(GetDevice()->GetDeviceHandle(), m_shaderModule, nullptr);
 }
 
-bool ShaderModule::Init(const std::shared_ptr<Device>& pDevice, const std::wstring& path)
+bool ShaderModule::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<ShaderModule>& pSelf, const std::wstring& path)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	std::ifstream ifs;
@@ -31,7 +31,7 @@ bool ShaderModule::Init(const std::shared_ptr<Device>& pDevice, const std::wstri
 std::shared_ptr<ShaderModule> ShaderModule::Create(const std::shared_ptr<Device>& pDevice, const std::wstring& path)
 {
 	std::shared_ptr<ShaderModule> pModule = std::make_shared<ShaderModule>();
-	if (pModule.get() && pModule->Init(pDevice, path))
+	if (pModule.get() && pModule->Init(pDevice, pModule, path))
 		return pModule;
 	return nullptr;
 }

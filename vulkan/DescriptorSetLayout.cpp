@@ -6,9 +6,10 @@ DescriptorSetLayout::~DescriptorSetLayout()
 }
 
 bool DescriptorSetLayout::Init(const std::shared_ptr<Device>& pDevice,
+	const std::shared_ptr<DescriptorSetLayout>& pSelf,
 	const std::vector<VkDescriptorSetLayoutBinding>& dsLayoutBinding)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	m_descriptorSetLayoutBinding = dsLayoutBinding;
@@ -26,7 +27,7 @@ std::shared_ptr<DescriptorSetLayout> DescriptorSetLayout::Create(const std::shar
 	const std::vector<VkDescriptorSetLayoutBinding>& dsLayoutBinding)
 {
 	std::shared_ptr<DescriptorSetLayout> pDsLayout = std::make_shared<DescriptorSetLayout>();
-	if (pDsLayout.get() && pDsLayout->Init(pDevice, dsLayoutBinding))
+	if (pDsLayout.get() && pDsLayout->Init(pDevice, pDsLayout, dsLayoutBinding))
 		return pDsLayout;
 	return nullptr;
 }

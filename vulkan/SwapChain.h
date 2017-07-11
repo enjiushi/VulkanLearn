@@ -8,12 +8,12 @@
 #include "DeviceObjectBase.h"
 #include "SwapChainImage.h"
 
-class SwapChain : public DeviceObjectBase
+class SwapChain : public DeviceObjectBase<SwapChain>
 {
 public:
 	~SwapChain();
 
-	bool Init(const std::shared_ptr<Device>& pDevice) override;
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<SwapChain>& pSelf);
 
 	const VkSwapchainKHR GetDeviceHandle() const { return m_swapchain; }
 	const std::shared_ptr<SwapChainImage> GetSwapChainImage(uint32_t index) { assert(index < m_swapchainImages.size()); return m_swapchainImages[index]; }

@@ -9,8 +9,9 @@ class DescriptorSet;
 class VertexBuffer;
 class IndexBuffer;
 class FrameBuffer;
+class Buffer;
 
-class CommandBuffer : public DeviceObjectBase
+class CommandBuffer : public DeviceObjectBase<CommandBuffer>
 {
 public:
 	typedef struct _DrawCmdData
@@ -26,17 +27,42 @@ public:
 		std::vector<VkClearValue>					clearValues;
 	}DrawCmdData;
 
+	typedef struct _BarrierData
+	{
+		std::shared_ptr<Buffer>						pBuffer;
+		VkPipelineStageFlagBits						srcStages;
+		VkPipelineStageFlagBits						dstStages;
+		VkAccessFlags								srcAccess;
+		VkAccessFlags								dstAccess;
+		uint32_t									offset;
+		uint32_t									size;
+	}BarrierData;
+
+	typedef struct _CopyData
+	{
+		std::shared_ptr<Buffer>						pSrcBuffer;
+		VkBufferCopy								copyData;
+		std::shared_ptr<Buffer>						pDstBuffer;
+	}CopyData;
+
+	typedef struct _BufferCopyCmdData
+	{
+		std::vector<BarrierData>					preBarriers;
+		std::vector<CopyData>						copyData;
+		std::vector<BarrierData>					postBarriers;
+	}BufferCopyCmdData;
+
 public:
 	~CommandBuffer();
 
-	bool Init(const std::shared_ptr<Device>& pDevice, const VkCommandBufferAllocateInfo& info);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandBuffer>& pSelf, const VkCommandBufferAllocateInfo& info);
 
 public:
 	VkCommandBuffer GetDeviceHandle() const { return m_commandBuffer; }
 	VkCommandBufferAllocateInfo GetAllocateInfo() const { return m_info; }
 
 	void PrepareNormalDrawCommands(const DrawCmdData& data);
-	void PrepareSetupCommands();
+	void PrepareBufferCopyCommands(const BufferCopyCmdData& data);
 
 public:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);
@@ -46,6 +72,4 @@ protected:
 	VkCommandBufferAllocateInfo		m_info;
 
 	std::shared_ptr<CommandPool>	m_pCommandPool;
-
-	DrawCmdData						m_drawCmdData;
 };

@@ -5,7 +5,8 @@
 class IndexBuffer : public Buffer
 {
 public:
-	bool Init(const std::shared_ptr<Device>& pDevice,
+	bool Init(const std::shared_ptr<Device>& pDevice, 
+		const std::shared_ptr<IndexBuffer>& pSelf,
 		uint32_t numBytes,
 		VkIndexType type);
 

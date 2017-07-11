@@ -5,12 +5,13 @@
 class DescriptorSetLayout;
 class DescriptorSet;
 
-class DescriptorPool : public DeviceObjectBase
+class DescriptorPool : public DeviceObjectBase<DescriptorPool>
 {
 public:
 	~DescriptorPool();
 
 	bool Init(const std::shared_ptr<Device>& pDevice, 
+		const std::shared_ptr<DescriptorPool>& pSelf,
 		const VkDescriptorPoolCreateInfo& info);
 
 public:

@@ -6,7 +6,7 @@ class RenderPass;
 class PipelineLayout;
 class ShaderModule;
 
-class GraphicPipeline : public DeviceObjectBase
+class GraphicPipeline : public DeviceObjectBase<GraphicPipeline>
 {
 public:
 	// Simple pipeline state, nearly all are pre-defined
@@ -31,7 +31,7 @@ public:
 	static std::shared_ptr<GraphicPipeline> Create(const std::shared_ptr<Device>& pDevice, const SimplePipelineStateCreateInfo& info);
 
 private:
-	bool Init(const std::shared_ptr<Device>& pDevice);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<GraphicPipeline>& pSelf);
 
 protected:
 	VkPipeline						m_pipeline;

@@ -2,12 +2,13 @@
 
 #include "DeviceObjectBase.h"
 
-class DescriptorSetLayout : public DeviceObjectBase
+class DescriptorSetLayout : public DeviceObjectBase<DescriptorSetLayout>
 {
 public:
 	~DescriptorSetLayout();
 
 	bool Init(const std::shared_ptr<Device>& pDevice, 
+		const std::shared_ptr<DescriptorSetLayout>& pSelf,
 		const std::vector<VkDescriptorSetLayoutBinding>& dsLayoutBinding);
 
 public:

@@ -10,11 +10,12 @@ FrameBuffer::~FrameBuffer()
 
 bool FrameBuffer::Init(
 	const std::shared_ptr<Device>& pDevice,
+	const std::shared_ptr<FrameBuffer>& pSelf,
 	const std::shared_ptr<Image>& pImage,
 	const std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer,
 	const std::shared_ptr<RenderPass>& pRenderPass)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	m_pImage = pImage;
@@ -48,7 +49,7 @@ std::shared_ptr<FrameBuffer> FrameBuffer::Create(
 	const std::shared_ptr<RenderPass>& pRenderPass)
 {
 	std::shared_ptr<FrameBuffer> pFramebuffer = std::make_shared<FrameBuffer>();
-	if (pFramebuffer.get() && pFramebuffer->Init(pDevice, pImage, pDepthStencilBuffer, pRenderPass))
+	if (pFramebuffer.get() && pFramebuffer->Init(pDevice, pFramebuffer, pImage, pDepthStencilBuffer, pRenderPass))
 		return pFramebuffer;
 	return nullptr;
 }

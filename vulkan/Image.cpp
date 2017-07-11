@@ -11,10 +11,12 @@ Image::~Image()
 	GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->FreeMemChunk(this);
 }
 
-bool Image::Init(const std::shared_ptr<Device>& pDevice, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag)
+bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
+
+	m_pSelfConsumer = pSelf;
 
 	CHECK_VK_ERROR(vkCreateImage(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_image));
 	GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->AllocateMemChunk(this, memoryPropertyFlag);
@@ -24,9 +26,9 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const VkImageCreateInfo
 	return true;
 }
 
-bool Image::Init(const std::shared_ptr<Device>& pDevice, VkImage img)
+bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, VkImage img)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	m_image = img;

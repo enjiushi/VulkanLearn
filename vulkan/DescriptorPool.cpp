@@ -8,9 +8,10 @@ DescriptorPool::~DescriptorPool()
 }
 
 bool DescriptorPool::Init(const std::shared_ptr<Device>& pDevice,
+	const std::shared_ptr<DescriptorPool>& pSelf,
 	const VkDescriptorPoolCreateInfo& info)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	m_descriptorPoolSizes.resize(info.poolSizeCount);
@@ -28,7 +29,7 @@ std::shared_ptr<DescriptorPool> DescriptorPool::Create(const std::shared_ptr<Dev
 	const VkDescriptorPoolCreateInfo& info)
 {
 	std::shared_ptr<DescriptorPool> pDsPool = std::make_shared<DescriptorPool>();
-	if (pDsPool.get() && pDsPool->Init(pDevice, info))
+	if (pDsPool.get() && pDsPool->Init(pDevice, pDsPool, info))
 		return pDsPool;
 	return nullptr;
 }

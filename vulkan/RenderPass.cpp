@@ -9,14 +9,14 @@ RenderPass::~RenderPass()
 std::shared_ptr<RenderPass> RenderPass::Create(const std::shared_ptr<Device>& pDevice, const VkRenderPassCreateInfo& renderPassInfo)
 {
 	std::shared_ptr<RenderPass> pRenderPass = std::make_shared<RenderPass>();
-	if (pRenderPass.get() && pRenderPass->Init(pDevice, renderPassInfo))
+	if (pRenderPass.get() && pRenderPass->Init(pDevice, pRenderPass, renderPassInfo))
 		return pRenderPass;
 	return nullptr;
 }
 
-bool RenderPass::Init(const std::shared_ptr<Device>& pDevice, const VkRenderPassCreateInfo& renderPassInfo)
+bool RenderPass::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<RenderPass>& pSelf, const VkRenderPassCreateInfo& renderPassInfo)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	m_renderPassInfo = renderPassInfo;

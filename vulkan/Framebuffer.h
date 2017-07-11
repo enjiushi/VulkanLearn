@@ -6,13 +6,14 @@ class Image;
 class DepthStencilBuffer;
 class RenderPass;
 
-class FrameBuffer : public DeviceObjectBase
+class FrameBuffer : public DeviceObjectBase<FrameBuffer>
 {
 public:
 	~FrameBuffer();
 
 	bool Init(
-		const std::shared_ptr<Device>& pDevice,
+		const std::shared_ptr<Device>& pDevice, 
+		const std::shared_ptr<FrameBuffer>& pSelf,
 		const std::shared_ptr<Image>& pImage,
 		const std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer,
 		const std::shared_ptr<RenderPass>& pRenderPass);

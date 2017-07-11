@@ -2,11 +2,11 @@
 
 #include "StagingBuffer.h"
 
-class StagingBufferManager : public DeviceObjectBase
+class StagingBufferManager : public DeviceObjectBase<StagingBufferManager>
 {
 	typedef struct _PendingBufferInfo
 	{
-		const Buffer* pBuffer;
+		std::shared_ptr<Buffer> pBuffer;
 		uint32_t dstOffset;
 		VkPipelineStageFlagBits dstStage;
 		VkAccessFlags dstAccess;
@@ -15,7 +15,7 @@ class StagingBufferManager : public DeviceObjectBase
 	}PendingBufferInfo;
 
 public:
-	bool Init(const std::shared_ptr<Device>& pDevice);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<StagingBufferManager>& pSelf);
 
 	static std::shared_ptr<StagingBufferManager> Create(const std::shared_ptr<Device>& pDevice);
 
@@ -23,7 +23,7 @@ public:
 	void FlushData();
 
 protected:
-	void UpdateByteStream(const Buffer* pBuffer, const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
+	void UpdateByteStream(const std::shared_ptr<Buffer>& pBuffer, const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
 
 protected:
 	std::shared_ptr<StagingBuffer>	m_pStagingBufferPool;

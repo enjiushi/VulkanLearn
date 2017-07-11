@@ -5,12 +5,12 @@
 
 class SwapChain;
 
-class Image : public DeviceObjectBase, public MemoryConsumer
+class Image : public DeviceObjectBase<Image>, public MemoryConsumer
 {
 public:
 	~Image();
 
-	bool Init(const std::shared_ptr<Device>& pDevice, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag);
 
 public:
 	VkImage GetDeviceHandle() const { return m_image; }
@@ -25,7 +25,7 @@ public:
 
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const override;
-	bool Init(const std::shared_ptr<Device>& pDevice, VkImage img);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, VkImage img);
 
 protected:
 	VkImage						m_image;

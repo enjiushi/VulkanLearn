@@ -5,7 +5,7 @@
 
 class MemoryConsumer;
 
-class DeviceMemoryManager : public DeviceObjectBase
+class DeviceMemoryManager : public DeviceObjectBase<DeviceMemoryManager>
 {
 	typedef struct _MemoryNode
 	{
@@ -26,7 +26,7 @@ class DeviceMemoryManager : public DeviceObjectBase
 public:
 	~DeviceMemoryManager();
 
-	bool Init(const std::shared_ptr<Device>& pDevice) override;
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<DeviceMemoryManager>& pSelf);
 
 public:
 	static std::shared_ptr<DeviceMemoryManager> Create(const std::shared_ptr<Device>& pDevice);
@@ -40,8 +40,8 @@ protected:
 	void ReleaseMemory();
 
 protected:
-	std::map<uint32_t, MemoryNode>					m_bufferMemPool;
-	std::map<const MemoryConsumer*, MemoryNode>		m_imageMemPool;
+	std::map<uint32_t, MemoryNode>							m_bufferMemPool;
+	std::map<const MemoryConsumer*, MemoryNode>	m_imageMemPool;
 	std::map<const MemoryConsumer*, BindingInfo>	m_bufferBindingTable;
 
 	friend class Buffer;

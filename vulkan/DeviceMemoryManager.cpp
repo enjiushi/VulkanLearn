@@ -8,9 +8,9 @@ DeviceMemoryManager::~DeviceMemoryManager()
 	ReleaseMemory();
 }
 
-bool DeviceMemoryManager::Init(const std::shared_ptr<Device>& pDevice)
+bool DeviceMemoryManager::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<DeviceMemoryManager>& pSelf)
 {
-	if (!DeviceObjectBase::Init(pDevice))
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	return true;
@@ -19,7 +19,7 @@ bool DeviceMemoryManager::Init(const std::shared_ptr<Device>& pDevice)
 std::shared_ptr<DeviceMemoryManager> DeviceMemoryManager::Create(const std::shared_ptr<Device>& pDevice)
 {
 	std::shared_ptr<DeviceMemoryManager> pMgr = std::make_shared<DeviceMemoryManager>(DeviceMemoryManager());
-	if (pMgr.get() && pMgr->Init(pDevice))
+	if (pMgr.get() && pMgr->Init(pDevice, pMgr))
 		return pMgr;
 	return nullptr;
 }

@@ -5,7 +5,8 @@
 class VertexBuffer : public Buffer
 {
 public:
-	bool Init(const std::shared_ptr<Device>& pDevice, 
+	bool Init(const std::shared_ptr<Device>& pDevice,
+		const std::shared_ptr<VertexBuffer>& pSelf,
 		uint32_t numBytes,
 		const VkVertexInputBindingDescription& bindingDesc,
 		const std::vector<VkVertexInputAttributeDescription>& attribDesc);

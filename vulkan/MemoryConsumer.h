@@ -14,6 +14,5 @@ public:
 
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const = 0;
-
 	friend class DeviceMemoryManager;
 };
