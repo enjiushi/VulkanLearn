@@ -299,11 +299,6 @@ void VulkanGlobal::InitCommandPool()
 
 void VulkanGlobal::InitSetupCommandBuffer()
 {
-	m_pSetupCmdBuffer = CommandPool::AllocatePrimaryCommandBuffer(GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool());
-
-	VkCommandBufferBeginInfo beginInfo = {};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	CHECK_VK_ERROR(vkBeginCommandBuffer(m_pSetupCmdBuffer->GetDeviceHandle(), &beginInfo));
 }
 
 void VulkanGlobal::InitMemoryMgr()
@@ -652,25 +647,6 @@ void VulkanGlobal::InitSemaphore()
 
 void VulkanGlobal::EndSetup()
 {
-	if (m_pSetupCmdBuffer.get() == nullptr)
-		return;
-
-	CHECK_VK_ERROR(vkEndCommandBuffer(m_pSetupCmdBuffer->GetDeviceHandle()));
-
-	/*
-	VkSubmitInfo submitInfo = {};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	VkCommandBuffer cmdBuffer = m_pSetupCmdBuffer->GetDeviceHandle();
-	submitInfo.pCommandBuffers = &cmdBuffer;
-
-	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
-	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
-
-	m_pSetupCmdBuffer.reset();
-	*/
-	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(m_pSetupCmdBuffer, true);
-
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 }
 
