@@ -3,6 +3,7 @@
 #include "GlobalDeviceObjects.h"
 #include "CommandPool.h"
 #include "Queue.h"
+#include "Semaphore.h"
 
 std::shared_ptr<SwapChain> SwapChain::Create(const std::shared_ptr<Device>& pDevice)
 {
@@ -86,4 +87,22 @@ void SwapChain::EnsureSwapChainImageLayout()
 	{
 		m_swapchainImages[i]->EnsureImageLayout();
 	}
+}
+
+void SwapChain::AcquireNextImage(const std::shared_ptr<Semaphore>& acquireDone, uint32_t& index) const
+{
+	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, acquireDone->GetDeviceHandle(), nullptr, &index));
+}
+
+void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, const std::shared_ptr<Semaphore>& renderDone, uint32_t index) const
+{
+	VkPresentInfoKHR presentInfo = {};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = &m_swapchain;
+	presentInfo.waitSemaphoreCount = 1;
+	auto semaphore = renderDone->GetDeviceHandle();
+	presentInfo.pWaitSemaphores = &semaphore;
+	presentInfo.pImageIndices = &index;
+	CHECK_VK_ERROR(m_fpQueuePresentKHR(pPresentQueue->GetDeviceHandle(), &presentInfo));
 }

@@ -8,6 +8,9 @@
 #include "DeviceObjectBase.h"
 #include "SwapChainImage.h"
 
+class Semaphore;
+class Queue;
+
 class SwapChain : public DeviceObjectBase<SwapChain>
 {
 public:
@@ -18,6 +21,9 @@ public:
 	const VkSwapchainKHR GetDeviceHandle() const { return m_swapchain; }
 	const std::shared_ptr<SwapChainImage> GetSwapChainImage(uint32_t index) { assert(index < m_swapchainImages.size()); return m_swapchainImages[index]; }
 	uint32_t GetSwapChainImageCount() const { return m_swapchainImages.size(); }
+
+	void AcquireNextImage(const std::shared_ptr<Semaphore>& acquireDone, uint32_t& index) const;
+	void QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, const std::shared_ptr<Semaphore>& renderDone, uint32_t index) const;
 
 	void EnsureSwapChainImageLayout();
 

@@ -655,23 +655,14 @@ void VulkanGlobal::Draw()
 	InitUniforms();
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 
-	CHECK_VK_ERROR(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetAcquireNextImageFuncPtr()(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle(), UINT64_MAX, m_pSwapchainAcquireDone->GetDeviceHandle(), nullptr, &m_currentBufferIndex));
+	GlobalObjects()->GetSwapChain()->AcquireNextImage(m_pSwapchainAcquireDone, m_currentBufferIndex);
 
 	std::vector<std::shared_ptr<Semaphore>> waitSemaphores = { m_pSwapchainAcquireDone };
 	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	std::vector<std::shared_ptr<Semaphore>> signalSemaphores = { m_pRenderDone };
 	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(m_drawCmdBuffers[m_currentBufferIndex], waitSemaphores, waitFlags, signalSemaphores);
 
-	VkSemaphore s2 = m_pRenderDone->GetDeviceHandle();
-	VkPresentInfoKHR presentInfo = {};
-	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	presentInfo.swapchainCount = 1;
-	VkSwapchainKHR swapchain = (GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetDeviceHandle());
-	presentInfo.pSwapchains = &swapchain;
-	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = &s2;
-	presentInfo.pImageIndices = &m_currentBufferIndex;
-	GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetQueuePresentFuncPtr()(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle(), &presentInfo);
+	GlobalObjects()->GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue(), m_pRenderDone, m_currentBufferIndex);
 
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle());
 }
