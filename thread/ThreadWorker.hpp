@@ -4,7 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <queue>
-#include "ThreadData.h"
+#include "PerFrameData.h"
 
 class Device;
 
