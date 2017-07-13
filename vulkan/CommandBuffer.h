@@ -78,5 +78,8 @@ protected:
 
 	std::shared_ptr<CommandPool>	m_pCommandPool;
 
+	DrawCmdData						m_drawCmdData;
+	BufferCopyCmdData				m_bufferCopyCmdData;
+
 	friend class CommandPool;
 };

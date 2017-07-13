@@ -98,6 +98,8 @@ void CommandBuffer::PrepareNormalDrawCommands(const DrawCmdData& data)
 	vkCmdEndRenderPass(GetDeviceHandle());
 
 	CHECK_VK_ERROR(vkEndCommandBuffer(GetDeviceHandle()));
+
+	m_drawCmdData = data;
 }
 
 void CommandBuffer::PrepareBufferCopyCommands(const BufferCopyCmdData& data)
@@ -206,4 +208,6 @@ void CommandBuffer::PrepareBufferCopyCommands(const BufferCopyCmdData& data)
 	}
 
 	CHECK_VK_ERROR(vkEndCommandBuffer(GetDeviceHandle()));
+
+	m_bufferCopyCmdData = data;
 }
