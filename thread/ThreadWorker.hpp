@@ -4,12 +4,16 @@
 #include <mutex>
 #include <condition_variable>
 #include <queue>
+#include "ThreadData.h"
+
+class Device;
 
 class ThreadWorker
 {
 public:
-	ThreadWorker() : m_isWorking(false)
+	ThreadWorker(const std::shared_ptr<Device>& pDevice) : m_isWorking(false)
 	{
+		m_pThreadData = PerFrameData::Create(pDevice);
 		m_worker = std::thread(&ThreadWorker::Loop, this);
 	}
 
@@ -92,6 +96,8 @@ private:
 	std::mutex m_queueMutex;
 	std::condition_variable m_condition;
 	std::queue<std::function<void()>> m_jobQueue;
+	std::shared_ptr<PerFrameData>	m_pThreadData;
+
 	bool m_isWorking = false;
 	bool m_isDestroying = false;
 	const int32_t m_jobQueueSize = 2;

@@ -1,9 +1,13 @@
 #include "CommandPool.h"
 #include "CommandBuffer.h"
 #include "GlobalDeviceObjects.h"
+#include "Fence.h"
+
+#define UINT64_MAX       0xffffffffffffffffui64
 
 CommandPool::~CommandPool()
 {
+	m_cmdBufferList.clear();
 	vkDestroyCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, nullptr);
 }
 
@@ -22,18 +26,18 @@ bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 	return true;
 }
 
-std::shared_ptr<CommandBuffer> CommandPool::AllocatePrimaryCommandBuffer(const std::shared_ptr<CommandPool>& pCmdPool)
+std::shared_ptr<CommandBuffer> CommandPool::AllocatePrimaryCommandBuffer()
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = CommandBuffer::Create(pCmdPool->GetDevice(), pCmdPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-	pCmdPool->m_cmdBufferList.push_back(pCmdBuffer);
+	std::shared_ptr<CommandBuffer> pCmdBuffer = CommandBuffer::Create(GetDevice(), GetSelfSharedPtr(), VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+	m_cmdBufferList.push_back(pCmdBuffer);
 	return pCmdBuffer;
 }
 
-std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocatePrimaryCommandBuffers(const std::shared_ptr<CommandPool>& pCmdPool, uint32_t count)
+std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocatePrimaryCommandBuffers(uint32_t count)
 {
 	std::vector<std::shared_ptr<CommandBuffer>> cmdBuffers;
 	for (uint32_t i = 0; i < count; i++)
-		cmdBuffers.push_back(AllocatePrimaryCommandBuffer(pCmdPool));
+		cmdBuffers.push_back(AllocatePrimaryCommandBuffer());
 
 	return cmdBuffers;
 }
@@ -44,4 +48,19 @@ std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& 
 	if (pCommandPool.get() && pCommandPool->Init(pDevice, pCommandPool))
 		return pCommandPool;
 	return nullptr;
+}
+
+void CommandPool::Reset(const std::shared_ptr<Fence>& pFence)
+{
+	//Hold this fence pointer until the end of this function
+	std::shared_ptr<Fence> pFenceHolder = pFence;
+
+	if (pFenceHolder.get())
+	{
+		VkFence fence = pFenceHolder->GetDeviceHandle();
+		CHECK_VK_ERROR(vkWaitForFences(GetDevice()->GetDeviceHandle(), 1, &fence, VK_TRUE, UINT64_MAX));
+	}
+
+	vkResetCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT);
+	m_cmdBufferList.clear();
 }

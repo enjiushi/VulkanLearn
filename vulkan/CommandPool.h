@@ -3,6 +3,7 @@
 #include "DeviceObjectBase.h"
 
 class CommandBuffer;
+class Fence;
 
 class CommandPool : public DeviceObjectBase<CommandPool>
 {
@@ -12,9 +13,10 @@ public:
 	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pSelf);
 
 public:
-	static std::shared_ptr<CommandBuffer> AllocatePrimaryCommandBuffer(const std::shared_ptr<CommandPool>& pCmdPool);
-	static std::vector<std::shared_ptr<CommandBuffer>> AllocatePrimaryCommandBuffers(const std::shared_ptr<CommandPool>& pCmdPool, uint32_t count);
+	std::shared_ptr<CommandBuffer> AllocatePrimaryCommandBuffer();
+	std::vector<std::shared_ptr<CommandBuffer>> AllocatePrimaryCommandBuffers(uint32_t count);
 	VkCommandPool GetDeviceHandle() const { return m_commandPool; }
+	void Reset(const std::shared_ptr<Fence>& pFence);
 
 public:
 	static std::shared_ptr<CommandPool> Create(const std::shared_ptr<Device>& pDevice);
@@ -23,5 +25,5 @@ protected:
 	VkCommandPool			m_commandPool;
 	VkCommandPoolCreateInfo m_info;
 
-	std::vector<std::weak_ptr<CommandBuffer>> m_cmdBufferList;
+	std::vector<std::shared_ptr<CommandBuffer>> m_cmdBufferList;
 };

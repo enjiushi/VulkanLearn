@@ -60,7 +60,7 @@ std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::Create(const std::shared
 
 void DepthStencilBuffer::EnsureImageLayout()
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = CommandPool::AllocatePrimaryCommandBuffer(GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool());
+	std::shared_ptr<CommandBuffer> pCmdBuffer = GlobalObjects()->GetMainThreadCmdPool()->AllocatePrimaryCommandBuffer();
 	VkCommandBuffer cmdBuffer = pCmdBuffer->GetDeviceHandle();
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -93,5 +93,5 @@ void DepthStencilBuffer::EnsureImageLayout()
 
 	CHECK_VK_ERROR(vkEndCommandBuffer(cmdBuffer));
 
-	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, true);
+	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }

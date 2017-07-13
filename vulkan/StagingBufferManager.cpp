@@ -25,7 +25,7 @@ std::shared_ptr<StagingBufferManager> StagingBufferManager::Create(const std::sh
 // FIXEME: this function should replace native device objects with wrapper class
 void StagingBufferManager::FlushData()
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = CommandPool::AllocatePrimaryCommandBuffer(GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool());
+	std::shared_ptr<CommandBuffer> pCmdBuffer = GlobalObjects()->GetMainThreadCmdPool()->AllocatePrimaryCommandBuffer();
 
 	
 	CommandBuffer::BufferCopyCmdData data;
@@ -71,7 +71,7 @@ void StagingBufferManager::FlushData()
 
 	pCmdBuffer->PrepareBufferCopyCommands(data);
 
-	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, true);
+	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 	
 	m_pendingUpdateBuffer.clear();
 	m_usedNumBytes = 0;

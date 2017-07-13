@@ -6,17 +6,19 @@
 #include <condition_variable>
 #include "ThreadWorker.hpp"
 
+class Device;
+
 class ThreadTaskQueue
 {
 public:
-	ThreadTaskQueue()
+	ThreadTaskQueue(const std::shared_ptr<Device>& pDevice, uint32_t roundBinCount)
 	{
 		m_worker = std::thread(&ThreadTaskQueue::Loop, this);
 
 		int numThreads = std::thread::hardware_concurrency();
 		for (int i = 0; i < numThreads - 1; i++)
 		{
-			m_threadWorkers.push_back(std::make_shared<ThreadWorker>());
+			m_threadWorkers.push_back(std::make_shared<ThreadWorker>(pDevice));
 		}
 	}
 

@@ -71,7 +71,7 @@ std::shared_ptr<SwapChainImage> SwapChainImage::Create(const std::shared_ptr<Dev
 
 void SwapChainImage::EnsureImageLayout()
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = CommandPool::AllocatePrimaryCommandBuffer(GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool());
+	std::shared_ptr<CommandBuffer> pCmdBuffer = GlobalObjects()->GetMainThreadCmdPool()->AllocatePrimaryCommandBuffer();
 	VkCommandBuffer cmdBuffer = pCmdBuffer->GetDeviceHandle();
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

@@ -64,12 +64,19 @@ public:
 	void PrepareNormalDrawCommands(const DrawCmdData& data);
 	void PrepareBufferCopyCommands(const BufferCopyCmdData& data);
 
-public:
+protected:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);
+
+protected:
+	bool IsValide() const { m_isValide; }
+	void SetIsValide(bool flag) { m_isValide = flag; }
 
 protected:
 	VkCommandBuffer					m_commandBuffer;
 	VkCommandBufferAllocateInfo		m_info;
+	bool							m_isValide;
 
 	std::shared_ptr<CommandPool>	m_pCommandPool;
+
+	friend class CommandPool;
 };

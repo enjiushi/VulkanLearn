@@ -622,7 +622,7 @@ void VulkanGlobal::InitDescriptorSet()
 
 void VulkanGlobal::InitDrawCmdBuffers()
 {
-	m_drawCmdBuffers = CommandPool::AllocatePrimaryCommandBuffers(GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
+	m_drawCmdBuffers = GlobalObjects()->GetMainThreadCmdPool()->AllocatePrimaryCommandBuffers(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
 
 	for (size_t i = 0; i < GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
@@ -650,6 +650,30 @@ void VulkanGlobal::EndSetup()
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 }
 
+/*
+std::shared_ptr<CommandBuffer> VulkanGlobal::PrepareCommandBuffer()
+{
+	InitUniforms();
+	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
+
+	m_drawCmdBuffers = CommandPool::AllocatePrimaryCommandBuffers(GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
+
+	for (size_t i = 0; i < GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount(); i++)
+	{
+		CommandBuffer::DrawCmdData prepData;
+		prepData.pFrameBuffer = m_framebuffers[i];
+		prepData.pRenderPass = m_pRenderPass;
+		prepData.pPipeline = m_pPipeline;
+		prepData.descriptorSets = { m_pDescriptorSet };
+		prepData.vertexBuffers = { m_pVertexBuffer };
+		prepData.pIndexBuffer = m_pIndexBuffer;
+		prepData.clearValues = { { 0.2f, 0.2f, 0.2f, 0.2f },{ 1.0f, 0 } };
+
+		m_drawCmdBuffers[i]->PrepareNormalDrawCommands(prepData);
+	}
+
+}*/
+
 void VulkanGlobal::Draw()
 {
 	InitUniforms();
@@ -660,7 +684,7 @@ void VulkanGlobal::Draw()
 	std::vector<std::shared_ptr<Semaphore>> waitSemaphores = { m_pSwapchainAcquireDone };
 	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	std::vector<std::shared_ptr<Semaphore>> signalSemaphores = { m_pRenderDone };
-	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(m_drawCmdBuffers[m_currentBufferIndex], waitSemaphores, waitFlags, signalSemaphores);
+	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(m_drawCmdBuffers[m_currentBufferIndex], waitSemaphores, waitFlags, signalSemaphores, nullptr, true);
 
 	GlobalObjects()->GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue(), m_pRenderDone, m_currentBufferIndex);
 

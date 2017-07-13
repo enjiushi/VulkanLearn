@@ -73,6 +73,7 @@ public:
 	void InitSemaphore();
 	void EndSetup();
 
+	std::shared_ptr<CommandBuffer> PrepareCommandBuffer();
 	void Draw();
 	void Update();
 
