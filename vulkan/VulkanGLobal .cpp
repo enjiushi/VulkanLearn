@@ -679,14 +679,15 @@ void VulkanGlobal::Draw()
 	InitUniforms();
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 
-	GlobalObjects()->GetSwapChain()->AcquireNextImage(m_pSwapchainAcquireDone, m_currentBufferIndex);
+	GlobalObjects()->GetSwapChain()->AcquireNextImage(m_pSwapchainAcquireDone);
+	uint32_t index = GlobalObjects()->GetSwapChain()->GetCurrentIndex();
 
 	std::vector<std::shared_ptr<Semaphore>> waitSemaphores = { m_pSwapchainAcquireDone };
 	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	std::vector<std::shared_ptr<Semaphore>> signalSemaphores = { m_pRenderDone };
-	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(m_drawCmdBuffers[m_currentBufferIndex], waitSemaphores, waitFlags, signalSemaphores, nullptr, true);
+	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(m_drawCmdBuffers[index], waitSemaphores, waitFlags, signalSemaphores, nullptr, true);
 
-	GlobalObjects()->GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue(), m_pRenderDone, m_currentBufferIndex);
+	GlobalObjects()->GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue(), m_pRenderDone, index);
 
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle());
 }

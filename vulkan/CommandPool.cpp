@@ -7,7 +7,6 @@
 
 CommandPool::~CommandPool()
 {
-	m_cmdBufferList.clear();
 	vkDestroyCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, nullptr);
 }
 
@@ -29,7 +28,6 @@ bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 std::shared_ptr<CommandBuffer> CommandPool::AllocatePrimaryCommandBuffer()
 {
 	std::shared_ptr<CommandBuffer> pCmdBuffer = CommandBuffer::Create(GetDevice(), GetSelfSharedPtr(), VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-	m_cmdBufferList.push_back(pCmdBuffer);
 	return pCmdBuffer;
 }
 
@@ -62,5 +60,4 @@ void CommandPool::Reset(const std::shared_ptr<Fence>& pFence)
 	}
 
 	vkResetCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT);
-	m_cmdBufferList.clear();
 }

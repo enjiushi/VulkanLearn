@@ -24,7 +24,7 @@ public:
 	uint32_t GetSwapChainImageCount() const { return m_swapchainImages.size(); }
 	uint32_t GetCurrentIndex() const { return m_currentIndex; }
 
-	void AcquireNextImage(const std::shared_ptr<Semaphore>& acquireDone, uint32_t& index) const;
+	void AcquireNextImage(const std::shared_ptr<Semaphore>& acquireDone);
 	void QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, const std::shared_ptr<Semaphore>& renderDone, uint32_t index);
 	
 	void EnsureSwapChainImageLayout();

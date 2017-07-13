@@ -96,9 +96,9 @@ void SwapChain::EnsureSwapChainImageLayout()
 	}
 }
 
-void SwapChain::AcquireNextImage(const std::shared_ptr<Semaphore>& acquireDone, uint32_t& index) const
+void SwapChain::AcquireNextImage(const std::shared_ptr<Semaphore>& acquireDone)
 {
-	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, acquireDone->GetDeviceHandle(), nullptr, &index));
+	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, acquireDone->GetDeviceHandle(), nullptr, &m_currentIndex));
 }
 
 void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, const std::shared_ptr<Semaphore>& renderDone, uint32_t index)
@@ -112,6 +112,4 @@ void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, c
 	presentInfo.pWaitSemaphores = &semaphore;
 	presentInfo.pImageIndices = &index;
 	CHECK_VK_ERROR(m_fpQueuePresentKHR(pPresentQueue->GetDeviceHandle(), &presentInfo));
-
-	m_currentIndex = (m_currentIndex + 1) % m_frameFences.size();
 }

@@ -120,8 +120,6 @@ protected:
 	std::shared_ptr<Semaphore>			m_pSwapchainAcquireDone;
 	std::shared_ptr<Semaphore>			m_pRenderDone;
 
-	uint32_t							m_currentBufferIndex = 0;
-
 	float								m_roughness = 0.1;
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
