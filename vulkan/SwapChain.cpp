@@ -4,6 +4,7 @@
 #include "CommandPool.h"
 #include "Queue.h"
 #include "Semaphore.h"
+#include "Fence.h"
 
 std::shared_ptr<SwapChain> SwapChain::Create(const std::shared_ptr<Device>& pDevice)
 {
@@ -11,6 +12,10 @@ std::shared_ptr<SwapChain> SwapChain::Create(const std::shared_ptr<Device>& pDev
 	if (pSwapChain.get() && pSwapChain->Init(pDevice, pSwapChain))
 	{
 		pSwapChain->m_swapchainImages = SwapChainImage::Create(pDevice, pSwapChain);
+
+		for (uint32_t i = 0; i < pSwapChain->m_swapchainImages.size(); i++)
+			pSwapChain->m_frameFences.push_back(Fence::Create(pDevice));
+
 		return pSwapChain;
 	}
 
@@ -78,6 +83,8 @@ bool SwapChain::Init(const std::shared_ptr<Device>& pDevice, const std::shared_p
 
 	RETURN_FALSE_VK_RESULT(m_fpCreateSwapchainKHR(m_pDevice->GetDeviceHandle(), &swapchainCreateInfo, nullptr, &m_swapchain));
 
+	m_currentIndex = 0;
+
 	return true;
 }
 
@@ -94,7 +101,7 @@ void SwapChain::AcquireNextImage(const std::shared_ptr<Semaphore>& acquireDone, 
 	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, acquireDone->GetDeviceHandle(), nullptr, &index));
 }
 
-void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, const std::shared_ptr<Semaphore>& renderDone, uint32_t index) const
+void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, const std::shared_ptr<Semaphore>& renderDone, uint32_t index)
 {
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -105,4 +112,6 @@ void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, c
 	presentInfo.pWaitSemaphores = &semaphore;
 	presentInfo.pImageIndices = &index;
 	CHECK_VK_ERROR(m_fpQueuePresentKHR(pPresentQueue->GetDeviceHandle(), &presentInfo));
+
+	m_currentIndex = (m_currentIndex + 1) % m_frameFences.size();
 }
