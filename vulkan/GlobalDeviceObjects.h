@@ -18,6 +18,7 @@ public:
 	~GlobalDeviceObjects();
 
 public:
+	const std::shared_ptr<Device> GetDevice() const { return m_pDevice; }
 	const std::shared_ptr<Queue> GetGraphicQueue() const { return m_pGraphicQueue; }
 	const std::shared_ptr<Queue> GetPresentQueue() const { return m_pPresentQueue; }
 	const std::shared_ptr<CommandPool> GetMainThreadCmdPool() const { return m_pMainThreadCmdPool; }
@@ -27,6 +28,7 @@ public:
 	const std::shared_ptr<SwapChain> GetSwapChain() const { return m_pSwapChain; }
 
 protected:
+	std::shared_ptr<Device>					m_pDevice;
 	std::shared_ptr<Queue>					m_pGraphicQueue;
 	std::shared_ptr<Queue>					m_pPresentQueue;
 	std::shared_ptr<CommandPool>			m_pMainThreadCmdPool;

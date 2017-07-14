@@ -24,6 +24,8 @@ bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 
 	m_pSwapChain = SwapChain::Create(pDevice);
 
+	m_pDevice = pDevice;
+
 	return true;
 }
 
