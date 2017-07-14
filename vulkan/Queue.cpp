@@ -54,6 +54,25 @@ void Queue::SubmitCommandBuffer(
 	const std::shared_ptr<CommandBuffer>& pCmdBuffer,
 	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
 	const std::vector<VkPipelineStageFlags>& waitStages,
+	bool waitUtilQueueIdle)
+{
+	std::vector<std::shared_ptr<CommandBuffer>> v = { pCmdBuffer };
+	SubmitCommandBuffers(v, waitSemaphores, waitStages, GetSwapChain()->GetFrameManager()->GetCurrentFrameFence(), waitUtilQueueIdle);
+}
+
+void Queue::SubmitCommandBuffers(
+	const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers,
+	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
+	const std::vector<VkPipelineStageFlags>& waitStages,
+	bool waitUtilQueueIdle)
+{
+	SubmitCommandBuffers(cmdBuffers, std::vector<std::shared_ptr<Semaphore>>(), std::vector<VkPipelineStageFlags>(), std::vector<std::shared_ptr<Semaphore>>(), GetSwapChain()->GetFrameManager()->GetCurrentFrameFence(), waitUtilQueueIdle);
+}
+
+void Queue::SubmitCommandBuffer(
+	const std::shared_ptr<CommandBuffer>& pCmdBuffer,
+	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
+	const std::vector<VkPipelineStageFlags>& waitStages,
 	const std::shared_ptr<Fence>& pFence,
 	bool waitUtilQueueIdle)
 {
@@ -69,6 +88,27 @@ void Queue::SubmitCommandBuffers(
 	bool waitUtilQueueIdle)
 {
 	SubmitCommandBuffers(cmdBuffers, std::vector<std::shared_ptr<Semaphore>>(), std::vector<VkPipelineStageFlags>(), std::vector<std::shared_ptr<Semaphore>>(), pFence, waitUtilQueueIdle);
+}
+
+void Queue::SubmitCommandBuffer(
+	const std::shared_ptr<CommandBuffer>& pCmdBuffer,
+	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
+	const std::vector<VkPipelineStageFlags>& waitStages,
+	const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
+	bool waitUtilQueueIdle)
+{
+	std::vector<std::shared_ptr<CommandBuffer>> v = { pCmdBuffer };
+	SubmitCommandBuffers(v, waitSemaphores, waitStages, signalSemaphores, GetSwapChain()->GetFrameManager()->GetCurrentFrameFence(), waitUtilQueueIdle);
+}
+
+void Queue::SubmitCommandBuffers(
+	const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers,
+	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
+	const std::vector<VkPipelineStageFlags>& waitStages,
+	const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
+	bool waitUtilQueueIdle)
+{
+	SubmitCommandBuffers(cmdBuffers, waitSemaphores, waitStages, signalSemaphores, GetSwapChain()->GetFrameManager()->GetCurrentFrameFence(), waitUtilQueueIdle);
 }
 
 void Queue::SubmitCommandBuffer(
