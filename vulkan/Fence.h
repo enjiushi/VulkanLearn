@@ -13,7 +13,7 @@ public:
 	VkFence GetDeviceHandle() const { return m_fence; }
 	bool Signaled() const { return m_signaled; }
 	void Reset();
-	void Wait() const;
+	void Wait();
 
 public:
 	static std::shared_ptr<Fence> Create(const std::shared_ptr<Device>& pDevice);

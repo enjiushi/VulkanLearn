@@ -28,12 +28,13 @@ std::shared_ptr<Fence> Fence::Create(const std::shared_ptr<Device>& pDevice)
 	return nullptr;
 }
 
-void Fence::Wait() const
+void Fence::Wait()
 {
 	if (m_signaled)
 		return;
 
 	CHECK_VK_ERROR(vkWaitForFences(GetDevice()->GetDeviceHandle(), 1, &m_fence, VK_TRUE, UINT64_MAX));
+	m_signaled = true;
 }
 
 void Fence::Reset()
@@ -42,4 +43,5 @@ void Fence::Reset()
 		return;
 
 	CHECK_VK_ERROR(vkResetFences(GetDevice()->GetDeviceHandle(), 1, &m_fence));
+	m_signaled = false;
 }
