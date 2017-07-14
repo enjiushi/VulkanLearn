@@ -2,6 +2,9 @@
 #include "CommandBuffer.h"
 #include "Semaphore.h"
 #include "Fence.h"
+#include "GlobalDeviceObjects.h"
+#include "SwapChain.h"
+#include "FrameManager.h"
 
 Queue::~Queue()
 {
@@ -22,6 +25,18 @@ std::shared_ptr<Queue> Queue::Create(const std::shared_ptr<Device>& pDevice, uin
 	if (pQueue.get() && pQueue->Init(pDevice, pQueue, queueIndex))
 		return pQueue;
 	return nullptr;
+}
+
+void Queue::SubmitCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, bool waitUtilQueueIdle)
+{
+	std::vector<std::shared_ptr<CommandBuffer>> v = { pCmdBuffer };
+	SubmitCommandBuffers(v, GetSwapChain()->GetFrameManager()->GetCurrentFrameFence(), waitUtilQueueIdle);
+	
+}
+
+void Queue::SubmitCommandBuffers(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers, bool waitUtilQueueIdle)
+{
+	SubmitCommandBuffers(cmdBuffers, std::vector<std::shared_ptr<Semaphore>>(), std::vector<VkPipelineStageFlags>(), GetSwapChain()->GetFrameManager()->GetCurrentFrameFence(), waitUtilQueueIdle);
 }
 
 void Queue::SubmitCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<Fence>& pFence, bool waitUtilQueueIdle)
