@@ -4,7 +4,9 @@
 #include <mutex>
 #include <condition_variable>
 #include <queue>
-#include "PerFrameData.h"
+#include "../vulkan/PerFrameResource.h"
+#include "../vulkan/GlobalDeviceObjects.h"
+#include "../vulkan/SwapChain.h"
 
 class Device;
 
@@ -13,7 +15,8 @@ class ThreadWorker
 public:
 	ThreadWorker(const std::shared_ptr<Device>& pDevice) : m_isWorking(false)
 	{
-		m_pThreadData = PerFrameData::Create(pDevice);
+		for (uint32_t i = 0; i < GlobalObjects()->GetSwapChain()->GetSwapChainImageCount(); i++)
+			m_frameRes.push_back(PerFrameResource::Create(pDevice));
 		m_worker = std::thread(&ThreadWorker::Loop, this);
 	}
 
@@ -96,7 +99,7 @@ private:
 	std::mutex m_queueMutex;
 	std::condition_variable m_condition;
 	std::queue<std::function<void()>> m_jobQueue;
-	std::shared_ptr<PerFrameData>	m_pThreadData;
+	std::vector<std::shared_ptr<PerFrameResource>>	m_frameRes;
 
 	bool m_isWorking = false;
 	bool m_isDestroying = false;
