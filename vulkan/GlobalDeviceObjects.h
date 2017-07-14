@@ -9,6 +9,7 @@ class DeviceMemoryManager;
 class StagingBufferManager;
 class Buffer;
 class SwapChain;
+class FrameManager;
 
 class GlobalDeviceObjects : public Singleton<GlobalDeviceObjects>
 {
@@ -41,11 +42,11 @@ protected:
 };
 
 GlobalDeviceObjects* GlobalObjects();
-std::shared_ptr<Queue> GlobalGraphicQueue() { return GlobalObjects()->GetGraphicQueue(); }
-std::shared_ptr<Queue> GlobalPresentQueue() { return GlobalObjects()->GetPresentQueue(); }
-std::shared_ptr<CommandPool> MainThreadPool() { return GlobalObjects()->GetMainThreadCmdPool(); }
-std::shared_ptr<DeviceMemoryManager> DeviceMemMgr() { return GlobalObjects()->GetDeviceMemMgr(); }
-std::shared_ptr<StagingBufferManager> StagingBufferMgr() { return GlobalObjects()->GetStagingBufferMgr(); }
-std::shared_ptr<Buffer> GlobalBigUniformBuffer() { return GlobalObjects()->GetBigUniformBuffer(); }
-std::shared_ptr<SwapChain> GetSwapChain() { return GlobalObjects()->GetSwapChain(); }
-std::shared_ptr<FrameManager> FrameMgr() { return GetSwapChain()->GetFrameManager(); }
+std::shared_ptr<Queue> GlobalGraphicQueue();
+std::shared_ptr<Queue> GlobalPresentQueue();
+std::shared_ptr<CommandPool> MainThreadPool();
+std::shared_ptr<DeviceMemoryManager> DeviceMemMgr();
+std::shared_ptr<StagingBufferManager> StagingBufferMgr();
+std::shared_ptr<Buffer> GlobalBigUniformBuffer();
+std::shared_ptr<SwapChain> GetSwapChain();
+std::shared_ptr<FrameManager> FrameMgr();
