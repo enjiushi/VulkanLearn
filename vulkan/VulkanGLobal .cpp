@@ -15,6 +15,7 @@
 #include "StagingBuffer.h"
 #include "Queue.h"
 #include "StagingBufferManager.h"
+#include "FrameManager.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -680,7 +681,7 @@ void VulkanGlobal::Draw()
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 
 	GlobalObjects()->GetSwapChain()->AcquireNextImage(m_pSwapchainAcquireDone);
-	uint32_t index = GlobalObjects()->GetSwapChain()->GetCurrentIndex();
+	uint32_t index = GlobalObjects()->GetSwapChain()->GetFrameManager()->FrameIndex();
 
 	std::vector<std::shared_ptr<Semaphore>> waitSemaphores = { m_pSwapchainAcquireDone };
 	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };

@@ -12,10 +12,6 @@ std::shared_ptr<SwapChain> SwapChain::Create(const std::shared_ptr<Device>& pDev
 	if (pSwapChain.get() && pSwapChain->Init(pDevice, pSwapChain))
 	{
 		pSwapChain->m_swapchainImages = SwapChainImage::Create(pDevice, pSwapChain);
-
-		for (uint32_t i = 0; i < pSwapChain->m_swapchainImages.size(); i++)
-			pSwapChain->m_frameFences.push_back(Fence::Create(pDevice));
-
 		return pSwapChain;
 	}
 
@@ -83,7 +79,7 @@ bool SwapChain::Init(const std::shared_ptr<Device>& pDevice, const std::shared_p
 
 	RETURN_FALSE_VK_RESULT(m_fpCreateSwapchainKHR(m_pDevice->GetDeviceHandle(), &swapchainCreateInfo, nullptr, &m_swapchain));
 
-	m_currentIndex = 0;
+	m_pFrameManager = FrameManager::Create(pDevice, swapchainCreateInfo.minImageCount);
 
 	return true;
 }
@@ -98,7 +94,9 @@ void SwapChain::EnsureSwapChainImageLayout()
 
 void SwapChain::AcquireNextImage(const std::shared_ptr<Semaphore>& acquireDone)
 {
-	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, acquireDone->GetDeviceHandle(), nullptr, &m_currentIndex));
+	uint32_t index;
+	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, acquireDone->GetDeviceHandle(), nullptr, &index));
+	m_pFrameManager->SetFrameIndex(index);
 }
 
 void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, const std::shared_ptr<Semaphore>& renderDone, uint32_t index)
