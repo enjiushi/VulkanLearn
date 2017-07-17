@@ -16,7 +16,7 @@ bool FrameManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFram
 	for (uint32_t i = 0; i < maxFrameCount; i++)
 	{
 		m_frameResTable[i] = std::vector<std::shared_ptr<PerFrameResource>>();
-		m_frameFences.push_back({ Fence::Create(pDevice), false });
+		m_frameFences.push_back(Fence::Create(pDevice));
 	}
 
 	m_currentFrameIndex = 0;
