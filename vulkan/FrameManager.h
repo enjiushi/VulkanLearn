@@ -17,13 +17,19 @@ public:
 	std::shared_ptr<PerFrameResource> AllocatePerFrameResource(uint32_t frameIndex);
 	uint32_t FrameIndex() const { return m_currentFrameIndex; }
 	std::shared_ptr<Fence> GetCurrentFrameFence() const { return m_frameFences[m_currentFrameIndex]; }
+	void WaitForFence();
 
 protected:
 	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount);
 	static std::shared_ptr<FrameManager> Create(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount);
 
 	void ReserveCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer) { m_frameCommandBufferes[m_currentFrameIndex].push_back(pCmdBuffer); }
-	void SetFrameIndex(uint32_t index) { m_currentFrameIndex = index % m_maxFrameCount; }
+	void ReserveCommandBuffer(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBufferList) 
+	{
+		std::vector<std::shared_ptr<CommandBuffer>> list = m_frameCommandBufferes[m_currentFrameIndex];
+		list.insert(list.end(), cmdBufferList.begin(), cmdBufferList.end());
+	}
+	void SetFrameIndex(uint32_t index);
 
 private:
 	FrameResourceTable						m_frameResTable;
