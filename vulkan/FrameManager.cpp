@@ -40,20 +40,23 @@ std::shared_ptr<PerFrameResource> FrameManager::AllocatePerFrameResource(uint32_
 	if (frameIndex < 0 || frameIndex >= m_maxFrameCount)
 		return nullptr;
 
-	WaitForFence();
-
-	std::shared_ptr<PerFrameResource> pPerFrameRes = PerFrameResource::Create(GlobalObjects()->GetDevice());
+	std::shared_ptr<PerFrameResource> pPerFrameRes = PerFrameResource::Create(GlobalObjects()->GetDevice(), frameIndex);
 	m_frameResTable[frameIndex].push_back(pPerFrameRes);
 	return pPerFrameRes;
 }
 
 void FrameManager::WaitForFence()
 {
-	if (m_currentFrameIndex == -1)
+	WaitForFence(m_currentFrameIndex);
+}
+
+void FrameManager::WaitForFence(uint32_t index)
+{
+	if (index == -1)
 		return;
 
-	m_frameFences[m_currentFrameIndex]->Wait();
-	m_frameFences[m_currentFrameIndex]->Reset();
+	m_frameFences[index]->Wait();
+	m_frameFences[index]->Reset();
 }
 
 void FrameManager::SetFrameIndex(uint32_t index)

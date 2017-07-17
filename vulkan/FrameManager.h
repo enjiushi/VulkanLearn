@@ -35,6 +35,7 @@ protected:
 
 	std::shared_ptr<Fence> GetCurrentFrameFence() const { return m_frameFences[m_currentFrameIndex]; }
 	void WaitForFence();
+	void WaitForFence(uint32_t index);
 	void CacheSubmissioninfo(
 		const std::shared_ptr<Queue>& pQueue,
 		const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,

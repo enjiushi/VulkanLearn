@@ -7,7 +7,7 @@
 #include "GlobalDeviceObjects.h"
 #include "SwapChain.h"
 
-bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice)
+bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex)
 {
 	m_pCommandPool = CommandPool::Create(pDevice);
 
@@ -28,13 +28,15 @@ bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice)
 	descPoolInfo.maxSets = 10;
 	m_pDescriptorPool = DescriptorPool::Create(pDevice, descPoolInfo);
 	
+	m_frameIndex = frameIndex;
+
 	return true;
 }
 
-std::shared_ptr<PerFrameResource> PerFrameResource::Create(const std::shared_ptr<Device>& pDevice)
+std::shared_ptr<PerFrameResource> PerFrameResource::Create(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex)
 {
 	std::shared_ptr<PerFrameResource> pPerFrameRes = std::make_shared<PerFrameResource>();
-	if (pPerFrameRes.get() && pPerFrameRes->Init(pDevice))
+	if (pPerFrameRes.get() && pPerFrameRes->Init(pDevice, frameIndex))
 		return pPerFrameRes;
 	return nullptr;
 }
