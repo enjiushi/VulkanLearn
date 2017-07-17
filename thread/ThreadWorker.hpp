@@ -7,6 +7,7 @@
 #include "../vulkan/PerFrameResource.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/SwapChain.h"
+#include "../vulkan/FrameManager.h"
 
 class Device;
 
@@ -16,7 +17,7 @@ public:
 	ThreadWorker(const std::shared_ptr<Device>& pDevice) : m_isWorking(false)
 	{
 		for (uint32_t i = 0; i < GlobalObjects()->GetSwapChain()->GetSwapChainImageCount(); i++)
-			m_frameRes.push_back(PerFrameResource::Create(pDevice));
+			m_frameRes.push_back(FrameMgr()->AllocatePerFrameResource(i));
 		m_worker = std::thread(&ThreadWorker::Loop, this);
 	}
 
