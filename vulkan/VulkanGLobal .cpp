@@ -670,8 +670,6 @@ void VulkanGlobal::Draw()
 	GlobalGraphicQueue()->SubmitCommandBuffer(m_drawCmdBuffers[index], waitSemaphores, waitFlags, signalSemaphores, false);
 
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue(), m_pRenderDone, index);
-
-	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetPresentQueue()->GetDeviceHandle());
 }
 
 void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
