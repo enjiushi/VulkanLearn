@@ -654,30 +654,6 @@ void VulkanGlobal::EndSetup()
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 }
 
-/*
-std::shared_ptr<CommandBuffer> VulkanGlobal::PrepareCommandBuffer()
-{
-	InitUniforms();
-	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
-
-	m_drawCmdBuffers = CommandPool::AllocatePrimaryCommandBuffers(GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool(), GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
-
-	for (size_t i = 0; i < GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount(); i++)
-	{
-		CommandBuffer::DrawCmdData prepData;
-		prepData.pFrameBuffer = m_framebuffers[i];
-		prepData.pRenderPass = m_pRenderPass;
-		prepData.pPipeline = m_pPipeline;
-		prepData.descriptorSets = { m_pDescriptorSet };
-		prepData.vertexBuffers = { m_pVertexBuffer };
-		prepData.pIndexBuffer = m_pIndexBuffer;
-		prepData.clearValues = { { 0.2f, 0.2f, 0.2f, 0.2f },{ 1.0f, 0 } };
-
-		m_drawCmdBuffers[i]->PrepareNormalDrawCommands(prepData);
-	}
-
-}*/
-
 void VulkanGlobal::Draw()
 {
 	/*
