@@ -3,8 +3,6 @@
 #include "GlobalDeviceObjects.h"
 #include "Fence.h"
 
-#define UINT64_MAX       0xffffffffffffffffui64
-
 CommandPool::~CommandPool()
 {
 	vkDestroyCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, nullptr);

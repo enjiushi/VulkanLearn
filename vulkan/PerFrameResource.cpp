@@ -7,8 +7,6 @@
 #include "GlobalDeviceObjects.h"
 #include "SwapChain.h"
 
-#define UINT64_MAX       0xffffffffffffffffui64
-
 bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice)
 {
 	m_pCommandPool = CommandPool::Create(pDevice);

@@ -13,8 +13,6 @@
 #include "Queue.h"
 #include <algorithm>
 
-#define UINT64_MAX       0xffffffffffffffffui64
-
 bool FrameManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount)
 {
 	for (uint32_t i = 0; i < maxFrameCount; i++)

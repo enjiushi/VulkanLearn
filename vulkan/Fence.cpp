@@ -1,7 +1,5 @@
 #include "Fence.h"
 
-#define UINT64_MAX       0xffffffffffffffffui64
-
 Fence::~Fence()
 {
 	vkDestroyFence(GetDevice()->GetDeviceHandle(), m_fence, nullptr);
