@@ -29,10 +29,8 @@ std::shared_ptr<Queue> Queue::Create(const std::shared_ptr<Device>& pDevice, uin
 
 void Queue::SubmitCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, bool waitUtilQueueIdle)
 {
-	FrameMgr()->ReserveCommandBuffer(pCmdBuffer);
 	std::vector<std::shared_ptr<CommandBuffer>> v = { pCmdBuffer };
 	SubmitCommandBuffers(v, FrameMgr()->GetCurrentFrameFence(), waitUtilQueueIdle);
-	
 }
 
 void Queue::SubmitCommandBuffers(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers, bool waitUtilQueueIdle)
@@ -57,7 +55,6 @@ void Queue::SubmitCommandBuffer(
 	const std::vector<VkPipelineStageFlags>& waitStages,
 	bool waitUtilQueueIdle)
 {
-	FrameMgr()->ReserveCommandBuffer(pCmdBuffer);
 	std::vector<std::shared_ptr<CommandBuffer>> v = { pCmdBuffer };
 	SubmitCommandBuffers(v, waitSemaphores, waitStages, FrameMgr()->GetCurrentFrameFence(), waitUtilQueueIdle);
 }
@@ -68,7 +65,6 @@ void Queue::SubmitCommandBuffers(
 	const std::vector<VkPipelineStageFlags>& waitStages,
 	bool waitUtilQueueIdle)
 {
-	FrameMgr()->ReserveCommandBuffer(cmdBuffers);
 	SubmitCommandBuffers(cmdBuffers, std::vector<std::shared_ptr<Semaphore>>(), std::vector<VkPipelineStageFlags>(), std::vector<std::shared_ptr<Semaphore>>(), FrameMgr()->GetCurrentFrameFence(), waitUtilQueueIdle);
 }
 
@@ -161,6 +157,8 @@ void Queue::SubmitCommandBuffers(
 		fence = pFence->GetDeviceHandle();
 
 	CHECK_VK_ERROR(vkQueueSubmit(GetDeviceHandle(), 1, &submitInfo, fence));
+
+	FrameMgr()->ReserveCommandBuffer(cmdBuffers);
 
 	if (waitUtilQueueIdle)
 		CHECK_VK_ERROR(vkQueueWaitIdle(GetDeviceHandle()));
