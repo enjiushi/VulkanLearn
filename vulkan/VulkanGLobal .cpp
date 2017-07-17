@@ -662,12 +662,11 @@ void VulkanGlobal::Draw()
 
 	GetSwapChain()->AcquireNextImage(m_pSwapchainAcquireDone);
 	uint32_t index = FrameMgr()->FrameIndex();
-	FrameMgr()->WaitForFence();
 
 	std::vector<std::shared_ptr<Semaphore>> waitSemaphores = { m_pSwapchainAcquireDone };
 	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	std::vector<std::shared_ptr<Semaphore>> signalSemaphores = { m_pRenderDone };
-	GlobalGraphicQueue()->SubmitCommandBuffer(m_drawCmdBuffers[index], waitSemaphores, waitFlags, signalSemaphores, false);
+	GlobalGraphicQueue()->SubmitPerFrameCommandBuffer(m_drawCmdBuffers[index], waitSemaphores, waitFlags, signalSemaphores, false);
 
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue(), m_pRenderDone, index);
 }

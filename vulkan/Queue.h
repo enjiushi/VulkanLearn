@@ -16,18 +16,18 @@ public:
 public:
 	VkQueue GetDeviceHandle() { return m_queue; }
 
-	void SubmitCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, bool waitUtilQueueIdle = false);
-	void SubmitCommandBuffers(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers, bool waitUtilQueueIdle = false);
+	void SubmitPerFrameCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, bool waitUtilQueueIdle = false);
+	void SubmitPerFrameCommandBuffers(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers, bool waitUtilQueueIdle = false);
 
 	void SubmitCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<Fence>& pFence, bool waitUtilQueueIdle = false);
 	void SubmitCommandBuffers(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers, const std::shared_ptr<Fence>& pFence, bool waitUtilQueueIdle = false);
 
-	void SubmitCommandBuffer(
+	void SubmitPerFrameCommandBuffer(
 		const std::shared_ptr<CommandBuffer>& pCmdBuffer, 
 		const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
 		const std::vector<VkPipelineStageFlags>& waitStages,
 		bool waitUtilQueueIdle = false);
-	void SubmitCommandBuffers(
+	void SubmitPerFrameCommandBuffers(
 		const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers, 
 		const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
 		const std::vector<VkPipelineStageFlags>& waitStages,
@@ -45,13 +45,13 @@ public:
 		const std::shared_ptr<Fence>& pFence,
 		bool waitUtilQueueIdle = false);
 
-	void SubmitCommandBuffer(
+	void SubmitPerFrameCommandBuffer(
 		const std::shared_ptr<CommandBuffer>& pCmdBuffer,
 		const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
 		const std::vector<VkPipelineStageFlags>& waitStages,
 		const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
 		bool waitUtilQueueIdle = false);
-	void SubmitCommandBuffers(
+	void SubmitPerFrameCommandBuffers(
 		const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers,
 		const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
 		const std::vector<VkPipelineStageFlags>& waitStages,

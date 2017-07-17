@@ -8,6 +8,10 @@
 #include "SwapChain.h"
 #include "PerFrameResource.h"
 #include "Fence.h"
+#include "Semaphore.h"
+#include "CommandBuffer.h"
+#include "Queue.h"
+#include <algorithm>
 
 #define UINT64_MAX       0xffffffffffffffffui64
 
@@ -19,7 +23,7 @@ bool FrameManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFram
 		m_frameFences.push_back(Fence::Create(pDevice));
 	}
 
-	m_currentFrameIndex = 0;
+	m_currentFrameIndex = -1;
 	m_maxFrameCount = maxFrameCount;
 	
 	return true;
@@ -47,11 +51,67 @@ std::shared_ptr<PerFrameResource> FrameManager::AllocatePerFrameResource(uint32_
 
 void FrameManager::WaitForFence()
 {
+	if (m_currentFrameIndex == -1)
+		return;
+
 	m_frameFences[m_currentFrameIndex]->Wait();
 	m_frameFences[m_currentFrameIndex]->Reset();
 }
 
 void FrameManager::SetFrameIndex(uint32_t index)
 {
+	if (m_currentFrameIndex == index)
+		return;
+
+	// Flush cached submissions before frame changed
+	// This is the very place that all of cmd buffer submissions fire
+	FlushCachedSubmission();
 	m_currentFrameIndex = index % m_maxFrameCount;
+	WaitForFence();
+
+	// New frame's running resources are no longer in use now, we've already finished waiting for their protective fence
+	// They're cleared and okay to remove
+	m_submissionInfoTable[m_currentFrameIndex].clear();
+}
+
+void FrameManager::CacheSubmissioninfo(
+	const std::shared_ptr<Queue>& pQueue,
+	const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
+	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
+	const std::vector<VkPipelineStageFlags>& waitStages,
+	const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
+	bool waitUtilQueueIdle)
+{
+	SubmissionInfo info = 
+	{
+		pQueue,
+		cmdBuffer,
+		waitSemaphores,
+		waitStages,
+		signalSemaphores,
+		waitUtilQueueIdle,
+	};
+
+	m_pendingSubmissionInfoTable[m_currentFrameIndex].push_back(info);
+}
+
+void FrameManager::FlushCachedSubmission()
+{
+	if (m_currentFrameIndex == -1)
+		return;
+
+	// Flush pending cmd buffers
+	std::for_each(m_pendingSubmissionInfoTable[m_currentFrameIndex].begin(), m_pendingSubmissionInfoTable[m_currentFrameIndex].end(), [this](SubmissionInfo & info)
+	{
+		info.pQueue->SubmitCommandBuffers(info.cmdBuffers, info.waitSemaphores, info.waitStages, info.signalSemaphores, GetCurrentFrameFence(), info.waitUtilQueueIdle);
+	});
+
+	// Add submitted cmd buffer references here, just to make sure they won't be deleted util this submission finished
+	m_submissionInfoTable[m_currentFrameIndex].insert(
+		m_submissionInfoTable[m_currentFrameIndex].end(), 
+		m_pendingSubmissionInfoTable[m_currentFrameIndex].begin(), 
+		m_pendingSubmissionInfoTable[m_currentFrameIndex].end());
+
+	// Clear pending submissions
+	m_pendingSubmissionInfoTable[m_currentFrameIndex].clear();
 }

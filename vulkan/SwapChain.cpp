@@ -20,6 +20,8 @@ std::shared_ptr<SwapChain> SwapChain::Create(const std::shared_ptr<Device>& pDev
 
 SwapChain::~SwapChain()
 {
+	m_pFrameManager->WaitForFence();
+
 	if (m_pDevice.get())
 		m_fpDestroySwapchainKHR(m_pDevice->GetDeviceHandle(), m_swapchain, nullptr);
 }
@@ -101,6 +103,9 @@ void SwapChain::AcquireNextImage(const std::shared_ptr<Semaphore>& acquireDone)
 
 void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, const std::shared_ptr<Semaphore>& renderDone, uint32_t index)
 {
+	// Flush pending submissions before present
+	m_pFrameManager->FlushCachedSubmission();
+
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.swapchainCount = 1;
