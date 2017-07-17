@@ -16,7 +16,7 @@ bool Fence::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<F
 	info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	CHECK_VK_ERROR(vkCreateFence(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_fence));
 	m_signaled = false;
-
+	m_submitted = false;
 	return true;
 }
 
@@ -30,7 +30,8 @@ std::shared_ptr<Fence> Fence::Create(const std::shared_ptr<Device>& pDevice)
 
 void Fence::Wait()
 {
-	if (m_signaled)
+	// If already signaled, or not submit yet, don't have to wait
+	if (m_signaled || !m_submitted)
 		return;
 
 	CHECK_VK_ERROR(vkWaitForFences(GetDevice()->GetDeviceHandle(), 1, &m_fence, VK_TRUE, UINT64_MAX));
@@ -44,4 +45,5 @@ void Fence::Reset()
 
 	CHECK_VK_ERROR(vkResetFences(GetDevice()->GetDeviceHandle(), 1, &m_fence));
 	m_signaled = false;
+	m_submitted = false;
 }
