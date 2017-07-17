@@ -1,8 +1,14 @@
 #pragma once
 #include "Device.h"
 
+class DeviceBase
+{
+public:
+	virtual ~DeviceBase() {}
+};
+
 template <class T>
-class DeviceObjectBase
+class DeviceObjectBase : public DeviceBase
 {
 public:
 	virtual ~DeviceObjectBase() {}

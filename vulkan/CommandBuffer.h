@@ -61,6 +61,8 @@ public:
 	VkCommandBuffer GetDeviceHandle() const { return m_commandBuffer; }
 	VkCommandBufferAllocateInfo GetAllocateInfo() const { return m_info; }
 
+	void AddToReferenceTable(const std::shared_ptr<DeviceBase>& pObj) { m_referenceTable.push_back(pObj); }
+
 	void PrepareNormalDrawCommands(const DrawCmdData& data);
 	void PrepareBufferCopyCommands(const BufferCopyCmdData& data);
 
@@ -72,14 +74,15 @@ protected:
 	void SetIsValide(bool flag) { m_isValide = flag; }
 
 protected:
-	VkCommandBuffer					m_commandBuffer;
-	VkCommandBufferAllocateInfo		m_info;
-	bool							m_isValide;
+	VkCommandBuffer									m_commandBuffer;
+	VkCommandBufferAllocateInfo						m_info;
+	bool											m_isValide;
 
-	std::shared_ptr<CommandPool>	m_pCommandPool;
+	std::shared_ptr<CommandPool>					m_pCommandPool;
+	std::vector<std::shared_ptr<DeviceBase>>		m_referenceTable;
 
-	DrawCmdData						m_drawCmdData;
-	BufferCopyCmdData				m_bufferCopyCmdData;
+	DrawCmdData										m_drawCmdData;
+	BufferCopyCmdData								m_bufferCopyCmdData;
 
 	friend class CommandPool;
 };
