@@ -48,3 +48,5 @@ std::shared_ptr<Buffer> GlobalBigUniformBuffer() { return GlobalObjects()->GetBi
 std::shared_ptr<SwapChain> GetSwapChain() { return GlobalObjects()->GetSwapChain(); }
 std::shared_ptr<FrameManager> FrameMgr();
 std::shared_ptr<FrameManager> FrameMgr() { return GetSwapChain()->GetFrameManager(); }
+std::shared_ptr<Device> GetDevice() { return GlobalObjects()->GetDevice(); }
+std::shared_ptr<PhysicalDevice> GetPhysicalDevice() { return GetDevice()->GetPhysicalDevice(); }

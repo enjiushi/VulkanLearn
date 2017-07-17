@@ -10,6 +10,7 @@ class StagingBufferManager;
 class Buffer;
 class SwapChain;
 class FrameManager;
+class PhysicalDevice;
 
 class GlobalDeviceObjects : public Singleton<GlobalDeviceObjects>
 {
@@ -50,3 +51,5 @@ std::shared_ptr<StagingBufferManager> StagingBufferMgr();
 std::shared_ptr<Buffer> GlobalBigUniformBuffer();
 std::shared_ptr<SwapChain> GetSwapChain();
 std::shared_ptr<FrameManager> FrameMgr();
+std::shared_ptr<Device> GetDevice();
+std::shared_ptr<PhysicalDevice> GetPhysicalDevice();
