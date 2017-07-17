@@ -47,11 +47,7 @@ std::shared_ptr<PerFrameResource> FrameManager::AllocatePerFrameResource(uint32_
 
 void FrameManager::WaitForFence()
 {
-	if (m_frameFences[m_currentFrameIndex]->Signaled())
-		return;
-
-	VkFence fence = m_frameFences[m_currentFrameIndex]->GetDeviceHandle();
-	CHECK_VK_ERROR(vkWaitForFences(GlobalObjects()->GetDevice()->GetDeviceHandle(), 1, &fence, VK_TRUE, UINT64_MAX));
+	m_frameFences[m_currentFrameIndex]->Wait();
 	m_frameFences[m_currentFrameIndex]->Reset();
 }
 
