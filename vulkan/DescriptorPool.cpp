@@ -34,7 +34,7 @@ std::shared_ptr<DescriptorPool> DescriptorPool::Create(const std::shared_ptr<Dev
 	return nullptr;
 }
 
-std::shared_ptr<DescriptorSet> DescriptorPool::AllocateDescriptorSet(const std::shared_ptr<DescriptorPool>& pDescriptorPool, const std::shared_ptr<DescriptorSetLayout>& pDescriptorSetLayout)
+std::shared_ptr<DescriptorSet> DescriptorPool::AllocateDescriptorSet(const std::shared_ptr<DescriptorSetLayout>& pDescriptorSetLayout)
 {
-	return DescriptorSet::Create(pDescriptorPool->GetDevice(), pDescriptorPool, pDescriptorSetLayout);
+	return DescriptorSet::Create(GetDevice(), GetSelfSharedPtr(), pDescriptorSetLayout);
 }
