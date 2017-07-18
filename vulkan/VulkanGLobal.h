@@ -27,6 +27,7 @@
 #include "CommandPool.h"
 #include "Semaphore.h"
 #include "PerFrameResource.h"
+#include "../thread/ThreadTaskQueue.hpp"
 
 typedef struct _GlobalUniforms
 {
@@ -74,7 +75,7 @@ public:
 	void InitSemaphore();
 	void EndSetup();
 
-	void PrepareDrawCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t frameIndex);
+	void PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResource>& pPerFrameRes);
 	void Draw();
 	void Update();
 
@@ -122,6 +123,9 @@ protected:
 	std::shared_ptr<Semaphore>			m_pRenderDone;
 
 	std::vector<std::shared_ptr<PerFrameResource>> m_perFrameRes;
+
+	std::shared_ptr<ThreadTaskQueue>	m_pThreadTaskQueue;
+	std::shared_ptr<CommandBuffer>		m_pDrawCmdBuffer;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)
