@@ -37,7 +37,7 @@ function(buildExample EXAMPLE)
 	source_group("thread\\" FILES ${THREAD})
 	source_group("shaders\\" FILES ${SHADER})
 	target_link_libraries(${EXAMPLE} ${VULKAN_LIB} ${ASSIMP_LIB})
-
+	set_target_properties(${EXAMPLE} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 endfunction(buildExample)
 
 function(buildExamples EXAMPLES)

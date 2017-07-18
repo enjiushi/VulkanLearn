@@ -382,10 +382,10 @@ void VulkanGlobal::InitVertices()
 {
 	Assimp::Importer imp;
 	const aiScene* pScene = nullptr;
-	pScene = imp.ReadFile("data/models/sphere.obj", aiProcess_Triangulate | aiProcess_GenSmoothNormals);
-
+	pScene = imp.ReadFile("../data/models/sphere.obj", aiProcess_Triangulate | aiProcess_GenSmoothNormals);
+	ASSERTION(pScene != nullptr);
+	
 	aiMesh* pMesh = pScene->mMeshes[0];
-
 	uint32_t vertexSize = 0;
 	if (pMesh->HasPositions())
 		vertexSize += 3 * sizeof(float);
@@ -403,7 +403,7 @@ void VulkanGlobal::InitVertices()
 	float* pVertices = new float[pMesh->mNumVertices * 9];
 	uint32_t verticesNumBytes = pMesh->mNumVertices * vertexSize;
 	uint32_t count = 0;
-
+	
 	for (uint32_t i = 0; i < pMesh->mNumVertices; i++)
 	{
 		uint32_t offset = i * vertexSize / sizeof(float);
@@ -448,7 +448,7 @@ void VulkanGlobal::InitVertices()
 			count += 6;
 		}
 	}
-
+	
 	uint32_t* pIndices = new uint32_t[pMesh->mNumFaces * 3];
 	uint32_t indicesNumBytes = pMesh->mNumFaces * 3 * sizeof(uint32_t);
 	for (size_t i = 0; i < pMesh->mNumFaces; i++)
@@ -751,7 +751,7 @@ void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
 	InitVertices();
 	InitUniforms();
 	InitDescriptorSetLayout();
-	InitShaderModule("data/shaders/simple.vert.spv", "data/shaders/simple.frag.spv");
+	InitShaderModule("../data/shaders/simple.vert.spv", "../data/shaders/simple.frag.spv");
 	InitPipelineCache();
 	InitPipeline();
 	InitDescriptorPool();
