@@ -110,6 +110,7 @@ private:
 			{
 				std::unique_lock<std::mutex> lock(m_queueMutex);
 				m_isSearchingThread = false;
+				m_condition.notify_one();
 			}
 		}
 	}
