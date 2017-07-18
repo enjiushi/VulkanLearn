@@ -9,10 +9,10 @@ class DescriptorPool;
 class Fence;
 class DescriptorSetLayout;
 
-class PerFrameResource
+class PerFrameResource : public DeviceObjectBase<PerFrameResource>
 {
 public:
-	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex);
+	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex, const std::shared_ptr<PerFrameResource>& pSelf);
 
 public:
 	static std::shared_ptr<PerFrameResource> Create(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex);
@@ -20,6 +20,7 @@ public:
 public:
 	std::shared_ptr<CommandBuffer> AllocateCommandBuffer();
 	std::shared_ptr<DescriptorSet> AllocateDescriptorSet(const std::shared_ptr<DescriptorSetLayout>& pDsLayout);
+	uint32_t GetFrameIndex() const { return m_frameIndex; }
 
 private:
 	std::shared_ptr<CommandPool>		m_pCommandPool;

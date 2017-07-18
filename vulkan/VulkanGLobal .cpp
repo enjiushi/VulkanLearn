@@ -617,26 +617,17 @@ void VulkanGlobal::InitDescriptorPool()
 
 void VulkanGlobal::InitDescriptorSet()
 {
-	m_pDescriptorSet = DescriptorPool::AllocateDescriptorSet(m_pDescriptorPool, m_pDescriptorSetLayout);
+	m_pDescriptorSet = m_pDescriptorPool->AllocateDescriptorSet(m_pDescriptorSetLayout);
 	m_pDescriptorSet->UpdateBuffer(0, m_pUniformBuffer->GetDescBufferInfo());
 }
 
 void VulkanGlobal::InitDrawCmdBuffers()
 {
-	m_drawCmdBuffers = GlobalObjects()->GetMainThreadCmdPool()->AllocatePrimaryCommandBuffers(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
-
-	for (size_t i = 0; i < GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount(); i++)
+	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		CommandBuffer::DrawCmdData prepData;
-		prepData.pFrameBuffer	= m_framebuffers[i];
-		prepData.pRenderPass	= m_pRenderPass;
-		prepData.pPipeline		= m_pPipeline;
-		prepData.descriptorSets = { m_pDescriptorSet };
-		prepData.vertexBuffers	= { m_pVertexBuffer };
-		prepData.pIndexBuffer	= m_pIndexBuffer;
-		prepData.clearValues	= { { 0.2f, 0.2f, 0.2f, 0.2f }, { 1.0f, 0 } };
-
-		m_drawCmdBuffers[i]->PrepareNormalDrawCommands(prepData);
+		m_perFrameRes.push_back(FrameMgr()->AllocatePerFrameResource(i));
+		//m_drawCmdBuffers.push_back(m_perFrameRes[i]->AllocateCommandBuffer());
+		//PrepareDrawCommandBuffer(m_drawCmdBuffers[i], i);
 	}
 }
 
@@ -654,6 +645,71 @@ void VulkanGlobal::EndSetup()
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 }
 
+void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t frameIndex)
+{
+	std::vector<VkClearValue> clearValues = 
+	{
+		{ 0.2f, 0.2f, 0.2f, 0.2f },
+		{ 1.0f, 0 }
+	};
+
+	VkCommandBufferBeginInfo cmdBeginInfo = {};
+	cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	CHECK_VK_ERROR(vkBeginCommandBuffer(pCmdBuffer->GetDeviceHandle(), &cmdBeginInfo));
+
+	VkRenderPassBeginInfo renderPassBeginInfo = {};
+	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassBeginInfo.clearValueCount = clearValues.size();
+	renderPassBeginInfo.pClearValues = clearValues.data();
+	renderPassBeginInfo.renderPass = m_pRenderPass->GetDeviceHandle();
+	renderPassBeginInfo.framebuffer = m_framebuffers[frameIndex]->GetDeviceHandle();
+	renderPassBeginInfo.renderArea.extent.width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
+	renderPassBeginInfo.renderArea.extent.height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
+	renderPassBeginInfo.renderArea.offset.x = 0;
+	renderPassBeginInfo.renderArea.offset.y = 0;
+
+	vkCmdBeginRenderPass(pCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	pCmdBuffer->AddToReferenceTable(m_pRenderPass);
+	pCmdBuffer->AddToReferenceTable(m_framebuffers[frameIndex]);
+
+	VkViewport viewport =
+	{
+		0, 0,
+		GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height,
+		0, 1
+	};
+
+	VkRect2D scissorRect =
+	{
+		0, 0,
+		GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height
+	};
+
+	vkCmdSetViewport(pCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
+	vkCmdSetScissor(pCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
+
+	std::vector<VkDescriptorSet> dsSets = { m_pDescriptorSet->GetDeviceHandle() };
+	vkCmdBindDescriptorSets(pCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
+	pCmdBuffer->AddToReferenceTable(m_pPipelineLayout);
+	pCmdBuffer->AddToReferenceTable(m_pDescriptorSet);
+
+	vkCmdBindPipeline(pCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipeline->GetDeviceHandle());
+	pCmdBuffer->AddToReferenceTable(m_pPipeline);
+
+	std::vector<VkBuffer> vertexBuffers = { m_pVertexBuffer->GetDeviceHandle() };
+	std::vector<VkDeviceSize> offsets = { 0 };
+	vkCmdBindVertexBuffers(pCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+	vkCmdBindIndexBuffer(pCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetDeviceHandle(), 0, m_pIndexBuffer->GetType());
+	pCmdBuffer->AddToReferenceTable(m_pVertexBuffer);
+	pCmdBuffer->AddToReferenceTable(m_pIndexBuffer);
+
+	vkCmdDrawIndexed(pCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
+
+	vkCmdEndRenderPass(pCmdBuffer->GetDeviceHandle());
+
+	CHECK_VK_ERROR(vkEndCommandBuffer(pCmdBuffer->GetDeviceHandle()));
+}
+
 void VulkanGlobal::Draw()
 {
 	/*
@@ -663,10 +719,13 @@ void VulkanGlobal::Draw()
 	GetSwapChain()->AcquireNextImage(m_pSwapchainAcquireDone);
 	uint32_t index = FrameMgr()->FrameIndex();
 
+	std::shared_ptr<CommandBuffer> pCmdBuffer = m_perFrameRes[index]->AllocateCommandBuffer();
+	PrepareDrawCommandBuffer(pCmdBuffer, index);
+
 	std::vector<std::shared_ptr<Semaphore>> waitSemaphores = { m_pSwapchainAcquireDone };
 	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	std::vector<std::shared_ptr<Semaphore>> signalSemaphores = { m_pRenderDone };
-	GlobalGraphicQueue()->SubmitPerFrameCommandBuffer(m_drawCmdBuffers[index], waitSemaphores, waitFlags, signalSemaphores, false);
+	GlobalGraphicQueue()->SubmitPerFrameCommandBuffer(pCmdBuffer, waitSemaphores, waitFlags, signalSemaphores, false);
 
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue(), m_pRenderDone, index);
 }

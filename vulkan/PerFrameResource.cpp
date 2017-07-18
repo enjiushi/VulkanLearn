@@ -7,9 +7,12 @@
 #include "GlobalDeviceObjects.h"
 #include "SwapChain.h"
 
-bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex)
+bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex, const std::shared_ptr<PerFrameResource>& pSelf)
 {
-	m_pCommandPool = CommandPool::Create(pDevice);
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
+		return false;
+
+	m_pCommandPool = CommandPool::Create(pDevice, pSelf);
 
 	std::vector<VkDescriptorPoolSize> descPoolSize =
 	{
@@ -36,7 +39,7 @@ bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t fra
 std::shared_ptr<PerFrameResource> PerFrameResource::Create(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex)
 {
 	std::shared_ptr<PerFrameResource> pPerFrameRes = std::make_shared<PerFrameResource>();
-	if (pPerFrameRes.get() && pPerFrameRes->Init(pDevice, frameIndex))
+	if (pPerFrameRes.get() && pPerFrameRes->Init(pDevice, frameIndex, pPerFrameRes))
 		return pPerFrameRes;
 	return nullptr;
 }

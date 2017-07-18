@@ -2,13 +2,14 @@
 #include "CommandBuffer.h"
 #include "GlobalDeviceObjects.h"
 #include "Fence.h"
+#include "PerFrameResource.h"
 
 CommandPool::~CommandPool()
 {
 	vkDestroyCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, nullptr);
 }
 
-bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pSelf)
+bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes, const std::shared_ptr<CommandPool>& pSelf)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
@@ -16,9 +17,11 @@ bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 	m_info = {};
 	m_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	m_info.queueFamilyIndex = m_pDevice->GetPhysicalDevice()->GetGraphicQueueIndex();
-	m_info.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+	m_info.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 	CHECK_VK_ERROR(vkCreateCommandPool(pDevice->GetDeviceHandle(), &m_info, nullptr, &m_commandPool));
+
+	m_pPerFrameRes = pPerFrameRes;
 
 	return true;
 }
@@ -38,12 +41,17 @@ std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocatePrimaryCommandB
 	return cmdBuffers;
 }
 
-std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice)
+std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 {
 	std::shared_ptr<CommandPool> pCommandPool = std::make_shared<CommandPool>();
-	if (pCommandPool.get() && pCommandPool->Init(pDevice, pCommandPool))
+	if (pCommandPool.get() && pCommandPool->Init(pDevice, pPerFrameRes, pCommandPool))
 		return pCommandPool;
 	return nullptr;
+}
+
+std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice)
+{
+	return Create(pDevice, nullptr);
 }
 
 void CommandPool::Reset(const std::shared_ptr<Fence>& pFence)

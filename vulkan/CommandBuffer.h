@@ -60,6 +60,7 @@ public:
 public:
 	VkCommandBuffer GetDeviceHandle() const { return m_commandBuffer; }
 	VkCommandBufferAllocateInfo GetAllocateInfo() const { return m_info; }
+	std::shared_ptr<CommandPool> GetCommandPool() const { return m_pCommandPool; }
 
 	void AddToReferenceTable(const std::shared_ptr<DeviceBase>& pObj) { m_referenceTable.push_back(pObj); }
 

@@ -93,7 +93,19 @@ void FrameManager::CacheSubmissioninfo(
 		waitUtilQueueIdle,
 	};
 
-	m_pendingSubmissionInfoTable[m_currentFrameIndex].push_back(info);
+#ifdef _DEBUG
+	{
+		ASSERTION(!cmdBuffer[0]->GetCommandPool()->GetPerFrameResource().expired());
+		uint32_t frameIndex = cmdBuffer[0]->GetCommandPool()->GetPerFrameResource().lock()->GetFrameIndex();
+		for (uint32_t i = 1; i < cmdBuffer.size(); i++)
+		{
+			ASSERTION(!cmdBuffer[i]->GetCommandPool()->GetPerFrameResource().expired());
+			ASSERTION(frameIndex = cmdBuffer[i]->GetCommandPool()->GetPerFrameResource().lock()->GetFrameIndex());
+		}
+	}
+#endif //_DEBUG
+	uint32_t frameIndex = cmdBuffer[0]->GetCommandPool()->GetPerFrameResource().lock()->GetFrameIndex();
+	m_pendingSubmissionInfoTable[frameIndex].push_back(info);
 }
 
 void FrameManager::FlushCachedSubmission()

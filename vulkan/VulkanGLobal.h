@@ -26,6 +26,7 @@
 #include "CommandBuffer.h"
 #include "CommandPool.h"
 #include "Semaphore.h"
+#include "PerFrameResource.h"
 
 typedef struct _GlobalUniforms
 {
@@ -73,7 +74,7 @@ public:
 	void InitSemaphore();
 	void EndSetup();
 
-	std::shared_ptr<CommandBuffer> PrepareCommandBuffer();
+	void PrepareDrawCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t frameIndex);
 	void Draw();
 	void Update();
 
@@ -119,6 +120,8 @@ protected:
 
 	std::shared_ptr<Semaphore>			m_pSwapchainAcquireDone;
 	std::shared_ptr<Semaphore>			m_pRenderDone;
+
+	std::vector<std::shared_ptr<PerFrameResource>> m_perFrameRes;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)
