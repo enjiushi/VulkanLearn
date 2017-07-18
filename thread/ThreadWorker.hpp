@@ -11,8 +11,17 @@
 
 class Device;
 
+typedef std::function<void(const std::shared_ptr<PerFrameResource>& pRes)> ThreadJobFunc;
+
 class ThreadWorker
 {
+public:
+	typedef struct _ThreadJob
+	{
+		ThreadJobFunc	job;
+		uint32_t		frameIndex;
+	}ThreadJob;
+
 public:
 	ThreadWorker(const std::shared_ptr<Device>& pDevice) : m_isWorking(false)
 	{
@@ -35,7 +44,7 @@ public:
 	}
 
 public:
-	void AppendJob(std::function<void()> job)
+	void AppendJob(ThreadJob job)
 	{
 		std::unique_lock<std::mutex> lock(m_queueMutex);
 		m_jobQueue.push(job);
@@ -66,7 +75,7 @@ public:
 	{
 		while (true)
 		{
-			std::function<void()> job;
+			ThreadJob job;
 			{
 				std::unique_lock<std::mutex> lock(m_queueMutex);
 				m_condition.wait(lock, [this] { return !m_jobQueue.empty() || m_isDestroying; });
@@ -80,7 +89,7 @@ public:
 				m_jobQueue.pop();
 				m_isWorking = true;
 			}
-			job();
+			job.job(m_frameRes[job.frameIndex]);
 			{
 				std::unique_lock<std::mutex> lock(m_queueMutex);
 				m_isWorking = false;
@@ -96,10 +105,10 @@ public:
 	}
 
 private:
-	std::thread m_worker;
-	std::mutex m_queueMutex;
-	std::condition_variable m_condition;
-	std::queue<std::function<void()>> m_jobQueue;
+	std::thread					m_worker;
+	std::mutex					m_queueMutex;
+	std::condition_variable		m_condition;
+	std::queue<ThreadJob>		m_jobQueue;
 	std::vector<std::shared_ptr<PerFrameResource>>	m_frameRes;
 
 	bool m_isWorking = false;

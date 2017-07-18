@@ -4,10 +4,12 @@
 #include "../common/Singleton.h"
 #include "ThreadTaskQueue.hpp"
 
+class CommandBuffer;
+
 class ThreadCoordinator : public Singleton<ThreadCoordinator>
 {
 public:
-	void AppendJob(std::function<void()> job);
+	void AppendJob(ThreadJobFunc jobFunc, uint32_t frameIndex);
 
 private:
 	ThreadTaskQueue m_threadTaskQueue;

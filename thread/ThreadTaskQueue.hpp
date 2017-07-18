@@ -7,11 +7,12 @@
 #include "ThreadWorker.hpp"
 
 class Device;
+class CommandBuffer;
 
 class ThreadTaskQueue
 {
 public:
-	ThreadTaskQueue(const std::shared_ptr<Device>& pDevice, uint32_t roundBinCount)
+	ThreadTaskQueue(const std::shared_ptr<Device>& pDevice)
 	{
 		m_worker = std::thread(&ThreadTaskQueue::Loop, this);
 
@@ -36,10 +37,10 @@ public:
 	}
 
 public:
-	void AddJob(std::function<void()> job)
+	void AddJob(ThreadJobFunc jobFunc, uint32_t frameIndex)
 	{
 		std::unique_lock<std::mutex> lock(m_queueMutex);
-		m_taskQueue.push(job);
+		m_taskQueue.push({ jobFunc, frameIndex });
 		m_condition.notify_one();
 	}
 
@@ -74,7 +75,7 @@ private:
 	{
 		while (true)
 		{
-			std::function<void()> job;
+			ThreadWorker::ThreadJob job;
 			{
 				std::unique_lock<std::mutex> lock(m_queueMutex);
 				m_condition.wait(lock, [this]() { return !m_taskQueue.empty() || m_isDestroying; });
@@ -114,12 +115,13 @@ private:
 	}
 
 private:
-	std::mutex m_queueMutex;
-	std::thread m_worker;
-	std::condition_variable m_condition;
-	std::queue<std::function<void()>> m_taskQueue;
-	std::vector<std::shared_ptr<ThreadWorker>> m_threadWorkers;
-	bool m_isSearchingThread = false;
-	bool m_isDestroying = false;
+	std::mutex									m_queueMutex;
+	std::thread									m_worker;
+	std::condition_variable						m_condition;
+	std::queue<ThreadWorker::ThreadJob>			m_taskQueue;
+	std::vector<std::shared_ptr<ThreadWorker>>	m_threadWorkers;
+
+	bool m_isSearchingThread =		false;
+	bool m_isDestroying =			false;
 	uint32_t m_currentWorkerIndex = 0;
 };
