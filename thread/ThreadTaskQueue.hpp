@@ -4,6 +4,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include "../vulkan/FrameManager.h"
 #include "ThreadWorker.hpp"
 
 class Device;
@@ -12,14 +13,14 @@ class CommandBuffer;
 class ThreadTaskQueue
 {
 public:
-	ThreadTaskQueue(const std::shared_ptr<Device>& pDevice)
+	ThreadTaskQueue(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount, const std::shared_ptr<FrameManager>& pFrameMgr)
 	{
 		m_worker = std::thread(&ThreadTaskQueue::Loop, this);
 
-		int numThreads = std::thread::hardware_concurrency();
-		for (int i = 0; i < numThreads - 1; i++)
+		if (!m_isWorkerReady)
 		{
-			m_threadWorkers.push_back(std::make_shared<ThreadWorker>(pDevice));
+			m_isWorkerReady = true;
+			ThreadWorker::InitThreadWorkers(pDevice, frameRoundBinCount, pFrameMgr);
 		}
 	}
 
@@ -40,8 +41,19 @@ public:
 	void AddJob(ThreadJobFunc jobFunc, uint32_t frameIndex)
 	{
 		std::unique_lock<std::mutex> lock(m_queueMutex);
-		m_taskQueue.push({ jobFunc, frameIndex });
+		ThreadWorker::ThreadJob job;
+		job.job = jobFunc;
+		job.frameIndex = frameIndex;
+		job.pThreadTaskQueue = this;
+		m_taskQueue.push(job);
 		m_condition.notify_one();
+	}
+
+	void EndJob()
+	{
+		std::unique_lock<std::mutex> lock(m_workerCountMutex);
+		m_threadWorkerCount--;
+		m_workerCountCondition.notify_one();
 	}
 
 	void WaitForFree()
@@ -58,10 +70,8 @@ public:
 
 	void WaitForWorkersAllFree()
 	{
-		std::for_each(m_threadWorkers.begin(), m_threadWorkers.end(), [this](std::shared_ptr<ThreadWorker>& worker)
-		{
-			worker->WaitForFree();
-		});
+		std::unique_lock<std::mutex> lock(m_workerCountMutex);
+		m_workerCountCondition.wait(lock, [this]() { return m_threadWorkerCount == 0; });
 	}
 
 	uint32_t GetTaskQueueSize()
@@ -76,6 +86,7 @@ private:
 		while (true)
 		{
 			ThreadWorker::ThreadJob job;
+			job.pThreadTaskQueue = this;
 			{
 				std::unique_lock<std::mutex> lock(m_queueMutex);
 				m_condition.wait(lock, [this]() { return !m_taskQueue.empty() || m_isDestroying; });
@@ -96,15 +107,13 @@ private:
 			bool shouldExit = false;
 			while (!shouldExit)
 			{
-				bool isFree = m_threadWorkers[m_currentWorkerIndex]->IsTaskQueueFree();
+				std::shared_ptr<ThreadWorker> pTWroker = ThreadWorker::GetCurrentThreadWorker();
+				bool isFree = pTWroker->IsTaskQueueFree();
 				if (isFree)
 				{
-					m_threadWorkers[m_currentWorkerIndex]->AppendJob(job);
+					pTWroker->AppendJob(job);
 					shouldExit = true;
 				}
-
-				// Circular
-				m_currentWorkerIndex = (m_currentWorkerIndex + 1) % m_threadWorkers.size();
 			}
 
 			{
@@ -112,17 +121,25 @@ private:
 				m_isSearchingThread = false;
 				m_condition.notify_one();
 			}
+			{
+				std::unique_lock<std::mutex> lock(m_workerCountMutex);
+				m_threadWorkerCount++;
+				m_workerCountCondition.notify_one();
+			}
 		}
 	}
 
 private:
 	std::mutex									m_queueMutex;
+	std::mutex									m_workerCountMutex;
+	std::condition_variable						m_workerCountCondition;
 	std::thread									m_worker;
 	std::condition_variable						m_condition;
 	std::queue<ThreadWorker::ThreadJob>			m_taskQueue;
-	std::vector<std::shared_ptr<ThreadWorker>>	m_threadWorkers;
+	uint32_t									m_threadWorkerCount = 0;
 
 	bool m_isSearchingThread =		false;
 	bool m_isDestroying =			false;
+	static bool m_isWorkerReady;
 	uint32_t m_currentWorkerIndex = 0;
 };

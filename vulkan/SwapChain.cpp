@@ -10,10 +10,7 @@ std::shared_ptr<SwapChain> SwapChain::Create(const std::shared_ptr<Device>& pDev
 {
 	std::shared_ptr<SwapChain> pSwapChain = std::make_shared<SwapChain>();
 	if (pSwapChain.get() && pSwapChain->Init(pDevice, pSwapChain))
-	{
-		pSwapChain->m_swapchainImages = SwapChainImage::Create(pDevice, pSwapChain);
 		return pSwapChain;
-	}
 
 	return nullptr;
 }
@@ -66,7 +63,7 @@ bool SwapChain::Init(const std::shared_ptr<Device>& pDevice, const std::shared_p
 	VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
 	swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapchainCreateInfo.surface = m_pDevice->GetPhysicalDevice()->GetSurfaceHandle();
-	swapchainCreateInfo.minImageCount = m_pDevice->GetPhysicalDevice()->GetSurfaceCap().maxImageCount;
+	swapchainCreateInfo.minImageCount = 3;
 	swapchainCreateInfo.presentMode = swapchainPresentMode;
 	swapchainCreateInfo.preTransform = (VkSurfaceTransformFlagBitsKHR)preTransform;
 	swapchainCreateInfo.clipped = true;
@@ -81,6 +78,8 @@ bool SwapChain::Init(const std::shared_ptr<Device>& pDevice, const std::shared_p
 
 	RETURN_FALSE_VK_RESULT(m_fpCreateSwapchainKHR(m_pDevice->GetDeviceHandle(), &swapchainCreateInfo, nullptr, &m_swapchain));
 
+	m_swapchainImages = SwapChainImage::Create(pDevice, pSelf);
+
 	m_pFrameManager = FrameManager::Create(pDevice, swapchainCreateInfo.minImageCount);
 
 	return true;
@@ -94,25 +93,33 @@ void SwapChain::EnsureSwapChainImageLayout()
 	}
 }
 
-void SwapChain::AcquireNextImage(const std::shared_ptr<Semaphore>& acquireDone)
+void SwapChain::AcquireNextImage()
 {
+	static bool firstFrame = true;
+	
+	if (firstFrame)
+		firstFrame = false;
+	else
+		m_pFrameManager->IncFrameIndex();
 	uint32_t index;
-	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, acquireDone->GetDeviceHandle(), nullptr, &index));
-	m_pFrameManager->SetFrameIndex(index);
+	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, m_pFrameManager->GetAcqurieDoneSemaphore()->GetDeviceHandle(), nullptr, &index));
 }
 
-void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, const std::shared_ptr<Semaphore>& renderDone, uint32_t index)
+void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue)
 {
-	// Flush pending submissions before present
-	m_pFrameManager->FlushCachedSubmission();
+	auto callback = [this, pPresentQueue](uint32_t frameIndex)
+	{
+		VkPresentInfoKHR presentInfo = {};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = &m_swapchain;
+		presentInfo.waitSemaphoreCount = 1;
+		auto semaphore = m_pFrameManager->GetRenderDoneSemaphore(frameIndex)->GetDeviceHandle();
+		presentInfo.pWaitSemaphores = &semaphore;
+		presentInfo.pImageIndices = &frameIndex;
+		CHECK_VK_ERROR(m_fpQueuePresentKHR(pPresentQueue->GetDeviceHandle(), &presentInfo));
+	};
 
-	VkPresentInfoKHR presentInfo = {};
-	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	presentInfo.swapchainCount = 1;
-	presentInfo.pSwapchains = &m_swapchain;
-	presentInfo.waitSemaphoreCount = 1;
-	auto semaphore = renderDone->GetDeviceHandle();
-	presentInfo.pWaitSemaphores = &semaphore;
-	presentInfo.pImageIndices = &index;
-	CHECK_VK_ERROR(m_fpQueuePresentKHR(pPresentQueue->GetDeviceHandle(), &presentInfo));
+	// Flush pending submissions before present
+	m_pFrameManager->EndJobSubmission(callback);
 }

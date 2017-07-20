@@ -4,14 +4,14 @@
 #include <mutex>
 #include <condition_variable>
 #include <queue>
+#include "ThreadCoordinator.h"
 #include "../vulkan/PerFrameResource.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/FrameManager.h"
 
 class Device;
-
-typedef std::function<void(const std::shared_ptr<PerFrameResource>& pRes)> ThreadJobFunc;
+class ThreadTaskQueue;
 
 class ThreadWorker
 {
@@ -20,13 +20,35 @@ public:
 	{
 		ThreadJobFunc	job;
 		uint32_t		frameIndex;
+		ThreadTaskQueue* pThreadTaskQueue = nullptr;
 	}ThreadJob;
 
 public:
-	ThreadWorker(const std::shared_ptr<Device>& pDevice) : m_isWorking(false)
+	static void InitThreadWorkers(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount, const std::shared_ptr<FrameManager>& pFrameMgr)
 	{
-		for (uint32_t i = 0; i < GlobalObjects()->GetSwapChain()->GetSwapChainImageCount(); i++)
-			m_frameRes.push_back(FrameMgr()->AllocatePerFrameResource(i));
+		int numThreads = std::thread::hardware_concurrency();
+		for (int i = 0; i < numThreads - frameRoundBinCount; i++)
+		{
+			m_threadWorkers.push_back(std::make_shared<ThreadWorker>(pDevice, frameRoundBinCount, pFrameMgr));
+		}
+	}
+
+	static void UninitThreadWorkers()
+	{
+		m_threadWorkers.clear();
+	}
+
+	static std::shared_ptr<ThreadWorker> GetCurrentThreadWorker()
+	{
+		uint32_t temp = m_currentThreadWorker;
+		m_currentThreadWorker = (m_currentThreadWorker + 1) % m_threadWorkers.size();
+		return m_threadWorkers[temp];
+	}
+
+	ThreadWorker(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount, const std::shared_ptr<FrameManager>& pFrameMgr) : m_isWorking(false)
+	{
+		for (uint32_t i = 0; i < frameRoundBinCount; i++)
+			m_frameRes.push_back(pFrameMgr->AllocatePerFrameResource(i));
 		m_worker = std::thread(&ThreadWorker::Loop, this);
 	}
 
@@ -71,32 +93,7 @@ public:
 		return ret;
 	}
 
-	void Loop()
-	{
-		while (true)
-		{
-			ThreadJob job;
-			{
-				std::unique_lock<std::mutex> lock(m_queueMutex);
-				m_condition.wait(lock, [this] { return !m_jobQueue.empty() || m_isDestroying; });
-
-				if (m_isDestroying)
-				{
-					break;
-				}
-
-				job = m_jobQueue.front();
-				m_jobQueue.pop();
-				m_isWorking = true;
-			}
-			job.job(m_frameRes[job.frameIndex]);
-			{
-				std::unique_lock<std::mutex> lock(m_queueMutex);
-				m_isWorking = false;
-				m_condition.notify_one();
-			}
-		}
-	}
+	void Loop();
 
 	void WaitForFree()
 	{
@@ -114,4 +111,7 @@ private:
 	bool m_isWorking = false;
 	bool m_isDestroying = false;
 	const int32_t m_jobQueueSize = 2;
+
+	static std::vector<std::shared_ptr<ThreadWorker>>	m_threadWorkers;
+	static uint32_t										m_currentThreadWorker;
 };

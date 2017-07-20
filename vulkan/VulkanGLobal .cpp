@@ -16,6 +16,7 @@
 #include "Queue.h"
 #include "StagingBufferManager.h"
 #include "FrameManager.h"
+#include "../thread/ThreadWorker.hpp"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -214,7 +215,6 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 		DestroyWindow(hWnd);
 		PostQuitMessage(0);
-		ThreadCoordinator::Free();
 		break;
 
 	case WM_KEYDOWN:
@@ -633,8 +633,6 @@ void VulkanGlobal::InitDrawCmdBuffers()
 
 void VulkanGlobal::InitSemaphore()
 {
-	m_pSwapchainAcquireDone = Semaphore::Create(m_pDevice);
-	m_pRenderDone = Semaphore::Create(m_pDevice);
 }
 
 void VulkanGlobal::EndSetup()
@@ -644,12 +642,15 @@ void VulkanGlobal::EndSetup()
 	InitUniforms();
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
 
-	m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(GetDevice());
+	//m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(m_pDevice, GetSwapChain()->GetSwapChainImageCount(), FrameMgr());
 }
 
 void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 {
-	m_pDrawCmdBuffer = pPerFrameRes->AllocateCommandBuffer();
+	std::unique_lock<std::mutex> lock(m_updateMutex);
+
+
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocateCommandBuffer();
 
 	std::vector<VkClearValue> clearValues = 
 	{
@@ -659,7 +660,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 	VkCommandBufferBeginInfo cmdBeginInfo = {};
 	cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	CHECK_VK_ERROR(vkBeginCommandBuffer(m_pDrawCmdBuffer->GetDeviceHandle(), &cmdBeginInfo));
+	CHECK_VK_ERROR(vkBeginCommandBuffer(pDrawCmdBuffer->GetDeviceHandle(), &cmdBeginInfo));
 
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -672,9 +673,9 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	renderPassBeginInfo.renderArea.offset.x = 0;
 	renderPassBeginInfo.renderArea.offset.y = 0;
 
-	vkCmdBeginRenderPass(m_pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-	m_pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
-	m_pDrawCmdBuffer->AddToReferenceTable(m_framebuffers[pPerFrameRes->GetFrameIndex()]);
+	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
+	pDrawCmdBuffer->AddToReferenceTable(m_framebuffers[pPerFrameRes->GetFrameIndex()]);
 
 	VkViewport viewport =
 	{
@@ -689,29 +690,34 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 		GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height
 	};
 
-	vkCmdSetViewport(m_pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
-	vkCmdSetScissor(m_pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
+	vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
+	vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
 
 	std::vector<VkDescriptorSet> dsSets = { m_pDescriptorSet->GetDeviceHandle() };
-	vkCmdBindDescriptorSets(m_pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
-	m_pDrawCmdBuffer->AddToReferenceTable(m_pPipelineLayout);
-	m_pDrawCmdBuffer->AddToReferenceTable(m_pDescriptorSet);
+	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
+	pDrawCmdBuffer->AddToReferenceTable(m_pPipelineLayout);
+	pDrawCmdBuffer->AddToReferenceTable(m_pDescriptorSet);
 
-	vkCmdBindPipeline(m_pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipeline->GetDeviceHandle());
-	m_pDrawCmdBuffer->AddToReferenceTable(m_pPipeline);
+	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipeline->GetDeviceHandle());
+	pDrawCmdBuffer->AddToReferenceTable(m_pPipeline);
 
 	std::vector<VkBuffer> vertexBuffers = { m_pVertexBuffer->GetDeviceHandle() };
 	std::vector<VkDeviceSize> offsets = { 0 };
-	vkCmdBindVertexBuffers(m_pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(m_pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetDeviceHandle(), 0, m_pIndexBuffer->GetType());
-	m_pDrawCmdBuffer->AddToReferenceTable(m_pVertexBuffer);
-	m_pDrawCmdBuffer->AddToReferenceTable(m_pIndexBuffer);
+	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetDeviceHandle(), 0, m_pIndexBuffer->GetType());
+	pDrawCmdBuffer->AddToReferenceTable(m_pVertexBuffer);
+	pDrawCmdBuffer->AddToReferenceTable(m_pIndexBuffer);
 
-	vkCmdDrawIndexed(m_pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
 
-	vkCmdEndRenderPass(m_pDrawCmdBuffer->GetDeviceHandle());
+	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
 
-	CHECK_VK_ERROR(vkEndCommandBuffer(m_pDrawCmdBuffer->GetDeviceHandle()));
+	CHECK_VK_ERROR(vkEndCommandBuffer(pDrawCmdBuffer->GetDeviceHandle()));
+	
+	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, waitFlags, false);
+
+	FrameMgr()->JobDone(pPerFrameRes->GetFrameIndex());
 }
 
 void VulkanGlobal::Draw()
@@ -720,16 +726,9 @@ void VulkanGlobal::Draw()
 	InitUniforms();
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();*/
 
-	GetSwapChain()->AcquireNextImage(m_pSwapchainAcquireDone);
-	m_pThreadTaskQueue->AddJob(std::bind(&VulkanGlobal::PrepareDrawCommandBuffer, this, std::placeholders::_1), FrameMgr()->FrameIndex());
-	m_pThreadTaskQueue->WaitForFree();
-
-	std::vector<std::shared_ptr<Semaphore>> waitSemaphores = { m_pSwapchainAcquireDone };
-	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-	std::vector<std::shared_ptr<Semaphore>> signalSemaphores = { m_pRenderDone };
-	GlobalGraphicQueue()->SubmitPerFrameCommandBuffer(m_pDrawCmdBuffer, waitSemaphores, waitFlags, signalSemaphores, false);
-
-	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue(), m_pRenderDone, FrameMgr()->FrameIndex());
+	GetSwapChain()->AcquireNextImage();
+	FrameMgr()->AddJobToFrame(std::bind(&VulkanGlobal::PrepareDrawCommandBuffer, this, std::placeholders::_1));
+	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 }
 
 void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
@@ -761,4 +760,8 @@ void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
 	InitDrawCmdBuffers();
 	InitSemaphore();
 	EndSetup();
+}
+
+void VulkanGlobal::Free()
+{
 }

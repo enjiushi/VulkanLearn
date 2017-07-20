@@ -79,6 +79,8 @@ public:
 	void Draw();
 	void Update();
 
+	static void Free();
+
 	void InitShaderModule(const char* vertShaderPath, const char* fragShaderPath);
 
 public:
@@ -119,13 +121,10 @@ protected:
 	//std::vector<VkCommandBuffer>		m_drawCmdBuffers;
 	std::vector<std::shared_ptr<CommandBuffer>>		m_drawCmdBuffers;
 
-	std::shared_ptr<Semaphore>			m_pSwapchainAcquireDone;
-	std::shared_ptr<Semaphore>			m_pRenderDone;
-
 	std::vector<std::shared_ptr<PerFrameResource>> m_perFrameRes;
 
 	std::shared_ptr<ThreadTaskQueue>	m_pThreadTaskQueue;
-	std::shared_ptr<CommandBuffer>		m_pDrawCmdBuffer;
+	std::mutex							m_updateMutex;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)
