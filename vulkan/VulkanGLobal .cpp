@@ -5,7 +5,6 @@
 #include <sstream>
 #include <fstream>
 #include <array>
-#include "../thread/ThreadCoordinator.h"
 #include "../maths/Matrix.h"
 #include <math.h>
 #include "Importer.hpp"

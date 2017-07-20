@@ -1,10 +1,10 @@
 #pragma once
 
 #include "DeviceObjectBase.h"
-#include "../thread/ThreadCoordinator.h"
 #include <map>
 #include <functional>
 #include <mutex>
+#include "../thread/ThreadWorker.hpp"
 
 class CommandBuffer;
 class Fence;
