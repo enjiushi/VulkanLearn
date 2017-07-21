@@ -2,6 +2,9 @@
 
 #include "StagingBuffer.h"
 
+class PerFrameResource;
+class CommandBuffer;
+
 class StagingBufferManager : public DeviceObjectBase<StagingBufferManager>
 {
 	typedef struct _PendingBufferInfo
@@ -20,7 +23,8 @@ public:
 	static std::shared_ptr<StagingBufferManager> Create(const std::shared_ptr<Device>& pDevice);
 
 public:
-	void FlushData();
+	void FlushDataMainThread();
+	void RecordDataFlush(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 protected:
 	void UpdateByteStream(const std::shared_ptr<Buffer>& pBuffer, const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
@@ -28,6 +32,7 @@ protected:
 protected:
 	std::shared_ptr<StagingBuffer>	m_pStagingBufferPool;
 	std::vector<PendingBufferInfo>	m_pendingUpdateBuffer;
+	std::shared_ptr<CommandBuffer>	m_pCopyCmdBuffer;
 	uint32_t						m_usedNumBytes = 0;
 	const static uint32_t STAGING_BUFFER_INC = 1024 * 1024 * 8;
 	friend class Buffer;

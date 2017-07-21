@@ -636,10 +636,11 @@ void VulkanGlobal::InitSemaphore()
 
 void VulkanGlobal::EndSetup()
 {
-	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
+	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
 
+	/*
 	InitUniforms();
-	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();
+	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();*/
 
 	//m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(m_pDevice, GetSwapChain()->GetSwapChainImageCount(), FrameMgr());
 }
@@ -647,7 +648,6 @@ void VulkanGlobal::EndSetup()
 void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 {
 	std::unique_lock<std::mutex> lock(m_updateMutex);
-
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocateCommandBuffer();
 
@@ -660,6 +660,9 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	VkCommandBufferBeginInfo cmdBeginInfo = {};
 	cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	CHECK_VK_ERROR(vkBeginCommandBuffer(pDrawCmdBuffer->GetDeviceHandle(), &cmdBeginInfo));
+
+	InitUniforms();
+	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -721,10 +724,6 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 void VulkanGlobal::Draw()
 {
-	/*
-	InitUniforms();
-	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();*/
-
 	GetSwapChain()->AcquireNextImage();
 	FrameMgr()->AddJobToFrame(std::bind(&VulkanGlobal::PrepareDrawCommandBuffer, this, std::placeholders::_1));
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
