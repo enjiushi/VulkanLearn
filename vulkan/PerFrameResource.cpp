@@ -7,7 +7,7 @@
 #include "GlobalDeviceObjects.h"
 #include "SwapChain.h"
 
-bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex, const std::shared_ptr<PerFrameResource>& pSelf)
+bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t frameBinIndex, const std::shared_ptr<PerFrameResource>& pSelf)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
@@ -31,15 +31,15 @@ bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t fra
 	descPoolInfo.maxSets = 10;
 	m_pDescriptorPool = DescriptorPool::Create(pDevice, descPoolInfo);
 	
-	m_frameIndex = frameIndex;
+	m_frameBinIndex = frameBinIndex;
 
 	return true;
 }
 
-std::shared_ptr<PerFrameResource> PerFrameResource::Create(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex)
+std::shared_ptr<PerFrameResource> PerFrameResource::Create(const std::shared_ptr<Device>& pDevice, uint32_t frameBinIndex)
 {
 	std::shared_ptr<PerFrameResource> pPerFrameRes = std::make_shared<PerFrameResource>();
-	if (pPerFrameRes.get() && pPerFrameRes->Init(pDevice, frameIndex, pPerFrameRes))
+	if (pPerFrameRes.get() && pPerFrameRes->Init(pDevice, frameBinIndex, pPerFrameRes))
 		return pPerFrameRes;
 	return nullptr;
 }

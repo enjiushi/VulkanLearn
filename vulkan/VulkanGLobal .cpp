@@ -666,7 +666,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	renderPassBeginInfo.clearValueCount = clearValues.size();
 	renderPassBeginInfo.pClearValues = clearValues.data();
 	renderPassBeginInfo.renderPass = m_pRenderPass->GetDeviceHandle();
-	renderPassBeginInfo.framebuffer = m_framebuffers[pPerFrameRes->GetFrameIndex()]->GetDeviceHandle();
+	renderPassBeginInfo.framebuffer = m_framebuffers[FrameMgr()->FrameIndex(pPerFrameRes->GetFrameBinIndex())]->GetDeviceHandle();
 	renderPassBeginInfo.renderArea.extent.width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
 	renderPassBeginInfo.renderArea.extent.height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
 	renderPassBeginInfo.renderArea.offset.x = 0;
@@ -674,7 +674,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
-	pDrawCmdBuffer->AddToReferenceTable(m_framebuffers[pPerFrameRes->GetFrameIndex()]);
+	pDrawCmdBuffer->AddToReferenceTable(m_framebuffers[FrameMgr()->FrameIndex(pPerFrameRes->GetFrameBinIndex())]);
 
 	VkViewport viewport =
 	{
@@ -716,7 +716,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, waitFlags, false);
 
-	FrameMgr()->JobDone(pPerFrameRes->GetFrameIndex());
+	FrameMgr()->JobDone(pPerFrameRes->GetFrameBinIndex());
 }
 
 void VulkanGlobal::Draw()

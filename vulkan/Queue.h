@@ -76,5 +76,5 @@ public:
 	static std::shared_ptr<Queue> Create(const std::shared_ptr<Device>& pDevice, uint32_t queueIndex);
 
 protected:
-	VkQueue m_queue;
+	VkQueue		m_queue;
 };

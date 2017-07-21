@@ -47,7 +47,7 @@ void ThreadWorker::Loop()
 			m_jobQueue.pop();
 			m_isWorking = true;
 		}
-		job.job(m_frameRes[job.frameIndex]);
+		job.job(m_frameRes[job.frameBinIndex]);
 		job.pThreadTaskQueue->EndJob();
 		{
 			std::unique_lock<std::mutex> lock(m_queueMutex);

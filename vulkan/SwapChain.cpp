@@ -63,7 +63,7 @@ bool SwapChain::Init(const std::shared_ptr<Device>& pDevice, const std::shared_p
 	VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
 	swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapchainCreateInfo.surface = m_pDevice->GetPhysicalDevice()->GetSurfaceHandle();
-	swapchainCreateInfo.minImageCount = 3;
+	swapchainCreateInfo.minImageCount = 8;
 	swapchainCreateInfo.presentMode = swapchainPresentMode;
 	swapchainCreateInfo.preTransform = (VkSurfaceTransformFlagBitsKHR)preTransform;
 	swapchainCreateInfo.clipped = true;
@@ -96,13 +96,16 @@ void SwapChain::EnsureSwapChainImageLayout()
 void SwapChain::AcquireNextImage()
 {
 	static bool firstFrame = true;
-	
+
 	if (firstFrame)
 		firstFrame = false;
 	else
-		m_pFrameManager->IncFrameIndex();
+		m_pFrameManager->IncBinIndex();
+
 	uint32_t index;
 	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, m_pFrameManager->GetAcqurieDoneSemaphore()->GetDeviceHandle(), nullptr, &index));
+
+	m_pFrameManager->SetFrameIndex(index);
 }
 
 void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue)

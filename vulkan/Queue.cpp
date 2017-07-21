@@ -156,8 +156,10 @@ void Queue::SubmitCommandBuffers(
 	if (pFence.get())
 		fence = pFence->GetDeviceHandle();
 
-	CHECK_VK_ERROR(vkQueueSubmit(GetDeviceHandle(), 1, &submitInfo, fence));
+	vkQueueSubmit(GetDeviceHandle(), 1, &submitInfo, fence);
 
 	if (waitUtilQueueIdle)
+	{
 		CHECK_VK_ERROR(vkQueueWaitIdle(GetDeviceHandle()));
+	}
 }

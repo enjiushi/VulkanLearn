@@ -20,7 +20,7 @@ public:
 	typedef struct _ThreadJob
 	{
 		ThreadJobFunc	job;
-		uint32_t		frameIndex;
+		uint32_t		frameBinIndex;
 		ThreadTaskQueue* pThreadTaskQueue = nullptr;
 	}ThreadJob;
 
