@@ -1,10 +1,25 @@
 #include "Camera.h"
 #include "../Base/BaseObject.h"
 
-void Camera::Update(float delta, bool isDirty)
+bool Camera::Init(const CameraInfo& info, const std::shared_ptr<Camera>& pCamera)
 {
-	m_viewDirty = isDirty;
+	if (!BaseComponent::Init(pCamera))
+		return false;
 
+	SetCameraInfo(info);
+	return true;
+}
+
+std::shared_ptr<Camera> Camera::Create(const CameraInfo& info)
+{
+	std::shared_ptr<Camera> pCamera = std::shared_ptr<Camera>();
+	if (pCamera.get() && pCamera->Init(info, pCamera))
+		return pCamera;
+	return nullptr;
+}
+
+void Camera::Update(float delta)
+{
 	UpdateViewMatrix();
 	UpdateProjMatrix();
 	UpdateVPMatrix();
@@ -12,10 +27,7 @@ void Camera::Update(float delta, bool isDirty)
 
 void Camera::UpdateViewMatrix()
 {
-	if (!m_viewDirty)
-		return;
-
-	m_viewMatrix = m_object->GetWorldTransform().Inverse();
+	m_viewMatrix = m_pObject->GetWorldTransform().Inverse();
 }
 
 void Camera::UpdateProjMatrix()
@@ -36,11 +48,7 @@ void Camera::UpdateProjMatrix()
 
 void Camera::UpdateVPMatrix()
 {
-	if (!m_viewDirty && !m_projDirty)
-		return;
-
 	m_vpMatrix = m_projMatrix * m_viewMatrix;
-	m_viewDirty = m_projDirty = false;
 }
 
 void Camera::SetFOV(float new_fov)

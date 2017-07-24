@@ -7,10 +7,6 @@
 class BaseObject : public SelfRefBase<BaseObject>
 {
 public:
-	BaseObject() : m_parent(nullptr) {}
-	~BaseObject();
-
-public:
 	void AddComponent(const std::shared_ptr<BaseComponent>& pComp);
 	void DelComponent(uint32_t index);
 	std::shared_ptr<BaseComponent> GetComponent(uint32_t index);
@@ -35,7 +31,7 @@ public:
 
 	bool IsDirty() const { return m_isDirty; }
 
-	virtual void Update(float delta, bool isParentDirty = false);
+	virtual void Update(float delta);
 
 	Vector3f GetLocalPosition() const { return m_localPosition; }
 	Vector3f GetWorldPosition() const { return m_worldPosition; }
@@ -50,7 +46,7 @@ public:
 
 
 	//creators
-	BaseObject* Create() { return new BaseObject; }
+	std::shared_ptr<BaseObject> Create();
 protected:
 	void UpdateLocalInfo();
 	void UpdateWorldInfo();
@@ -58,7 +54,7 @@ protected:
 protected:
 	std::vector<std::shared_ptr<BaseComponent>>		m_components;
 	std::vector<std::shared_ptr<BaseObject>>		m_children;
-	const BaseObject*								m_parent;
+	std::shared_ptr<BaseObject>						m_pParent;
 
 	Vector3f	m_localPosition;
 	Vector3f	m_worldPosition;

@@ -20,8 +20,7 @@ typedef struct _CharacterVariable
 class Character : public BaseComponent
 {
 public:
-	Character() {}
-	~Character() {}
+	static std::shared_ptr<Character> Create();
 
 	void Move(uint32_t dir, float delta);
 

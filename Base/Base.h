@@ -15,7 +15,9 @@ template <class T>
 class SelfRefBase : public Base
 {
 public:
-	const std::shared_ptr<T> GetSelfSharedPtr() const { return m_pSelf.lock(); }
+	std::shared_ptr<T> GetSelfSharedPtr() const { return m_pSelf.lock(); }
+
+	virtual ~SelfRefBase() {}
 
 protected:
 	virtual bool Init(const std::shared_ptr<T>& pSelf)

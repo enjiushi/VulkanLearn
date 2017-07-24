@@ -1,7 +1,11 @@
 #include "BaseObject.h"
 
-BaseObject::~BaseObject()
+std::shared_ptr<BaseObject> BaseObject::Create()
 {
+	std::shared_ptr<BaseObject> pObj = std::make_shared<BaseObject>();
+	if (pObj.get() && pObj->Init(pObj))
+		return pObj;
+	return nullptr;
 }
 
 void BaseObject::AddComponent(const std::shared_ptr<BaseComponent>& pComp)
@@ -10,14 +14,14 @@ void BaseObject::AddComponent(const std::shared_ptr<BaseComponent>& pComp)
 		return;
 
 	m_components.push_back(pComp);
-	pComp->SetObject(this);
+	pComp->SetObject(GetSelfSharedPtr());
 }
 
 void BaseObject::DelComponent(uint32_t index)
 {
 	if (index < 0 || index >= m_components.size())
 		return;
-	m_components[index]->SetObject(nullptr);
+
 	m_components.erase(m_components.begin() + index);
 }
 
@@ -33,14 +37,13 @@ void BaseObject::AddChild(const std::shared_ptr<BaseObject>& pObj)
 	if (ContainObject(pObj))
 		return;
 	m_children.push_back(pObj);
-	pObj->m_parent = this;
+	pObj->m_pParent = GetSelfSharedPtr();
 }
 
 void BaseObject::DelChild(uint32_t index)
 {
 	if (index < 0 || index >= m_children.size())
 		return;
-	m_children[index]->m_parent = nullptr;
 	m_children.erase(m_children.begin() + index);
 }
 
@@ -53,12 +56,7 @@ std::shared_ptr<BaseObject> BaseObject::GetChild(uint32_t index)
 
 bool BaseObject::ContainComponent(const std::shared_ptr<BaseComponent>& pComp) const
 {
-	for (size_t i = 0; i < m_components.size(); i++)
-	{
-		if (m_components[i] == pComp)
-			return true;
-	}
-	return false;
+	return std::find(m_components.begin(), m_components.end(), pComp) != m_components.end();
 }
 
 bool BaseObject::ContainObject(const std::shared_ptr<BaseObject>& pObj) const
@@ -71,23 +69,21 @@ bool BaseObject::ContainObject(const std::shared_ptr<BaseObject>& pObj) const
 	return false;
 }
 
-void BaseObject::Update(float delta, bool isParentDirty)
+void BaseObject::Update(float delta)
 {
-	bool isDirty = isParentDirty || m_isDirty;
-
 	UpdateLocalInfo();
 
 	//parent dirty or local dirty, all effect world transform
-	if (isDirty)
+	if (m_isDirty)
 		UpdateWorldInfo();
 
 	//update components attached to this object
 	for (size_t i = 0; i < m_components.size(); i++)
-		m_components[i]->Update(delta, isDirty);
+		m_components[i]->Update(delta);
 
 	//update all children objects
 	for (size_t i = 0; i < m_children.size(); i++)
-		m_children[i]->Update(delta, isDirty);
+		m_children[i]->Update(delta);
 
 	m_isDirty = false;
 }
@@ -119,10 +115,10 @@ void BaseObject::UpdateWorldInfo()
 {
 	Matrix4f parentWorldTransform;
 	Matrix3f parentWorldRotationM;
-	if (m_parent)
+	if (m_pParent.get())
 	{
-		parentWorldTransform = m_parent->m_worldTransform;
-		parentWorldRotationM = m_parent->m_worldRotationM;
+		parentWorldTransform = m_pParent->m_worldTransform;
+		parentWorldRotationM = m_pParent->m_worldRotationM;
 	}
 
 	//get world transform

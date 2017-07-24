@@ -14,10 +14,7 @@ typedef struct _CameraInfo
 class Camera : public BaseComponent
 {
 public:
-	Camera() {}
-	~Camera() {}
-
-	void Update(float delta, bool isDirty = false) override;
+	void Update(float delta) override;
 
 	void SetFOV(float new_fov);
 	void SetAspect(float new_aspect);
@@ -33,9 +30,10 @@ public:
 	const Matrix4f GetProjMatrix() const { return m_projMatrix; }
 	const Matrix4f GetVPMatrix() const { return m_vpMatrix; }
 
-	static Camera* Create(const CameraInfo& info);
+	static std::shared_ptr<Camera> Create(const CameraInfo& info);
 
 protected:
+	bool Init(const CameraInfo& info, const std::shared_ptr<Camera>& pCamera);
 	void UpdateViewMatrix();
 	void UpdateProjMatrix();
 	void UpdateVPMatrix();
@@ -52,6 +50,6 @@ protected:
 	Matrix4f	m_projMatrix;
 	Matrix4f	m_vpMatrix;
 
-	float		m_viewDirty;
+	//float		m_viewDirty;
 	float		m_projDirty;
 };

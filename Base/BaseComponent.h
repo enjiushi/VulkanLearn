@@ -6,17 +6,28 @@ class BaseObject;
 class BaseComponent : public SelfRefBase<BaseComponent>
 {
 public:
-	BaseComponent(void);
-	virtual ~BaseComponent(void) = 0;
+	virtual ~BaseComponent(void) = 0 {}
 
-	virtual void Update(float delta, bool isDirtr = false) {}
+	virtual void Update(float delta) {}
 
-	void SetObject(BaseObject* pObj) { m_object = pObj; }
-	const BaseObject* GetObject() const { return m_object; }
+	std::shared_ptr<BaseObject> GetObject() const { return m_pObject; }
 
 protected:
-	bool m_isDirty;
+	virtual bool Init(const std::shared_ptr<BaseComponent>& pSelf)
+	{
+		if (!SelfRefBase<BaseComponent>::Init(pSelf))
+			return false;
 
-	BaseObject* m_object;
+		return true;
+	}
+
+	void SetObject(const std::shared_ptr<BaseObject>& pObj) { m_pObject = pObj; }
+
+protected:
+	bool m_isDirty = false;
+
+	std::shared_ptr<BaseObject> m_pObject;
+
+	friend class BaseObject;
 };
 

@@ -4,21 +4,26 @@
 #include <iostream>
 #include <math.h>
 #include "../Maths/Vector.h"
+#include "../Maths/MathUtil.h"
 
-const float  PI_F = 3.14159265358979f;
-const float EPSLON_ANGLE = 0.001;
+std::shared_ptr<Character> Character::Create()
+{
+	std::shared_ptr<Character> pChar = std::make_shared<Character>();
+	if (pChar.get() && pChar->Init(pChar))
+		return pChar;
+	return nullptr;
+}
 
 void Character::Move(const Vector3f& v, float delta)
 {
-	/*
-	if (EQUAL(GLfloat, v.x, 0) && EQUAL(GLfloat, v.y, 0) && EQUAL(GLfloat, v.z, 0))
-		return;*/
+	if (v == Vector3f(0, 0, 0))
+		return;
 
 	Vector3f move_dir = v.Normal() * delta * m_charVars.moveSpeed;
 	move_dir.x = -move_dir.x;	//reverse x axis, because camera left direction is opposite to x axis
 	move_dir.z = -move_dir.z;	//reverse z axis, because camera looking direction is opposite to z axis
-	Vector3f move_dir_local = m_object->GetLocalRotationM() * move_dir;
-	m_object->SetPos(m_object->GetLocalPosition() + move_dir_local);
+	Vector3f move_dir_local = m_pObject->GetLocalRotationM() * move_dir;
+	m_pObject->SetPos(m_pObject->GetLocalPosition() + move_dir_local);
 }
 
 void Character::Move(uint32_t dir, float delta)
@@ -37,11 +42,11 @@ void Character::Move(uint32_t dir, float delta)
 
 void Character::OnRotateStart(const Vector2f& v)
 {
-	static float eps_cos = std::cosf(PI_F / 2.0f - EPSLON_ANGLE);	//minimum value of cosine minimum angle
+	static float eps_cos = std::cosf(PI / 2.0f - EPSLON_ANGLE);	//minimum value of cosine minimum angle
 
 	m_rotationStarted = true;
 	m_rotationStartPos = v;
-	m_rotationStartMatrix = m_object->GetLocalRotationM();
+	m_rotationStartMatrix = m_pObject->GetLocalRotationM();
 
 	//get the angle between target direction and horizontal plane
 	Vector3f target_dir = (Vector3f(0.0f, 0.0f, 0.0f) - m_rotationStartMatrix[2]).Normal();		//target direction
@@ -91,10 +96,10 @@ void Character::Rotate(const Vector2f& v)
 	//do this to prevent from over rotating
 	//your neck can't rotate more than 90 degree around your shoulder, right?
 	float current_target_to_H = m_startTargetToH + euler_angle.x;
-	if (current_target_to_H > PI_F / 2.0f)
-		euler_angle.x = PI_F / 2.0f - m_startTargetToH - EPSLON_ANGLE;
-	else if (current_target_to_H < -PI_F / 2.0f)
-		euler_angle.x = -PI_F / 2.0f - m_startTargetToH + EPSLON_ANGLE;
+	if (current_target_to_H > PI / 2.0f)
+		euler_angle.x = PI / 2.0f - m_startTargetToH - EPSLON_ANGLE;
+	else if (current_target_to_H < -PI / 2.0f)
+		euler_angle.x = -PI / 2.0f - m_startTargetToH + EPSLON_ANGLE;
 
 	//get local rotation matrix and its rotated x & y axis
 	Vector3f obj_axis_x = m_rotationStartMatrix[0];
@@ -105,5 +110,5 @@ void Character::Rotate(const Vector2f& v)
 
 	//here we first rotate around axis x, then y
 	//or we can't guarentee x to keep horizontal
-	m_object->SetRotation(rotate_around_y * rotate_around_x * m_rotationStartMatrix);
+	m_pObject->SetRotation(rotate_around_y * rotate_around_x * m_rotationStartMatrix);
 }
