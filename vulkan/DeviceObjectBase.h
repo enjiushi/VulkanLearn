@@ -1,33 +1,29 @@
 #pragma once
+#include "../Base/Base.h"
 #include "Device.h"
 
-class DeviceBase
-{
-public:
-	virtual ~DeviceBase() {}
-};
-
 template <class T>
-class DeviceObjectBase : public DeviceBase
+class DeviceObjectBase : public SelfRefBase<T>
 {
 public:
 	virtual ~DeviceObjectBase() {}
 
+protected:
 	virtual bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<T>& pSelf)
 	{
+		if (!SelfRefBase::Init(pSelf))
+			return false;
+
 		if (!pDevice.get())
 			return false;
 
 		m_pDevice = pDevice;
-		m_pSelf = pSelf;
 		return true;
 	}
 
 public:
 	const std::shared_ptr<Device> GetDevice() const { return m_pDevice; }
-	const std::shared_ptr<T> GetSelfSharedPtr() const { return m_pSelf.lock(); }
 
 protected:
 	std::shared_ptr<Device>	m_pDevice;
-	std::weak_ptr<T>		m_pSelf;
 };

@@ -4,23 +4,23 @@
 #include "../maths/Matrix.h"
 #include "../maths/Quaternion.h"
 
-class BaseObject : public RefCounted
+class BaseObject : public SelfRefBase<BaseObject>
 {
 public:
 	BaseObject() : m_parent(nullptr) {}
 	~BaseObject();
 
 public:
-	void AddComponent(BaseComponent* pComp);
+	void AddComponent(const std::shared_ptr<BaseComponent>& pComp);
 	void DelComponent(uint32_t index);
-	BaseComponent* GetComponent(uint32_t index);
+	std::shared_ptr<BaseComponent> GetComponent(uint32_t index);
 
-	void AddChild(BaseObject* pObj);
+	void AddChild(const std::shared_ptr<BaseObject>& pObj);
 	void DelChild(uint32_t index);
-	BaseObject* GetChild(uint32_t index);
+	std::shared_ptr<BaseObject> GetChild(uint32_t index);
 
-	bool ContainComponent(const BaseComponent* pComp) const;
-	bool ContainObject(const BaseObject* pObj) const;
+	bool ContainComponent(const std::shared_ptr<BaseComponent>& pComp) const;
+	bool ContainObject(const std::shared_ptr<BaseObject>& pObj) const;
 
 	void SetPos(const Vector3f& v) { m_localPosition = v; m_isDirty = true; }
 	void SetPos(float x, float y, float z) { m_localPosition = Vector3f(x, y, z); m_isDirty = true; }
@@ -56,9 +56,9 @@ protected:
 	void UpdateWorldInfo();
 
 protected:
-	std::vector<AutoPTR<BaseComponent> > m_components;
-	std::vector<AutoPTR<BaseObject> >	 m_children;
-	const BaseObject*					 m_parent;
+	std::vector<std::shared_ptr<BaseComponent>>		m_components;
+	std::vector<std::shared_ptr<BaseObject>>		m_children;
+	const BaseObject*								m_parent;
 
 	Vector3f	m_localPosition;
 	Vector3f	m_worldPosition;

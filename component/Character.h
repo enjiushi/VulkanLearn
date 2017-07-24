@@ -38,7 +38,7 @@ public:
 	void SetCharacterVariable(const CharacterVariable& var) { m_charVars = var; }
 	CharacterVariable GetCharacterVariable() const { return m_charVars; }
 
-	void SetCamera(Camera* pCamera) { m_camera = pCamera; }
+	void SetCamera(const std::shared_ptr<Camera>& pCamera) { m_camera = pCamera; }
 
 protected:
 	void Move(const Vector3f& v, float delta);
@@ -50,5 +50,5 @@ protected:
 	Vector2f			m_rotationStartPos;
 	float				m_startTargetToH;
 	Vector3f			m_lastTarget;
-	AutoPTR<Camera>		m_camera;
+	std::shared_ptr<Camera>	m_camera;
 };

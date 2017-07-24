@@ -2,7 +2,7 @@
 #include "Base.h"
 
 template <typename T>
-class BaseSingleton : public Base
+class BaseSingleton : public SelfRefBase<T>
 {
 public:
 	static T* GetInstance()

@@ -3,7 +3,7 @@
 
 class BaseObject;
 
-class BaseComponent : public Base
+class BaseComponent : public SelfRefBase<BaseComponent>
 {
 public:
 	BaseComponent(void);

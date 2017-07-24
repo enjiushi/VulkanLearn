@@ -4,12 +4,12 @@ BaseObject::~BaseObject()
 {
 }
 
-void BaseObject::AddComponent(BaseComponent* pComp)
+void BaseObject::AddComponent(const std::shared_ptr<BaseComponent>& pComp)
 {
 	if (ContainComponent(pComp))
 		return;
 
-	m_components.push_back(AutoPTR<BaseComponent>(pComp));
+	m_components.push_back(pComp);
 	pComp->SetObject(this);
 }
 
@@ -21,14 +21,14 @@ void BaseObject::DelComponent(uint32_t index)
 	m_components.erase(m_components.begin() + index);
 }
 
-BaseComponent* BaseObject::GetComponent(uint32_t index)
+std::shared_ptr<BaseComponent> BaseObject::GetComponent(uint32_t index)
 {
 	if (index < 0 || index >= m_components.size())
 		return nullptr;
 	return m_components[index];
 }
 
-void BaseObject::AddChild(BaseObject* pObj)
+void BaseObject::AddChild(const std::shared_ptr<BaseObject>& pObj)
 {
 	if (ContainObject(pObj))
 		return;
@@ -44,14 +44,14 @@ void BaseObject::DelChild(uint32_t index)
 	m_children.erase(m_children.begin() + index);
 }
 
-BaseObject* BaseObject::GetChild(uint32_t index)
+std::shared_ptr<BaseObject> BaseObject::GetChild(uint32_t index)
 {
 	if (index < 0 || index >= m_children.size())
 		return nullptr;
 	return m_children[index];
 }
 
-bool BaseObject::ContainComponent(const BaseComponent* pComp) const
+bool BaseObject::ContainComponent(const std::shared_ptr<BaseComponent>& pComp) const
 {
 	for (size_t i = 0; i < m_components.size(); i++)
 	{
@@ -61,7 +61,7 @@ bool BaseObject::ContainComponent(const BaseComponent* pComp) const
 	return false;
 }
 
-bool BaseObject::ContainObject(const BaseObject* pObj) const
+bool BaseObject::ContainObject(const std::shared_ptr<BaseObject>& pObj) const
 {
 	for (size_t i = 0; i < m_children.size(); i++)
 	{
