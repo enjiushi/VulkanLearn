@@ -46,7 +46,7 @@ public:
 
 
 	//creators
-	std::shared_ptr<BaseObject> Create();
+	static std::shared_ptr<BaseObject> Create();
 protected:
 	void UpdateLocalInfo();
 	void UpdateWorldInfo();
