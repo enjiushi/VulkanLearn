@@ -1,6 +1,5 @@
 #pragma once
 #include "Base.h"
-#include "../common/AutoPTR.h"
 
 class BaseObject;
 

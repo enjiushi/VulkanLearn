@@ -1,10 +1,8 @@
 #pragma once
-#include "../common/RefCounted.h"
 #include <vector>
-#include "../common/AutoPTR.h"
 #include "BaseComponent.h"
-#include "../Maths/Matrix.h"
-#include "../Maths/Quaternion.h"
+#include "../maths/Matrix.h"
+#include "../maths/Quaternion.h"
 
 class BaseObject : public RefCounted
 {
