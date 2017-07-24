@@ -13,7 +13,6 @@ bool StagingBufferManager::Init(const std::shared_ptr<Device>& pDevice, const st
 		return false;
 
 	m_pStagingBufferPool = StagingBuffer::Create(pDevice, STAGING_BUFFER_INC);
-	m_pCopyCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 
 	return true;
 }
@@ -28,7 +27,8 @@ std::shared_ptr<StagingBufferManager> StagingBufferManager::Create(const std::sh
 
 void StagingBufferManager::FlushDataMainThread()
 {
-	VkCommandBuffer cmdBuffer = m_pCopyCmdBuffer->GetDeviceHandle();
+	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+	VkCommandBuffer cmdBuffer = pCmdBuffer->GetDeviceHandle();
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -96,8 +96,6 @@ void StagingBufferManager::FlushDataMainThread()
 
 	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
-
-	vkFreeCommandBuffers(m_pDevice->GetDeviceHandle(), GlobalDeviceObjects::GetInstance()->GetMainThreadCmdPool()->GetDeviceHandle(), 1, &cmdBuffer);
 
 	m_pendingUpdateBuffer.clear();
 	m_usedNumBytes = 0;

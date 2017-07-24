@@ -32,7 +32,6 @@ protected:
 protected:
 	std::shared_ptr<StagingBuffer>	m_pStagingBufferPool;
 	std::vector<PendingBufferInfo>	m_pendingUpdateBuffer;
-	std::shared_ptr<CommandBuffer>	m_pCopyCmdBuffer;
 	uint32_t						m_usedNumBytes = 0;
 	const static uint32_t STAGING_BUFFER_INC = 1024 * 1024 * 8;
 	friend class Buffer;
