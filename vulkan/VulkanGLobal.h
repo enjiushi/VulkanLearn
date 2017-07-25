@@ -28,6 +28,9 @@
 #include "Semaphore.h"
 #include "PerFrameResource.h"
 #include "../thread/ThreadTaskQueue.hpp"
+#include "../Base/BaseObject.h"
+#include "../component/Camera.h"
+#include "../component/Character.h"
 
 typedef struct _GlobalUniforms
 {
@@ -76,7 +79,7 @@ public:
 	void EndSetup();
 
 	void PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResource>& pPerFrameRes);
-	void UpdateUniforms(const std::shared_ptr<PerFrameResource>& pPerFrameRes);
+	void UpdateUniforms();
 	void Draw();
 	void Update();
 
@@ -126,6 +129,9 @@ protected:
 
 	std::shared_ptr<ThreadTaskQueue>	m_pThreadTaskQueue;
 	std::mutex							m_updateMutex;
+
+	std::shared_ptr<BaseObject>			m_pCameraObj;
+	std::shared_ptr<Camera>				m_pCameraComp;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)
