@@ -27,7 +27,10 @@ void Camera::Update(float delta)
 
 void Camera::UpdateViewMatrix()
 {
-	m_viewMatrix = m_pObject->GetWorldTransform().Inverse();
+	if (m_pObject.expired())
+		return;
+
+	m_viewMatrix = m_pObject.lock()->GetWorldTransform().Inverse();
 }
 
 void Camera::UpdateProjMatrix()
