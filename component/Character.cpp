@@ -19,11 +19,16 @@ void Character::Move(const Vector3f& v, float delta)
 	if (v == Vector3f(0, 0, 0))
 		return;
 
+	if (m_pObject.expired())
+		return;
+
 	Vector3f move_dir = v.Normal() * delta * m_charVars.moveSpeed;
 	move_dir.x = -move_dir.x;	//reverse x axis, because camera left direction is opposite to x axis
 	move_dir.z = -move_dir.z;	//reverse z axis, because camera looking direction is opposite to z axis
-	Vector3f move_dir_local = m_pObject->GetLocalRotationM() * move_dir;
-	m_pObject->SetPos(m_pObject->GetLocalPosition() + move_dir_local);
+
+	std::shared_ptr<BaseObject> pObj = m_pObject.lock();
+	Vector3f move_dir_local = pObj->GetLocalRotationM() * move_dir;
+	pObj->SetPos(pObj->GetLocalPosition() + move_dir_local);
 }
 
 void Character::Move(uint32_t dir, float delta)
@@ -44,9 +49,12 @@ void Character::OnRotateStart(const Vector2f& v)
 {
 	static float eps_cos = std::cosf(PI / 2.0f - EPSLON_ANGLE);	//minimum value of cosine minimum angle
 
+	if (m_pObject.expired())
+		return;
+
 	m_rotationStarted = true;
 	m_rotationStartPos = v;
-	m_rotationStartMatrix = m_pObject->GetLocalRotationM();
+	m_rotationStartMatrix = m_pObject.lock()->GetLocalRotationM();
 
 	//get the angle between target direction and horizontal plane
 	Vector3f target_dir = (Vector3f(0.0f, 0.0f, 0.0f) - m_rotationStartMatrix[2]).Normal();		//target direction
@@ -88,6 +96,9 @@ void Character::OnRotateEnd(const Vector2f& v)
 
 void Character::Rotate(const Vector2f& v)
 {
+	if (m_pObject.expired())
+		return;
+
 	//get euler angle
 	Vector2f euler_angle;
 	euler_angle.x = -v.y * m_camera->GetCameraInfo().fov;
@@ -110,5 +121,5 @@ void Character::Rotate(const Vector2f& v)
 
 	//here we first rotate around axis x, then y
 	//or we can't guarentee x to keep horizontal
-	m_pObject->SetRotation(rotate_around_y * rotate_around_x * m_rotationStartMatrix);
+	m_pObject.lock()->SetRotation(rotate_around_y * rotate_around_x * m_rotationStartMatrix);
 }
