@@ -12,7 +12,7 @@ bool Camera::Init(const CameraInfo& info, const std::shared_ptr<Camera>& pCamera
 
 std::shared_ptr<Camera> Camera::Create(const CameraInfo& info)
 {
-	std::shared_ptr<Camera> pCamera = std::shared_ptr<Camera>();
+	std::shared_ptr<Camera> pCamera = std::make_shared<Camera>();
 	if (pCamera.get() && pCamera->Init(info, pCamera))
 		return pCamera;
 	return nullptr;

@@ -6,11 +6,16 @@ class BaseObject;
 class BaseComponent : public SelfRefBase<BaseComponent>
 {
 public:
-	virtual ~BaseComponent(void) = 0 {}
+	virtual ~BaseComponent(void) {}
 
 	virtual void Update(float delta) {}
 
-	std::shared_ptr<BaseObject> GetObject() const { return m_pObject; }
+	std::shared_ptr<BaseObject> GetObject() const 
+	{
+		if (!m_pObject.expired())
+			return m_pObject.lock();
+		return nullptr;
+	}
 
 protected:
 	virtual bool Init(const std::shared_ptr<BaseComponent>& pSelf)
@@ -26,7 +31,7 @@ protected:
 protected:
 	bool m_isDirty = false;
 
-	std::shared_ptr<BaseObject> m_pObject;
+	std::weak_ptr<BaseObject> m_pObject;
 
 	friend class BaseObject;
 };

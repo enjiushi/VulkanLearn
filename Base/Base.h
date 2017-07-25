@@ -5,7 +5,6 @@
 class Base
 {
 public:
-	Base() {}
 	virtual ~Base() = 0 {}
 
 	virtual bool Init() { return true; }
@@ -15,7 +14,12 @@ template <class T>
 class SelfRefBase : public Base
 {
 public:
-	std::shared_ptr<T> GetSelfSharedPtr() const { return m_pSelf.lock(); }
+	std::shared_ptr<T> GetSelfSharedPtr() const 
+	{
+		if (!m_pSelf.expired())
+			return m_pSelf.lock(); 
+		return nullptr;
+	}
 
 	virtual ~SelfRefBase() {}
 

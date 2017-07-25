@@ -2,6 +2,9 @@
 #include "../Base/BaseComponent.h"
 #include "../Maths/Matrix.h"
 
+#undef near
+#undef far
+
 typedef struct _CameraInfo
 {
 	//projection related variables
