@@ -20,6 +20,7 @@ public:
 	const std::shared_ptr<DescriptorSetLayout> GetDescriptorSetLayout() const { return m_pDescriptorSetLayout; }
 	VkDescriptorSet GetDeviceHandle() const { return m_descriptorSet; }
 
+	void UpdateBufferDynamic(uint32_t binding, const VkDescriptorBufferInfo& bufferInfo);
 	void UpdateBuffer(uint32_t binding, const VkDescriptorBufferInfo& bufferInfo);
 	void UpdateImage(uint32_t binding, const VkDescriptorImageInfo& imageInfo);
 	void UpdateTexBuffer(uint32_t binding, const VkBufferView& texBufferView);

@@ -40,6 +40,19 @@ std::shared_ptr<DescriptorSet> DescriptorSet::Create(const std::shared_ptr<Devic
 	return nullptr;
 }
 
+void DescriptorSet::UpdateBufferDynamic(uint32_t binding, const VkDescriptorBufferInfo& bufferInfo)
+{
+	std::vector<VkWriteDescriptorSet> writeData = { {} };
+	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+	writeData[0].dstBinding = binding;
+	writeData[0].descriptorCount = 1;
+	writeData[0].dstSet = GetDeviceHandle();
+	writeData[0].pBufferInfo = &bufferInfo;
+
+	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+}
+
 void DescriptorSet::UpdateBuffer(uint32_t binding, const VkDescriptorBufferInfo& bufferInfo)
 {
 	std::vector<VkWriteDescriptorSet> writeData = { {} };
