@@ -79,7 +79,7 @@ public:
 	void EndSetup();
 
 	void PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResource>& pPerFrameRes);
-	void UpdateUniforms();
+	void UpdateUniforms(uint32_t frameIndex);
 	void Draw();
 	void Update();
 

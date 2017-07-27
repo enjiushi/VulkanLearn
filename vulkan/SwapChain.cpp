@@ -63,7 +63,7 @@ bool SwapChain::Init(const std::shared_ptr<Device>& pDevice, const std::shared_p
 	VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
 	swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapchainCreateInfo.surface = m_pDevice->GetPhysicalDevice()->GetSurfaceHandle();
-	swapchainCreateInfo.minImageCount = 3;
+	swapchainCreateInfo.minImageCount = 4;
 	swapchainCreateInfo.presentMode = swapchainPresentMode;
 	swapchainCreateInfo.preTransform = (VkSurfaceTransformFlagBitsKHR)preTransform;
 	swapchainCreateInfo.clipped = true;

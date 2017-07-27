@@ -489,7 +489,9 @@ void VulkanGlobal::InitVertices()
 
 void VulkanGlobal::InitUniforms()
 {
-	uint32_t totalUniformBytes = sizeof(GlobalUniforms);
+	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
+	uint32_t alignedBytes = sizeof(GlobalUniforms) / minAlign * minAlign + (sizeof(GlobalUniforms) % minAlign > 0 ? minAlign : 0);
+	uint32_t totalUniformBytes = alignedBytes * GetSwapChain()->GetSwapChainImageCount();
 	m_pUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
 }
 
@@ -499,7 +501,7 @@ void VulkanGlobal::InitDescriptorSetLayout()
 	{
 		{
 			0,	//binding
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	//type
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	//type
 			1,
 			VK_SHADER_STAGE_VERTEX_BIT,
 			nullptr
@@ -548,7 +550,7 @@ void VulkanGlobal::InitDescriptorPool()
 	std::vector<VkDescriptorPoolSize> descPoolSize =
 	{
 		{
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 2
 		},
 		{
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 2
@@ -567,7 +569,7 @@ void VulkanGlobal::InitDescriptorPool()
 void VulkanGlobal::InitDescriptorSet()
 {
 	m_pDescriptorSet = m_pDescriptorPool->AllocateDescriptorSet(m_pDescriptorSetLayout);
-	m_pDescriptorSet->UpdateBuffer(0, m_pUniformBuffer->GetDescBufferInfo());
+	m_pDescriptorSet->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
 }
 
 void VulkanGlobal::InitDrawCmdBuffers()
@@ -622,10 +624,8 @@ void VulkanGlobal::EndSetup()
 	//m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(m_pDevice, GetSwapChain()->GetSwapChainImageCount(), FrameMgr());
 }
 
-void VulkanGlobal::UpdateUniforms()
+void VulkanGlobal::UpdateUniforms(uint32_t frameIndex)
 {
-	uint32_t totalUniformBytes = sizeof(GlobalUniforms);
-
 	memset(&m_globalUniforms, 0, sizeof(GlobalUniforms));
 
 	Matrix4f model;
@@ -678,7 +678,8 @@ void VulkanGlobal::UpdateUniforms()
 	memcpy_s(m_globalUniforms.camPos, sizeof(m_globalUniforms.camPos), &camPos, sizeof(camPos));
 	memcpy_s(&m_globalUniforms.roughness, sizeof(m_globalUniforms.roughness), &m_roughness, sizeof(m_roughness));
 
-	m_pUniformBuffer->UpdateByteStream(&m_globalUniforms, 0, totalUniformBytes, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT);
+	uint32_t totalUniformBytes = m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
+	m_pUniformBuffer->UpdateByteStream(&m_globalUniforms, totalUniformBytes * frameIndex, sizeof(m_globalUniforms), VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT);
 }
 
 void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
@@ -697,7 +698,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	CHECK_VK_ERROR(vkBeginCommandBuffer(pDrawCmdBuffer->GetDeviceHandle(), &cmdBeginInfo));
 
-	UpdateUniforms();
+	UpdateUniforms(pPerFrameRes->GetFrameBinIndex());
 	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -732,7 +733,9 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
 
 	std::vector<VkDescriptorSet> dsSets = { m_pDescriptorSet->GetDeviceHandle() };
-	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
+
+	uint32_t offset = FrameMgr()->FrameIndex() * m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
+	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
 	pDrawCmdBuffer->AddToReferenceTable(m_pPipelineLayout);
 	pDrawCmdBuffer->AddToReferenceTable(m_pDescriptorSet);
 
