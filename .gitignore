@@ -215,3 +215,10 @@ data/textures/hdr/*.*
 data/readme.txt
 data/models/cerberus/*.*
 !data/textures/hdr/README.md
+ZERO_CHECK.vcxproj.filters
+ZERO_CHECK.vcxproj
+VulkanLearn.vcxproj.filters
+VulkanLearn.sln
+ALL_BUILD.vcxproj.filters
+ALL_BUILD.vcxproj
+VulkanLearn.vcxproj
