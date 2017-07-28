@@ -46,20 +46,20 @@ public:
 		job.frameBinIndex = frameBinIndex;
 		job.pThreadTaskQueue = this;
 		m_taskQueue.push(job);
-		m_condition.notify_one();
+		m_condition.notify_all();
 	}
 
 	void EndJob()
 	{
-		std::unique_lock<std::mutex> lock(m_workerCountMutex);
+		std::unique_lock<std::mutex> lock(m_queueMutex);
 		m_threadWorkerCount--;
-		m_workerCountCondition.notify_one();
+		m_condition.notify_all();
 	}
 
 	void WaitForFree()
 	{
-		WaitForEmptyQueue();
-		WaitForWorkersAllFree();
+		std::unique_lock<std::mutex> lock(m_queueMutex);
+		m_condition.wait(lock, [this]() { return m_taskQueue.empty() && !m_isSearchingThread && m_threadWorkerCount == 0; });
 	}
 
 	void WaitForEmptyQueue()
@@ -70,8 +70,8 @@ public:
 
 	void WaitForWorkersAllFree()
 	{
-		std::unique_lock<std::mutex> lock(m_workerCountMutex);
-		m_workerCountCondition.wait(lock, [this]() { return m_threadWorkerCount == 0; });
+		std::unique_lock<std::mutex> lock(m_queueMutex);
+		m_condition.wait(lock, [this]() { return m_threadWorkerCount == 0; });
 	}
 
 	uint32_t GetTaskQueueSize()
@@ -101,7 +101,7 @@ private:
 
 				m_isSearchingThread = true;
 
-				m_condition.notify_one();
+				m_condition.notify_all();
 			}
 
 			bool shouldExit = false;
@@ -111,20 +111,22 @@ private:
 				bool isFree = pTWroker->IsTaskQueueFree();
 				if (isFree)
 				{
+					std::unique_lock<std::mutex> lock(m_queueMutex);
+
+					//********************************************************************************************
+					//** Important: I have to set states here before sending job to thread worker
+					//** Or else, thread worker is busy, while states are still indicating current queue is free
+					//** Then thread which is waiting for queue free will be fired, which is very very very wrong
+					//** Damn this introduced a crash when frame rate is high, and this is really difficult to find
+					//********************************************************************************************
+					m_isSearchingThread = false;
+					m_threadWorkerCount++;
+
 					pTWroker->AppendJob(job);
+					m_condition.notify_all();
+
 					shouldExit = true;
 				}
-			}
-
-			{
-				std::unique_lock<std::mutex> lock(m_queueMutex);
-				m_isSearchingThread = false;
-				m_condition.notify_one();
-			}
-			{
-				std::unique_lock<std::mutex> lock(m_workerCountMutex);
-				m_threadWorkerCount++;
-				m_workerCountCondition.notify_one();
 			}
 		}
 	}
