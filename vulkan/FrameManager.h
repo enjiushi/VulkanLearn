@@ -4,6 +4,7 @@
 #include <map>
 #include <functional>
 #include <mutex>
+#include <deque>
 #include "../thread/ThreadWorker.hpp"
 
 class CommandBuffer;
@@ -30,7 +31,8 @@ class FrameManager : public DeviceObjectBase<FrameManager>
 	typedef struct _JobStatus
 	{
 		uint32_t numJobs = 0;
-		std::function<void(uint32_t)> callback;
+		std::function<void(uint32_t, uint32_t)> callback;
+		uint32_t semahporeIndex = 0;
 		bool submissionEnded = false;
 		bool waitForPresent = false;
 
@@ -47,8 +49,7 @@ class FrameManager : public DeviceObjectBase<FrameManager>
 
 public:
 	std::shared_ptr<PerFrameResource> AllocatePerFrameResource(uint32_t frameIndex);
-	uint32_t FrameIndex() const { return m_frameBin[m_currentFrameBinIndex]; }
-	uint32_t FrameIndex(uint32_t binIndex) const { return m_frameBin[binIndex]; }
+	uint32_t FrameIndex() const { return m_currentFrameIndex; }
 
 	void CacheSubmissioninfo(
 		const std::shared_ptr<Queue>& pQueue,
@@ -67,27 +68,27 @@ public:
 	// Thread related
 	void AddJobToFrame(ThreadJobFunc jobFunc);
 	void JobDone(uint32_t frameIndex);
-	void IncBinIndex();
+	void FlushIfNecessary();
 	void SetFrameIndex(uint32_t index);
 
 protected:
 	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount, const std::shared_ptr<FrameManager>& pSelf);
 	static std::shared_ptr<FrameManager> Create(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount);
 
-	std::shared_ptr<Fence> GetCurrentFrameFence() const { return m_frameFences[m_currentFrameBinIndex]; }
-	std::shared_ptr<Fence> GetFrameFence(uint32_t frameBinIndex) const { return m_frameFences[frameBinIndex]; }
+	std::shared_ptr<Fence> GetCurrentFrameFence() const { return m_frameFences[m_currentFrameIndex]; }
+	std::shared_ptr<Fence> GetFrameFence(uint32_t frameIndex) const { return m_frameFences[frameIndex]; }
 	void WaitForFence();
-	void WaitForFence(uint32_t binIndex);
+	void WaitForFence(uint32_t frameIndex);
 
-	void FlushCachedSubmission(uint32_t frameBinIndex);
-	void EndJobSubmission(std::function<void(uint32_t)>);
+	void FlushCachedSubmission(uint32_t frameIndex);
+	void EndJobSubmission(std::function<void(uint32_t, uint32_t)>);
 
-	void WaitForGPUWork(uint32_t binIndex);
+	void WaitForGPUWork(uint32_t frameIndex);
 
-	std::shared_ptr<Semaphore> GetAcqurieDoneSemaphore() const { return m_acquireDoneSemaphores[m_currentFrameBinIndex]; }
-	std::shared_ptr<Semaphore> GetRenderDoneSemaphore() const { return m_renderDoneSemahpres[m_currentFrameBinIndex]; }
-	std::shared_ptr<Semaphore> GetAcqurieDoneSemaphore(uint32_t frameBinIndex) const { return m_acquireDoneSemaphores[frameBinIndex]; }
-	std::shared_ptr<Semaphore> GetRenderDoneSemaphore(uint32_t frameBinIndex) const { return m_renderDoneSemahpres[frameBinIndex]; }
+	std::shared_ptr<Semaphore> GetAcqurieDoneSemaphore() const;
+	std::shared_ptr<Semaphore> GetRenderDoneSemaphore() const;
+	std::shared_ptr<Semaphore> GetAcqurieDoneSemaphore(uint32_t index) const;
+	std::shared_ptr<Semaphore> GetRenderDoneSemaphore(uint32_t index) const;
 
 	void CacheSubmissioninfoInternal(
 		const std::shared_ptr<Queue>& pQueue,
@@ -103,8 +104,9 @@ private:
 	std::vector<std::shared_ptr<Semaphore>>	m_acquireDoneSemaphores;
 	std::vector<std::shared_ptr<Semaphore>>	m_renderDoneSemahpres;
 
-	std::vector<uint32_t>					m_frameBin;
-	uint32_t								m_currentFrameBinIndex;
+	uint32_t								m_currentFrameIndex;
+	std::deque<uint32_t>					m_frameIndexQueue;
+	uint32_t								m_currentSemaphoreIndex;
 
 	SubmissionInfoTable						m_pendingSubmissionInfoTable;
 	SubmissionInfoTable						m_submissionInfoTable;

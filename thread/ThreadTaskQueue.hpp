@@ -38,12 +38,12 @@ public:
 	}
 
 public:
-	void AddJob(ThreadJobFunc jobFunc, uint32_t frameBinIndex)
+	void AddJob(ThreadJobFunc jobFunc, uint32_t frameIndex)
 	{
 		std::unique_lock<std::mutex> lock(m_queueMutex);
 		ThreadWorker::ThreadJob job;
 		job.job = jobFunc;
-		job.frameBinIndex = frameBinIndex;
+		job.frameIndex = frameIndex;
 		job.pThreadTaskQueue = this;
 		m_taskQueue.push(job);
 		m_condition.notify_all();
