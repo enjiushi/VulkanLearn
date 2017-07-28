@@ -7,6 +7,8 @@ project(${NAME} CXX)
 
 include_directories(external/vulkan)
 include_directories(external/assimp)
+include_directories(external/gli)
+include_directories(external/gli/external)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
