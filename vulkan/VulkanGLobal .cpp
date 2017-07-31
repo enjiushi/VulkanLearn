@@ -16,6 +16,7 @@
 #include "StagingBufferManager.h"
 #include "FrameManager.h"
 #include "../thread/ThreadWorker.hpp"
+#include <gli\gli.hpp>
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -617,6 +618,8 @@ void VulkanGlobal::EndSetup()
 	rotation.c[1] = yaxis;
 	rotation.c[2] = look;
 	m_pCameraObj->SetRotation(rotation);
+
+	gli::texture2d tex(gli::load("../data/textures/metalplate01_rgba.ktx"));
 	/*
 	InitUniforms();
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();*/
