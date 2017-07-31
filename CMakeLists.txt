@@ -12,8 +12,8 @@ include_directories(external/gli/external)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-find_library(VULKAN_LIB NAMES vulkan-1 vulkan PATHS ${CMAKE_SOURCE_DIR}/lib/vulkan)
-find_library(ASSIMP_LIB NAMES assimp PATHS ${CMAKE_SOURCE_DIR}/lib/assimp)
+set (VULKAN_LIB "lib/vulkan/vulkan-1")
+set (ASSIMP_LIB "lib/assimp/assimp")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVK_USE_PLATFORM_WIN32_KHR")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
