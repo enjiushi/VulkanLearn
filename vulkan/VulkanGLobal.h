@@ -83,8 +83,6 @@ public:
 	void Draw();
 	void Update();
 
-	static void Free();
-
 	void InitShaderModule(const char* vertShaderPath, const char* fragShaderPath);
 
 public:

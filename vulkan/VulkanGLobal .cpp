@@ -268,6 +268,7 @@ void VulkanGlobal::Update()
 			if (msg.message == WM_QUIT)
 			{
 				GetSwapChain()->SetInvalid(true);
+				FrameMgr()->WaitForAllJobsDone();
 				break;
 			}
 			else
@@ -800,8 +801,4 @@ void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
 	InitDrawCmdBuffers();
 	InitSemaphore();
 	EndSetup();
-}
-
-void VulkanGlobal::Free()
-{
 }
