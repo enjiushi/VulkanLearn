@@ -20,6 +20,8 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 
 	m_info = info;
 	m_memProperty = memoryPropertyFlag;
+
+	CreateImageView(&m_view, m_viewInfo);
 	return true;
 }
 
@@ -30,6 +32,7 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 
 	m_image = img;
 
+	CreateImageView(&m_view, m_viewInfo);
 	return true;
 }
 

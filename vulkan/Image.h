@@ -25,6 +25,7 @@ public:
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;
 	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, VkImage img);
+	virtual void CreateImageView(VkImageView* pView, VkImageViewCreateInfo& viewCreateInfo) = 0;
 
 protected:
 	VkImage						m_image;

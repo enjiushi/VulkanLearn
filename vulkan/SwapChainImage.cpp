@@ -7,11 +7,6 @@
 
 bool SwapChainImage::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<SwapChainImage>& pSelf, VkImage rawImageHandle)
 {
-	if (!Image::Init(pDevice, pSelf, rawImageHandle))
-		return false;
-
-	m_shouldDestoryRawImage = false;
-
 	m_info = {};
 	m_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	m_info.format = pDevice->GetPhysicalDevice()->GetSurfaceFormat().format;
@@ -23,25 +18,11 @@ bool SwapChainImage::Init(const std::shared_ptr<Device>& pDevice, const std::sha
 	m_info.mipLevels = 1;
 	m_info.samples = VK_SAMPLE_COUNT_1_BIT;
 
-	//Create image view
-	m_viewInfo = {};
-	m_viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	m_viewInfo.format = pDevice->GetPhysicalDevice()->GetSurfaceFormat().format;
-	m_viewInfo.image = rawImageHandle;
-	m_viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	m_viewInfo.subresourceRange.baseArrayLayer = 0;
-	m_viewInfo.subresourceRange.layerCount = 1;
-	m_viewInfo.subresourceRange.baseMipLevel = 0;
-	m_viewInfo.subresourceRange.levelCount = 1;
-	m_viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	m_viewInfo.components =
-	{
-		VK_COMPONENT_SWIZZLE_R,
-		VK_COMPONENT_SWIZZLE_G,
-		VK_COMPONENT_SWIZZLE_B,
-		VK_COMPONENT_SWIZZLE_A
-	};
-	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &m_viewInfo, nullptr, &m_view));
+	m_shouldDestoryRawImage = false;
+
+	if (!Image::Init(pDevice, pSelf, rawImageHandle))
+		return false;
+
 	return true;
 }
 
@@ -111,4 +92,27 @@ void SwapChainImage::EnsureImageLayout()
 
 	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
+}
+
+void SwapChainImage::CreateImageView(VkImageView* pView, VkImageViewCreateInfo& viewCreateInfo)
+{
+	//Create image view
+	viewCreateInfo = {};
+	viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	viewCreateInfo.format = m_pDevice->GetPhysicalDevice()->GetSurfaceFormat().format;
+	viewCreateInfo.image = m_image;
+	viewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+	viewCreateInfo.subresourceRange.layerCount = 1;
+	viewCreateInfo.subresourceRange.baseMipLevel = 0;
+	viewCreateInfo.subresourceRange.levelCount = 1;
+	viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	viewCreateInfo.components =
+	{
+		VK_COMPONENT_SWIZZLE_R,
+		VK_COMPONENT_SWIZZLE_G,
+		VK_COMPONENT_SWIZZLE_B,
+		VK_COMPONENT_SWIZZLE_A
+	};
+	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &viewCreateInfo, nullptr, pView));
 }

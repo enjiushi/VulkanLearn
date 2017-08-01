@@ -621,7 +621,8 @@ void VulkanGlobal::EndSetup()
 	rotation.c[2] = look;
 	m_pCameraObj->SetRotation(rotation);
 
-	gli::texture2d tex(gli::load("../data/textures/metalplate01_rgba.ktx"));
+	m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
+	//gli::texture2d tex(gli::load("../data/textures/metalplate01_rgba.ktx"));
 	/*
 	InitUniforms();
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();*/

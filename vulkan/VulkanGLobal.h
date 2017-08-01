@@ -31,6 +31,7 @@
 #include "../Base/BaseObject.h"
 #include "../component/Camera.h"
 #include "../component/Character.h"
+#include "Texture2D.h"
 
 typedef struct _GlobalUniforms
 {
@@ -130,6 +131,8 @@ protected:
 
 	std::shared_ptr<BaseObject>			m_pCameraObj;
 	std::shared_ptr<Camera>				m_pCameraComp;
+
+	std::shared_ptr<Texture2D>			m_pTexture2D;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)
