@@ -30,6 +30,9 @@ public:
 	
 	void EnsureSwapChainImageLayout();
 
+	void SetInvalid(bool flag) { m_invalid = flag; }
+	bool GetInvalid() const { return m_invalid; }
+
 	PFN_vkAcquireNextImageKHR GetAcquireNextImageFuncPtr() const { return m_fpAcquireNextImageKHR; }
 	PFN_vkQueuePresentKHR GetQueuePresentFuncPtr() const { return m_fpQueuePresentKHR; }
 	PFN_vkGetSwapchainImagesKHR GetGetSwapchainImagesFuncPtr() const { return m_fpGetSwapchainImagesKHR; }
@@ -39,6 +42,7 @@ public:
 
 protected:
 	VkSwapchainKHR						m_swapchain;
+	bool								m_invalid;
 
 	PFN_vkCreateSwapchainKHR			m_fpCreateSwapchainKHR;
 	PFN_vkDestroySwapchainKHR			m_fpDestroySwapchainKHR;

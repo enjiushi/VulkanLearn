@@ -267,7 +267,7 @@ void VulkanGlobal::Update()
 		{
 			if (msg.message == WM_QUIT)
 			{
-				FrameMgr()->WaitForAllJobsDone();
+				GetSwapChain()->SetInvalid(true);
 				break;
 			}
 			else
