@@ -1,11 +1,11 @@
 #pragma once
 
 #include "DeviceObjectBase.h"
-#include "MemoryConsumer.h"
 
 class SwapChain;
+class MemoryKey;
 
-class Image : public DeviceObjectBase<Image>, public MemoryConsumer
+class Image : public DeviceObjectBase<Image>
 {
 public:
 	~Image();
@@ -15,16 +15,15 @@ public:
 public:
 	VkImage GetDeviceHandle() const { return m_image; }
 	const VkImageCreateInfo& GetImageInfo() const { return m_info; }
-	virtual void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess) override;
-	virtual uint32_t GetMemoryProperty() const override { return m_memProperty; }
-	virtual VkMemoryRequirements GetMemoryReqirments() const override;
+	virtual void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
+	virtual uint32_t GetMemoryProperty() const { return m_memProperty; }
+	virtual VkMemoryRequirements GetMemoryReqirments() const;
 	virtual VkImageViewCreateInfo GetViewInfo() const { return m_viewInfo; }
 	virtual VkImageView GetViewDeviceHandle() const { return m_view; }
-	virtual bool BufferOrImage() const override { return false; }
 	virtual void EnsureImageLayout() = 0;
 
 protected:
-	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const override;
+	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;
 	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, VkImage img);
 
 protected:
@@ -38,4 +37,8 @@ protected:
 	VkImageView					m_view;
 
 	uint32_t					m_memProperty;
+
+	std::shared_ptr<MemoryKey>	m_pMemKey;
+
+	friend class DeviceMemoryManager;
 };

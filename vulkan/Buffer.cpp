@@ -7,16 +7,15 @@ Buffer::~Buffer()
 {
 	if (m_buffer)
 		vkDestroyBuffer(GetDevice()->GetDeviceHandle(), m_buffer, nullptr);
-	GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->FreeMemChunk(this);
 }
 
 bool Buffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Buffer>& pSelf, const VkBufferCreateInfo& info, uint32_t memoryPropertyFlag)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
-
+	
 	CHECK_VK_ERROR(vkCreateBuffer(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_buffer));
-	GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->AllocateMemChunk(this, memoryPropertyFlag);
+	m_pMemKey = DeviceMemMgr()->AllocateBufferMemChunk(GetSelfSharedPtr(), memoryPropertyFlag);
 
 	m_info = info;
 	m_memProperty = memoryPropertyFlag;

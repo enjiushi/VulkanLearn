@@ -4,7 +4,7 @@
 
 class StagingBufferManager;
 
-class Buffer : public DeviceObjectBase<Buffer>, public MemoryConsumer
+class Buffer : public DeviceObjectBase<Buffer>
 {
 public:
 	~Buffer();
@@ -18,17 +18,18 @@ public:
 	virtual VkBuffer GetDeviceHandle() const { return m_buffer; }
 	const VkBufferCreateInfo& GetBufferInfo() const { return m_info; }
 	virtual void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
-	virtual uint32_t GetMemoryProperty() const override { return m_memProperty; }
-	virtual VkMemoryRequirements GetMemoryReqirments() const override;
-	virtual bool BufferOrImage() const override { return true; }
+	virtual uint32_t GetMemoryProperty() const { return m_memProperty; }
+	virtual VkMemoryRequirements GetMemoryReqirments() const;
 
 protected:
-	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const override;
+	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;
 
 protected:
 	VkBuffer						m_buffer = 0;
 	VkBufferCreateInfo				m_info;
 	uint32_t						m_memProperty;
+	std::shared_ptr<MemoryKey>		m_pMemKey;
 
 	friend class StagingBufferManager;
+	friend class DeviceMemoryManager;
 };

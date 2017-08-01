@@ -3,7 +3,24 @@
 #include "DeviceObjectBase.h"
 #include <map>
 
-class MemoryConsumer;
+class Buffer;
+class Image;
+
+class MemoryKey
+{
+public:
+	static std::shared_ptr<MemoryKey> Create(bool bufferOrImage);
+	~MemoryKey();
+private:
+	bool Init(bool bufferOrImage);
+
+private:
+	uint32_t		m_key;
+	bool			m_bufferOrImage;		//true: buffer, false: image
+	static uint32_t m_allocatedKeys;
+
+	friend class DeviceMemoryManager;
+};
 
 class DeviceMemoryManager : public DeviceObjectBase<DeviceMemoryManager>
 {
@@ -11,7 +28,7 @@ class DeviceMemoryManager : public DeviceObjectBase<DeviceMemoryManager>
 	{
 		uint32_t numBytes = 0;
 		VkDeviceMemory memory;
-		std::vector<const MemoryConsumer*> bindingConsumerList;
+		std::vector<uint32_t> bindingList;
 	}MemoryNode;
 
 	typedef struct _BindingInfo
@@ -30,21 +47,26 @@ public:
 
 public:
 	static std::shared_ptr<DeviceMemoryManager> Create(const std::shared_ptr<Device>& pDevice);
+	std::shared_ptr<MemoryKey> AllocateBufferMemChunk(const std::shared_ptr<Buffer>& pBuffer, uint32_t memoryPropertyBits, const void* pData = nullptr);
+	std::shared_ptr<MemoryKey> AllocateImageMemChunk(const std::shared_ptr<Image>& pImage, uint32_t memoryPropertyBits, const void* pData = nullptr);
+	bool UpdateBufferMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes);
+	bool UpdateImageMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes);
 
 protected:
-	void AllocateMemChunk(const MemoryConsumer* pConsumer, uint32_t memoryPropertyBits, const void* pData = nullptr);
-	bool UpdateMemChunk(const MemoryConsumer* pConsumer, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes);
-	void AllocateMemory(const MemoryConsumer* pMemConsumer, uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& offset);
-	bool FindFreeMemoryChunk(const MemoryConsumer* pMemConsumer, uint32_t typeIndex, uint32_t numBytes, uint32_t& offset);
-	void FreeMemChunk(const MemoryConsumer* pConsumer);
+	void AllocateBufferMemory(uint32_t key, uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& offset);
+	bool FindFreeBufferMemoryChunk(uint32_t key, uint32_t typeIndex, uint32_t numBytes, uint32_t& offset);
+	void FreeBufferMemChunk(uint32_t key);
+
+	void AllocateImageMemory(uint32_t key, uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& offset);
+	void FreeImageMemChunk(uint32_t key);
+
+	void UpdateMemoryChunk(VkDeviceMemory memory, uint32_t offset, uint32_t numBytes, const void* pData);
 	void ReleaseMemory();
 
 protected:
-	std::map<uint32_t, MemoryNode>					m_bufferMemPool;
-	std::map<const MemoryConsumer*, MemoryNode>		m_imageMemPool;
-	std::map<const MemoryConsumer*, BindingInfo>	m_bufferBindingTable;
+	std::map<uint32_t, MemoryNode>		m_bufferMemPool;
+	std::map<uint32_t, MemoryNode>		m_imageMemPool;
+	std::map<uint32_t, BindingInfo>		m_bufferBindingTable;
 
-	friend class Buffer;
-	friend class Image;
-	friend class StagingBuffer;
+	friend class MemoryKey;
 };

@@ -8,7 +8,6 @@ Image::~Image()
 	vkDestroyImageView(GetDevice()->GetDeviceHandle(), m_view, nullptr);
 	if (m_shouldDestoryRawImage)
 		vkDestroyImage(GetDevice()->GetDeviceHandle(), m_image, nullptr);
-	GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->FreeMemChunk(this);
 }
 
 bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag)
@@ -17,7 +16,7 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 		return false;
 
 	CHECK_VK_ERROR(vkCreateImage(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_image));
-	GlobalDeviceObjects::GetInstance()->GetDeviceMemMgr()->AllocateMemChunk(this, memoryPropertyFlag);
+	m_pMemKey = DeviceMemMgr()->AllocateImageMemChunk(GetSelfSharedPtr(), memoryPropertyFlag);
 
 	m_info = info;
 	m_memProperty = memoryPropertyFlag;
