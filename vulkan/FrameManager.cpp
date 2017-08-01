@@ -69,6 +69,16 @@ void FrameManager::WaitForFence(uint32_t frameIndex)
 	m_frameFences[frameIndex]->Wait();
 }
 
+void FrameManager::WaitForAllJobsDone()
+{
+	for (uint32_t i = 0; i < m_threadTaskQueues.size(); i++)
+	{
+		m_threadTaskQueues[i]->WaitForFree();
+		std::unique_lock<std::mutex> lock(m_mutex);
+		WaitForGPUWork(i);
+	}
+}
+
 // Increase bin index, frame manager moves to next bin, this function is called at the very beginning of a frame
 // This function will make sure that current frame will perform correctly, since all previous dependency work has been finished
 // This function will make sure that a lot of swapchain acquire will be available after calling this function

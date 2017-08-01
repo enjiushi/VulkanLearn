@@ -71,6 +71,8 @@ public:
 	void FlushIfNecessary();
 	void SetFrameIndex(uint32_t index);
 
+	void WaitForAllJobsDone();
+
 protected:
 	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount, const std::shared_ptr<FrameManager>& pSelf);
 	static std::shared_ptr<FrameManager> Create(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount);
