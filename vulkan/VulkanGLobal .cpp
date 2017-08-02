@@ -271,21 +271,20 @@ void VulkanGlobal::Update()
 	static uint32_t frameCount = 0;
 	static float fpsTimer = 0;
 	MSG msg;
-	while (TRUE)
+	bool quitMessageReceived = false;
+	while (!quitMessageReceived)
 	{
 		auto tStart = std::chrono::high_resolution_clock::now();
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+
 			if (msg.message == WM_QUIT)
 			{
+				quitMessageReceived = true;
 				GetSwapChain()->SetInvalid(true);
-				FrameMgr()->WaitForAllJobsDone();
 				break;
-			}
-			else
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
 			}
 		}
 		Draw();
@@ -775,7 +774,6 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	
 	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, waitFlags, false);
-	FrameMgr()->JobDone(pPerFrameRes->GetFrameIndex());
 }
 
 void VulkanGlobal::Draw()
