@@ -210,6 +210,7 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 
 void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	float x, y, width, height;
 	switch (uMsg)
 	{
 	case WM_CLOSE:
@@ -239,6 +240,31 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case KEY_D:
 			m_pCharacter->Move(CharMoveDir::Rightward, 0.1f);
 			break;
+		}
+		break;
+
+	case WM_RBUTTONDOWN:
+		x = (float)LOWORD(lParam);
+		y = (float)HIWORD(lParam);
+		width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
+		height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
+		m_pCharacter->OnRotate({ x / width, (height - y) / height }, true);
+		break;
+	case WM_RBUTTONUP:
+		x = (float)LOWORD(lParam);
+		y = (float)HIWORD(lParam);
+		width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
+		height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
+		m_pCharacter->OnRotate({ x / width, (height - y) / height }, false);
+		break;
+	case WM_MOUSEMOVE:
+		if (wParam & MK_RBUTTON)
+		{
+			x = (float)LOWORD(lParam);
+			y = (float)HIWORD(lParam);
+			width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
+			height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
+			m_pCharacter->OnRotate({ x / width, (height - y) / height }, true);
 		}
 		break;
 	}
@@ -601,7 +627,7 @@ void VulkanGlobal::EndSetup()
 		3.1415f / 3.0f,
 		1024.0f / 768.0f,
 		1.0f,
-		200.0f,
+		2000.0f,
 	};
 	m_pCameraComp = Camera::Create(camInfo);
 	m_pCameraObj = BaseObject::Create();
@@ -625,16 +651,10 @@ void VulkanGlobal::EndSetup()
 	rotation.c[2] = look;
 	m_pCameraObj->SetRotation(rotation);
 
-	m_pCharacter = Character::Create({4.0f});
+	m_pCharacter = Character::Create({10.0f});
 	m_pCameraObj->AddComponent(m_pCharacter);
-
-	m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
-	//gli::texture2d tex(gli::load("../data/textures/metalplate01_rgba.ktx"));
-	/*
-	InitUniforms();
-	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushData();*/
-
-	//m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(m_pDevice, GetSwapChain()->GetSwapChainImageCount(), FrameMgr());
+	m_pCharacter->SetCamera(m_pCameraComp);
+	//m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 }
 
 void VulkanGlobal::UpdateUniforms(uint32_t frameIndex)
