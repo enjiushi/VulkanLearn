@@ -651,9 +651,8 @@ void VulkanGlobal::EndSetup()
 	rotation.c[2] = look;
 	m_pCameraObj->SetRotation(rotation);
 
-	m_pCharacter = Character::Create({10.0f});
+	m_pCharacter = Character::Create({10.0f}, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
-	m_pCharacter->SetCamera(m_pCameraComp);
 	//m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 }
 
