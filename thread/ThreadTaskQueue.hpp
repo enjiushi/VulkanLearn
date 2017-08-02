@@ -22,6 +22,8 @@ public:
 		{
 			m_threadWorkers.push_back(std::make_shared<ThreadWorker>(pDevice, frameRoundBinCount, pFrameMgr));
 		}
+
+		m_currentWorker = 0;
 	}
 
 	~ThreadTaskQueue()
