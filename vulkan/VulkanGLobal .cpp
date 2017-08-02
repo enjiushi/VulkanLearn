@@ -210,6 +210,7 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 
 void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	Vector3f pos;
 	switch (uMsg)
 	{
 	case WM_CLOSE:
@@ -230,10 +231,20 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case KEY_W:
 			m_roughness += 0.005f;
 			m_roughness = m_roughness > 1.0f ? 1.0f : m_roughness;
+
+			pos = m_pCameraObj->GetLocalPosition();
+			m_pCameraObj->SetPos(pos + Vector3f(0.0f, 0.0f, 1.0f));
+			m_pCameraObj->Update(0);
+			m_pCameraComp->Update(0);
 			break;
 		case KEY_S:
 			m_roughness -= 0.005f;
 			m_roughness = m_roughness < 0.0f ? 0.0f : m_roughness;
+
+			pos = m_pCameraObj->GetLocalPosition();
+			m_pCameraObj->SetPos(pos + Vector3f(0.0f, 0.0f, -1.0f));
+			m_pCameraObj->Update(0);
+			m_pCameraComp->Update(0);
 			break;
 		}
 		break;
@@ -595,8 +606,8 @@ void VulkanGlobal::EndSetup()
 
 	CameraInfo camInfo =
 	{
+		3.1415f / 2.0f,
 		1024.0f / 768.0f,
-		3.1415f,
 		1.0f,
 		200.0f,
 	};
@@ -605,11 +616,12 @@ void VulkanGlobal::EndSetup()
 	m_pCameraObj->AddComponent(m_pCameraComp);
 
 	m_pCameraObj->SetPos({ 0, 0, 50 });
+	m_pCameraObj->Update(0);
+	m_pCameraComp->Update(0);
 
 	Vector3f up = { 0, 1, 0 };
 	Vector3f look = { 0, 0, -1 };
 	look.Normalize();
-	Vector3f position = { 0, 0, 50 };
 	Vector3f xaxis = up ^ look.Negativate();
 	xaxis.Normalize();
 	Vector3f yaxis = look ^ xaxis;
@@ -620,6 +632,9 @@ void VulkanGlobal::EndSetup()
 	rotation.c[1] = yaxis;
 	rotation.c[2] = look;
 	m_pCameraObj->SetRotation(rotation);
+
+	m_pCameraObj->Update(0);
+	m_pCameraComp->Update(0);
 
 	m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	//gli::texture2d tex(gli::load("../data/textures/metalplate01_rgba.ktx"));
@@ -667,12 +682,9 @@ void VulkanGlobal::UpdateUniforms(uint32_t frameIndex)
 	vulkanNDC.c[1].y = -1.0f;
 	vulkanNDC.c[2].z = vulkanNDC.c[3].z = 0.5f;
 
-	Matrix4f mvp = vulkanNDC * projection * view * model;
+	Matrix4f mvp = vulkanNDC * m_pCameraComp->GetProjMatrix() * m_pCameraComp->GetViewMatrix() * model;
 
-	Vector3f camPos = position;
-
-	m_pCameraObj->Update(0);
-	m_pCameraComp->Update(0);
+	Vector3f camPos = m_pCameraComp->GetObjectA()->GetWorldPosition();
 
 	memcpy_s(m_globalUniforms.model, sizeof(m_globalUniforms.model), &model, sizeof(model));
 	//memcpy_s(m_globalUniforms.view, sizeof(m_globalUniforms.view), &view, sizeof(view));
