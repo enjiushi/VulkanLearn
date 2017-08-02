@@ -227,6 +227,7 @@ void DeviceMemoryManager::FreeImageMemChunk(uint32_t key)
 	if (memNodeIter == m_imageMemPool.end())
 		return;
 
+	vkFreeMemory(GetDevice()->GetDeviceHandle(), memNodeIter->second.memory, nullptr);
 	m_imageMemPool.erase(key);
 }
 
@@ -260,11 +261,6 @@ bool DeviceMemoryManager::FindFreeBufferMemoryChunk(uint32_t key, uint32_t typeI
 void DeviceMemoryManager::ReleaseMemory()
 {
 	std::for_each(m_bufferMemPool.begin(), m_bufferMemPool.end(), [this](std::pair<const uint32_t, MemoryNode>& pair)
-	{
-		vkFreeMemory(GetDevice()->GetDeviceHandle(), pair.second.memory, nullptr);
-	});
-
-	std::for_each(m_imageMemPool.begin(), m_imageMemPool.end(), [this](std::pair<const uint32_t, MemoryNode>& pair)
 	{
 		vkFreeMemory(GetDevice()->GetDeviceHandle(), pair.second.memory, nullptr);
 	});
