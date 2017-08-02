@@ -229,20 +229,14 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		switch (wParam)
 		{
 		case KEY_W:
-			m_roughness += 0.005f;
-			m_roughness = m_roughness > 1.0f ? 1.0f : m_roughness;
-
 			pos = m_pCameraObj->GetLocalPosition();
-			m_pCameraObj->SetPos(pos + Vector3f(0.0f, 0.0f, 1.0f));
+			m_pCameraObj->SetPos(pos + Vector3f(0.0f, 0.0f, 0.5f));
 			m_pCameraObj->Update(0);
 			m_pCameraComp->Update(0);
 			break;
 		case KEY_S:
-			m_roughness -= 0.005f;
-			m_roughness = m_roughness < 0.0f ? 0.0f : m_roughness;
-
 			pos = m_pCameraObj->GetLocalPosition();
-			m_pCameraObj->SetPos(pos + Vector3f(0.0f, 0.0f, -1.0f));
+			m_pCameraObj->SetPos(pos + Vector3f(0.0f, 0.0f, -0.5f));
 			m_pCameraObj->Update(0);
 			m_pCameraComp->Update(0);
 			break;

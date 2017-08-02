@@ -30,7 +30,6 @@ bool FrameManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFram
 	{
 		m_frameResTable[i] = std::vector<std::shared_ptr<PerFrameResource>>();
 		m_frameFences.push_back(Fence::Create(pDevice));
-		//m_threadTaskQueues.push_back(std::make_shared<ThreadTaskQueue>(pDevice, maxFrameCount, pSelf));
 		m_acquireDoneSemaphores.push_back(Semaphore::Create(pDevice));
 		m_renderDoneSemahpres.push_back(Semaphore::Create(pDevice));
 	}
