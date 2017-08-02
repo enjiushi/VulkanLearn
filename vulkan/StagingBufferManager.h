@@ -35,4 +35,5 @@ protected:
 	uint32_t						m_usedNumBytes = 0;
 	const static uint32_t STAGING_BUFFER_INC = 1024 * 1024 * 8;
 	friend class Buffer;
+	friend class Image;
 };

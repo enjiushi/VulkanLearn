@@ -2,6 +2,9 @@
 #include "GlobalDeviceObjects.h"
 #include "DeviceMemoryManager.h"
 #include "SwapChain.h"
+#include "StagingBuffer.h"
+#include "CommandPool.h"
+#include "CommandBuffer.h"
 
 Image::~Image()
 {
@@ -34,12 +37,6 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 
 	CreateImageView(&m_view, m_viewInfo);
 	return true;
-}
-
-void Image::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess)
-{
-	//FIXME: do this future
-	//GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->UpdateByteStream(this, pData, offset, numBytes, dstStage, dstAccess);
 }
 
 VkMemoryRequirements Image::GetMemoryReqirments() const

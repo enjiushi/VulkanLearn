@@ -653,7 +653,7 @@ void VulkanGlobal::EndSetup()
 
 	m_pCharacter = Character::Create({10.0f}, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
-	//m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
+	m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 }
 
 void VulkanGlobal::UpdateUniforms(uint32_t frameIndex)

@@ -15,7 +15,6 @@ public:
 public:
 	VkImage GetDeviceHandle() const { return m_image; }
 	const VkImageCreateInfo& GetImageInfo() const { return m_info; }
-	virtual void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
 	virtual uint32_t GetMemoryProperty() const { return m_memProperty; }
 	virtual VkMemoryRequirements GetMemoryReqirments() const;
 	virtual VkImageViewCreateInfo GetViewInfo() const { return m_viewInfo; }
