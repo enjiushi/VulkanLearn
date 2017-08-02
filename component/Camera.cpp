@@ -41,8 +41,8 @@ void Camera::UpdateProjMatrix()
 	float tanFOV2 = std::tanf(m_cameraInfo.fov / 2.0f);
 
 	m_projMatrix = Matrix4f();
-	m_projMatrix.x0 = 1.0f / (m_cameraInfo.aspect * tanFOV2);
-	m_projMatrix.y1 = 1.0f / tanFOV2;
+	m_projMatrix.x0 = 1.0f / (m_cameraInfo.aspect * tanFOV2 * m_cameraInfo.near);
+	m_projMatrix.y1 = 1.0f / (tanFOV2 * m_cameraInfo.near);
 	m_projMatrix.z2 = -(m_cameraInfo.far + m_cameraInfo.near) / (m_cameraInfo.far - m_cameraInfo.near);
 	m_projMatrix.z3 = -1.0f;
 	m_projMatrix.w2 = -2.0f * m_cameraInfo.near * m_cameraInfo.far / (m_cameraInfo.far - m_cameraInfo.near);
