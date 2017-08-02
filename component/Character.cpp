@@ -71,7 +71,7 @@ void Character::OnRotateStart(const Vector2f& v)
 void Character::OnRotate(const Vector2f& v, bool started)
 {
 	//character needs a camera to know how to rotate
-	if (m_camera == nullptr)
+	if (m_pCamera == nullptr)
 		return;
 
 	if (started)
@@ -79,7 +79,7 @@ void Character::OnRotate(const Vector2f& v, bool started)
 		if (!m_rotationStarted)
 			OnRotateStart(v);
 		else
-			Rotate(m_rotationStartPos - v);
+			Rotate(v - m_rotationStartPos);
 	}
 	else
 	{
@@ -90,7 +90,7 @@ void Character::OnRotate(const Vector2f& v, bool started)
 
 void Character::OnRotateEnd(const Vector2f& v)
 {
-	Rotate(m_rotationStartPos - v);
+	Rotate(v - m_rotationStartPos);
 	m_rotationStarted = false;
 	m_rotationStartPos = Vector2f();
 	m_rotationStartMatrix = Matrix3f();
@@ -104,8 +104,8 @@ void Character::Rotate(const Vector2f& v)
 
 	//get euler angle
 	Vector2f euler_angle;
-	euler_angle.x = -v.y * m_camera->GetCameraInfo().fov;
-	euler_angle.y = v.x * m_camera->GetFovH();		//reverse y direction, because of camera looks negative z axis
+	euler_angle.x = -v.y * m_pCamera->GetCameraInfo().fov;
+	euler_angle.y = v.x * m_pCamera->GetFovH();		//reverse y direction, because of camera looks negative z axis
 
 	//do this to prevent from over rotating
 	//your neck can't rotate more than 90 degree around your shoulder, right?
