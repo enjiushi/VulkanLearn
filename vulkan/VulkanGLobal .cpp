@@ -231,14 +231,10 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case KEY_W:
 			pos = m_pCameraObj->GetLocalPosition();
 			m_pCameraObj->SetPos(pos + Vector3f(0.0f, 0.0f, 0.5f));
-			m_pCameraObj->Update(0);
-			m_pCameraComp->Update(0);
 			break;
 		case KEY_S:
 			pos = m_pCameraObj->GetLocalPosition();
 			m_pCameraObj->SetPos(pos + Vector3f(0.0f, 0.0f, -0.5f));
-			m_pCameraObj->Update(0);
-			m_pCameraComp->Update(0);
 			break;
 		}
 		break;
@@ -626,8 +622,8 @@ void VulkanGlobal::EndSetup()
 	rotation.c[2] = look;
 	m_pCameraObj->SetRotation(rotation);
 
-	m_pCameraObj->Update(0);
-	m_pCameraComp->Update(0);
+	m_pCharacter = Character::Create();
+	m_pCameraObj->AddComponent(m_pCharacter);
 
 	m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	//gli::texture2d tex(gli::load("../data/textures/metalplate01_rgba.ktx"));
@@ -640,6 +636,9 @@ void VulkanGlobal::EndSetup()
 
 void VulkanGlobal::UpdateUniforms(uint32_t frameIndex)
 {
+	m_pCameraObj->Update(0);
+	m_pCameraObj->LateUpdate(0);
+
 	memset(&m_globalUniforms, 0, sizeof(GlobalUniforms));
 
 	Matrix4f model;

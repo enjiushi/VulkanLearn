@@ -18,38 +18,35 @@ public:
 	bool ContainComponent(const std::shared_ptr<BaseComponent>& pComp) const;
 	bool ContainObject(const std::shared_ptr<BaseObject>& pObj) const;
 
-	void SetPos(const Vector3f& v) { m_localPosition = v; m_isDirty = true; }
-	void SetPos(float x, float y, float z) { m_localPosition = Vector3f(x, y, z); m_isDirty = true; }
-	void SetPosX(float x) { m_localPosition.x = x; m_isDirty = true; }
-	void SetPosY(float y) { m_localPosition.y = y; m_isDirty = true; }
-	void SetPosZ(float z) { m_localPosition.z = z; m_isDirty = true; }
+	void SetPos(const Vector3f& v) { m_localPosition = v; UpdateLocalTransform(); }
+	void SetPos(float x, float y, float z) { m_localPosition = Vector3f(x, y, z); UpdateLocalTransform(); }
+	void SetPosX(float x) { m_localPosition.x = x; UpdateLocalTransform(); }
+	void SetPosY(float y) { m_localPosition.y = y; UpdateLocalTransform(); }
+	void SetPosZ(float z) { m_localPosition.z = z; UpdateLocalTransform(); }
 
 	void SetRotation(const Matrix3f& m);
 	void SetRotation(const Quaternionf& q);
 
 	void Rotate(const Vector3f& v, float angle);
 
-	bool IsDirty() const { return m_isDirty; }
-
 	virtual void Update(float delta);
+	virtual void LateUpdate(float delta);
 
 	Vector3f GetLocalPosition() const { return m_localPosition; }
-	Vector3f GetWorldPosition() const { return m_worldPosition; }
+	Vector3f GetWorldPosition() const;
 
 	Matrix4f GetLocalTransform() const { return m_localTransform; }
 	Matrix3f GetLocalRotationM() const { return m_localRotationM; }
 	Quaternionf GetLocalRotationQ() const { return m_localRotationQ; }
 
-	Matrix4f GetWorldTransform() const { return m_worldTransform; }
-	Matrix3f GetWorldRotationM() const { return m_worldRotationM; }
-	Quaternionf GetWorldRotationQ() const { return m_worldRotationQ; }
-
+	Matrix4f BaseObject::GetWorldTransform() const;
+	Matrix3f BaseObject::GetWorldRotationM() const;
+	Quaternionf BaseObject::GetWorldRotationQ() const;
 
 	//creators
 	static std::shared_ptr<BaseObject> Create();
 protected:
-	void UpdateLocalInfo();
-	void UpdateWorldInfo();
+	void UpdateLocalTransform();
 
 protected:
 	std::vector<std::shared_ptr<BaseComponent>>		m_components;
@@ -57,15 +54,8 @@ protected:
 	std::shared_ptr<BaseObject>						m_pParent;
 
 	Vector3f	m_localPosition;
-	Vector3f	m_worldPosition;
 
 	Matrix4f	m_localTransform;
 	Matrix3f	m_localRotationM;
 	Quaternionf m_localRotationQ;
-
-	Matrix4f	m_worldTransform;
-	Matrix3f	m_worldRotationM;
-	Quaternionf m_worldRotationQ;
-
-	bool		m_isDirty;
 };

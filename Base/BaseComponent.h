@@ -9,6 +9,7 @@ public:
 	virtual ~BaseComponent(void) {}
 
 	virtual void Update(float delta) {}
+	virtual void LateUpdate(float delta) {}
 
 	std::shared_ptr<BaseObject> GetObject() const 
 	{

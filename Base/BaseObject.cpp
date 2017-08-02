@@ -71,12 +71,6 @@ bool BaseObject::ContainObject(const std::shared_ptr<BaseObject>& pObj) const
 
 void BaseObject::Update(float delta)
 {
-	UpdateLocalInfo();
-
-	//parent dirty or local dirty, all effect world transform
-	if (m_isDirty)
-		UpdateWorldInfo();
-
 	//update components attached to this object
 	for (size_t i = 0; i < m_components.size(); i++)
 		m_components[i]->Update(delta);
@@ -84,49 +78,69 @@ void BaseObject::Update(float delta)
 	//update all children objects
 	for (size_t i = 0; i < m_children.size(); i++)
 		m_children[i]->Update(delta);
+}
 
-	m_isDirty = false;
+void BaseObject::LateUpdate(float delta)
+{
+	//update components attached to this object
+	for (size_t i = 0; i < m_components.size(); i++)
+		m_components[i]->LateUpdate(delta);
+
+	//update all children objects
+	for (size_t i = 0; i < m_children.size(); i++)
+		m_children[i]->LateUpdate(delta);
 }
 
 void BaseObject::SetRotation(const Matrix3f& m)
 {
 	m_localRotationM = m;
 	m_localRotationQ = Quaternionf(m);
-	m_isDirty = true;
+	UpdateLocalTransform();
 }
 
 void BaseObject::SetRotation(const Quaternionf& q)
 {
 	m_localRotationQ = q;
 	m_localRotationM = q.Matrix();
-	m_isDirty = true;
+	UpdateLocalTransform();
 }
 
-void BaseObject::UpdateLocalInfo()
+void BaseObject::UpdateLocalTransform()
 {
-	if (!m_isDirty)
-		return;
-
 	m_localTransform = Matrix4f(m_localRotationM, m_localPosition);
-	m_localRotationQ = Quaternionf(m_localRotationM);
 }
 
-void BaseObject::UpdateWorldInfo()
+Vector3f BaseObject::GetWorldPosition() const
 {
 	Matrix4f parentWorldTransform;
-	Matrix3f parentWorldRotationM;
 	if (m_pParent.get())
-	{
-		parentWorldTransform = m_pParent->m_worldTransform;
-		parentWorldRotationM = m_pParent->m_worldRotationM;
-	}
+		parentWorldTransform = m_pParent->GetWorldTransform();
 
 	//get world transform
-	m_worldTransform = parentWorldTransform * m_localTransform;
-	m_worldRotationM = parentWorldRotationM * m_localRotationM;
-	m_worldRotationQ = Quaternionf(m_worldRotationM);
+	return (parentWorldTransform * Vector4f(m_localPosition, 1.0f)).xyz();
+}
 
-	m_worldPosition = (parentWorldTransform * Vector4f(m_localPosition, 1.0f)).xyz();
+Matrix4f BaseObject::GetWorldTransform() const 
+{ 
+	Matrix4f parentWorldTransform;
+	if (m_pParent.get())
+		parentWorldTransform = m_pParent->GetWorldTransform();
+
+	return parentWorldTransform * m_localTransform;
+}
+
+Matrix3f BaseObject::GetWorldRotationM() const
+{ 
+	Matrix3f parentWorldRotationM;
+	if (m_pParent.get())
+		parentWorldRotationM = m_pParent->GetWorldRotationM();
+
+	return parentWorldRotationM * m_localRotationM;
+}
+
+Quaternionf BaseObject::GetWorldRotationQ() const
+{ 
+	return Quaternionf(GetWorldRotationM());
 }
 
 void BaseObject::Rotate(const Vector3f& v, float angle)

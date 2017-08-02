@@ -18,6 +18,7 @@ class Camera : public BaseComponent
 {
 public:
 	void Update(float delta) override;
+	void LateUpdate(float delta) override;
 
 	void SetFOV(float new_fov);
 	void SetAspect(float new_aspect);

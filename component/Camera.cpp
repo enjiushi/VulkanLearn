@@ -20,6 +20,10 @@ std::shared_ptr<Camera> Camera::Create(const CameraInfo& info)
 
 void Camera::Update(float delta)
 {
+}
+
+void Camera::LateUpdate(float delta)
+{
 	UpdateViewMatrix();
 	UpdateProjMatrix();
 	UpdateVPMatrix();

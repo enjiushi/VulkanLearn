@@ -131,6 +131,7 @@ protected:
 
 	std::shared_ptr<BaseObject>			m_pCameraObj;
 	std::shared_ptr<Camera>				m_pCameraComp;
+	std::shared_ptr<Character>			m_pCharacter;
 
 	std::shared_ptr<Texture2D>			m_pTexture2D;
 
