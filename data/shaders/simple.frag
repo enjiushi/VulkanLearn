@@ -70,7 +70,7 @@ void main()
 
 	vec4 diffuseColor = texture(mainTex, inUv.st, 0.0);
 	float fresnel = Fresnel_Schlick(F0, LdotH);
-	vec3 reflect = fresnel * GGX_V_Smith_HeightCorrelated(NdotV, NdotL, inRoughness) * GGX_D(NdotH, inRoughness) * lightColor;
+	vec3 reflect = fresnel * GGX_V_Smith_HeightCorrelated(NdotV, NdotL, diffuseColor.a) * GGX_D(NdotH, diffuseColor.a) * lightColor;
 	vec3 diffuse = diffuseColor.rgb * (1.0f - fresnel) / PI;
 	vec3 final = (reflect + diffuse) * NdotL * lightColor;
 	final = pow(final, vec3(gamma));
