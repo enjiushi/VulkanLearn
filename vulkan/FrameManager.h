@@ -28,22 +28,6 @@ class FrameManager : public DeviceObjectBase<FrameManager>
 		bool										submitted;
 	}SubmissionInfo;
 
-	typedef struct _JobStatus
-	{
-		uint32_t numJobs = 0;
-		std::function<void(uint32_t, uint32_t)> callback;
-		uint32_t semahporeIndex = 0;
-		bool submissionEnded = false;
-		bool waitForPresent = false;
-
-		void Reset()
-		{
-			numJobs = 0;
-			submissionEnded = false;
-			waitForPresent = false;
-		}
-	}JobStatus;
-
 	typedef std::map<uint32_t, std::vector<std::shared_ptr<PerFrameResource>>> FrameResourceTable;
 	typedef std::map<uint32_t, std::vector<SubmissionInfo>> SubmissionInfoTable;
 
@@ -67,9 +51,8 @@ public:
 
 	// Thread related
 	void AddJobToFrame(ThreadJobFunc jobFunc);
-	void JobDone(uint32_t frameIndex);
-	void FlushIfNecessary();
-	void SetFrameIndex(uint32_t index);
+	void BeforeAcquire();
+	void AfterAcquire(uint32_t index);
 
 	void WaitForAllJobsDone();
 
@@ -83,7 +66,7 @@ protected:
 	void WaitForFence(uint32_t frameIndex);
 
 	void FlushCachedSubmission(uint32_t frameIndex);
-	void EndJobSubmission(std::function<void(uint32_t, uint32_t)>);
+	void EndJobSubmission();
 
 	void WaitForGPUWork(uint32_t frameIndex);
 
@@ -115,9 +98,7 @@ private:
 
 	uint32_t m_maxFrameCount;
 
-	std::vector<std::shared_ptr<ThreadTaskQueue>>	m_threadTaskQueues;
-	std::vector<JobStatus>							m_jobStatus;
-	uint32_t										m_currentPresentBin;
+	std::shared_ptr<ThreadTaskQueue>				m_pThreadTaskQueue;
 	std::mutex										m_mutex;
 
 	friend class SwapChain;

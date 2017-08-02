@@ -97,32 +97,30 @@ void SwapChain::EnsureSwapChainImageLayout()
 
 void SwapChain::AcquireNextImage()
 {
-	m_pFrameManager->FlushIfNecessary();
+	m_pFrameManager->BeforeAcquire();
 
 	uint32_t index;
 	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, m_pFrameManager->GetAcqurieDoneSemaphore()->GetDeviceHandle(), nullptr, &index));
 
-	m_pFrameManager->SetFrameIndex(index);
+	m_pFrameManager->AfterAcquire(index);
 }
 
 void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue)
 {
-	auto callback = [this, pPresentQueue](uint32_t frameIndex, uint32_t semahpreIndex)
-	{
-		if (GetInvalid())
-			return;
-
-		VkPresentInfoKHR presentInfo = {};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = &m_swapchain;
-		presentInfo.waitSemaphoreCount = 1;
-		auto semaphore = m_pFrameManager->GetRenderDoneSemaphore(semahpreIndex)->GetDeviceHandle();
-		presentInfo.pWaitSemaphores = &semaphore;
-		presentInfo.pImageIndices = &frameIndex;
-		CHECK_VK_ERROR(m_fpQueuePresentKHR(pPresentQueue->GetDeviceHandle(), &presentInfo));
-	};
-
 	// Flush pending submissions before present
-	m_pFrameManager->EndJobSubmission(callback);
+	m_pFrameManager->EndJobSubmission();
+
+	if (GetInvalid())
+		return;
+
+	VkPresentInfoKHR presentInfo = {};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = &m_swapchain;
+	presentInfo.waitSemaphoreCount = 1;
+	auto semaphore = m_pFrameManager->GetRenderDoneSemaphore()->GetDeviceHandle();
+	presentInfo.pWaitSemaphores = &semaphore;
+	auto indices = m_pFrameManager->FrameIndex();
+	presentInfo.pImageIndices = &indices;
+	CHECK_VK_ERROR(m_fpQueuePresentKHR(pPresentQueue->GetDeviceHandle(), &presentInfo));
 }
