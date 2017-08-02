@@ -3,6 +3,8 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
+layout (binding = 1) uniform sampler2D mainTex;
+
 layout (location = 0) in vec3 inNormal;
 layout (location = 1) in vec3 inUv;
 layout (location = 2) in vec3 inViewDir;
@@ -12,7 +14,6 @@ layout (location = 4) in float inRoughness;
 layout (location = 0) out vec4 outFragColor;
 
 const vec3 lightPos = vec3(-50, 0, 50);
-const vec3 diffuseColor = vec3(1.0, 0.0, 0.0);
 const vec3 lightColor = vec3(1);
 const float roughness = 1;
 const float gamma = 1.0 / 2.2;
@@ -67,9 +68,10 @@ void main()
 	float NdotV = max(0.0f, dot(n, v));
 	float LdotH = max(0.0f, dot(l, h));
 
+	vec4 diffuseColor = texture(mainTex, inUv.st, 0.0);
 	float fresnel = Fresnel_Schlick(F0, LdotH);
 	vec3 reflect = fresnel * GGX_V_Smith_HeightCorrelated(NdotV, NdotL, inRoughness) * GGX_D(NdotH, inRoughness) * lightColor;
-	vec3 diffuse = diffuseColor * (1.0f - fresnel) / PI;
+	vec3 diffuse = diffuseColor.rgb * (1.0f - fresnel) / PI;
 	vec3 final = (reflect + diffuse) * NdotL * lightColor;
 	final = pow(final, vec3(gamma));
 

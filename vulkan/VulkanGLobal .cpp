@@ -525,6 +525,7 @@ void VulkanGlobal::InitUniforms()
 	uint32_t alignedBytes = sizeof(GlobalUniforms) / minAlign * minAlign + (sizeof(GlobalUniforms) % minAlign > 0 ? minAlign : 0);
 	uint32_t totalUniformBytes = alignedBytes * GetSwapChain()->GetSwapChainImageCount();
 	m_pUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
+	m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -536,6 +537,13 @@ void VulkanGlobal::InitDescriptorSetLayout()
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	//type
 			1,
 			VK_SHADER_STAGE_VERTEX_BIT,
+			nullptr
+		},
+		{
+			1,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
 			nullptr
 		}
 	};
@@ -602,6 +610,7 @@ void VulkanGlobal::InitDescriptorSet()
 {
 	m_pDescriptorSet = m_pDescriptorPool->AllocateDescriptorSet(m_pDescriptorSetLayout);
 	m_pDescriptorSet->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
+	m_pDescriptorSet->UpdateImage(1, m_pTexture2D->GetDescriptorInfo());
 }
 
 void VulkanGlobal::InitDrawCmdBuffers()
@@ -653,7 +662,6 @@ void VulkanGlobal::EndSetup()
 
 	m_pCharacter = Character::Create({10.0f}, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
-	m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 }
 
 void VulkanGlobal::UpdateUniforms(uint32_t frameIndex)
