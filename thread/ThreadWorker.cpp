@@ -5,10 +5,6 @@
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/FrameManager.h"
 
-bool ThreadTaskQueue::m_isWorkerReady = false;
-std::vector<std::shared_ptr<ThreadWorker>>	ThreadWorker::m_threadWorkers;
-uint32_t ThreadWorker::m_currentThreadWorker = 0;
-
 ThreadWorker::ThreadWorker(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount, const std::shared_ptr<FrameManager>& pFrameMgr) : m_isWorking(false)
 {
 	for (uint32_t i = 0; i < frameRoundBinCount; i++)
@@ -48,7 +44,6 @@ void ThreadWorker::Loop()
 			m_isWorking = true;
 		}
 		job.job(m_frameRes[job.frameIndex]);
-		job.pThreadTaskQueue->EndJob();
 		{
 			std::unique_lock<std::mutex> lock(m_queueMutex);
 			m_isWorking = false;

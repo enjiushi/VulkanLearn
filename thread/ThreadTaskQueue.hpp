@@ -17,10 +17,10 @@ public:
 	{
 		m_worker = std::thread(&ThreadTaskQueue::Loop, this);
 
-		if (!m_isWorkerReady)
+		int numThreads = std::thread::hardware_concurrency();
+		for (int i = 0; i < numThreads - 1; i++)
 		{
-			m_isWorkerReady = true;
-			ThreadWorker::InitThreadWorkers(pDevice, frameRoundBinCount, pFrameMgr);
+			m_threadWorkers.push_back(std::make_shared<ThreadWorker>(pDevice, frameRoundBinCount, pFrameMgr));
 		}
 	}
 
@@ -49,17 +49,14 @@ public:
 		m_condition.notify_all();
 	}
 
-	void EndJob()
-	{
-		std::unique_lock<std::mutex> lock(m_queueMutex);
-		m_threadWorkerCount--;
-		m_condition.notify_all();
-	}
-
 	void WaitForFree()
 	{
 		std::unique_lock<std::mutex> lock(m_queueMutex);
-		m_condition.wait(lock, [this]() { return m_taskQueue.empty() && !m_isSearchingThread && m_threadWorkerCount == 0; });
+		m_condition.wait(lock, [this]() { return m_taskQueue.empty() && !m_isSearchingThread; });
+		for (uint32_t i = 0; i < m_threadWorkers.size(); i++)
+		{
+			m_threadWorkers[i]->WaitForFree();
+		}
 	}
 
 	void WaitForEmptyQueue()
@@ -71,7 +68,10 @@ public:
 	void WaitForWorkersAllFree()
 	{
 		std::unique_lock<std::mutex> lock(m_queueMutex);
-		m_condition.wait(lock, [this]() { return m_threadWorkerCount == 0; });
+		for (uint32_t i = 0; i < m_threadWorkers.size(); i++)
+		{
+			m_threadWorkers[i]->WaitForFree();
+		}
 	}
 
 	uint32_t GetTaskQueueSize()
@@ -107,7 +107,9 @@ private:
 			bool shouldExit = false;
 			while (!shouldExit)
 			{
-				std::shared_ptr<ThreadWorker> pTWroker = ThreadWorker::GetCurrentThreadWorker();
+				std::shared_ptr<ThreadWorker> pTWroker = m_threadWorkers[m_currentWorker];
+				m_currentWorker = (m_currentWorker + 1) % m_threadWorkers.size();
+
 				bool isFree = pTWroker->IsTaskQueueFree();
 				if (isFree)
 				{
@@ -120,7 +122,6 @@ private:
 					//** Damn this introduced a crash when frame rate is high, and this is really difficult to find
 					//********************************************************************************************
 					m_isSearchingThread = false;
-					m_threadWorkerCount++;
 
 					pTWroker->AppendJob(job);
 					m_condition.notify_all();
@@ -133,12 +134,11 @@ private:
 
 private:
 	std::mutex									m_queueMutex;
-	std::mutex									m_workerCountMutex;
-	std::condition_variable						m_workerCountCondition;
 	std::thread									m_worker;
 	std::condition_variable						m_condition;
 	std::queue<ThreadWorker::ThreadJob>			m_taskQueue;
-	uint32_t									m_threadWorkerCount = 0;
+	std::vector<std::shared_ptr<ThreadWorker>>	m_threadWorkers;
+	uint32_t									m_currentWorker;
 
 	bool m_isSearchingThread =		false;
 	bool m_isDestroying =			false;

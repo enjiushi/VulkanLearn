@@ -27,8 +27,6 @@ bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 
 	m_pDevice = pDevice;
 
-	ThreadWorker::InitThreadWorkers(pDevice, m_pSwapChain->GetSwapChainImageCount(), m_pSwapChain->GetFrameManager());
-
 	return true;
 }
 
@@ -39,7 +37,6 @@ GlobalDeviceObjects* GlobalObjects()
 
 GlobalDeviceObjects::~GlobalDeviceObjects()
 {
-	ThreadWorker::UninitThreadWorkers();
 }
 
 std::shared_ptr<Queue> GlobalGraphicQueue() { return GlobalObjects()->GetGraphicQueue(); }
