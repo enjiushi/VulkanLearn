@@ -6,11 +6,14 @@
 #include "../Maths/Vector.h"
 #include "../Maths/MathUtil.h"
 
-std::shared_ptr<Character> Character::Create()
+std::shared_ptr<Character> Character::Create(const CharacterVariable& charVar)
 {
 	std::shared_ptr<Character> pChar = std::make_shared<Character>();
 	if (pChar.get() && pChar->Init(pChar))
+	{
+		pChar->m_charVars = charVar;
 		return pChar;
+	}
 	return nullptr;
 }
 

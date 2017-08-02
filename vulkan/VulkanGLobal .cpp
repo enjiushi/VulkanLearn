@@ -210,7 +210,6 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 
 void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	Vector3f pos;
 	switch (uMsg)
 	{
 	case WM_CLOSE:
@@ -229,12 +228,10 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		switch (wParam)
 		{
 		case KEY_W:
-			pos = m_pCameraObj->GetLocalPosition();
-			m_pCameraObj->SetPos(pos + Vector3f(0.0f, 0.0f, 0.5f));
+			m_pCharacter->Move(CharMoveDir::Forward, 0.1f);
 			break;
 		case KEY_S:
-			pos = m_pCameraObj->GetLocalPosition();
-			m_pCameraObj->SetPos(pos + Vector3f(0.0f, 0.0f, -0.5f));
+			m_pCharacter->Move(CharMoveDir::Backward, 0.1f);
 			break;
 		}
 		break;
@@ -622,7 +619,7 @@ void VulkanGlobal::EndSetup()
 	rotation.c[2] = look;
 	m_pCameraObj->SetRotation(rotation);
 
-	m_pCharacter = Character::Create();
+	m_pCharacter = Character::Create({1.0f});
 	m_pCameraObj->AddComponent(m_pCharacter);
 
 	m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
