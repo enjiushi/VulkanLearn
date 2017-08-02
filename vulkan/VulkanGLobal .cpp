@@ -233,6 +233,12 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case KEY_S:
 			m_pCharacter->Move(CharMoveDir::Backward, 0.1f);
 			break;
+		case KEY_A:
+			m_pCharacter->Move(CharMoveDir::Leftward, 0.1f);
+			break;
+		case KEY_D:
+			m_pCharacter->Move(CharMoveDir::Rightward, 0.1f);
+			break;
 		}
 		break;
 	}
@@ -592,7 +598,7 @@ void VulkanGlobal::EndSetup()
 
 	CameraInfo camInfo =
 	{
-		3.1415f / 2.0f,
+		3.1415f / 3.0f,
 		1024.0f / 768.0f,
 		1.0f,
 		200.0f,
@@ -619,7 +625,7 @@ void VulkanGlobal::EndSetup()
 	rotation.c[2] = look;
 	m_pCameraObj->SetRotation(rotation);
 
-	m_pCharacter = Character::Create({1.0f});
+	m_pCharacter = Character::Create({4.0f});
 	m_pCameraObj->AddComponent(m_pCharacter);
 
 	m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
