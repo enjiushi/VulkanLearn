@@ -800,7 +800,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 	std::vector<VkClearValue> clearValues = 
 	{
-		{ 0.0f, 0.0f, 0.0f, 0.0f },
+		{ 0.2f, 0.2f, 0.2f, 0.2f },
 		{ 1.0f, 0 }
 	};
 
