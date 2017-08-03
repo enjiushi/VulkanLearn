@@ -3,22 +3,23 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (binding = 1) uniform sampler2D mainTex;
+layout (binding = 1) uniform sampler2D albedoTex;
+layout (binding = 2) uniform sampler2D bumpTex;
+layout (binding = 3) uniform sampler2D roughnessTex;
+layout (binding = 4) uniform sampler2D metalicTex;
+layout (binding = 5) uniform sampler2D aoTex;
 
-layout (location = 0) in vec3 inNormal;
-layout (location = 1) in vec3 inUv;
-layout (location = 2) in vec3 inViewDir;
-layout (location = 3) in vec3 inWorldPos;
-layout (location = 4) in float inRoughness;
+layout (location = 0) in vec3 inUv;
+layout (location = 1) in vec3 inViewDir;
+layout (location = 2) in vec3 inLightDir;
 
 layout (location = 0) out vec4 outFragColor;
 
-const vec3 lightPos = vec3(-50, 0, 50);
 const vec3 lightColor = vec3(1);
 const float roughness = 1;
 const float gamma = 1.0 / 2.2;
 const float PI = 3.14159265;
-const float F0 = 0.04;
+const vec3 F0 = vec3(0.04);
 
 float GGX_D(float NdotH, float roughness)
 {
@@ -51,16 +52,18 @@ float GeometrySmith(float NdotV, float NdotL, float k)
     return ggx1 * ggx2;
 }
 
-float Fresnel_Schlick(float F0, float LdotH)
+vec3 Fresnel_Schlick(vec3 F0, float LdotH)
 {
 	return F0 + (1 - F0) * pow(1.0f - LdotH, 5.0f);
 }
 
 void main() 
 {
-	vec3 n = normalize(inNormal);
+	vec3 pertNormal = texture(bumpTex, inUv.st, 0.0).rgb;
+	pertNormal = pertNormal * 2.0 - vec3(1.0);
+	vec3 n = normalize(pertNormal);
 	vec3 v = normalize(inViewDir);
-	vec3 l = normalize(lightPos - inWorldPos);
+	vec3 l = normalize(inLightDir);
 	vec3 h = normalize(l + v);
 
 	float NdotH = max(0.0f, dot(n, h));
@@ -68,12 +71,17 @@ void main()
 	float NdotV = max(0.0f, dot(n, v));
 	float LdotH = max(0.0f, dot(l, h));
 
-	vec4 diffuseColor = texture(mainTex, inUv.st, 0.0);
-	float fresnel = Fresnel_Schlick(F0, LdotH);
-	vec3 reflect = fresnel * GGX_V_Smith_HeightCorrelated(NdotV, NdotL, diffuseColor.a) * GGX_D(NdotH, diffuseColor.a) * lightColor;
-	vec3 diffuse = diffuseColor.rgb * (1.0f - fresnel) / PI;
+	vec3 albedo = texture(albedoTex, inUv.st, 0.0).rgb;
+	vec3 normal = texture(bumpTex, inUv.st, 0.0).rgb;
+	float roughness = texture(roughnessTex, inUv.st, 0.0).r;
+	float metalic = texture(metalicTex, inUv.st, 0.0).r;
+	float ao = texture(aoTex, inUv.st, 0.0).r;
+
+	vec3 fresnel = Fresnel_Schlick(mix(albedo, F0, metalic), LdotH);
+	vec3 reflect = fresnel * GGX_V_Smith_HeightCorrelated(NdotV, NdotL, roughness) * GGX_D(NdotH, roughness) * lightColor;
+	vec3 diffuse = albedo * (vec3(1.0) - fresnel) / PI * (1.0 - metalic);
 	vec3 final = (reflect + diffuse) * NdotL * lightColor;
-	final = pow(final, vec3(gamma));
+	final = pow(ao * final, vec3(gamma));
 
 	outFragColor = vec4(final, 1.0);
 }

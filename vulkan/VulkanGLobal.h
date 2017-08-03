@@ -133,7 +133,11 @@ protected:
 	std::shared_ptr<Camera>				m_pCameraComp;
 	std::shared_ptr<Character>			m_pCharacter;
 
-	std::shared_ptr<Texture2D>			m_pTexture2D;
+	std::shared_ptr<Texture2D>			m_pAlbedo;
+	std::shared_ptr<Texture2D>			m_pRoughness;
+	std::shared_ptr<Texture2D>			m_pNormal;
+	std::shared_ptr<Texture2D>			m_pAmbientOcclusion;
+	std::shared_ptr<Texture2D>			m_pMetalic;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)

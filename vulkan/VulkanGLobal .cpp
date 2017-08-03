@@ -413,7 +413,7 @@ void VulkanGlobal::InitVertices()
 {
 	Assimp::Importer imp;
 	const aiScene* pScene = nullptr;
-	pScene = imp.ReadFile("../data/models/sphere.obj", aiProcess_Triangulate | aiProcess_GenSmoothNormals);
+	pScene = imp.ReadFile("../data/textures/cerberus/cerberus.fbx", aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
 	ASSERTION(pScene != nullptr);
 	
 	aiMesh* pMesh = pScene->mMeshes[0];
@@ -431,7 +431,7 @@ void VulkanGlobal::InitVertices()
 	if (pMesh->HasTangentsAndBitangents())
 		vertexSize += 6 * sizeof(float);
 
-	float* pVertices = new float[pMesh->mNumVertices * 9];
+	float* pVertices = new float[pMesh->mNumVertices * vertexSize / sizeof(float)];
 	uint32_t verticesNumBytes = pMesh->mNumVertices * vertexSize;
 	uint32_t count = 0;
 	
@@ -496,22 +496,38 @@ void VulkanGlobal::InitVertices()
 	bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 	std::vector<VkVertexInputAttributeDescription> attribDesc;
-	attribDesc.resize(3);
+	attribDesc.resize(5);
 
+	uint32_t offset = 0;
 	attribDesc[0].binding = 0;
 	attribDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	attribDesc[0].location = 0;	//layout location 0 in shader
-	attribDesc[0].offset = 0;
+	attribDesc[0].offset = offset;
+	offset += sizeof(float) * 3;
 
 	attribDesc[1].binding = 0;
 	attribDesc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 	attribDesc[1].location = 1;
-	attribDesc[1].offset = sizeof(float) * 3;	//after xyz*/
+	attribDesc[1].offset = offset;	//after xyz*/
+	offset += sizeof(float) * 3;
 
 	attribDesc[2].binding = 0;
 	attribDesc[2].format = VK_FORMAT_R32G32B32_SFLOAT;
 	attribDesc[2].location = 2;
-	attribDesc[2].offset = sizeof(float) * 6;	//after xyz*/
+	attribDesc[2].offset = offset;	//after xyz*/
+	offset += sizeof(float) * 3;
+
+	attribDesc[3].binding = 0;
+	attribDesc[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attribDesc[3].location = 3;
+	attribDesc[3].offset = offset;	//after xyz*/
+	offset += sizeof(float) * 3;
+
+	attribDesc[4].binding = 0;
+	attribDesc[4].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attribDesc[4].location = 4;
+	attribDesc[4].offset = offset;	//after xyz*/
+	offset += sizeof(float) * 3;
 
 	m_pVertexBuffer = VertexBuffer::Create(m_pDevice, verticesNumBytes, bindingDesc, attribDesc);
 	m_pVertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
@@ -525,7 +541,12 @@ void VulkanGlobal::InitUniforms()
 	uint32_t alignedBytes = sizeof(GlobalUniforms) / minAlign * minAlign + (sizeof(GlobalUniforms) % minAlign > 0 ? minAlign : 0);
 	uint32_t totalUniformBytes = alignedBytes * GetSwapChain()->GetSwapChainImageCount();
 	m_pUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
-	m_pTexture2D = Texture2D::Create(m_pDevice, "../data/textures/metalplate01_rgba.ktx", VK_FORMAT_R8G8B8A8_UNORM);
+
+	m_pAlbedo = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
+	m_pAmbientOcclusion = Texture2D::Create(m_pDevice, "../data/textures/cerberus/ao.ktx", VK_FORMAT_R8_UNORM);
+	m_pMetalic = Texture2D::Create(m_pDevice, "../data/textures/cerberus/metallic.ktx", VK_FORMAT_R8_UNORM);
+	m_pNormal = Texture2D::Create(m_pDevice, "../data/textures/cerberus/normal.ktx", VK_FORMAT_R8G8B8A8_UNORM);
+	m_pRoughness = Texture2D::Create(m_pDevice, "../data/textures/cerberus/roughness.ktx", VK_FORMAT_R8_UNORM);
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -541,6 +562,34 @@ void VulkanGlobal::InitDescriptorSetLayout()
 		},
 		{
 			1,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			2,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			3,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			4,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			5,	//binding
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
 			1,
 			VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -593,7 +642,7 @@ void VulkanGlobal::InitDescriptorPool()
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 2
 		},
 		{
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 2
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 8
 		}
 	};
 
@@ -610,7 +659,12 @@ void VulkanGlobal::InitDescriptorSet()
 {
 	m_pDescriptorSet = m_pDescriptorPool->AllocateDescriptorSet(m_pDescriptorSetLayout);
 	m_pDescriptorSet->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
-	m_pDescriptorSet->UpdateImage(1, m_pTexture2D->GetDescriptorInfo());
+
+	m_pDescriptorSet->UpdateImage(1, m_pAlbedo->GetDescriptorInfo());
+	m_pDescriptorSet->UpdateImage(2, m_pNormal->GetDescriptorInfo());
+	m_pDescriptorSet->UpdateImage(3, m_pRoughness->GetDescriptorInfo());
+	m_pDescriptorSet->UpdateImage(4, m_pMetalic->GetDescriptorInfo());
+	m_pDescriptorSet->UpdateImage(5, m_pAmbientOcclusion->GetDescriptorInfo());
 }
 
 void VulkanGlobal::InitDrawCmdBuffers()
@@ -660,7 +714,7 @@ void VulkanGlobal::EndSetup()
 	rotation.c[2] = look;
 	m_pCameraObj->SetRotation(rotation);
 
-	m_pCharacter = Character::Create({10.0f}, m_pCameraComp);
+	m_pCharacter = Character::Create({30.0f}, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
 }
 
@@ -730,7 +784,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 	std::vector<VkClearValue> clearValues = 
 	{
-		{ 0.2f, 0.2f, 0.2f, 0.2f },
+		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 1.0f, 0 }
 	};
 
