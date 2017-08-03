@@ -80,7 +80,7 @@ void Character::OnRotate(const Vector2f& v, bool started)
 		if (!m_rotationStarted)
 			OnRotateStart(v);
 		else
-			Rotate(v - m_rotationStartPos);
+			Rotate(m_rotationStartPos - v);
 	}
 	else
 	{
@@ -91,7 +91,7 @@ void Character::OnRotate(const Vector2f& v, bool started)
 
 void Character::OnRotateEnd(const Vector2f& v)
 {
-	Rotate(v - m_rotationStartPos);
+	Rotate(m_rotationStartPos - v);
 	m_rotationStarted = false;
 	m_rotationStartPos = Vector2f();
 	m_rotationStartMatrix = Matrix3f();
