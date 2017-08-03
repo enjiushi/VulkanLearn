@@ -20,6 +20,8 @@ const float roughness = 1;
 const float gamma = 1.0 / 2.2;
 const float PI = 3.14159265;
 const vec3 F0 = vec3(0.04);
+const float exposure = 2.0;
+const float whiteScale = 11.0;
 
 float GGX_D(float NdotH, float roughness)
 {
@@ -57,6 +59,17 @@ vec3 Fresnel_Schlick(vec3 F0, float LdotH)
 	return F0 + (1 - F0) * pow(1.0f - LdotH, 5.0f);
 }
 
+vec3 Uncharted2Tonemap(vec3 x)
+{
+	float A = 0.15;
+	float B = 0.50;
+	float C = 0.10;
+	float D = 0.20;
+	float E = 0.02;
+	float F = 0.30;
+	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+}
+
 void main() 
 {
 	vec3 pertNormal = texture(bumpTex, inUv.st, 0.0).rgb;
@@ -80,8 +93,11 @@ void main()
 	vec3 fresnel = Fresnel_Schlick(mix(albedo, F0, metalic), LdotH);
 	vec3 reflect = fresnel * GGX_V_Smith_HeightCorrelated(NdotV, NdotL, roughness) * GGX_D(NdotH, roughness) * lightColor;
 	vec3 diffuse = albedo * (vec3(1.0) - fresnel) / PI * (1.0 - metalic);
-	vec3 final = (reflect + diffuse) * NdotL * lightColor;
-	final = pow(ao * final, vec3(gamma));
+	vec3 final = ao * (reflect + diffuse) * NdotL * lightColor;
+
+	final = Uncharted2Tonemap(final * exposure);
+	final = final * (1.0 / Uncharted2Tonemap(vec3(whiteScale)));
+	final = pow(final, vec3(gamma));
 
 	outFragColor = vec4(final, 1.0);
 }
