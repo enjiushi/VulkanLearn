@@ -229,20 +229,36 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		switch (wParam)
 		{
 		case KEY_W:
-			m_pCharacter->Move(CharMoveDir::Forward, 0.1f);
+			m_moveFlag |= CharMoveDir::Forward;
 			break;
 		case KEY_S:
-			m_pCharacter->Move(CharMoveDir::Backward, 0.1f);
+			m_moveFlag |= CharMoveDir::Backward;
 			break;
 		case KEY_A:
-			m_pCharacter->Move(CharMoveDir::Leftward, 0.1f);
+			m_moveFlag |= CharMoveDir::Leftward;
 			break;
 		case KEY_D:
-			m_pCharacter->Move(CharMoveDir::Rightward, 0.1f);
+			m_moveFlag |= CharMoveDir::Rightward;
 			break;
 		}
 		break;
-
+	case WM_KEYUP:
+		switch (wParam)
+		{
+		case KEY_W:
+			m_moveFlag &= ~(CharMoveDir::Forward);
+			break;
+		case KEY_S:
+			m_moveFlag &= ~(CharMoveDir::Backward);
+			break;
+		case KEY_A:
+			m_moveFlag &= ~(CharMoveDir::Leftward);
+			break;
+		case KEY_D:
+			m_moveFlag &= ~(CharMoveDir::Rightward);
+			break;
+		}
+		break;
 	case WM_RBUTTONDOWN:
 		x = (float)LOWORD(lParam);
 		y = (float)HIWORD(lParam);
@@ -856,6 +872,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 void VulkanGlobal::Draw()
 {
 	GetSwapChain()->AcquireNextImage();
+	m_pCharacter->Move(m_moveFlag, 0.001f);
 	FrameMgr()->AddJobToFrame(std::bind(&VulkanGlobal::PrepareDrawCommandBuffer, this, std::placeholders::_1));
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 }
