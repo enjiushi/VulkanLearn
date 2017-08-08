@@ -134,3 +134,10 @@ bool PhysicalDevice::Init(const std::shared_ptr<Instance>& pVulkanInstance, HINS
 	m_pVulkanInstance = pVulkanInstance;
 	return true;
 }
+
+VkFormatProperties PhysicalDevice::GetPhysicalDeviceFormatProperties(VkFormat format) const
+{
+	VkFormatProperties formatProp = {};
+	vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &formatProp);
+	return formatProp;
+}

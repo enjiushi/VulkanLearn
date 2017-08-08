@@ -19,9 +19,8 @@ public:
 	const VkSurfaceKHR GetSurfaceHandle() const { return m_surface; }
 	const VkPhysicalDeviceProperties& GetPhysicalDeviceProperties() const { return m_physicalDeviceProperties; }
 	const VkPhysicalDeviceFeatures& GetPhysicalDeviceFeatures() const { return m_physicalDeviceFeatures; }
-	const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const {
-		return m_physicalDeviceMemoryProperties;
-	}
+	const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const { return m_physicalDeviceMemoryProperties; }
+	VkFormatProperties GetPhysicalDeviceFormatProperties(VkFormat format) const;
 
 	const std::vector<VkQueueFamilyProperties>& GetQueueProperties() const { return m_queueProperties; }
 	const VkFormat GetDepthStencilFormat() const { return m_depthStencilFormat; }

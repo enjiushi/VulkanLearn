@@ -416,6 +416,10 @@ void VulkanGlobal::InitRenderpass()
 	renderpassCreateInfo.pDependencies = &subpassDependency;
 
 	m_pRenderPass = RenderPass::Create(m_pDevice, renderpassCreateInfo);
+
+	attachmentDescs[0].format = FrameBuffer::OFFSCREEN_HDR_COLOR_FORMAT;
+	attachmentDescs[1].format = FrameBuffer::OFFSCREEN_DEPTH_STENCIL_FORMAT;
+	m_pOffscreenRenderPass = RenderPass::Create(m_pDevice, renderpassCreateInfo);
 }
 
 void VulkanGlobal::InitFrameBuffer()
@@ -423,6 +427,8 @@ void VulkanGlobal::InitFrameBuffer()
 	m_framebuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
 	for (uint32_t i = 0; i < m_framebuffers.size(); i++)
 		m_framebuffers[i] = FrameBuffer::Create(m_pDevice, GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i), m_pDSBuffer, m_pRenderPass);
+
+	m_pOffscreenFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, 512, 512, m_pOffscreenRenderPass);
 }
 
 void VulkanGlobal::InitVertices()
