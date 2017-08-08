@@ -15,6 +15,7 @@ enum CharMoveDir
 typedef struct _CharacterVariable
 {
 	float moveSpeed;
+	float rotateSpeed;
 }CharacterVariable;
 
 class Character : public BaseComponent
