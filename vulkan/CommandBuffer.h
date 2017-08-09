@@ -64,6 +64,8 @@ public:
 
 	void AddToReferenceTable(const std::shared_ptr<Base>& pObj) { m_referenceTable.push_back(pObj); }
 
+	void StartRecording();
+	void EndRecording();
 	void PrepareNormalDrawCommands(const DrawCmdData& data);
 	void PrepareBufferCopyCommands(const BufferCopyCmdData& data);
 

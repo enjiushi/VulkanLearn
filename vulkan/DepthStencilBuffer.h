@@ -15,5 +15,5 @@ public:
 	static std::shared_ptr<DepthStencilBuffer> Create(const std::shared_ptr<Device>& pDevice);
 
 protected:
-	void CreateImageView(VkImageView* pView, VkImageViewCreateInfo& viewCreateInfo) override;
+	void CreateImageView() override;
 };

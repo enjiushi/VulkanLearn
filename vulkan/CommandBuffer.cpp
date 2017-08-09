@@ -211,3 +211,16 @@ void CommandBuffer::PrepareBufferCopyCommands(const BufferCopyCmdData& data)
 
 	m_bufferCopyCmdData = data;
 }
+
+void CommandBuffer::StartRecording()
+{
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	CHECK_VK_ERROR(vkBeginCommandBuffer(m_commandBuffer, &beginInfo));
+}
+
+void CommandBuffer::EndRecording()
+{
+	CHECK_VK_ERROR(vkEndCommandBuffer(m_commandBuffer));
+}

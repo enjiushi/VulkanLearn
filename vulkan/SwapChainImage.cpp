@@ -93,26 +93,3 @@ void SwapChainImage::EnsureImageLayout()
 	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
 	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
 }
-
-void SwapChainImage::CreateImageView(VkImageView* pView, VkImageViewCreateInfo& viewCreateInfo)
-{
-	//Create image view
-	viewCreateInfo = {};
-	viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	viewCreateInfo.format = m_pDevice->GetPhysicalDevice()->GetSurfaceFormat().format;
-	viewCreateInfo.image = m_image;
-	viewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	viewCreateInfo.subresourceRange.baseArrayLayer = 0;
-	viewCreateInfo.subresourceRange.layerCount = 1;
-	viewCreateInfo.subresourceRange.baseMipLevel = 0;
-	viewCreateInfo.subresourceRange.levelCount = 1;
-	viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	viewCreateInfo.components =
-	{
-		VK_COMPONENT_SWIZZLE_R,
-		VK_COMPONENT_SWIZZLE_G,
-		VK_COMPONENT_SWIZZLE_B,
-		VK_COMPONENT_SWIZZLE_A
-	};
-	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &viewCreateInfo, nullptr, pView));
-}

@@ -82,19 +82,19 @@ void DepthStencilBuffer::EnsureImageLayout()
 	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }
 
-void DepthStencilBuffer::CreateImageView(VkImageView* pView, VkImageViewCreateInfo& viewCreateInfo)
+void DepthStencilBuffer::CreateImageView()
 {
 	//Create depth stencil image view
-	viewCreateInfo = {};
-	viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	viewCreateInfo.image = m_image;
-	viewCreateInfo.format = m_info.format;
-	viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	viewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-	viewCreateInfo.subresourceRange.baseArrayLayer = 0;
-	viewCreateInfo.subresourceRange.layerCount = 1;
-	viewCreateInfo.subresourceRange.baseMipLevel = 0;
-	viewCreateInfo.subresourceRange.levelCount = 1;
+	m_viewInfo = {};
+	m_viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	m_viewInfo.image = m_image;
+	m_viewInfo.format = m_info.format;
+	m_viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	m_viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	m_viewInfo.subresourceRange.baseArrayLayer = 0;
+	m_viewInfo.subresourceRange.layerCount = 1;
+	m_viewInfo.subresourceRange.baseMipLevel = 0;
+	m_viewInfo.subresourceRange.levelCount = 1;
 
-	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &viewCreateInfo, nullptr, pView));
+	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &m_viewInfo, nullptr, &m_view));
 }
