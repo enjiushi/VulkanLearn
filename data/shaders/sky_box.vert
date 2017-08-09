@@ -22,9 +22,8 @@ void main()
 {
 	mat4 view = ubo.view;
 	view[3] = vec4(vec3(0.0), 1.0);
-	vec4 pos = ubo.projection * view * vec4(inPos.xyz, 1.0);
-	//vec4 pos = ubo.mvp * vec4(inPos.xyz, 1.0);
+	vec4 pos = ubo.vulkanNDC * ubo.projection * view * vec4(inPos.xyz, 1.0);
 	gl_Position = pos.xyww;
 
-	outSampleDir = normalize(inPos);
+	outSampleDir = normalize(vec3(inPos.x, -inPos.y, inPos.z));
 }
