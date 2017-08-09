@@ -54,9 +54,9 @@ float GeometrySmith(float NdotV, float NdotL, float k)
     return ggx1 * ggx2;
 }
 
-vec3 Fresnel_Schlick(vec3 F0, float LdotH)
+vec3 Fresnel_Schlick(vec3 F0, float LdotH, float roughness)
 {
-	return F0 + (1 - F0) * pow(1.0f - LdotH, 5.0f);
+	return F0 + (max(F0, (1.0 - roughness)) - F0) * pow(1.0f - LdotH, 5.0f);
 }
 
 vec3 Uncharted2Tonemap(vec3 x)
@@ -90,7 +90,7 @@ void main()
 	float metalic = texture(metalicTex, inUv.st, 0.0).r;
 	float ao = texture(aoTex, inUv.st, 0.0).r;
 
-	vec3 fresnel = Fresnel_Schlick(mix(albedo, F0, metalic), LdotH);
+	vec3 fresnel = Fresnel_Schlick(mix(F0, albedo, metalic), LdotH, roughness);
 	vec3 reflect = fresnel * GGX_V_Smith_HeightCorrelated(NdotV, NdotL, roughness) * GGX_D(NdotH, roughness) * lightColor;
 	vec3 diffuse = albedo * (vec3(1.0) - fresnel) / PI * (1.0 - metalic);
 	vec3 final = ao * (reflect + diffuse) * NdotL * lightColor;
