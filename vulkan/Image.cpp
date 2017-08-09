@@ -109,7 +109,7 @@ void Image::ChangeImageLayoutBeforeCopy(const gli::texture& gliTex, const std::s
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange.baseMipLevel = 0;
 	subresourceRange.levelCount = gliTex.levels();
-	subresourceRange.layerCount = 1;
+	subresourceRange.layerCount = m_info.arrayLayers;
 
 	VkImageMemoryBarrier imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -172,7 +172,7 @@ void Image::ChangeImageLayoutAfterCopy(const gli::texture& gliTex, const std::sh
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange.baseMipLevel = 0;
 	subresourceRange.levelCount = gliTex.levels();
-	subresourceRange.layerCount = 1;
+	subresourceRange.layerCount = m_info.arrayLayers;
 
 	VkImageMemoryBarrier imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;

@@ -16,7 +16,7 @@ bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 	textureCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 	textureCreateInfo.format = format;
 	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	textureCreateInfo.arrayLayers = 6;
+	textureCreateInfo.arrayLayers = gliTexCube.faces();
 	textureCreateInfo.extent.depth = 1;
 	textureCreateInfo.extent.width = width;
 	textureCreateInfo.extent.height = height;
@@ -81,4 +81,21 @@ void TextureCube::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<
 
 void TextureCube::EnsureImageLayout()
 {
+}
+
+void TextureCube::CreateImageView()
+{
+	m_viewInfo = {};
+	m_viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	m_viewInfo.image = m_image;
+	m_viewInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+	m_viewInfo.format = m_info.format;
+	m_viewInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+	m_viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	m_viewInfo.subresourceRange.baseArrayLayer = 0;
+	m_viewInfo.subresourceRange.layerCount = m_info.arrayLayers;
+	m_viewInfo.subresourceRange.baseMipLevel = 0;
+	m_viewInfo.subresourceRange.levelCount = m_info.mipLevels;
+
+	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &m_viewInfo, nullptr, &m_view));
 }
