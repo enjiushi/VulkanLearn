@@ -65,7 +65,7 @@ std::shared_ptr<GraphicPipeline> GraphicPipeline::Create(const std::shared_ptr<D
 	pPipeline->m_rasterizerCreateInfo = {};
 	pPipeline->m_rasterizerCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	pPipeline->m_rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-	pPipeline->m_rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	pPipeline->m_rasterizerCreateInfo.cullMode = VK_CULL_MODE_NONE;
 	pPipeline->m_rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	pPipeline->m_rasterizerCreateInfo.lineWidth = 1.0f;
 	pPipeline->m_rasterizerCreateInfo.depthClampEnable = VK_FALSE;

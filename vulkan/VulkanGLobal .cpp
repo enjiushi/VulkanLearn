@@ -555,6 +555,57 @@ void VulkanGlobal::InitVertices()
 	m_pVertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
 	m_pIndexBuffer = IndexBuffer::Create(m_pDevice, indicesNumBytes, VK_INDEX_TYPE_UINT32);
 	m_pIndexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+
+	float cubeVertices[] = {
+		// front
+		-1.0, -1.0,  1.0,
+		1.0, -1.0,  1.0,
+		1.0,  1.0,  1.0,
+		-1.0,  1.0,  1.0,
+		// back
+		-1.0, -1.0, -1.0,
+		1.0, -1.0, -1.0,
+		1.0,  1.0, -1.0,
+		-1.0,  1.0, -1.0,
+	};
+
+	uint32_t cubeIndices[] = {
+		// front
+		0, 1, 2,
+		2, 3, 0,
+		// top
+		1, 5, 6,
+		6, 2, 1,
+		// back
+		7, 6, 5,
+		5, 4, 7,
+		// bottom
+		4, 0, 3,
+		3, 7, 4,
+		// left
+		4, 5, 1,
+		1, 0, 4,
+		// right
+		3, 2, 6,
+		6, 7, 3,
+	};
+
+	bindingDesc = {};
+	bindingDesc.binding = 0;
+	bindingDesc.stride = 3 * sizeof(float);
+	bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	attribDesc.clear();
+	attribDesc.resize(1);
+	attribDesc[0].binding = 0;
+	attribDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attribDesc[0].location = 0;	//layout location 0 in shader
+	attribDesc[0].offset = 0;
+
+	m_pCubeVertexBuffer = VertexBuffer::Create(m_pDevice, sizeof(cubeVertices), bindingDesc, attribDesc);
+	m_pCubeVertexBuffer->UpdateByteStream(cubeVertices, 0, sizeof(cubeVertices), VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	m_pCubeIndexBuffer = IndexBuffer::Create(m_pDevice, sizeof(cubeIndices), VK_INDEX_TYPE_UINT32);
+	m_pCubeIndexBuffer->UpdateByteStream(cubeIndices, 0, sizeof(cubeIndices), VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
 }
 
 void VulkanGlobal::InitUniforms()
@@ -569,6 +620,7 @@ void VulkanGlobal::InitUniforms()
 	m_pMetalic = Texture2D::Create(m_pDevice, "../data/textures/cerberus/metallic.ktx", VK_FORMAT_R8_UNORM);
 	m_pNormal = Texture2D::Create(m_pDevice, "../data/textures/cerberus/normal.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	m_pRoughness = Texture2D::Create(m_pDevice, "../data/textures/cerberus/roughness.ktx", VK_FORMAT_R8_UNORM);
+	m_pSkyBoxTex = TextureCube::Create(m_pDevice, "../data/textures/hdr/gcanyon_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT);
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -626,6 +678,32 @@ void VulkanGlobal::InitDescriptorSetLayout()
 		m_pDescriptorSetLayout,
 	};
 	m_pPipelineLayout = PipelineLayout::Create(m_pDevice, list);
+
+	dsLayoutBindings =
+	{
+		{
+			0,	//binding
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	//type
+			1,
+			VK_SHADER_STAGE_VERTEX_BIT,
+			nullptr
+		},
+		{
+			1,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+	};
+
+	m_pSkyBoxDSLayout = DescriptorSetLayout::Create(m_pDevice, dsLayoutBindings);
+
+	list =
+	{
+		m_pSkyBoxDSLayout,
+	};
+	m_pSkyBoxPLayout = PipelineLayout::Create(m_pDevice, list);
 }
 
 void VulkanGlobal::InitPipelineCache()
@@ -648,12 +726,25 @@ void VulkanGlobal::InitPipeline()
 	info.vertexAttributesInfo = m_pVertexBuffer->GetAttribDesc();
 
 	m_pPipeline = GraphicPipeline::Create(m_pDevice, info);
+
+	info = {};
+	info.pRenderPass = m_pRenderPass;
+	info.pPipelineLayout = m_pSkyBoxPLayout;
+	info.pVertShader = m_pSkyBoxVS;
+	info.pFragShader = m_pSkyBoxFS;
+	info.vertexBindingsInfo = { m_pCubeVertexBuffer->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pCubeVertexBuffer->GetAttribDesc();
+
+	m_pSkyBoxPipeline = GraphicPipeline::Create(m_pDevice, info);
 }
 
-void VulkanGlobal::InitShaderModule(const char* vertShaderPath, const char* fragShaderPath)
+void VulkanGlobal::InitShaderModule()
 {
-	m_pVertShader = ShaderModule::Create(m_pDevice, std::wstring(vertShaderPath, vertShaderPath + strlen(vertShaderPath)));
-	m_pFragShader = ShaderModule::Create(m_pDevice, std::wstring(fragShaderPath, fragShaderPath + strlen(fragShaderPath)));
+	m_pVertShader = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.vert.spv");
+	m_pFragShader = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.frag.spv");
+
+	m_pSkyBoxVS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.vert.spv");
+	m_pSkyBoxFS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.frag.spv");
 }
 
 void VulkanGlobal::InitDescriptorPool()
@@ -661,10 +752,10 @@ void VulkanGlobal::InitDescriptorPool()
 	std::vector<VkDescriptorPoolSize> descPoolSize =
 	{
 		{
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 2
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 10
 		},
 		{
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 8
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10
 		}
 	};
 
@@ -687,6 +778,10 @@ void VulkanGlobal::InitDescriptorSet()
 	m_pDescriptorSet->UpdateImage(3, m_pRoughness->GetDescriptorInfo());
 	m_pDescriptorSet->UpdateImage(4, m_pMetalic->GetDescriptorInfo());
 	m_pDescriptorSet->UpdateImage(5, m_pAmbientOcclusion->GetDescriptorInfo());
+
+	m_pSkyBoxDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
+	m_pSkyBoxDS->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
+	m_pSkyBoxDS->UpdateImage(1, m_pSkyBoxTex->GetDescriptorInfo());
 }
 
 void VulkanGlobal::InitDrawCmdBuffers()
@@ -851,6 +946,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	std::vector<VkDescriptorSet> dsSets = { m_pDescriptorSet->GetDeviceHandle() };
 
 	uint32_t offset = FrameMgr()->FrameIndex() * m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
+
 	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
 	pDrawCmdBuffer->AddToReferenceTable(m_pPipelineLayout);
 	pDrawCmdBuffer->AddToReferenceTable(m_pDescriptorSet);
@@ -866,6 +962,28 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	pDrawCmdBuffer->AddToReferenceTable(m_pIndexBuffer);
 
 	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
+
+
+	dsSets = { m_pSkyBoxDS->GetDeviceHandle() };
+
+	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
+	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
+	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxDS);
+
+	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPipeline->GetDeviceHandle());
+	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPipeline);
+
+	vertexBuffers = { m_pCubeVertexBuffer->GetDeviceHandle() };
+	offsets = { 0 };
+	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetDeviceHandle(), 0, m_pCubeIndexBuffer->GetType());
+	pDrawCmdBuffer->AddToReferenceTable(m_pCubeVertexBuffer);
+	pDrawCmdBuffer->AddToReferenceTable(m_pCubeIndexBuffer);
+
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);
+
+
+
 
 	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
 	
@@ -904,7 +1022,7 @@ void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
 	InitVertices();
 	InitUniforms();
 	InitDescriptorSetLayout();
-	InitShaderModule("../data/shaders/simple.vert.spv", "../data/shaders/simple.frag.spv");
+	InitShaderModule();
 	InitPipelineCache();
 	InitPipeline();
 	InitDescriptorPool();

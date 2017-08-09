@@ -32,6 +32,7 @@
 #include "../component/Camera.h"
 #include "../component/Character.h"
 #include "Texture2D.h"
+#include "TextureCube.h"
 
 typedef struct _GlobalUniforms
 {
@@ -84,7 +85,7 @@ public:
 	void Draw();
 	void Update();
 
-	void InitShaderModule(const char* vertShaderPath, const char* fragShaderPath);
+	void InitShaderModule();
 
 public:
 	static const uint32_t				WINDOW_WIDTH = 1024;
@@ -108,20 +109,30 @@ protected:
 
 	std::shared_ptr<VertexBuffer>		m_pVertexBuffer;
 	std::shared_ptr<IndexBuffer>		m_pIndexBuffer;
+	std::shared_ptr<VertexBuffer>		m_pCubeVertexBuffer;
+	std::shared_ptr<IndexBuffer>		m_pCubeIndexBuffer;
 	std::shared_ptr<UniformBuffer>		m_pUniformBuffer;
 
 	GlobalUniforms						m_globalUniforms;
 
 	std::shared_ptr<DescriptorSetLayout>m_pDescriptorSetLayout;
+	std::shared_ptr<DescriptorSetLayout>m_pSkyBoxDSLayout;
+
 	std::shared_ptr<PipelineLayout>		m_pPipelineLayout;
+	std::shared_ptr<PipelineLayout>		m_pSkyBoxPLayout;
 
 	std::shared_ptr<GraphicPipeline>	m_pPipeline;
+	std::shared_ptr<GraphicPipeline>	m_pSkyBoxPipeline;
 
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
 	std::shared_ptr<DescriptorSet>		m_pDescriptorSet;
+	std::shared_ptr<DescriptorSet>		m_pSkyBoxDS;
 
 	std::shared_ptr<ShaderModule>		m_pVertShader;
 	std::shared_ptr<ShaderModule>		m_pFragShader;
+
+	std::shared_ptr<ShaderModule>		m_pSkyBoxVS;
+	std::shared_ptr<ShaderModule>		m_pSkyBoxFS;
 
 	//std::vector<VkCommandBuffer>		m_drawCmdBuffers;
 	std::vector<std::shared_ptr<CommandBuffer>>		m_drawCmdBuffers;
@@ -141,6 +152,7 @@ protected:
 	std::shared_ptr<Texture2D>			m_pNormal;
 	std::shared_ptr<Texture2D>			m_pAmbientOcclusion;
 	std::shared_ptr<Texture2D>			m_pMetalic;
+	std::shared_ptr<TextureCube>		m_pSkyBoxTex;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)
