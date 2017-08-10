@@ -597,6 +597,7 @@ void VulkanGlobal::InitVertices()
 
 	attribDesc.clear();
 	attribDesc.resize(1);
+
 	attribDesc[0].binding = 0;
 	attribDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	attribDesc[0].location = 0;	//layout location 0 in shader
@@ -606,6 +607,41 @@ void VulkanGlobal::InitVertices()
 	m_pCubeVertexBuffer->UpdateByteStream(cubeVertices, 0, sizeof(cubeVertices), VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
 	m_pCubeIndexBuffer = IndexBuffer::Create(m_pDevice, sizeof(cubeIndices), VK_INDEX_TYPE_UINT32);
 	m_pCubeIndexBuffer->UpdateByteStream(cubeIndices, 0, sizeof(cubeIndices), VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+
+	float quadVertices[] = {
+		-1.0, -1.0,  0.0, 0.0, 0.0,
+		1.0, -1.0,  0.0,  1.0, 0.0,
+		1.0,  1.0,  0.0,  1.0, 1.0,
+		-1.0,  1.0,  0.0, 0.0, 1,0,
+	};
+
+	uint32_t quadIndices[] = {
+		0, 1, 2,
+		2, 3, 0,
+	};
+
+	bindingDesc = {};
+	bindingDesc.binding = 0;
+	bindingDesc.stride = 5 * sizeof(float);
+	bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	attribDesc.clear();
+	attribDesc.resize(2);
+
+	attribDesc[0].binding = 0;
+	attribDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attribDesc[0].location = 0;	//layout location 0 in shader
+	attribDesc[0].offset = 0;
+
+	attribDesc[1].binding = 0;
+	attribDesc[1].format = VK_FORMAT_R32G32_SFLOAT;
+	attribDesc[1].location = 1;	//layout location 0 in shader
+	attribDesc[1].offset = 3 * sizeof(float);
+
+	m_pQuadVertexBuffer = VertexBuffer::Create(m_pDevice, sizeof(quadVertices), bindingDesc, attribDesc);
+	m_pQuadVertexBuffer->UpdateByteStream(quadVertices, 0, sizeof(quadVertices), VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	m_pQuadIndexBuffer = IndexBuffer::Create(m_pDevice, sizeof(quadIndices), VK_INDEX_TYPE_UINT32);
+	m_pQuadIndexBuffer->UpdateByteStream(quadIndices, 0, sizeof(quadIndices), VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
 }
 
 void VulkanGlobal::InitUniforms()
@@ -621,6 +657,7 @@ void VulkanGlobal::InitUniforms()
 	m_pNormal = Texture2D::Create(m_pDevice, "../data/textures/cerberus/normal.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	m_pRoughness = Texture2D::Create(m_pDevice, "../data/textures/cerberus/roughness.ktx", VK_FORMAT_R8_UNORM);
 	m_pSkyBoxTex = TextureCube::Create(m_pDevice, "../data/textures/hdr/gcanyon_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_pSimpleTex = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -736,6 +773,15 @@ void VulkanGlobal::InitPipeline()
 	info.vertexAttributesInfo = m_pCubeVertexBuffer->GetAttribDesc();
 
 	m_pSkyBoxPipeline = GraphicPipeline::Create(m_pDevice, info);
+
+	info = {};
+	info.pRenderPass = m_pRenderPass;
+	info.pPipelineLayout = m_pSkyBoxPLayout;
+	info.pVertShader = m_pSimpleVS;
+	info.pFragShader = m_pSimpleFS;
+	info.vertexBindingsInfo = { m_pQuadVertexBuffer->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pQuadVertexBuffer->GetAttribDesc();
+	m_pSimplePipeline = GraphicPipeline::Create(m_pDevice, info);
 }
 
 void VulkanGlobal::InitShaderModule()
@@ -745,6 +791,9 @@ void VulkanGlobal::InitShaderModule()
 
 	m_pSkyBoxVS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.vert.spv");
 	m_pSkyBoxFS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.frag.spv");
+
+	m_pSimpleVS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.vert.spv");
+	m_pSimpleFS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.frag.spv");
 }
 
 void VulkanGlobal::InitDescriptorPool()
@@ -782,6 +831,10 @@ void VulkanGlobal::InitDescriptorSet()
 	m_pSkyBoxDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
 	m_pSkyBoxDS->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
 	m_pSkyBoxDS->UpdateImage(1, m_pSkyBoxTex->GetDescriptorInfo());
+
+	m_pSimpleDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
+	m_pSimpleDS->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
+	m_pSimpleDS->UpdateImage(1, m_pSimpleTex->GetDescriptorInfo());
 }
 
 void VulkanGlobal::InitDrawCmdBuffers()
@@ -943,6 +996,8 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
 	vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
 
+
+	// Draw gun
 	std::vector<VkDescriptorSet> dsSets = { m_pDescriptorSet->GetDeviceHandle() };
 
 	uint32_t offset = FrameMgr()->FrameIndex() * m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
@@ -963,7 +1018,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
 
-
+	// Draw skybox
 	dsSets = { m_pSkyBoxDS->GetDeviceHandle() };
 
 	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
@@ -982,10 +1037,27 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);
 
+	/*
+	dsSets = { m_pSimpleDS->GetDeviceHandle() };
+
+	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
+	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
+	pDrawCmdBuffer->AddToReferenceTable(m_pSimpleDS);
+
+	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSimplePipeline->GetDeviceHandle());
+	pDrawCmdBuffer->AddToReferenceTable(m_pSimplePipeline);
+
+	vertexBuffers = { m_pQuadVertexBuffer->GetDeviceHandle() };
+	offsets = { 0 };
+	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetDeviceHandle(), 0, m_pQuadIndexBuffer->GetType());
+	pDrawCmdBuffer->AddToReferenceTable(m_pQuadVertexBuffer);
+	pDrawCmdBuffer->AddToReferenceTable(m_pQuadIndexBuffer);
+
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetCount(), 1, 0, 0, 0);
 
 
-
-	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
+	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());*/
 	
 	CHECK_VK_ERROR(vkEndCommandBuffer(pDrawCmdBuffer->GetDeviceHandle()));
 	

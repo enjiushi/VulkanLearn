@@ -111,6 +111,8 @@ protected:
 	std::shared_ptr<IndexBuffer>		m_pIndexBuffer;
 	std::shared_ptr<VertexBuffer>		m_pCubeVertexBuffer;
 	std::shared_ptr<IndexBuffer>		m_pCubeIndexBuffer;
+	std::shared_ptr<VertexBuffer>		m_pQuadVertexBuffer;
+	std::shared_ptr<IndexBuffer>		m_pQuadIndexBuffer;
 	std::shared_ptr<UniformBuffer>		m_pUniformBuffer;
 
 	GlobalUniforms						m_globalUniforms;
@@ -123,16 +125,21 @@ protected:
 
 	std::shared_ptr<GraphicPipeline>	m_pPipeline;
 	std::shared_ptr<GraphicPipeline>	m_pSkyBoxPipeline;
+	std::shared_ptr<GraphicPipeline>	m_pSimplePipeline;
 
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
 	std::shared_ptr<DescriptorSet>		m_pDescriptorSet;
 	std::shared_ptr<DescriptorSet>		m_pSkyBoxDS;
+	std::shared_ptr<DescriptorSet>		m_pSimpleDS;
 
 	std::shared_ptr<ShaderModule>		m_pVertShader;
 	std::shared_ptr<ShaderModule>		m_pFragShader;
 
 	std::shared_ptr<ShaderModule>		m_pSkyBoxVS;
 	std::shared_ptr<ShaderModule>		m_pSkyBoxFS;
+
+	std::shared_ptr<ShaderModule>		m_pSimpleVS;
+	std::shared_ptr<ShaderModule>		m_pSimpleFS;
 
 	//std::vector<VkCommandBuffer>		m_drawCmdBuffers;
 	std::vector<std::shared_ptr<CommandBuffer>>		m_drawCmdBuffers;
@@ -153,6 +160,7 @@ protected:
 	std::shared_ptr<Texture2D>			m_pAmbientOcclusion;
 	std::shared_ptr<Texture2D>			m_pMetalic;
 	std::shared_ptr<TextureCube>		m_pSkyBoxTex;
+	std::shared_ptr<Texture2D>			m_pSimpleTex;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)
