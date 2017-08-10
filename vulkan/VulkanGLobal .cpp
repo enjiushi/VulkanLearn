@@ -740,8 +740,8 @@ void VulkanGlobal::InitPipeline()
 
 void VulkanGlobal::InitShaderModule()
 {
-	m_pVertShader = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.vert.spv");
-	m_pFragShader = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.frag.spv");
+	m_pVertShader = ShaderModule::Create(m_pDevice, L"../data/shaders/pbr.vert.spv");
+	m_pFragShader = ShaderModule::Create(m_pDevice, L"../data/shaders/pbr.frag.spv");
 
 	m_pSkyBoxVS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.vert.spv");
 	m_pSkyBoxFS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.frag.spv");
