@@ -23,4 +23,5 @@ void main()
 	gl_Position = ubo.mvp * vec4(inPos.xyz, 1.0);
 
 	outUv = inUv;
+	outUv.t = 1.0 - outUv.t;
 }
