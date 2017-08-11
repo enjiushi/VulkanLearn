@@ -5,6 +5,7 @@
 class Image;
 class DepthStencilBuffer;
 class RenderPass;
+class Texture2D;
 
 class FrameBuffer : public DeviceObjectBase<FrameBuffer>
 {
@@ -16,6 +17,7 @@ public:
 public:
 	~FrameBuffer();
 
+protected:
 	bool Init(
 		const std::shared_ptr<Device>& pDevice, 
 		const std::shared_ptr<FrameBuffer>& pSelf,
@@ -26,6 +28,7 @@ public:
 public:
 	VkFramebuffer GetDeviceHandle() { return m_framebuffer; }
 	VkFramebufferCreateInfo GetFramebufferInfo() const { return m_info; }
+	void ExtractContent(const std::shared_ptr<Image>& pImage);
 
 public:
 	static std::shared_ptr<FrameBuffer> Create(

@@ -10,8 +10,5 @@ protected:
 	void CreateImageView() override;
 
 public:
-	void EnsureImageLayout() override;
-
-public:
 	static std::shared_ptr<TextureCube> Create(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format);
 };

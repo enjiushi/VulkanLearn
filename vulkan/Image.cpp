@@ -26,14 +26,20 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 	if (info.tiling == VK_IMAGE_TILING_OPTIMAL && (formatProp.optimalTilingFeatures & info.usage != info.usage))
 		return false;
 
-	CHECK_VK_ERROR(vkCreateImage(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_image));
+	// Image created must have flag VK_IMAGE_LAYOUT_UNDEFINED
+	VkImageLayout layout = info.initialLayout;
+	m_info = info;
+	m_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+	CHECK_VK_ERROR(vkCreateImage(GetDevice()->GetDeviceHandle(), &m_info, nullptr, &m_image));
 	m_pMemKey = DeviceMemMgr()->AllocateImageMemChunk(GetSelfSharedPtr(), memoryPropertyFlag);
 
-	m_info = info;
+	m_info.initialLayout = layout;
 	m_memProperty = memoryPropertyFlag;
 
 	CreateImageView();
 	CreateSampler();
+	EnsureImageLayout();
 
 	m_descriptorImgInfo = { m_sampler, m_view, m_info.initialLayout };
 
@@ -74,7 +80,47 @@ void Image::BindMemory(VkDeviceMemory memory, uint32_t offset) const
 
 void Image::EnsureImageLayout()
 {
+	if (m_info.initialLayout == VK_IMAGE_LAYOUT_UNDEFINED)
+		return;
 
+	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+	pCmdBuffer->StartRecording();
+
+	VkImageSubresourceRange subresourceRange = {};
+	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange.baseMipLevel = 0;
+	subresourceRange.levelCount = m_info.mipLevels;
+	subresourceRange.layerCount = m_info.arrayLayers;
+
+	if (m_info.usage == VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+	VkImageMemoryBarrier imgBarrier = {};
+	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier.image = GetDeviceHandle();
+	imgBarrier.subresourceRange = subresourceRange;
+	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imgBarrier.srcAccessMask = 0;
+	imgBarrier.newLayout = m_info.initialLayout;
+
+	if (m_info.initialLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		imgBarrier.dstAccessMask |= (VK_ACCESS_SHADER_READ_BIT);
+	if (m_info.initialLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		imgBarrier.dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	if (m_info.initialLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		imgBarrier.dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+	vkCmdPipelineBarrier(pCmdBuffer->GetDeviceHandle(),
+		VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		0,
+		0, nullptr,
+		0, nullptr,
+		1, &imgBarrier);
+
+	pCmdBuffer->EndRecording();
+
+	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }
 
 std::shared_ptr<StagingBuffer> Image::PrepareStagingBuffer(const gli::texture& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
@@ -115,8 +161,15 @@ void Image::ChangeImageLayoutBeforeCopy(const gli::texture& gliTex, const std::s
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	imgBarrier.image = GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imgBarrier.srcAccessMask = 0;
+	imgBarrier.oldLayout = m_info.initialLayout;
+
+	if (m_info.initialLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		imgBarrier.srcAccessMask |= (VK_ACCESS_SHADER_READ_BIT);
+	if (m_info.initialLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		imgBarrier.srcAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	if (m_info.initialLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		imgBarrier.srcAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
 	imgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
@@ -127,8 +180,6 @@ void Image::ChangeImageLayoutBeforeCopy(const gli::texture& gliTex, const std::s
 		0, nullptr,
 		0, nullptr,
 		1, &imgBarrier);
-
-	m_info.initialLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 }
 
 void Image::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
@@ -180,8 +231,14 @@ void Image::ChangeImageLayoutAfterCopy(const gli::texture& gliTex, const std::sh
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	imgBarrier.newLayout = m_info.initialLayout;
+
+	if (m_info.initialLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		imgBarrier.dstAccessMask |= (VK_ACCESS_SHADER_READ_BIT);
+	if (m_info.initialLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		imgBarrier.dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	if (m_info.initialLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		imgBarrier.dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 	vkCmdPipelineBarrier(pCmdBuffer->GetDeviceHandle(),
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -190,8 +247,6 @@ void Image::ChangeImageLayoutAfterCopy(const gli::texture& gliTex, const std::sh
 		0, nullptr,
 		0, nullptr,
 		1, &imgBarrier);
-
-	m_info.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }
 
 void Image::UpdateByteStream(const gli::texture& gliTex)
@@ -204,6 +259,8 @@ void Image::UpdateByteStream(const gli::texture& gliTex)
 	ChangeImageLayoutBeforeCopy(gliTex, pCmdBuffer);
 
 	ExecuteCopy(gliTex, pStagingBuffer, pCmdBuffer);
+
+	ChangeImageLayoutAfterCopy(gliTex, pCmdBuffer);
 
 	pCmdBuffer->EndRecording();
 

@@ -21,7 +21,7 @@ public:
 	virtual VkMemoryRequirements GetMemoryReqirments() const;
 	virtual VkImageViewCreateInfo GetViewInfo() const { return m_viewInfo; }
 	virtual VkImageView GetViewDeviceHandle() const { return m_view; }
-	virtual void EnsureImageLayout() = 0;
+	virtual void EnsureImageLayout();
 
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;

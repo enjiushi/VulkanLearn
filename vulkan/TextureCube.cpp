@@ -21,7 +21,7 @@ bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 	textureCreateInfo.extent.width = width;
 	textureCreateInfo.extent.height = height;
 	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	textureCreateInfo.mipLevels = mipLevels;
 	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -77,10 +77,6 @@ void TextureCube::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		bufferCopyRegions.size(),
 		bufferCopyRegions.data());
-}
-
-void TextureCube::EnsureImageLayout()
-{
 }
 
 void TextureCube::CreateImageView()

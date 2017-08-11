@@ -15,7 +15,7 @@ bool DepthStencilBuffer::Init(const std::shared_ptr<Device>& pDevice, const std:
 	dsCreateInfo.extent.width = width;
 	dsCreateInfo.extent.height = height;
 	dsCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	dsCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	dsCreateInfo.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	dsCreateInfo.mipLevels = 1;
 	dsCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	dsCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -42,44 +42,6 @@ std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::Create(const std::shared
 	if (pDSBuffer.get() && pDSBuffer->Init(pDevice, pDSBuffer, format, width, height))
 		return pDSBuffer;
 	return nullptr;
-}
-
-void DepthStencilBuffer::EnsureImageLayout()
-{
-	std::shared_ptr<CommandBuffer> pCmdBuffer = GlobalObjects()->GetMainThreadCmdPool()->AllocatePrimaryCommandBuffer();
-	VkCommandBuffer cmdBuffer = pCmdBuffer->GetDeviceHandle();
-	VkCommandBufferBeginInfo beginInfo = {};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-	vkBeginCommandBuffer(cmdBuffer, &beginInfo);
-
-	//Change image layout
-	VkImageMemoryBarrier barrier = {};
-	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barrier.image = GetDeviceHandle();
-	barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	barrier.dstQueueFamilyIndex = m_pDevice->GetPhysicalDevice()->GetGraphicQueueIndex();
-	barrier.srcAccessMask = 0;
-	barrier.srcQueueFamilyIndex = m_pDevice->GetPhysicalDevice()->GetGraphicQueueIndex();
-	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-	barrier.subresourceRange.baseArrayLayer = 0;
-	barrier.subresourceRange.layerCount = 1;
-	barrier.subresourceRange.baseMipLevel = 0;
-	barrier.subresourceRange.levelCount = 1;
-
-	vkCmdPipelineBarrier(cmdBuffer,
-		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		0,
-		0, nullptr,
-		0, nullptr,
-		1, &barrier);
-
-	CHECK_VK_ERROR(vkEndCommandBuffer(cmdBuffer));
-
-	GlobalObjects()->GetGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }
 
 void DepthStencilBuffer::CreateImageView()

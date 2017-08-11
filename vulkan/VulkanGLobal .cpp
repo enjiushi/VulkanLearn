@@ -417,6 +417,7 @@ void VulkanGlobal::InitRenderpass()
 
 	m_pRenderPass = RenderPass::Create(m_pDevice, renderpassCreateInfo);
 
+	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	attachmentDescs[0].format = FrameBuffer::OFFSCREEN_HDR_COLOR_FORMAT;
 	attachmentDescs[1].format = FrameBuffer::OFFSCREEN_DEPTH_STENCIL_FORMAT;
 	m_pOffscreenRenderPass = RenderPass::Create(m_pDevice, renderpassCreateInfo);
@@ -428,7 +429,11 @@ void VulkanGlobal::InitFrameBuffer()
 	for (uint32_t i = 0; i < m_framebuffers.size(); i++)
 		m_framebuffers[i] = FrameBuffer::Create(m_pDevice, GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i), m_pDSBuffer, m_pRenderPass);
 
-	m_pOffscreenFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, 512, 512, m_pOffscreenRenderPass);
+	m_pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, 512, 512, m_pOffscreenRenderPass);
+
+	m_offscreenFrameBuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
+	for (uint32_t i = 0; i < m_offscreenFrameBuffers.size(); i++)
+		m_offscreenFrameBuffers[i] = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetPhysicalDevice()->GetSurfaceCap().currentExtent.height, m_pOffscreenRenderPass);
 }
 
 void VulkanGlobal::InitVertices()
@@ -657,7 +662,109 @@ void VulkanGlobal::InitUniforms()
 	m_pNormal = Texture2D::Create(m_pDevice, "../data/textures/cerberus/normal.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	m_pRoughness = Texture2D::Create(m_pDevice, "../data/textures/cerberus/roughness.ktx", VK_FORMAT_R8_UNORM);
 	m_pSkyBoxTex = TextureCube::Create(m_pDevice, "../data/textures/hdr/gcanyon_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT);
-	m_pSimpleTex = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
+	//m_pSimpleTex = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
+	m_pSimpleTex = Texture2D::CreateEmptyTexture(m_pDevice, 512, 512, VK_FORMAT_R16G16B16A16_SFLOAT);
+}
+
+void VulkanGlobal::InitEnvMap()
+{
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+
+	std::vector<VkClearValue> clearValues =
+	{
+		{ 0.2f, 0.2f, 0.2f, 0.2f },
+		{ 1.0f, 0 }
+	};
+
+	pDrawCmdBuffer->StartRecording();
+
+	UpdateUniforms(0);
+	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
+
+	VkViewport viewport =
+	{
+		0, 0,
+		512, 512,
+		0, 1
+	};
+
+	VkRect2D scissorRect =
+	{
+		0, 0,
+		512, 512,
+	};
+
+	vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
+	vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
+
+	uint32_t offset = 0;
+
+	std::vector<VkDescriptorSet> dsSets;
+	std::vector<VkBuffer> vertexBuffers;
+	std::vector<VkDeviceSize> offsets;
+
+	VkRenderPassBeginInfo renderPassBeginInfo = {};
+	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassBeginInfo.clearValueCount = clearValues.size();
+	renderPassBeginInfo.pClearValues = clearValues.data();
+	renderPassBeginInfo.renderPass = m_pOffscreenRenderPass->GetDeviceHandle();
+	renderPassBeginInfo.framebuffer = m_pEnvFrameBuffer->GetDeviceHandle();
+	renderPassBeginInfo.renderArea.extent.width = 512;
+	renderPassBeginInfo.renderArea.extent.height = 512;
+	renderPassBeginInfo.renderArea.offset.x = 0;
+	renderPassBeginInfo.renderArea.offset.y = 0;
+
+	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
+	pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
+
+
+	// Draw gun
+	dsSets = { m_pDescriptorSet->GetDeviceHandle() };
+
+	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
+	pDrawCmdBuffer->AddToReferenceTable(m_pPipelineLayout);
+	pDrawCmdBuffer->AddToReferenceTable(m_pDescriptorSet);
+
+	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenPipeline->GetDeviceHandle());
+	pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenPipeline);
+
+	vertexBuffers = { m_pVertexBuffer->GetDeviceHandle() };
+	offsets = { 0 };
+	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetDeviceHandle(), 0, m_pIndexBuffer->GetType());
+	pDrawCmdBuffer->AddToReferenceTable(m_pVertexBuffer);
+	pDrawCmdBuffer->AddToReferenceTable(m_pIndexBuffer);
+
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
+
+	// Draw skybox
+	dsSets = { m_pSkyBoxDS->GetDeviceHandle() };
+
+	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
+	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
+	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxDS);
+
+	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenSkyBoxPipeline->GetDeviceHandle());
+	pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenSkyBoxPipeline);
+
+	vertexBuffers = { m_pCubeVertexBuffer->GetDeviceHandle() };
+	offsets = { 0 };
+	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetDeviceHandle(), 0, m_pCubeIndexBuffer->GetType());
+	pDrawCmdBuffer->AddToReferenceTable(m_pCubeVertexBuffer);
+	pDrawCmdBuffer->AddToReferenceTable(m_pCubeIndexBuffer);
+
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);
+
+	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
+
+
+	pDrawCmdBuffer->EndRecording();
+
+	GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
+
+	m_pEnvFrameBuffer->ExtractContent(m_pSimpleTex);
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -774,6 +881,25 @@ void VulkanGlobal::InitPipeline()
 
 	m_pSkyBoxPipeline = GraphicPipeline::Create(m_pDevice, info);
 
+	info.pRenderPass = m_pOffscreenRenderPass;
+	info.pPipelineLayout = m_pPipelineLayout;
+	info.pVertShader = m_pVertShader;
+	info.pFragShader = m_pFragShader;
+	info.vertexBindingsInfo = { m_pVertexBuffer->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pVertexBuffer->GetAttribDesc();
+
+	m_pOffScreenPipeline = GraphicPipeline::Create(m_pDevice, info);
+
+	info = {};
+	info.pRenderPass = m_pOffscreenRenderPass;
+	info.pPipelineLayout = m_pSkyBoxPLayout;
+	info.pVertShader = m_pSkyBoxVS;
+	info.pFragShader = m_pSkyBoxFS;
+	info.vertexBindingsInfo = { m_pCubeVertexBuffer->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pCubeVertexBuffer->GetAttribDesc();
+
+	m_pOffScreenSkyBoxPipeline = GraphicPipeline::Create(m_pDevice, info);
+
 	info = {};
 	info.pRenderPass = m_pRenderPass;
 	info.pPipelineLayout = m_pSkyBoxPLayout;
@@ -886,6 +1012,8 @@ void VulkanGlobal::EndSetup()
 
 	m_pCharacter = Character::Create({30.0f}, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
+
+	InitEnvMap();
 }
 
 void VulkanGlobal::UpdateUniforms(uint32_t frameIndex)
@@ -965,21 +1093,6 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	UpdateUniforms(pPerFrameRes->GetFrameIndex());
 	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
-	VkRenderPassBeginInfo renderPassBeginInfo = {};
-	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.clearValueCount = clearValues.size();
-	renderPassBeginInfo.pClearValues = clearValues.data();
-	renderPassBeginInfo.renderPass = m_pRenderPass->GetDeviceHandle();
-	renderPassBeginInfo.framebuffer = m_framebuffers[pPerFrameRes->GetFrameIndex()]->GetDeviceHandle();
-	renderPassBeginInfo.renderArea.extent.width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
-	renderPassBeginInfo.renderArea.extent.height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
-	renderPassBeginInfo.renderArea.offset.x = 0;
-	renderPassBeginInfo.renderArea.offset.y = 0;
-
-	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
-	pDrawCmdBuffer->AddToReferenceTable(m_framebuffers[pPerFrameRes->GetFrameIndex()]);
-
 	VkViewport viewport =
 	{
 		0, 0,
@@ -996,11 +1109,29 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
 	vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
 
+	uint32_t offset = FrameMgr()->FrameIndex() * m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
+
+	std::vector<VkDescriptorSet> dsSets;
+	std::vector<VkBuffer> vertexBuffers;
+	std::vector<VkDeviceSize> offsets;
+
+	VkRenderPassBeginInfo renderPassBeginInfo = {};/*
+	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassBeginInfo.clearValueCount = clearValues.size();
+	renderPassBeginInfo.pClearValues = clearValues.data();
+	renderPassBeginInfo.renderPass = m_pRenderPass->GetDeviceHandle();
+	renderPassBeginInfo.framebuffer = m_framebuffers[pPerFrameRes->GetFrameIndex()]->GetDeviceHandle();
+	renderPassBeginInfo.renderArea.extent.width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
+	renderPassBeginInfo.renderArea.extent.height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
+	renderPassBeginInfo.renderArea.offset.x = 0;
+	renderPassBeginInfo.renderArea.offset.y = 0;
+
+	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
+	pDrawCmdBuffer->AddToReferenceTable(m_framebuffers[pPerFrameRes->GetFrameIndex()]);
 
 	// Draw gun
-	std::vector<VkDescriptorSet> dsSets = { m_pDescriptorSet->GetDeviceHandle() };
-
-	uint32_t offset = FrameMgr()->FrameIndex() * m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
+	dsSets = { m_pDescriptorSet->GetDeviceHandle() };
 
 	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
 	pDrawCmdBuffer->AddToReferenceTable(m_pPipelineLayout);
@@ -1009,8 +1140,8 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipeline->GetDeviceHandle());
 	pDrawCmdBuffer->AddToReferenceTable(m_pPipeline);
 
-	std::vector<VkBuffer> vertexBuffers = { m_pVertexBuffer->GetDeviceHandle() };
-	std::vector<VkDeviceSize> offsets = { 0 };
+	vertexBuffers = { m_pVertexBuffer->GetDeviceHandle() };
+	offsets = { 0 };
 	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
 	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetDeviceHandle(), 0, m_pIndexBuffer->GetType());
 	pDrawCmdBuffer->AddToReferenceTable(m_pVertexBuffer);
@@ -1035,9 +1166,24 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	pDrawCmdBuffer->AddToReferenceTable(m_pCubeVertexBuffer);
 	pDrawCmdBuffer->AddToReferenceTable(m_pCubeIndexBuffer);
 
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);*/
 
-	/*
+	
+	renderPassBeginInfo = {};
+	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassBeginInfo.clearValueCount = clearValues.size();
+	renderPassBeginInfo.pClearValues = clearValues.data();
+	renderPassBeginInfo.renderPass = m_pRenderPass->GetDeviceHandle();
+	renderPassBeginInfo.framebuffer = m_framebuffers[pPerFrameRes->GetFrameIndex()]->GetDeviceHandle();
+	renderPassBeginInfo.renderArea.extent.width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
+	renderPassBeginInfo.renderArea.extent.height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
+	renderPassBeginInfo.renderArea.offset.x = 0;
+	renderPassBeginInfo.renderArea.offset.y = 0;
+
+	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
+	pDrawCmdBuffer->AddToReferenceTable(m_framebuffers[pPerFrameRes->GetFrameIndex()]);
+
 	dsSets = { m_pSimpleDS->GetDeviceHandle() };
 
 	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
@@ -1056,9 +1202,9 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetCount(), 1, 0, 0, 0);
 
+	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
 
-	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());*/
-	
+
 	CHECK_VK_ERROR(vkEndCommandBuffer(pDrawCmdBuffer->GetDeviceHandle()));
 	
 	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };

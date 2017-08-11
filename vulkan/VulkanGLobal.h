@@ -71,6 +71,7 @@ public:
 	void InitFrameBuffer();
 	void InitVertices();
 	void InitUniforms();
+	void InitEnvMap();
 	void InitDescriptorSetLayout();
 	void InitPipelineCache();
 	void InitPipeline();
@@ -105,7 +106,8 @@ protected:
 	std::shared_ptr<RenderPass>			m_pRenderPass;
 	std::shared_ptr<RenderPass>			m_pOffscreenRenderPass;
 	std::vector<std::shared_ptr<FrameBuffer>>m_framebuffers;
-	std::shared_ptr<FrameBuffer>		m_pOffscreenFrameBuffer;
+	std::shared_ptr<FrameBuffer>		m_pEnvFrameBuffer;
+	std::vector<std::shared_ptr<FrameBuffer>>m_offscreenFrameBuffers;
 
 	std::shared_ptr<VertexBuffer>		m_pVertexBuffer;
 	std::shared_ptr<IndexBuffer>		m_pIndexBuffer;
@@ -124,7 +126,9 @@ protected:
 	std::shared_ptr<PipelineLayout>		m_pSkyBoxPLayout;
 
 	std::shared_ptr<GraphicPipeline>	m_pPipeline;
+	std::shared_ptr<GraphicPipeline>	m_pOffScreenPipeline;
 	std::shared_ptr<GraphicPipeline>	m_pSkyBoxPipeline;
+	std::shared_ptr<GraphicPipeline>	m_pOffScreenSkyBoxPipeline;
 	std::shared_ptr<GraphicPipeline>	m_pSimplePipeline;
 
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
