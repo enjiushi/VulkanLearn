@@ -678,7 +678,7 @@ void VulkanGlobal::InitEnvMap()
 
 	pDrawCmdBuffer->StartRecording();
 
-	UpdateUniforms(0);
+	UpdateUniforms(0, true);
 	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
 	VkViewport viewport =
@@ -717,26 +717,6 @@ void VulkanGlobal::InitEnvMap()
 	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
 	pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
-
-
-	// Draw gun
-	dsSets = { m_pDescriptorSet->GetDeviceHandle() };
-
-	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
-	pDrawCmdBuffer->AddToReferenceTable(m_pPipelineLayout);
-	pDrawCmdBuffer->AddToReferenceTable(m_pDescriptorSet);
-
-	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenPipeline->GetDeviceHandle());
-	pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenPipeline);
-
-	vertexBuffers = { m_pVertexBuffer->GetDeviceHandle() };
-	offsets = { 0 };
-	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetDeviceHandle(), 0, m_pIndexBuffer->GetType());
-	pDrawCmdBuffer->AddToReferenceTable(m_pVertexBuffer);
-	pDrawCmdBuffer->AddToReferenceTable(m_pIndexBuffer);
-
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
 
 	// Draw skybox
 	dsSets = { m_pSkyBoxDS->GetDeviceHandle() };
@@ -894,7 +874,7 @@ void VulkanGlobal::InitPipeline()
 	info.pRenderPass = m_pOffscreenRenderPass;
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pSkyBoxVS;
-	info.pFragShader = m_pSkyBoxFS;
+	info.pFragShader = m_pIrradianceFS;
 	info.vertexBindingsInfo = { m_pCubeVertexBuffer->GetBindingDesc() };
 	info.vertexAttributesInfo = m_pCubeVertexBuffer->GetAttribDesc();
 
@@ -920,6 +900,8 @@ void VulkanGlobal::InitShaderModule()
 
 	m_pSimpleVS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.vert.spv");
 	m_pSimpleFS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.frag.spv");
+
+	m_pIrradienceFS = ShaderModule::Create(m_pDevice, L"../data/shaders/irradiance.frag.spv");
 }
 
 void VulkanGlobal::InitDescriptorPool()
@@ -996,6 +978,21 @@ void VulkanGlobal::EndSetup()
 	m_pCameraObj->Update(0);
 	m_pCameraComp->Update(0);
 
+	camInfo =
+	{
+		3.1415f / 2.0f,
+		512.0f / 512.0f,
+		1.0f,
+		2000.0f,
+	};
+	m_pOffScreenCamObj = BaseObject::Create();
+	m_pOffScreenCamComp = Camera::Create(camInfo);
+	m_pOffScreenCamObj->AddComponent(m_pOffScreenCamComp);
+
+	m_pCameraObj->SetPos({ 0, 0, 50 });
+	m_pCameraObj->Update(0);
+	m_pCameraComp->Update(0);
+
 	Vector3f up = { 0, 1, 0 };
 	Vector3f look = { 0, 0, -1 };
 	look.Normalize();
@@ -1016,7 +1013,7 @@ void VulkanGlobal::EndSetup()
 	InitEnvMap();
 }
 
-void VulkanGlobal::UpdateUniforms(uint32_t frameIndex)
+void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, bool isOffscreen)
 {
 	m_pCameraObj->Update(0);
 	m_pCameraObj->LateUpdate(0);
@@ -1056,7 +1053,13 @@ void VulkanGlobal::UpdateUniforms(uint32_t frameIndex)
 	vulkanNDC.c[1].y = -1.0f;
 	vulkanNDC.c[2].z = vulkanNDC.c[3].z = 0.5f;
 
-	Matrix4f mvp = vulkanNDC * m_pCameraComp->GetProjMatrix() * m_pCameraComp->GetViewMatrix() * model;
+	Matrix4f projMat;
+	if (isOffscreen)
+		projMat = m_pOffScreenCamComp->GetProjMatrix();
+	else
+		projMat = m_pCameraComp->GetProjMatrix();
+
+	Matrix4f mvp = vulkanNDC * projMat * m_pCameraComp->GetViewMatrix() * model;
 
 	Vector3f camPos = m_pCameraComp->GetObjectA()->GetWorldPosition();
 
@@ -1064,7 +1067,7 @@ void VulkanGlobal::UpdateUniforms(uint32_t frameIndex)
 	//memcpy_s(m_globalUniforms.view, sizeof(m_globalUniforms.view), &view, sizeof(view));
 	memcpy_s(m_globalUniforms.view, sizeof(m_globalUniforms.view), &m_pCameraComp->GetViewMatrix(), sizeof(m_pCameraComp->GetViewMatrix()));
 	//memcpy_s(m_globalUniforms.projection, sizeof(m_globalUniforms.projection), &projection, sizeof(projection));
-	memcpy_s(m_globalUniforms.projection, sizeof(m_globalUniforms.projection), &m_pCameraComp->GetProjMatrix(), sizeof(m_pCameraComp->GetProjMatrix()));
+	memcpy_s(m_globalUniforms.projection, sizeof(m_globalUniforms.projection), &projMat, sizeof(projMat));
 	memcpy_s(m_globalUniforms.vulkanNDC, sizeof(m_globalUniforms.vulkanNDC), &vulkanNDC, sizeof(vulkanNDC));
 	memcpy_s(m_globalUniforms.mvp, sizeof(m_globalUniforms.mvp), &mvp, sizeof(mvp));
 	memcpy_s(m_globalUniforms.camPos, sizeof(m_globalUniforms.camPos), &camPos, sizeof(camPos));
@@ -1090,7 +1093,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	CHECK_VK_ERROR(vkBeginCommandBuffer(pDrawCmdBuffer->GetDeviceHandle(), &cmdBeginInfo));
 
-	UpdateUniforms(pPerFrameRes->GetFrameIndex());
+	UpdateUniforms(pPerFrameRes->GetFrameIndex(), false);
 	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
 	VkViewport viewport =

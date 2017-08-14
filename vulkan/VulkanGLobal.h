@@ -82,7 +82,7 @@ public:
 	void EndSetup();
 
 	void PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResource>& pPerFrameRes);
-	void UpdateUniforms(uint32_t frameIndex);
+	void UpdateUniforms(uint32_t frameIndex, bool isOffscreen);
 	void Draw();
 	void Update();
 
@@ -145,6 +145,8 @@ protected:
 	std::shared_ptr<ShaderModule>		m_pSimpleVS;
 	std::shared_ptr<ShaderModule>		m_pSimpleFS;
 
+	std::shared_ptr<ShaderModule>		m_pIrradianceFS;
+
 	//std::vector<VkCommandBuffer>		m_drawCmdBuffers;
 	std::vector<std::shared_ptr<CommandBuffer>>		m_drawCmdBuffers;
 
@@ -155,6 +157,8 @@ protected:
 
 	std::shared_ptr<BaseObject>			m_pCameraObj;
 	std::shared_ptr<Camera>				m_pCameraComp;
+	std::shared_ptr<BaseObject>			m_pOffScreenCamObj;
+	std::shared_ptr<Camera>				m_pOffScreenCamComp;
 	std::shared_ptr<Character>			m_pCharacter;
 	uint32_t							m_moveFlag = 0;
 
