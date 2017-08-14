@@ -28,16 +28,16 @@ void main()
 
 	float numSamples = 0;
 
-	vec3 irradience = vec3(0.0);
+	vec3 irradiance = vec3(0.0);
 	for (float phi = 0.0; phi < 2.0 * PI; phi += sampleDelta) {
 		for (float theta = 0.0; theta < 0.5 * PI; theta += sampleDelta) {
 			vec3 sampleDir = vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
 			sampleDir = normalize(tangentSpace * sampleDir);
-			irradience += texture(envTex, sampleDir).rgb * cos(theta) * sin(theta);
+			irradiance += texture(envTex, sampleDir).rgb * cos(theta) * sin(theta);
 			numSamples++;
 		}
 	}
 
-	vec3 final = irradience / numSamples * PI;
+	vec3 final = irradiance / numSamples * PI;
 	outFragColor = vec4(final, 1.0);
 }
