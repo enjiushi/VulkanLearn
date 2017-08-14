@@ -901,7 +901,7 @@ void VulkanGlobal::InitShaderModule()
 	m_pSimpleVS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.vert.spv");
 	m_pSimpleFS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.frag.spv");
 
-	m_pIrradienceFS = ShaderModule::Create(m_pDevice, L"../data/shaders/irradiance.frag.spv");
+	m_pIrradianceFS = ShaderModule::Create(m_pDevice, L"../data/shaders/irradiance.frag.spv");
 }
 
 void VulkanGlobal::InitDescriptorPool()
