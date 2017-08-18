@@ -753,8 +753,8 @@ void VulkanGlobal::InitEnvMap()
 		pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
 		pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxDS);
 
-		vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenSkyBoxPipeline->GetDeviceHandle());
-		pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenSkyBoxPipeline);
+		vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenIrradiancePipeline->GetDeviceHandle());
+		pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenIrradiancePipeline);
 
 		vertexBuffers = { m_pCubeVertexBuffer->GetDeviceHandle() };
 		offsets = { 0 };
@@ -784,7 +784,7 @@ void VulkanGlobal::InitDescriptorSetLayout()
 			0,	//binding
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	//type
 			1,
-			VK_SHADER_STAGE_VERTEX_BIT,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 			nullptr
 		},
 		{
@@ -845,7 +845,7 @@ void VulkanGlobal::InitDescriptorSetLayout()
 			0,	//binding
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	//type
 			1,
-			VK_SHADER_STAGE_VERTEX_BIT,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 			nullptr
 		},
 		{
@@ -914,7 +914,17 @@ void VulkanGlobal::InitPipeline()
 	info.vertexBindingsInfo = { m_pCubeVertexBuffer->GetBindingDesc() };
 	info.vertexAttributesInfo = m_pCubeVertexBuffer->GetAttribDesc();
 
-	m_pOffScreenSkyBoxPipeline = GraphicPipeline::Create(m_pDevice, info);
+	m_pOffScreenIrradiancePipeline = GraphicPipeline::Create(m_pDevice, info);
+
+	info = {};
+	info.pRenderPass = m_pOffscreenRenderPass;
+	info.pPipelineLayout = m_pSkyBoxPLayout;
+	info.pVertShader = m_pSkyBoxVS;
+	info.pFragShader = m_pPrefilterEnvFS;
+	info.vertexBindingsInfo = { m_pCubeVertexBuffer->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pCubeVertexBuffer->GetAttribDesc();
+
+	m_pOffScreenPrefilterEnvPipeline = GraphicPipeline::Create(m_pDevice, info);
 
 	info = {};
 	info.pRenderPass = m_pRenderPass;
@@ -938,6 +948,7 @@ void VulkanGlobal::InitShaderModule()
 	m_pSimpleFS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.frag.spv");
 
 	m_pIrradianceFS = ShaderModule::Create(m_pDevice, L"../data/shaders/irradiance.frag.spv");
+	m_pPrefilterEnvFS = ShaderModule::Create(m_pDevice, L"../data/shaders/prefilter_env.frag.spv");
 }
 
 void VulkanGlobal::InitDescriptorPool()

@@ -128,7 +128,8 @@ protected:
 	std::shared_ptr<GraphicPipeline>	m_pPipeline;
 	std::shared_ptr<GraphicPipeline>	m_pOffScreenPipeline;
 	std::shared_ptr<GraphicPipeline>	m_pSkyBoxPipeline;
-	std::shared_ptr<GraphicPipeline>	m_pOffScreenSkyBoxPipeline;
+	std::shared_ptr<GraphicPipeline>	m_pOffScreenIrradiancePipeline;
+	std::shared_ptr<GraphicPipeline>	m_pOffScreenPrefilterEnvPipeline;
 	std::shared_ptr<GraphicPipeline>	m_pSimplePipeline;
 
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
@@ -146,6 +147,7 @@ protected:
 	std::shared_ptr<ShaderModule>		m_pSimpleFS;
 
 	std::shared_ptr<ShaderModule>		m_pIrradianceFS;
+	std::shared_ptr<ShaderModule>		m_pPrefilterEnvFS;
 
 	//std::vector<VkCommandBuffer>		m_drawCmdBuffers;
 	std::vector<std::shared_ptr<CommandBuffer>>		m_drawCmdBuffers;
