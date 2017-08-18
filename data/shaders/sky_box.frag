@@ -9,8 +9,8 @@ layout (location = 0) in vec3 inSampleDir;
 
 layout (location = 0) out vec4 outFragColor;
 
-const float exposure = 2.0;
-const float whiteScale = 11.0;
+const float exposure = 4.5;
+const float whiteScale = 11.2;
 const float gamma = 1.0 / 2.2;
 
 vec3 Uncharted2Tonemap(vec3 x)
