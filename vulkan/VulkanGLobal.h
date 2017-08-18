@@ -71,7 +71,9 @@ public:
 	void InitFrameBuffer();
 	void InitVertices();
 	void InitUniforms();
-	void InitEnvMap();
+	void InitIrradianceMap();
+	void InitPrefilterEnvMap();
+	void InitBRDFFlutMap();
 	void InitDescriptorSetLayout();
 	void InitPipelineCache();
 	void InitPipeline();
