@@ -37,8 +37,6 @@ void main()
 	outBiTangent = normalize(vec3(ubo.model * vec4(inBitangent, 0.0)));
 	outNormal = normalize(vec3(ubo.model * vec4(inNormal, 0.0)));
 
-	//mat3 TBN = transpose(mat3(T, B, N));
-
 	outUv = inUv;
 	outUv.t = 1.0 - inUv.t;
 

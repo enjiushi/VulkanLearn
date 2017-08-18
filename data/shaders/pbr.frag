@@ -104,7 +104,7 @@ void main()
 	float metalic = texture(metalicTex, inUv.st, 0.0).r;
 	float ao = texture(aoTex, inUv.st, 0.0).r;
 
-	vec3 irradiance = texture(irradianceTex, normalize(inNormal)).rgb * albedo;
+	vec3 irradiance = texture(irradianceTex, vec3(n.x, -n.y, n.z)).rgb * albedo;
 
 	vec3 fresnel = Fresnel_Schlick(mix(F0, albedo, metalic), LdotH);
 	vec3 reflect = fresnel * GGX_V_Smith_HeightCorrelated(NdotV, NdotL, roughness) * GGX_D(NdotH, roughness) * lightColor;
