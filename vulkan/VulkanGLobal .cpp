@@ -667,7 +667,7 @@ void VulkanGlobal::InitUniforms()
 	m_pIrradianceTex = TextureCube::CreateEmptyTextureCube(m_pDevice, 512, 512, VK_FORMAT_R16G16B16A16_SFLOAT);
 }
 
-void VulkanGlobal::InitEnvMap()
+void VulkanGlobal::InitIrradianceMap()
 {
 	Vector3f up = { 0, 1, 0 };
 	Vector3f look = { 0, 0, -1 };
@@ -774,6 +774,15 @@ void VulkanGlobal::InitEnvMap()
 
 		m_pEnvFrameBuffer->ExtractContent(m_pIrradianceTex, 0, 1, i, 1);
 	}
+}
+
+void VulkanGlobal::InitPrefilterEnvMap()
+{
+}
+
+void VulkanGlobal::InitBRDFFlutMap()
+{
+
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -1041,7 +1050,7 @@ void VulkanGlobal::EndSetup()
 	m_pCharacter = Character::Create({100.0f}, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
 
-	InitEnvMap();
+	InitIrradianceMap();
 }
 
 void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera)
