@@ -12,6 +12,9 @@ layout (location = 4) in vec3 inBitangent;
 layout (location = 0) out vec3 outUv;
 layout (location = 1) out vec3 outViewDir;
 layout (location = 2) out vec3 outLightDir;
+layout (location = 3) out vec3 outNormal;
+layout (location = 4) out vec3 outTangent;
+layout (location = 5) out vec3 outBiTangent;
 
 layout (binding = 0) uniform UBO
 {
@@ -30,16 +33,16 @@ void main()
 {
 	gl_Position = ubo.mvp * vec4(inPos.xyz, 1.0);
 
-	vec3 T = normalize(vec3(ubo.model * vec4(inTangent, 0.0)));
-	vec3 B = normalize(vec3(ubo.model * vec4(inBitangent, 0.0)));
-	vec3 N = normalize(vec3(ubo.model * vec4(inNormal, 0.0)));
+	outTangent = normalize(vec3(ubo.model * vec4(inTangent, 0.0)));
+	outBiTangent = normalize(vec3(ubo.model * vec4(inBitangent, 0.0)));
+	outNormal = normalize(vec3(ubo.model * vec4(inNormal, 0.0)));
 
-	mat3 TBN = transpose(mat3(T, B, N));
+	//mat3 TBN = transpose(mat3(T, B, N));
 
 	outUv = inUv;
 	outUv.t = 1.0 - inUv.t;
 
 	vec3 worldPos = (ubo.model * vec4(inPos.xyz, 1.0)).xyz;
-	outViewDir = normalize(TBN * normalize(ubo.camPos - worldPos));
-	outLightDir = normalize(TBN * normalize(lightPos - worldPos));
+	outViewDir = normalize(ubo.camPos - worldPos);
+	outLightDir = normalize(lightPos - worldPos);
 }

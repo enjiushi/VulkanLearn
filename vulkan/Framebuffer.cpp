@@ -72,7 +72,7 @@ std::shared_ptr<FrameBuffer> FrameBuffer::CreateOffScreenFrameBuffer(
 	return nullptr;
 }
 
-void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage)
+void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers)
 {
 	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 	pCmdBuffer->StartRecording();
@@ -104,8 +104,8 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage)
 	inputImgBarrier.subresourceRange =
 	{
 		VK_IMAGE_ASPECT_COLOR_BIT,
-		0, 1,
-		0, 1
+		baseMipLevel, numMipLevels,
+		baseLayer, numLayers
 	};
 
 	std::vector<VkImageMemoryBarrier> barriers = { fbBarrier, inputImgBarrier };
@@ -137,9 +137,9 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage)
 	};
 
 	copy.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	copy.dstSubresource.baseArrayLayer = 0;
-	copy.dstSubresource.layerCount = 1;
-	copy.dstSubresource.mipLevel = 0;
+	copy.dstSubresource.baseArrayLayer = baseLayer;
+	copy.dstSubresource.layerCount = numLayers;
+	copy.dstSubresource.mipLevel = baseMipLevel;
 	copy.dstOffset = { 0, 0, 0 };
 
 	vkCmdCopyImage(pCmdBuffer->GetDeviceHandle(),
@@ -174,8 +174,8 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage)
 	inputImgBarrier.subresourceRange =
 	{
 		VK_IMAGE_ASPECT_COLOR_BIT,
-		0, 1,
-		0, 1
+		baseMipLevel, numMipLevels,
+		baseLayer, numLayers
 	};
 
 	barriers.clear();

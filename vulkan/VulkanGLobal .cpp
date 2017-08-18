@@ -576,23 +576,23 @@ void VulkanGlobal::InitVertices()
 
 	uint32_t cubeIndices[] = {
 		// front
-		0, 1, 2,
-		2, 3, 0,
+		0, 2, 1,
+		2, 0, 3,
 		// top
-		1, 5, 6,
-		6, 2, 1,
+		1, 6, 5,
+		6, 1, 2,
 		// back
-		7, 6, 5,
-		5, 4, 7,
+		7, 5, 6,
+		5, 7, 4,
 		// bottom
-		4, 0, 3,
-		3, 7, 4,
+		4, 3, 0,
+		3, 4, 7,
 		// left
-		4, 5, 1,
-		1, 0, 4,
+		4, 1, 5,
+		1, 4, 0,
 		// right
-		3, 2, 6,
-		6, 7, 3,
+		3, 6, 2,
+		6, 3, 7,
 	};
 
 	bindingDesc = {};
@@ -664,87 +664,116 @@ void VulkanGlobal::InitUniforms()
 	m_pSkyBoxTex = TextureCube::Create(m_pDevice, "../data/textures/hdr/gcanyon_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT);
 	//m_pSimpleTex = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	m_pSimpleTex = Texture2D::CreateEmptyTexture(m_pDevice, 512, 512, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_pIrradianceTex = TextureCube::CreateEmptyTextureCube(m_pDevice, 512, 512, VK_FORMAT_R16G16B16A16_SFLOAT);
 }
 
 void VulkanGlobal::InitEnvMap()
 {
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+	Vector3f up = { 0, 1, 0 };
+	Vector3f look = { 0, 0, -1 };
+	look.Normalize();
+	Vector3f xaxis = up ^ look.Negativate();
+	xaxis.Normalize();
+	Vector3f yaxis = look ^ xaxis;
+	yaxis.Normalize();
 
-	std::vector<VkClearValue> clearValues =
+	Matrix3f rotation;
+	rotation.c[0] = xaxis;
+	rotation.c[1] = yaxis;
+	rotation.c[2] = look;
+
+	Matrix3f cameraRotations[] =
 	{
-		{ 0.2f, 0.2f, 0.2f, 0.2f },
-		{ 1.0f, 0 }
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Positive X, i.e right
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Negative X, i.e left
+		Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Positive Y, i.e top
+		Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * rotation,	// Positive Z, i.e back
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(0, 0, 1)) * rotation,	// Negative Z, i.e front
 	};
 
-	pDrawCmdBuffer->StartRecording();
-
-	UpdateUniforms(0, true);
-	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
-
-	VkViewport viewport =
+	for (uint32_t i = 0; i < 6; i++)
 	{
-		0, 0,
-		512, 512,
-		0, 1
-	};
+		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 
-	VkRect2D scissorRect =
-	{
-		0, 0,
-		512, 512,
-	};
+		std::vector<VkClearValue> clearValues =
+		{
+			{ 0.2f, 0.2f, 0.2f, 0.2f },
+			{ 1.0f, 0 }
+		};
 
-	vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
-	vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
+		VkViewport viewport =
+		{
+			0, 0,
+			512, 512,
+			0, 1
+		};
 
-	uint32_t offset = 0;
+		VkRect2D scissorRect =
+		{
+			0, 0,
+			512, 512,
+		};
 
-	std::vector<VkDescriptorSet> dsSets;
-	std::vector<VkBuffer> vertexBuffers;
-	std::vector<VkDeviceSize> offsets;
+		m_pOffScreenCamObj->SetRotation(cameraRotations[i]);
 
-	VkRenderPassBeginInfo renderPassBeginInfo = {};
-	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.clearValueCount = clearValues.size();
-	renderPassBeginInfo.pClearValues = clearValues.data();
-	renderPassBeginInfo.renderPass = m_pOffscreenRenderPass->GetDeviceHandle();
-	renderPassBeginInfo.framebuffer = m_pEnvFrameBuffer->GetDeviceHandle();
-	renderPassBeginInfo.renderArea.extent.width = 512;
-	renderPassBeginInfo.renderArea.extent.height = 512;
-	renderPassBeginInfo.renderArea.offset.x = 0;
-	renderPassBeginInfo.renderArea.offset.y = 0;
+		pDrawCmdBuffer->StartRecording();
 
-	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
-	pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
+		UpdateUniforms(0, m_pOffScreenCamComp);
+		StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
-	// Draw skybox
-	dsSets = { m_pSkyBoxDS->GetDeviceHandle() };
+		vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
+		vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
 
-	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
-	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
-	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxDS);
+		uint32_t offset = 0;
 
-	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenSkyBoxPipeline->GetDeviceHandle());
-	pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenSkyBoxPipeline);
+		std::vector<VkDescriptorSet> dsSets;
+		std::vector<VkBuffer> vertexBuffers;
+		std::vector<VkDeviceSize> offsets;
 
-	vertexBuffers = { m_pCubeVertexBuffer->GetDeviceHandle() };
-	offsets = { 0 };
-	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetDeviceHandle(), 0, m_pCubeIndexBuffer->GetType());
-	pDrawCmdBuffer->AddToReferenceTable(m_pCubeVertexBuffer);
-	pDrawCmdBuffer->AddToReferenceTable(m_pCubeIndexBuffer);
+		VkRenderPassBeginInfo renderPassBeginInfo = {};
+		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassBeginInfo.clearValueCount = clearValues.size();
+		renderPassBeginInfo.pClearValues = clearValues.data();
+		renderPassBeginInfo.renderPass = m_pOffscreenRenderPass->GetDeviceHandle();
+		renderPassBeginInfo.framebuffer = m_pEnvFrameBuffer->GetDeviceHandle();
+		renderPassBeginInfo.renderArea.extent.width = 512;
+		renderPassBeginInfo.renderArea.extent.height = 512;
+		renderPassBeginInfo.renderArea.offset.x = 0;
+		renderPassBeginInfo.renderArea.offset.y = 0;
 
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);
+		vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
+		pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
 
-	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
+		// Draw skybox
+		dsSets = { m_pSkyBoxDS->GetDeviceHandle() };
+
+		vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
+		pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
+		pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxDS);
+
+		vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenSkyBoxPipeline->GetDeviceHandle());
+		pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenSkyBoxPipeline);
+
+		vertexBuffers = { m_pCubeVertexBuffer->GetDeviceHandle() };
+		offsets = { 0 };
+		vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+		vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetDeviceHandle(), 0, m_pCubeIndexBuffer->GetType());
+		pDrawCmdBuffer->AddToReferenceTable(m_pCubeVertexBuffer);
+		pDrawCmdBuffer->AddToReferenceTable(m_pCubeIndexBuffer);
+
+		vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);
+
+		vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
 
 
-	pDrawCmdBuffer->EndRecording();
+		pDrawCmdBuffer->EndRecording();
 
-	GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
+		GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
-	m_pEnvFrameBuffer->ExtractContent(m_pSimpleTex);
+		m_pEnvFrameBuffer->ExtractContent(m_pIrradianceTex, 0, 1, i, 1);
+	}
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -788,6 +817,13 @@ void VulkanGlobal::InitDescriptorSetLayout()
 		},
 		{
 			5,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			6,	//binding
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
 			1,
 			VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -935,10 +971,12 @@ void VulkanGlobal::InitDescriptorSet()
 	m_pDescriptorSet->UpdateImage(3, m_pRoughness->GetDescriptorInfo());
 	m_pDescriptorSet->UpdateImage(4, m_pMetalic->GetDescriptorInfo());
 	m_pDescriptorSet->UpdateImage(5, m_pAmbientOcclusion->GetDescriptorInfo());
+	m_pDescriptorSet->UpdateImage(6, m_pIrradianceTex->GetDescriptorInfo());
 
 	m_pSkyBoxDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
 	m_pSkyBoxDS->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
 	m_pSkyBoxDS->UpdateImage(1, m_pSkyBoxTex->GetDescriptorInfo());
+	//m_pSkyBoxDS->UpdateImage(1, m_pIrradianceTex->GetDescriptorInfo());
 
 	m_pSimpleDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
 	m_pSimpleDS->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
@@ -974,10 +1012,6 @@ void VulkanGlobal::EndSetup()
 	m_pCameraObj = BaseObject::Create();
 	m_pCameraObj->AddComponent(m_pCameraComp);
 
-	m_pCameraObj->SetPos({ 0, 0, 50 });
-	m_pCameraObj->Update(0);
-	m_pCameraComp->Update(0);
-
 	camInfo =
 	{
 		3.1415f / 2.0f,
@@ -993,84 +1027,43 @@ void VulkanGlobal::EndSetup()
 	m_pCameraObj->Update(0);
 	m_pCameraComp->Update(0);
 
-	Vector3f up = { 0, 1, 0 };
-	Vector3f look = { 0, 0, -1 };
-	look.Normalize();
-	Vector3f xaxis = up ^ look.Negativate();
-	xaxis.Normalize();
-	Vector3f yaxis = look ^ xaxis;
-	yaxis.Normalize();
-
-	Matrix3f rotation;
-	rotation.c[0] = xaxis;
-	rotation.c[1] = yaxis;
-	rotation.c[2] = look;
-	m_pCameraObj->SetRotation(rotation);
-
-	m_pCharacter = Character::Create({30.0f}, m_pCameraComp);
+	m_pCharacter = Character::Create({100.0f}, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
 
 	InitEnvMap();
 }
 
-void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, bool isOffscreen)
+void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera)
 {
-	m_pCameraObj->Update(0);
-	m_pCameraObj->LateUpdate(0);
+	pCamera->Update(0);
+	pCamera->LateUpdate(0);
 
 	memset(&m_globalUniforms, 0, sizeof(GlobalUniforms));
 
 	Matrix4f model;
-
-	Matrix4f view;
-	Vector3f up = { 0, 1, 0 };
-	Vector3f look = { 0, 0, -1 };
-	look.Normalize();
-	Vector3f position = { 0, 0, 50 };
-	Vector3f xaxis = up ^ look.Negativate();
-	xaxis.Normalize();
-	Vector3f yaxis = look ^ xaxis;
-	yaxis.Normalize();
-
-	view.c[0] = xaxis;
-	view.c[1] = yaxis;
-	view.c[2] = look;
-	view.c[3] = position;
-	view.Inverse();
-
-	Matrix4f projection;
-	float aspect = 1024.0 / 768.0;
-	float fov = 3.1415 / 2.0;
-	float nearPlane = 1;
-	float farPlane = 200;
-
-	projection.c[0] = { 1.0f / (nearPlane * std::tanf(fov / 2.0f) * aspect), 0, 0, 0 };
-	projection.c[1] = { 0, 1.0f / (nearPlane * std::tanf(fov / 2.0f)), 0, 0 };
-	projection.c[2] = { 0, 0, (nearPlane + farPlane) / (nearPlane - farPlane), -1 };
-	projection.c[3] = { 0, 0, 2.0f * nearPlane * farPlane / (nearPlane - farPlane), 0 };
 
 	Matrix4f vulkanNDC;
 	vulkanNDC.c[1].y = -1.0f;
 	vulkanNDC.c[2].z = vulkanNDC.c[3].z = 0.5f;
 
 	Matrix4f projMat;
-	if (isOffscreen)
-		projMat = m_pOffScreenCamComp->GetProjMatrix();
-	else
-		projMat = m_pCameraComp->GetProjMatrix();
+	projMat = pCamera->GetProjMatrix();
 
-	Matrix4f mvp = vulkanNDC * projMat * m_pCameraComp->GetViewMatrix() * model;
+	Matrix4f mvp = vulkanNDC * projMat * pCamera->GetViewMatrix() * model;
 
-	Vector3f camPos = m_pCameraComp->GetObjectA()->GetWorldPosition();
+	Vector3f camPos = pCamera->GetObjectA()->GetWorldPosition();
 
 	memcpy_s(m_globalUniforms.model, sizeof(m_globalUniforms.model), &model, sizeof(model));
-	//memcpy_s(m_globalUniforms.view, sizeof(m_globalUniforms.view), &view, sizeof(view));
-	memcpy_s(m_globalUniforms.view, sizeof(m_globalUniforms.view), &m_pCameraComp->GetViewMatrix(), sizeof(m_pCameraComp->GetViewMatrix()));
-	//memcpy_s(m_globalUniforms.projection, sizeof(m_globalUniforms.projection), &projection, sizeof(projection));
+	memcpy_s(m_globalUniforms.view, sizeof(m_globalUniforms.view), &pCamera->GetViewMatrix(), sizeof(pCamera->GetViewMatrix()));
 	memcpy_s(m_globalUniforms.projection, sizeof(m_globalUniforms.projection), &projMat, sizeof(projMat));
 	memcpy_s(m_globalUniforms.vulkanNDC, sizeof(m_globalUniforms.vulkanNDC), &vulkanNDC, sizeof(vulkanNDC));
 	memcpy_s(m_globalUniforms.mvp, sizeof(m_globalUniforms.mvp), &mvp, sizeof(mvp));
 	memcpy_s(m_globalUniforms.camPos, sizeof(m_globalUniforms.camPos), &camPos, sizeof(camPos));
+
+	if (m_pCameraComp == pCamera)
+		m_roughness = 1.0;
+	else
+		m_roughness = 0.0;
 	memcpy_s(&m_globalUniforms.roughness, sizeof(m_globalUniforms.roughness), &m_roughness, sizeof(m_roughness));
 
 	uint32_t totalUniformBytes = m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
@@ -1093,7 +1086,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	CHECK_VK_ERROR(vkBeginCommandBuffer(pDrawCmdBuffer->GetDeviceHandle(), &cmdBeginInfo));
 
-	UpdateUniforms(pPerFrameRes->GetFrameIndex(), false);
+	UpdateUniforms(pPerFrameRes->GetFrameIndex(), m_pCameraComp);
 	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
 	VkViewport viewport =
@@ -1118,7 +1111,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	std::vector<VkBuffer> vertexBuffers;
 	std::vector<VkDeviceSize> offsets;
 
-	VkRenderPassBeginInfo renderPassBeginInfo = {};/*
+	VkRenderPassBeginInfo renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassBeginInfo.clearValueCount = clearValues.size();
 	renderPassBeginInfo.pClearValues = clearValues.data();
@@ -1169,9 +1162,9 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	pDrawCmdBuffer->AddToReferenceTable(m_pCubeVertexBuffer);
 	pDrawCmdBuffer->AddToReferenceTable(m_pCubeIndexBuffer);
 
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);*/
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);
 
-	
+	/*
 	renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassBeginInfo.clearValueCount = clearValues.size();
@@ -1203,7 +1196,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	pDrawCmdBuffer->AddToReferenceTable(m_pQuadVertexBuffer);
 	pDrawCmdBuffer->AddToReferenceTable(m_pQuadIndexBuffer);
 
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetCount(), 1, 0, 0, 0);
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetCount(), 1, 0, 0, 0);*/
 
 	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
 

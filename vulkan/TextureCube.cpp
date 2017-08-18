@@ -27,7 +27,31 @@ bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (!Image::Init(pDevice, pSelf, gliTexCube, textureCreateInfo, format))
+	if (!Image::Init(pDevice, pSelf, gliTexCube, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+		return false;
+
+	return true;
+}
+
+bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<TextureCube>& pSelf, uint32_t width, uint32_t height, VkFormat format)
+{
+	VkImageCreateInfo textureCreateInfo = {};
+	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	textureCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+	textureCreateInfo.format = format;
+	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	textureCreateInfo.arrayLayers = 6;
+	textureCreateInfo.extent.depth = 1;
+	textureCreateInfo.extent.width = width;
+	textureCreateInfo.extent.height = height;
+	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	textureCreateInfo.mipLevels = 1;
+	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (!Image::Init(pDevice, pSelf, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return false;
 
 	return true;
@@ -38,6 +62,14 @@ std::shared_ptr<TextureCube> TextureCube::Create(const std::shared_ptr<Device>& 
 	gli::texture_cube gliTexCube(gli::load(path.c_str()));
 	std::shared_ptr<TextureCube> pTexture = std::make_shared<TextureCube>();
 	if (pTexture.get() && pTexture->Init(pDevice, pTexture, gliTexCube, format))
+		return pTexture;
+	return nullptr;
+}
+
+std::shared_ptr<TextureCube> TextureCube::CreateEmptyTextureCube(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format)
+{
+	std::shared_ptr<TextureCube> pTexture = std::make_shared<TextureCube>();
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, format))
 		return pTexture;
 	return nullptr;
 }

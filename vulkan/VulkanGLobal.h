@@ -82,7 +82,7 @@ public:
 	void EndSetup();
 
 	void PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResource>& pPerFrameRes);
-	void UpdateUniforms(uint32_t frameIndex, bool isOffscreen);
+	void UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera);
 	void Draw();
 	void Update();
 
@@ -169,6 +169,7 @@ protected:
 	std::shared_ptr<Texture2D>			m_pMetalic;
 	std::shared_ptr<TextureCube>		m_pSkyBoxTex;
 	std::shared_ptr<Texture2D>			m_pSimpleTex;
+	std::shared_ptr<TextureCube>		m_pIrradianceTex;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)
