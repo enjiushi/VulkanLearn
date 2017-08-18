@@ -72,7 +72,17 @@ std::shared_ptr<FrameBuffer> FrameBuffer::CreateOffScreenFrameBuffer(
 	return nullptr;
 }
 
+void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage)
+{
+	ExtractContent(pImage, 0, 1, 0, 1);
+}
+
 void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers)
+{
+	ExtractContent(pImage, baseMipLevel, numMipLevels, baseLayer, numLayers, m_pImage->GetImageInfo().extent.width, m_pImage->GetImageInfo().extent.height);
+}
+
+void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers, uint32_t width, uint32_t height)
 {
 	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 	pCmdBuffer->StartRecording();
@@ -131,9 +141,9 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t 
 
 	copy.extent =
 	{
-		m_pImage->GetImageInfo().extent.width,
-		m_pImage->GetImageInfo().extent.height,
-		m_pImage->GetImageInfo().extent.depth
+		width,
+		height,
+		1
 	};
 
 	copy.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

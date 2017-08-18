@@ -28,7 +28,9 @@ protected:
 public:
 	VkFramebuffer GetDeviceHandle() { return m_framebuffer; }
 	VkFramebufferCreateInfo GetFramebufferInfo() const { return m_info; }
-	void ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel = 0, uint32_t numMipLevels = 1, uint32_t baseLayer = 0, uint32_t numLayers = 1);
+	void ExtractContent(const std::shared_ptr<Image>& pImage);
+	void ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers);
+	void ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers, uint32_t width, uint32_t height);
 
 public:
 	static std::shared_ptr<FrameBuffer> Create(
