@@ -868,8 +868,8 @@ void VulkanGlobal::InitPrefilterEnvMap()
 			pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
 			pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxDS);
 
-			vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenIrradiancePipeline->GetDeviceHandle());
-			pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenIrradiancePipeline);
+			vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenPrefilterEnvPipeline->GetDeviceHandle());
+			pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenPrefilterEnvPipeline);
 
 			vertexBuffers = { m_pCubeVertexBuffer->GetDeviceHandle() };
 			offsets = { 0 };
@@ -945,6 +945,13 @@ void VulkanGlobal::InitDescriptorSetLayout()
 		},
 		{
 			6,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			7,	//binding
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
 			1,
 			VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -1104,6 +1111,7 @@ void VulkanGlobal::InitDescriptorSet()
 	m_pDescriptorSet->UpdateImage(4, m_pMetalic->GetDescriptorInfo());
 	m_pDescriptorSet->UpdateImage(5, m_pAmbientOcclusion->GetDescriptorInfo());
 	m_pDescriptorSet->UpdateImage(6, m_pIrradianceTex->GetDescriptorInfo());
+	m_pDescriptorSet->UpdateImage(7, m_pPrefilterEnvTex->GetDescriptorInfo());
 
 	m_pSkyBoxDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
 	m_pSkyBoxDS->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
