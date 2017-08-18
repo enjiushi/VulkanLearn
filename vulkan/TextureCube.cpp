@@ -33,7 +33,7 @@ bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 	return true;
 }
 
-bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<TextureCube>& pSelf, uint32_t width, uint32_t height, VkFormat format)
+bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<TextureCube>& pSelf, uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format)
 {
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -46,7 +46,7 @@ bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 	textureCreateInfo.extent.height = height;
 	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
 	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	textureCreateInfo.mipLevels = 1;
+	textureCreateInfo.mipLevels = mipLevels;
 	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -69,7 +69,15 @@ std::shared_ptr<TextureCube> TextureCube::Create(const std::shared_ptr<Device>& 
 std::shared_ptr<TextureCube> TextureCube::CreateEmptyTextureCube(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format)
 {
 	std::shared_ptr<TextureCube> pTexture = std::make_shared<TextureCube>();
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, format))
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, 1, format))
+		return pTexture;
+	return nullptr;
+}
+
+std::shared_ptr<TextureCube> TextureCube::CreateEmptyTextureCube(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format)
+{
+	std::shared_ptr<TextureCube> pTexture = std::make_shared<TextureCube>();
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, mipLevels, format))
 		return pTexture;
 	return nullptr;
 }
