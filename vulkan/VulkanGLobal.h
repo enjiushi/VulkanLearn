@@ -47,6 +47,8 @@ typedef struct _GlobalUniforms
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
+	const static uint32_t OffScreenSize = 512;
+
 public:
 #if defined(_WIN32)
 	void Init(HINSTANCE hInstance, WNDPROC wndproc);

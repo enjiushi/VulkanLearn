@@ -429,7 +429,7 @@ void VulkanGlobal::InitFrameBuffer()
 	for (uint32_t i = 0; i < m_framebuffers.size(); i++)
 		m_framebuffers[i] = FrameBuffer::Create(m_pDevice, GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i), m_pDSBuffer, m_pRenderPass);
 
-	m_pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, 512, 512, m_pOffscreenRenderPass);
+	m_pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, OffScreenSize, OffScreenSize, m_pOffscreenRenderPass);
 
 	m_offscreenFrameBuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
 	for (uint32_t i = 0; i < m_offscreenFrameBuffers.size(); i++)
@@ -663,8 +663,8 @@ void VulkanGlobal::InitUniforms()
 	m_pRoughness = Texture2D::Create(m_pDevice, "../data/textures/cerberus/roughness.ktx", VK_FORMAT_R8_UNORM);
 	m_pSkyBoxTex = TextureCube::Create(m_pDevice, "../data/textures/hdr/gcanyon_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT);
 	//m_pSimpleTex = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
-	m_pSimpleTex = Texture2D::CreateEmptyTexture(m_pDevice, 512, 512, VK_FORMAT_R16G16B16A16_SFLOAT);
-	m_pIrradianceTex = TextureCube::CreateEmptyTextureCube(m_pDevice, 512, 512, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_pSimpleTex = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_pIrradianceTex = TextureCube::CreateEmptyTextureCube(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
 }
 
 void VulkanGlobal::InitIrradianceMap()
@@ -705,14 +705,14 @@ void VulkanGlobal::InitIrradianceMap()
 		VkViewport viewport =
 		{
 			0, 0,
-			512, 512,
+			OffScreenSize, OffScreenSize,
 			0, 1
 		};
 
 		VkRect2D scissorRect =
 		{
 			0, 0,
-			512, 512,
+			OffScreenSize, OffScreenSize,
 		};
 
 		m_pOffScreenCamObj->SetRotation(cameraRotations[i]);
@@ -737,8 +737,8 @@ void VulkanGlobal::InitIrradianceMap()
 		renderPassBeginInfo.pClearValues = clearValues.data();
 		renderPassBeginInfo.renderPass = m_pOffscreenRenderPass->GetDeviceHandle();
 		renderPassBeginInfo.framebuffer = m_pEnvFrameBuffer->GetDeviceHandle();
-		renderPassBeginInfo.renderArea.extent.width = 512;
-		renderPassBeginInfo.renderArea.extent.height = 512;
+		renderPassBeginInfo.renderArea.extent.width = OffScreenSize;
+		renderPassBeginInfo.renderArea.extent.height = OffScreenSize;
 		renderPassBeginInfo.renderArea.offset.x = 0;
 		renderPassBeginInfo.renderArea.offset.y = 0;
 
@@ -1035,7 +1035,7 @@ void VulkanGlobal::EndSetup()
 	camInfo =
 	{
 		3.1415f / 2.0f,
-		512.0f / 512.0f,
+		OffScreenSize / OffScreenSize,
 		1.0f,
 		2000.0f,
 	};
