@@ -176,6 +176,7 @@ protected:
 	std::shared_ptr<TextureCube>		m_pSkyBoxTex;
 	std::shared_ptr<Texture2D>			m_pSimpleTex;
 	std::shared_ptr<TextureCube>		m_pIrradianceTex;
+	std::shared_ptr<TextureCube>		m_pPrefilterEnvTex;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)

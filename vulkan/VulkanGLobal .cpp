@@ -665,6 +665,7 @@ void VulkanGlobal::InitUniforms()
 	//m_pSimpleTex = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	m_pSimpleTex = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
 	m_pIrradianceTex = TextureCube::CreateEmptyTextureCube(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_pPrefilterEnvTex = TextureCube::CreateEmptyTextureCube(m_pDevice, OffScreenSize, OffScreenSize, std::log2(OffScreenSize) + 1, VK_FORMAT_R16G16B16A16_SFLOAT);
 }
 
 void VulkanGlobal::InitIrradianceMap()
@@ -730,7 +731,7 @@ void VulkanGlobal::InitIrradianceMap()
 		std::vector<VkDescriptorSet> dsSets;
 		std::vector<VkBuffer> vertexBuffers;
 		std::vector<VkDeviceSize> offsets;
-
+		
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.clearValueCount = clearValues.size();
@@ -778,6 +779,117 @@ void VulkanGlobal::InitIrradianceMap()
 
 void VulkanGlobal::InitPrefilterEnvMap()
 {
+	Vector3f up = { 0, 1, 0 };
+	Vector3f look = { 0, 0, -1 };
+	look.Normalize();
+	Vector3f xaxis = up ^ look.Negativate();
+	xaxis.Normalize();
+	Vector3f yaxis = look ^ xaxis;
+	yaxis.Normalize();
+
+	Matrix3f rotation;
+	rotation.c[0] = xaxis;
+	rotation.c[1] = yaxis;
+	rotation.c[2] = look;
+
+	Matrix3f cameraRotations[] =
+	{
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Positive X, i.e right
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Negative X, i.e left
+		Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Positive Y, i.e top
+		Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * rotation,	// Positive Z, i.e back
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(0, 0, 1)) * rotation,	// Negative Z, i.e front
+	};
+
+	uint32_t mipLevels = std::log2(OffScreenSize);
+	for (uint32_t mipLevel = 0; mipLevel < mipLevels + 1; mipLevel++)
+	{
+		m_globalUniforms.roughness = mipLevel / (float)mipLevels;
+		uint32_t size = std::pow(2, mipLevels - mipLevel);
+		for (uint32_t i = 0; i < 6; i++)
+		{
+			std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+
+			std::vector<VkClearValue> clearValues =
+			{
+				{ 0.2f, 0.2f, 0.2f, 0.2f },
+				{ 1.0f, 0 }
+			};
+
+			VkViewport viewport =
+			{
+				0, 0,
+				size, size,
+				0, 1
+			};
+
+			VkRect2D scissorRect =
+			{
+				0, 0,
+				size, size,
+			};
+
+			m_pOffScreenCamObj->SetRotation(cameraRotations[i]);
+
+			pDrawCmdBuffer->StartRecording();
+
+			UpdateUniforms(0, m_pOffScreenCamComp);
+			StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
+
+			vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
+			vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
+
+			uint32_t offset = 0;
+
+			std::vector<VkDescriptorSet> dsSets;
+			std::vector<VkBuffer> vertexBuffers;
+			std::vector<VkDeviceSize> offsets;
+
+			VkRenderPassBeginInfo renderPassBeginInfo = {};
+			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			renderPassBeginInfo.clearValueCount = clearValues.size();
+			renderPassBeginInfo.pClearValues = clearValues.data();
+			renderPassBeginInfo.renderPass = m_pOffscreenRenderPass->GetDeviceHandle();
+			renderPassBeginInfo.framebuffer = m_pEnvFrameBuffer->GetDeviceHandle();
+			renderPassBeginInfo.renderArea.extent.width = OffScreenSize;
+			renderPassBeginInfo.renderArea.extent.height = OffScreenSize;
+			renderPassBeginInfo.renderArea.offset.x = 0;
+			renderPassBeginInfo.renderArea.offset.y = 0;
+
+			vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+			pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
+			pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
+
+			// Draw skybox
+			dsSets = { m_pSkyBoxDS->GetDeviceHandle() };
+
+			vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
+			pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
+			pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxDS);
+
+			vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenIrradiancePipeline->GetDeviceHandle());
+			pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenIrradiancePipeline);
+
+			vertexBuffers = { m_pCubeVertexBuffer->GetDeviceHandle() };
+			offsets = { 0 };
+			vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+			vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetDeviceHandle(), 0, m_pCubeIndexBuffer->GetType());
+			pDrawCmdBuffer->AddToReferenceTable(m_pCubeVertexBuffer);
+			pDrawCmdBuffer->AddToReferenceTable(m_pCubeIndexBuffer);
+
+			vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);
+
+			vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
+
+
+			pDrawCmdBuffer->EndRecording();
+
+			GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
+
+			m_pEnvFrameBuffer->ExtractContent(m_pPrefilterEnvTex, mipLevel, 1, i, 1, size, size);
+		}
+	}
 }
 
 void VulkanGlobal::InitBRDFFlutMap()
@@ -1051,6 +1163,7 @@ void VulkanGlobal::EndSetup()
 	m_pCameraObj->AddComponent(m_pCharacter);
 
 	InitIrradianceMap();
+	InitPrefilterEnvMap();
 }
 
 void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera)
