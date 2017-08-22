@@ -616,13 +616,13 @@ void VulkanGlobal::InitVertices()
 	float quadVertices[] = {
 		-1.0, -1.0,  0.0, 0.0, 0.0,
 		1.0, -1.0,  0.0,  1.0, 0.0,
+		-1.0,  1.0,  0.0, 0.0, 1.0,
 		1.0,  1.0,  0.0,  1.0, 1.0,
-		-1.0,  1.0,  0.0, 0.0, 1,0,
 	};
 
 	uint32_t quadIndices[] = {
-		0, 1, 2,
-		2, 3, 0,
+		0, 1, 3,
+		0, 3, 2,
 	};
 
 	bindingDesc = {};
@@ -640,7 +640,7 @@ void VulkanGlobal::InitVertices()
 
 	attribDesc[1].binding = 0;
 	attribDesc[1].format = VK_FORMAT_R32G32_SFLOAT;
-	attribDesc[1].location = 1;	//layout location 0 in shader
+	attribDesc[1].location = 1;	//layout location 1 in shader
 	attribDesc[1].offset = 3 * sizeof(float);
 
 	m_pQuadVertexBuffer = VertexBuffer::Create(m_pDevice, sizeof(quadVertices), bindingDesc, attribDesc);
@@ -666,6 +666,9 @@ void VulkanGlobal::InitUniforms()
 	m_pSimpleTex = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
 	m_pIrradianceTex = TextureCube::CreateEmptyTextureCube(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
 	m_pPrefilterEnvTex = TextureCube::CreateEmptyTextureCube(m_pDevice, OffScreenSize, OffScreenSize, std::log2(OffScreenSize) + 1, VK_FORMAT_R16G16B16A16_SFLOAT);
+
+	// FIXME: 2 channels should be enough, I don't intend to do it now as I have to create new render passes and frame buffers, leave it to later refactor
+	m_pBRDFLut = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
 }
 
 void VulkanGlobal::InitIrradianceMap()
@@ -892,9 +895,75 @@ void VulkanGlobal::InitPrefilterEnvMap()
 	}
 }
 
-void VulkanGlobal::InitBRDFFlutMap()
+void VulkanGlobal::InitBRDFlutMap()
 {
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 
+	std::vector<VkClearValue> clearValues =
+	{
+		{ 0.2f, 0.2f, 0.2f, 0.2f },
+		{ 1.0f, 0 }
+	};
+
+	VkViewport viewport =
+	{
+		0, 0,
+		OffScreenSize, OffScreenSize,
+		0, 1
+	};
+
+	VkRect2D scissorRect =
+	{
+		0, 0,
+		OffScreenSize, OffScreenSize,
+	};
+
+	pDrawCmdBuffer->StartRecording();
+
+	vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
+	vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
+
+	uint32_t offset = 0;
+
+	std::vector<VkDescriptorSet> dsSets;
+	std::vector<VkBuffer> vertexBuffers;
+	std::vector<VkDeviceSize> offsets;
+
+	VkRenderPassBeginInfo renderPassBeginInfo = {};
+	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassBeginInfo.clearValueCount = clearValues.size();
+	renderPassBeginInfo.pClearValues = clearValues.data();
+	renderPassBeginInfo.renderPass = m_pOffscreenRenderPass->GetDeviceHandle();
+	renderPassBeginInfo.framebuffer = m_pEnvFrameBuffer->GetDeviceHandle();
+	renderPassBeginInfo.renderArea.extent.width = OffScreenSize;
+	renderPassBeginInfo.renderArea.extent.height = OffScreenSize;
+	renderPassBeginInfo.renderArea.offset.x = 0;
+	renderPassBeginInfo.renderArea.offset.y = 0;
+
+	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
+	pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
+
+	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenBRDFLutPipeline->GetDeviceHandle());
+	pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenBRDFLutPipeline);
+
+	vertexBuffers = { m_pQuadVertexBuffer->GetDeviceHandle() };
+	offsets = { 0 };
+	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetDeviceHandle(), 0, m_pQuadIndexBuffer->GetType());
+	pDrawCmdBuffer->AddToReferenceTable(m_pQuadVertexBuffer);
+	pDrawCmdBuffer->AddToReferenceTable(m_pQuadIndexBuffer);
+
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetCount(), 1, 0, 0, 0);
+
+	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
+
+
+	pDrawCmdBuffer->EndRecording();
+
+	GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
+
+	m_pEnvFrameBuffer->ExtractContent(m_pBRDFLut);
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -952,6 +1021,13 @@ void VulkanGlobal::InitDescriptorSetLayout()
 		},
 		{
 			7,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			8,	//binding
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
 			1,
 			VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -1055,6 +1131,16 @@ void VulkanGlobal::InitPipeline()
 	m_pOffScreenPrefilterEnvPipeline = GraphicPipeline::Create(m_pDevice, info);
 
 	info = {};
+	info.pRenderPass = m_pOffscreenRenderPass;
+	info.pPipelineLayout = m_pSkyBoxPLayout;
+	info.pVertShader = m_pBRDFLutVS;
+	info.pFragShader = m_pBRDFLutFS;
+	info.vertexBindingsInfo = { m_pQuadVertexBuffer->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pQuadVertexBuffer->GetAttribDesc();
+
+	m_pOffScreenBRDFLutPipeline = GraphicPipeline::Create(m_pDevice, info);
+
+	info = {};
 	info.pRenderPass = m_pRenderPass;
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pSimpleVS;
@@ -1077,6 +1163,8 @@ void VulkanGlobal::InitShaderModule()
 
 	m_pIrradianceFS = ShaderModule::Create(m_pDevice, L"../data/shaders/irradiance.frag.spv");
 	m_pPrefilterEnvFS = ShaderModule::Create(m_pDevice, L"../data/shaders/prefilter_env.frag.spv");
+	m_pBRDFLutVS = ShaderModule::Create(m_pDevice, L"../data/shaders/brdf_lut.vert.spv");
+	m_pBRDFLutFS = ShaderModule::Create(m_pDevice, L"../data/shaders/brdf_lut.frag.spv");
 }
 
 void VulkanGlobal::InitDescriptorPool()
@@ -1112,6 +1200,7 @@ void VulkanGlobal::InitDescriptorSet()
 	m_pDescriptorSet->UpdateImage(5, m_pAmbientOcclusion->GetDescriptorInfo());
 	m_pDescriptorSet->UpdateImage(6, m_pIrradianceTex->GetDescriptorInfo());
 	m_pDescriptorSet->UpdateImage(7, m_pPrefilterEnvTex->GetDescriptorInfo());
+	m_pDescriptorSet->UpdateImage(8, m_pBRDFLut->GetDescriptorInfo());
 
 	m_pSkyBoxDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
 	m_pSkyBoxDS->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
@@ -1120,7 +1209,7 @@ void VulkanGlobal::InitDescriptorSet()
 
 	m_pSimpleDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
 	m_pSimpleDS->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
-	m_pSimpleDS->UpdateImage(1, m_pSimpleTex->GetDescriptorInfo());
+	m_pSimpleDS->UpdateImage(1, m_pBRDFLut->GetDescriptorInfo());
 }
 
 void VulkanGlobal::InitDrawCmdBuffers()
@@ -1172,6 +1261,7 @@ void VulkanGlobal::EndSetup()
 
 	InitIrradianceMap();
 	InitPrefilterEnvMap();
+	InitBRDFlutMap();
 }
 
 void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera)

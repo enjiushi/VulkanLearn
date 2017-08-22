@@ -75,7 +75,7 @@ public:
 	void InitUniforms();
 	void InitIrradianceMap();
 	void InitPrefilterEnvMap();
-	void InitBRDFFlutMap();
+	void InitBRDFlutMap();
 	void InitDescriptorSetLayout();
 	void InitPipelineCache();
 	void InitPipeline();
@@ -134,6 +134,7 @@ protected:
 	std::shared_ptr<GraphicPipeline>	m_pSkyBoxPipeline;
 	std::shared_ptr<GraphicPipeline>	m_pOffScreenIrradiancePipeline;
 	std::shared_ptr<GraphicPipeline>	m_pOffScreenPrefilterEnvPipeline;
+	std::shared_ptr<GraphicPipeline>	m_pOffScreenBRDFLutPipeline;
 	std::shared_ptr<GraphicPipeline>	m_pSimplePipeline;
 
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
@@ -152,6 +153,8 @@ protected:
 
 	std::shared_ptr<ShaderModule>		m_pIrradianceFS;
 	std::shared_ptr<ShaderModule>		m_pPrefilterEnvFS;
+	std::shared_ptr<ShaderModule>		m_pBRDFLutVS;
+	std::shared_ptr<ShaderModule>		m_pBRDFLutFS;
 
 	//std::vector<VkCommandBuffer>		m_drawCmdBuffers;
 	std::vector<std::shared_ptr<CommandBuffer>>		m_drawCmdBuffers;
@@ -177,6 +180,7 @@ protected:
 	std::shared_ptr<Texture2D>			m_pSimpleTex;
 	std::shared_ptr<TextureCube>		m_pIrradianceTex;
 	std::shared_ptr<TextureCube>		m_pPrefilterEnvTex;
+	std::shared_ptr<Texture2D>			m_pBRDFLut;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)
