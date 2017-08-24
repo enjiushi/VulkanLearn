@@ -15,6 +15,7 @@ layout (location = 2) out vec3 outLightDir;
 layout (location = 3) out vec3 outNormal;
 layout (location = 4) out vec3 outTangent;
 layout (location = 5) out vec3 outBiTangent;
+layout (location = 6) out vec3 outWorldPos;
 
 layout (binding = 0) uniform UBO
 {
@@ -36,6 +37,7 @@ void main()
 	outTangent = normalize(vec3(ubo.model * vec4(inTangent, 0.0)));
 	outBiTangent = normalize(vec3(ubo.model * vec4(inBitangent, 0.0)));
 	outNormal = normalize(vec3(ubo.model * vec4(inNormal, 0.0)));
+	outWorldPos = vec3(ubo.model * vec4(inPos, 1.0));
 
 	outUv = inUv;
 	outUv.t = 1.0 - inUv.t;
