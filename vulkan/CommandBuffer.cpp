@@ -255,7 +255,6 @@ void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc,
 		imgBarriers.push_back(imgBarrier);
 	}
 
-	/*
 	AttachBarriers
 	(
 		pDst->GetAccessStages(),
@@ -263,7 +262,7 @@ void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc,
 		{},
 		bufferBarriers,
 		{}
-	);*/
+	);
 }
 void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions) {}
 

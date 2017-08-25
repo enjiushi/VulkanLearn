@@ -30,6 +30,9 @@ bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 	if (!Image::Init(pDevice, pSelf, gliTexCube, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return false;
 
+	m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+
 	return true;
 }
 

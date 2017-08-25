@@ -23,6 +23,9 @@ public:
 	virtual VkImageView GetViewDeviceHandle() const { return m_view; }
 	virtual void EnsureImageLayout();
 
+	VkPipelineStageFlags GetAccessStages() const { return m_accessStages; }
+	VkAccessFlags GetAccessFlags() const { return m_accessFlags; }
+
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;
 
@@ -56,6 +59,9 @@ protected:
 	uint32_t					m_memProperty;
 
 	std::shared_ptr<MemoryKey>	m_pMemKey;
+
+	VkPipelineStageFlags		m_accessStages;
+	VkAccessFlags				m_accessFlags;
 
 	friend class DeviceMemoryManager;
 };

@@ -22,6 +22,12 @@ bool DepthStencilBuffer::Init(const std::shared_ptr<Device>& pDevice, const std:
 	if (!Image::Init(pDevice, pSelf, dsCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return false;
 
+	m_accessStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT 
+		| VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+		| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+		| VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+
 	return true;
 }
 
