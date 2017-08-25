@@ -88,45 +88,6 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t 
 	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 	pCmdBuffer->StartRecording();
 
-	VkImageMemoryBarrier fbBarrier = {};
-	fbBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	fbBarrier.image = m_pImage->GetDeviceHandle();
-	fbBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	fbBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	fbBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-	fbBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	fbBarrier.subresourceRange =
-	{
-		VK_IMAGE_ASPECT_COLOR_BIT,
-		0, 1,
-		0, 1
-	};
-
-	VkImageMemoryBarrier inputImgBarrier = {};
-	inputImgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	inputImgBarrier.image = pImage->GetDeviceHandle();
-	inputImgBarrier.oldLayout = pImage->GetImageInfo().initialLayout;
-	inputImgBarrier.srcAccessMask |= VulkanUtil::GetAccessFlagByLayout(inputImgBarrier.oldLayout);
-	inputImgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	inputImgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	inputImgBarrier.subresourceRange =
-	{
-		VK_IMAGE_ASPECT_COLOR_BIT,
-		baseMipLevel, numMipLevels,
-		baseLayer, numLayers
-	};
-
-	std::vector<VkImageMemoryBarrier> imgBarriers = { fbBarrier, inputImgBarrier };
-
-	pCmdBuffer->AttachBarriers
-	(
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		{},
-		{},
-		imgBarriers
-	);
-
 	VkImageCopy copy = {};
 
 	copy.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -148,51 +109,7 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t 
 	copy.dstSubresource.mipLevel = baseMipLevel;
 	copy.dstOffset = { 0, 0, 0 };
 
-	vkCmdCopyImage(pCmdBuffer->GetDeviceHandle(),
-		m_pImage->GetDeviceHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-		pImage->GetDeviceHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		1, &copy);
-
-	fbBarrier = {};
-	fbBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	fbBarrier.image = m_pImage->GetDeviceHandle();
-	fbBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-	fbBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	fbBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	fbBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	fbBarrier.subresourceRange =
-	{
-		VK_IMAGE_ASPECT_COLOR_BIT,
-		0, 1,
-		0, 1
-	};
-
-	inputImgBarrier = {};
-	inputImgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	inputImgBarrier.image = pImage->GetDeviceHandle();
-	inputImgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	inputImgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	inputImgBarrier.newLayout = pImage->GetImageInfo().initialLayout;
-	inputImgBarrier.dstAccessMask |= VulkanUtil::GetAccessFlagByLayout(inputImgBarrier.newLayout);
-
-	inputImgBarrier.subresourceRange =
-	{
-		VK_IMAGE_ASPECT_COLOR_BIT,
-		baseMipLevel, numMipLevels,
-		baseLayer, numLayers
-	};
-
-	imgBarriers.clear();
-	imgBarriers = { fbBarrier, inputImgBarrier };
-
-	pCmdBuffer->AttachBarriers
-	(
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		{},
-		{},
-		imgBarriers
-	);
+	pCmdBuffer->CopyImage(m_pImage, pImage, { copy } );
 
 	pCmdBuffer->EndRecording();
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);

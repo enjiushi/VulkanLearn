@@ -333,8 +333,131 @@ void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pSrc, 
 	);
 }
 
-void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions) {}
-void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions) {}
+void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions) 
+{
+	std::vector<VkImageMemoryBarrier> imgBarriers;
+
+	for (uint32_t i = 0; i < regions.size(); i++)
+	{
+		VkImageMemoryBarrier imgBarrier = {};
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = pSrc->GetDeviceHandle();
+		imgBarrier.oldLayout = pSrc->GetImageInfo().initialLayout;
+		imgBarrier.srcAccessMask = pSrc->GetAccessFlags();
+		imgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		imgBarrier.subresourceRange =
+		{
+			regions[i].srcSubresource.aspectMask,
+			regions[i].srcSubresource.mipLevel, 1,
+			regions[i].srcSubresource.baseArrayLayer, regions[i].srcSubresource.layerCount
+		};
+
+		imgBarriers.push_back(imgBarrier);
+	}
+
+	AttachBarriers
+	(
+		pSrc->GetAccessStages(),
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		{},
+		{},
+		imgBarriers
+	);
+
+	imgBarriers.clear();
+
+	for (uint32_t i = 0; i < regions.size(); i++)
+	{
+		VkImageMemoryBarrier imgBarrier = {};
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = pDst->GetDeviceHandle();
+		imgBarrier.oldLayout = pDst->GetImageInfo().initialLayout;
+		imgBarrier.srcAccessMask = pDst->GetAccessFlags();
+		imgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		imgBarrier.subresourceRange =
+		{
+			regions[i].dstSubresource.aspectMask,
+			regions[i].dstSubresource.mipLevel, 1,
+			regions[i].dstSubresource.baseArrayLayer, regions[i].dstSubresource.layerCount
+		};
+
+		imgBarriers.push_back(imgBarrier);
+	}
+
+	AttachBarriers
+	(
+		pDst->GetAccessStages(),
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		{},
+		{},
+		imgBarriers
+	);
+}
+
+void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions) 
+{
+	std::vector<VkImageMemoryBarrier> imgBarriers;
+
+	for (uint32_t i = 0; i < regions.size(); i++)
+	{
+		VkImageMemoryBarrier imgBarrier = {};
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = pSrc->GetDeviceHandle();
+		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		imgBarrier.newLayout = pSrc->GetImageInfo().initialLayout;
+		imgBarrier.dstAccessMask = pSrc->GetAccessFlags();
+		imgBarrier.subresourceRange =
+		{
+			regions[i].srcSubresource.aspectMask,
+			regions[i].srcSubresource.mipLevel, 1,
+			regions[i].srcSubresource.baseArrayLayer, regions[i].srcSubresource.layerCount
+		};
+
+		imgBarriers.push_back(imgBarrier);
+	}
+
+	AttachBarriers
+	(
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		pSrc->GetAccessStages(),
+		{},
+		{},
+		imgBarriers
+	);
+
+	imgBarriers.clear();
+
+	for (uint32_t i = 0; i < regions.size(); i++)
+	{
+		VkImageMemoryBarrier imgBarrier = {};
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = pDst->GetDeviceHandle();
+		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		imgBarrier.newLayout = pDst->GetImageInfo().initialLayout;
+		imgBarrier.dstAccessMask = pDst->GetAccessFlags();
+		imgBarrier.subresourceRange =
+		{
+			regions[i].dstSubresource.aspectMask,
+			regions[i].dstSubresource.mipLevel, 1,
+			regions[i].dstSubresource.baseArrayLayer, regions[i].dstSubresource.layerCount
+		};
+
+		imgBarriers.push_back(imgBarrier);
+	}
+
+	AttachBarriers
+	(
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		pDst->GetAccessStages(),
+		{},
+		{},
+		imgBarriers
+	);
+}
 
 void CommandBuffer::CopyBuffer(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Buffer>& pDst, const std::vector<VkBufferCopy>& regions)
 {
@@ -350,13 +473,17 @@ void CommandBuffer::CopyBuffer(const std::shared_ptr<Buffer>& pSrc, const std::s
 
 void CommandBuffer::CopyImage(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions)
 {
+	IssueBarriersBeforeCopy(pSrc, pDst, regions);
+
 	vkCmdCopyImage
 	(
 		GetDeviceHandle(), 
-		pSrc->GetDeviceHandle(), pSrc->GetImageInfo().initialLayout,
-		pDst->GetDeviceHandle(), pDst->GetImageInfo().initialLayout,
+		pSrc->GetDeviceHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		pDst->GetDeviceHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		regions.size(), regions.data()
 	);
+
+	IssueBarriersAfterCopy(pSrc, pDst, regions);
 
 	AddToReferenceTable(pSrc);
 	AddToReferenceTable(pDst);
