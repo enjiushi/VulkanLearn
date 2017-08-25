@@ -484,10 +484,10 @@ void VulkanGlobal::InitVertices()
 	);
 
 	float quadVertices[] = {
-		-1.0, -1.0,  0.0, 0.0, 0.0,
-		1.0, -1.0,  0.0,  1.0, 0.0,
-		-1.0,  1.0,  0.0, 0.0, 1.0,
-		1.0,  1.0,  0.0,  1.0, 1.0,
+		-1.0, -1.0,  0.0, 0.0, 0.0, 0.0,
+		1.0, -1.0,  0.0,  1.0, 0.0, 0.0,
+		-1.0,  1.0,  0.0, 0.0, 1.0, 0.0,
+		1.0,  1.0,  0.0,  1.0, 1.0, 0.0,
 	};
 
 	uint32_t quadIndices[] = {
@@ -495,28 +495,11 @@ void VulkanGlobal::InitVertices()
 		0, 3, 2,
 	};
 
-	bindingDesc = {};
-	bindingDesc.binding = 0;
-	bindingDesc.stride = 5 * sizeof(float);
-	bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-	attribDesc.clear();
-	attribDesc.resize(2);
-
-	attribDesc[0].binding = 0;
-	attribDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attribDesc[0].location = 0;	//layout location 0 in shader
-	attribDesc[0].offset = 0;
-
-	attribDesc[1].binding = 0;
-	attribDesc[1].format = VK_FORMAT_R32G32_SFLOAT;
-	attribDesc[1].location = 1;	//layout location 1 in shader
-	attribDesc[1].offset = 3 * sizeof(float);
-
-	m_pQuadVertexBuffer = VertexBuffer::Create(m_pDevice, sizeof(quadVertices), bindingDesc, attribDesc);
-	m_pQuadVertexBuffer->UpdateByteStream(quadVertices, 0, sizeof(quadVertices));
-	m_pQuadIndexBuffer = IndexBuffer::Create(m_pDevice, sizeof(quadIndices), VK_INDEX_TYPE_UINT32);
-	m_pQuadIndexBuffer->UpdateByteStream(quadIndices, 0, sizeof(quadIndices));
+	m_pQuadMesh = Mesh::Create
+	(
+		quadVertices, 4, (1 << Mesh::VAFPosition) | (1 << Mesh::VAFTexCoord), 
+		quadIndices, 6, VK_INDEX_TYPE_UINT32
+	);
 }
 
 void VulkanGlobal::InitUniforms()
@@ -817,14 +800,14 @@ void VulkanGlobal::InitBRDFlutMap()
 	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenBRDFLutPipeline->GetDeviceHandle());
 	pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenBRDFLutPipeline);
 
-	vertexBuffers = { m_pQuadVertexBuffer->GetDeviceHandle() };
+	vertexBuffers = { m_pQuadMesh->GetVertexBuffer()->GetDeviceHandle() };
 	offsets = { 0 };
 	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetDeviceHandle(), 0, m_pQuadIndexBuffer->GetType());
-	pDrawCmdBuffer->AddToReferenceTable(m_pQuadVertexBuffer);
-	pDrawCmdBuffer->AddToReferenceTable(m_pQuadIndexBuffer);
+	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadMesh->GetIndexBuffer()->GetDeviceHandle(), 0, m_pQuadMesh->GetIndexBuffer()->GetType());
+	pDrawCmdBuffer->AddToReferenceTable(m_pQuadMesh->GetVertexBuffer());
+	pDrawCmdBuffer->AddToReferenceTable(m_pQuadMesh->GetIndexBuffer());
 
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetCount(), 1, 0, 0, 0);
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
 
 	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
 
@@ -1005,8 +988,8 @@ void VulkanGlobal::InitPipeline()
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pBRDFLutVS;
 	info.pFragShader = m_pBRDFLutFS;
-	info.vertexBindingsInfo = { m_pQuadVertexBuffer->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pQuadVertexBuffer->GetAttribDesc();
+	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
 
 	m_pOffScreenBRDFLutPipeline = GraphicPipeline::Create(m_pDevice, info);
 
@@ -1015,8 +998,8 @@ void VulkanGlobal::InitPipeline()
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pSimpleVS;
 	info.pFragShader = m_pSimpleFS;
-	info.vertexBindingsInfo = { m_pQuadVertexBuffer->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pQuadVertexBuffer->GetAttribDesc();
+	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
 	m_pSimplePipeline = GraphicPipeline::Create(m_pDevice, info);
 }
 

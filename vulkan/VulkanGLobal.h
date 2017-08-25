@@ -118,10 +118,6 @@ protected:
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
 
-	std::shared_ptr<VertexBuffer>		m_pCubeVertexBuffer;
-	std::shared_ptr<IndexBuffer>		m_pCubeIndexBuffer;
-	std::shared_ptr<VertexBuffer>		m_pQuadVertexBuffer;
-	std::shared_ptr<IndexBuffer>		m_pQuadIndexBuffer;
 	std::shared_ptr<UniformBuffer>		m_pUniformBuffer;
 
 	GlobalUniforms						m_globalUniforms;
