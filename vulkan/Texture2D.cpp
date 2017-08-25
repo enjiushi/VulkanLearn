@@ -7,9 +7,6 @@
 
 bool Texture2D::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Texture2D>& pSelf, const gli::texture& gliTex, uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageLayout layout)
 {
-	m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
-
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	textureCreateInfo.format = format;
@@ -65,6 +62,13 @@ std::shared_ptr<Texture2D> Texture2D::Create(const std::shared_ptr<Device>& pDev
 {
 	gli::texture2d gliTex2d(gli::load(path.c_str()));
 	std::shared_ptr<Texture2D> pTexture = std::make_shared<Texture2D>();
+
+	if (pTexture.get())
+	{
+		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+	}
+
 	if (pTexture.get() && pTexture->Init(pDevice, pTexture, gliTex2d, format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
 		return pTexture;
 	return nullptr;
@@ -73,6 +77,13 @@ std::shared_ptr<Texture2D> Texture2D::Create(const std::shared_ptr<Device>& pDev
 std::shared_ptr<Texture2D> Texture2D::CreateEmptyTexture(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format)
 {
 	std::shared_ptr<Texture2D> pTexture = std::make_shared<Texture2D>();
+
+	if (pTexture.get())
+	{
+		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+	}
+
 	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
 		return pTexture;
 	return nullptr;
@@ -81,6 +92,13 @@ std::shared_ptr<Texture2D> Texture2D::CreateEmptyTexture(const std::shared_ptr<D
 std::shared_ptr<Texture2D> Texture2D::CreateOffscreenTexture(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format)
 {
 	std::shared_ptr<Texture2D> pTexture = std::make_shared<Texture2D>();
+
+	if (pTexture.get())
+	{
+		pTexture->m_accessStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		pTexture->m_accessFlags = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	}
+
 	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_UNDEFINED))
 		return pTexture;
 	return nullptr;
