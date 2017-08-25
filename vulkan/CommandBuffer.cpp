@@ -218,7 +218,12 @@ void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc,
 		bufferBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 		bufferBarrier.buffer = pSrc->GetDeviceHandle();
 		bufferBarrier.offset = regions[i].bufferOffset;
-		bufferBarrier.size = regions[i].imageExtent.width;	//FIXME: this is a wrong value, I'll be fixing this soon
+
+		if (i < regions.size() - 1)
+			bufferBarrier.size = regions[i + 1].bufferOffset - regions[i].bufferOffset;
+		else
+			bufferBarrier.size = pSrc->GetBufferInfo().size - regions[i].bufferOffset;
+
 		bufferBarriers.push_back(bufferBarrier);
 	}
 
@@ -248,7 +253,7 @@ void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc,
 		imgBarrier.image = pDst->GetDeviceHandle();
 		imgBarrier.subresourceRange = subresourceRange;
 		imgBarrier.oldLayout = pDst->GetImageInfo().initialLayout;
-		imgBarrier.srcAccessMask |= VulkanUtil::GetAccessFlagByLayout(imgBarriers[0].oldLayout);
+		imgBarrier.srcAccessMask = pDst->GetAccessFlags();
 		imgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
@@ -264,7 +269,69 @@ void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc,
 		{}
 	);
 }
-void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions) {}
+void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions) 
+{
+	std::vector<VkBufferMemoryBarrier> bufferBarriers;
+
+	for (uint32_t i = 0; i < regions.size(); i++)
+	{
+		VkBufferMemoryBarrier bufferBarrier = {};
+		bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		bufferBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		bufferBarrier.dstAccessMask = pSrc->GetAccessFlags();
+		bufferBarrier.buffer = pSrc->GetDeviceHandle();
+		bufferBarrier.offset = regions[i].bufferOffset;
+
+		if (i < regions.size() - 1)
+			bufferBarrier.size = regions[i + 1].bufferOffset - regions[i].bufferOffset;
+		else
+			bufferBarrier.size = pSrc->GetBufferInfo().size - regions[i].bufferOffset;
+
+		bufferBarriers.push_back(bufferBarrier);
+	}
+
+	AttachBarriers
+	(
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		pSrc->GetAccessStages(),
+		{},
+		bufferBarriers,
+		{}
+	);
+
+	std::vector<VkImageMemoryBarrier> imgBarriers;
+
+	for (uint32_t i = 0; i < regions.size(); i++)
+	{
+		//Barrier for layout change from undefined to transfer dst
+		VkImageSubresourceRange subresourceRange = {};
+		subresourceRange.aspectMask = regions[i].imageSubresource.aspectMask;
+		subresourceRange.baseMipLevel = regions[i].imageSubresource.mipLevel;
+		subresourceRange.levelCount = 1;
+		subresourceRange.baseArrayLayer = regions[i].imageSubresource.baseArrayLayer;
+		subresourceRange.layerCount = regions[i].imageSubresource.layerCount;
+
+		VkImageMemoryBarrier imgBarrier = {};
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = pDst->GetDeviceHandle();
+		imgBarrier.subresourceRange = subresourceRange;
+		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		imgBarrier.newLayout = pDst->GetImageInfo().initialLayout;
+		imgBarrier.dstAccessMask = pDst->GetAccessFlags();
+
+		imgBarriers.push_back(imgBarrier);
+	}
+
+	AttachBarriers
+	(
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		pDst->GetAccessStages(),
+		{},
+		bufferBarriers,
+		{}
+	);
+}
 
 void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions) {}
 void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions) {}
@@ -297,45 +364,19 @@ void CommandBuffer::CopyImage(const std::shared_ptr<Image>& pSrc, const std::sha
 
 void CommandBuffer::CopyBufferImage(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions)
 {
-	std::vector<VkBufferMemoryBarrier> bufferBarriers;
-	std::vector<VkImageMemoryBarrier> imgBarriers;
+	IssueBarriersBeforeCopy(pSrc, pDst, regions);
 
-	for (uint32_t i = 0; i < regions.size(); i++)
-	{
+	vkCmdCopyBufferToImage(GetDeviceHandle(),
+		pSrc->GetDeviceHandle(),
+		pDst->GetDeviceHandle(),
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		regions.size(),
+		regions.data());
 
-	}
+	IssueBarriersAfterCopy(pSrc, pDst, regions);
 
-	for (uint32_t i = 0; i < regions.size(); i++)
-	{
-		//Barrier for layout change from undefined to transfer dst
-		VkImageSubresourceRange subresourceRange = {};
-		subresourceRange.aspectMask = regions[i].imageSubresource.aspectMask;
-		subresourceRange.baseMipLevel = regions[i].imageSubresource.mipLevel;
-		subresourceRange.levelCount = 1;
-		subresourceRange.baseArrayLayer = regions[i].imageSubresource.baseArrayLayer;
-		subresourceRange.layerCount = regions[i].imageSubresource.layerCount;
-
-		VkImageMemoryBarrier imgBarrier = {};
-		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		imgBarrier.image = pDst->GetDeviceHandle();
-		imgBarrier.subresourceRange = subresourceRange;
-		imgBarrier.oldLayout = pDst->GetImageInfo().initialLayout;
-		imgBarrier.srcAccessMask |= VulkanUtil::GetAccessFlagByLayout(imgBarriers[0].oldLayout);
-		imgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-		imgBarriers.push_back(imgBarrier);
-	}
-
-	/*
-	pCmdBuffer->AttachBarriers
-	(
-		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		{},
-		{},
-		imgBarriers
-	);*/
+	AddToReferenceTable(pSrc);
+	AddToReferenceTable(pDst);
 }
 
 void CommandBuffer::PrepareBufferCopyCommands(const BufferCopyCmdData& data)
