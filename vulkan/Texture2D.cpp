@@ -7,6 +7,9 @@
 
 bool Texture2D::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Texture2D>& pSelf, const gli::texture& gliTex, uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageLayout layout)
 {
+	m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	textureCreateInfo.format = format;
@@ -23,9 +26,6 @@ bool Texture2D::Init(const std::shared_ptr<Device>& pDevice, const std::shared_p
 	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	if (!Image::Init(pDevice, pSelf, gliTex, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return false;
-
-	m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
 
 	return true;
 }

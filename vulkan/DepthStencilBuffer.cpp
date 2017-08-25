@@ -6,6 +6,12 @@
 
 bool DepthStencilBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<DepthStencilBuffer>& pSelf, VkFormat format, uint32_t width, uint32_t height)
 {
+	m_accessStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT
+		| VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+		| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+		| VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+
 	VkImageCreateInfo dsCreateInfo = {};
 	dsCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	dsCreateInfo.format = format;
@@ -21,12 +27,6 @@ bool DepthStencilBuffer::Init(const std::shared_ptr<Device>& pDevice, const std:
 	dsCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	if (!Image::Init(pDevice, pSelf, dsCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return false;
-
-	m_accessStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT 
-		| VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
-		| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
-		| VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
 
 	return true;
 }

@@ -130,35 +130,6 @@ std::shared_ptr<StagingBuffer> Image::PrepareStagingBuffer(const gli::texture& g
 	return pStagingBuffer;
 }
 
-void Image::ChangeImageLayoutBeforeCopy(const gli::texture& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
-{
-	//Barrier for layout change from undefined to transfer dst
-	VkImageSubresourceRange subresourceRange = {};
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = gliTex.levels();
-	subresourceRange.layerCount = m_info.arrayLayers;
-
-	std::vector<VkImageMemoryBarrier> imgBarriers(1);
-	imgBarriers[0] = {};
-	imgBarriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarriers[0].image = GetDeviceHandle();
-	imgBarriers[0].subresourceRange = subresourceRange;
-	imgBarriers[0].oldLayout = m_info.initialLayout;
-	imgBarriers[0].srcAccessMask |= VulkanUtil::GetAccessFlagByLayout(m_info.initialLayout);
-	imgBarriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	imgBarriers[0].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-	pCmdBuffer->AttachBarriers
-	(
-		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		{},
-		{},
-		imgBarriers
-	);
-}
-
 void Image::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	gli::texture2d gliTex2D = (gli::texture2d)gliTex;
@@ -184,42 +155,7 @@ void Image::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<Stagin
 		offset += static_cast<uint32_t>(gliTex2D[i].size());
 	}
 
-	// Do copy
-	vkCmdCopyBufferToImage(pCmdBuffer->GetDeviceHandle(),
-		pStagingBuffer->GetDeviceHandle(),
-		GetDeviceHandle(),
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		bufferCopyRegions.size(),
-		bufferCopyRegions.data());
-}
-
-void Image::ChangeImageLayoutAfterCopy(const gli::texture& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
-{
-	//Barrier for layout change from undefined to transfer dst
-	VkImageSubresourceRange subresourceRange = {};
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = gliTex.levels();
-	subresourceRange.layerCount = m_info.arrayLayers;
-
-	std::vector<VkImageMemoryBarrier> imgBarriers(1);
-	imgBarriers[0] = {};
-	imgBarriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarriers[0].image = GetDeviceHandle();
-	imgBarriers[0].subresourceRange = subresourceRange;
-	imgBarriers[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	imgBarriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	imgBarriers[0].newLayout = m_info.initialLayout;
-	imgBarriers[0].dstAccessMask |= VulkanUtil::GetAccessFlagByLayout(m_info.initialLayout);
-
-	pCmdBuffer->AttachBarriers
-	(
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-		{},
-		{},
-		imgBarriers
-	);
+	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
 }
 
 void Image::UpdateByteStream(const gli::texture& gliTex)
@@ -229,11 +165,7 @@ void Image::UpdateByteStream(const gli::texture& gliTex)
 
 	std::shared_ptr<StagingBuffer> pStagingBuffer = PrepareStagingBuffer(gliTex, pCmdBuffer);
 
-	ChangeImageLayoutBeforeCopy(gliTex, pCmdBuffer);
-
 	ExecuteCopy(gliTex, pStagingBuffer, pCmdBuffer);
-
-	ChangeImageLayoutAfterCopy(gliTex, pCmdBuffer);
 
 	pCmdBuffer->EndRecording();
 

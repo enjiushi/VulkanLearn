@@ -39,9 +39,7 @@ protected:
 
 	void UpdateByteStream(const gli::texture& gliTex);
 	virtual std::shared_ptr<StagingBuffer> PrepareStagingBuffer(const gli::texture& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer);
-	virtual void ChangeImageLayoutBeforeCopy(const gli::texture& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	virtual void ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer);
-	virtual void ChangeImageLayoutAfterCopy(const gli::texture& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 protected:
 	VkImage						m_image;

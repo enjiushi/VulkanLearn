@@ -7,6 +7,9 @@
 
 bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<TextureCube>& pSelf, const gli::texture_cube& gliTexCube, VkFormat format)
 {
+	m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+
 	uint32_t width = gliTexCube.extent().x;
 	uint32_t height = gliTexCube.extent().y;
 	uint32_t mipLevels = gliTexCube.levels();
@@ -29,9 +32,6 @@ bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 
 	if (!Image::Init(pDevice, pSelf, gliTexCube, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return false;
-
-	m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
 
 	return true;
 }
@@ -113,13 +113,7 @@ void TextureCube::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<
 		}
 	}
 
-	// Do copy
-	vkCmdCopyBufferToImage(pCmdBuffer->GetDeviceHandle(),
-		pStagingBuffer->GetDeviceHandle(),
-		GetDeviceHandle(),
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		bufferCopyRegions.size(),
-		bufferCopyRegions.data());
+	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
 }
 
 void TextureCube::CreateImageView()
