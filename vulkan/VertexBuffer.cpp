@@ -18,7 +18,7 @@ bool VertexBuffer::Init(const std::shared_ptr<Device>& pDevice,
 	m_numVertices = info.size / bindingDesc.stride;
 
 	m_accessStages = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+	m_accessFlags = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
 	return true;
 }
 
