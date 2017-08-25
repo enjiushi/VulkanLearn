@@ -153,7 +153,56 @@ void CommandBuffer::CopyBuffer(const std::shared_ptr<Buffer>& pSrc, const std::s
 		{}
 	);
 
+	bufferBarriers.clear();
+
 	vkCmdCopyBuffer(GetDeviceHandle(), pSrc->GetDeviceHandle(), pDst->GetDeviceHandle(), regions.size(), regions.data());
+
+	// Src barriers
+	for (uint32_t i = 0; i < regions.size(); i++)
+	{
+		VkBufferMemoryBarrier bufferBarrier = {};
+		bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		bufferBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		bufferBarrier.dstAccessMask = pSrc->GetAccessFlags();
+		bufferBarrier.buffer = pSrc->GetDeviceHandle();
+		bufferBarrier.offset = regions[i].srcOffset;
+		bufferBarrier.size = regions[i].size;
+		bufferBarriers.push_back(bufferBarrier);
+	}
+
+	AttachBarriers
+	(
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		pSrc->GetAccessStages(),
+		{},
+		bufferBarriers,
+		{}
+	);
+
+	bufferBarriers.clear();
+
+	// Dst barriers
+	for (uint32_t i = 0; i < regions.size(); i++)
+	{
+		VkBufferMemoryBarrier bufferBarrier = {};
+		bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		bufferBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		bufferBarrier.dstAccessMask = pDst->GetAccessFlags();
+		bufferBarrier.buffer = pDst->GetDeviceHandle();
+		bufferBarrier.offset = regions[i].dstOffset;
+		bufferBarrier.size = regions[i].size;
+		bufferBarriers.push_back(bufferBarrier);
+	}
+
+	AttachBarriers
+	(
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		pDst->GetAccessStages(),
+		{},
+		bufferBarriers,
+		{}
+	);
+
 	AddToReferenceTable(pSrc);
 	AddToReferenceTable(pDst);
 }
