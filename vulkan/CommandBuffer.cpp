@@ -8,6 +8,7 @@
 #include "GraphicPipeline.h"
 #include "PipelineLayout.h"
 #include "Buffer.h"
+#include "Image.h"
 
 CommandBuffer::~CommandBuffer()
 {
@@ -100,6 +101,80 @@ void CommandBuffer::PrepareNormalDrawCommands(const DrawCmdData& data)
 	CHECK_VK_ERROR(vkEndCommandBuffer(GetDeviceHandle()));
 
 	m_drawCmdData = data;
+}
+
+void CommandBuffer::CopyBuffer(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Buffer>& pDst, const std::vector<VkBufferCopy>& regions)
+{
+	std::vector<VkBufferMemoryBarrier> bufferBarriers;
+
+	// Src barriers
+	for (uint32_t i = 0; i < regions.size(); i++)
+	{
+		VkBufferMemoryBarrier bufferBarrier = {};
+		bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		bufferBarrier.srcAccessMask = pSrc->GetAccessFlags();
+		bufferBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		bufferBarrier.buffer = pSrc->GetDeviceHandle();
+		bufferBarrier.offset = regions[i].srcOffset;
+		bufferBarrier.size = regions[i].size;
+		bufferBarriers.push_back(bufferBarrier);
+	}
+
+	AttachBarriers
+	(
+		pSrc->GetAccessStages(),
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		{},
+		bufferBarriers,
+		{}
+	);
+
+	bufferBarriers.clear();
+
+	// Dst barriers
+	for (uint32_t i = 0; i < regions.size(); i++)
+	{
+		VkBufferMemoryBarrier bufferBarrier = {};
+		bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		bufferBarrier.srcAccessMask = pDst->GetAccessFlags();
+		bufferBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		bufferBarrier.buffer = pDst->GetDeviceHandle();
+		bufferBarrier.offset = regions[i].dstOffset;
+		bufferBarrier.size = regions[i].size;
+		bufferBarriers.push_back(bufferBarrier);
+	}
+
+	AttachBarriers
+	(
+		pDst->GetAccessStages(),
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		{},
+		bufferBarriers,
+		{}
+	);
+
+	vkCmdCopyBuffer(GetDeviceHandle(), pSrc->GetDeviceHandle(), pDst->GetDeviceHandle(), regions.size(), regions.data());
+	AddToReferenceTable(pSrc);
+	AddToReferenceTable(pDst);
+}
+
+void CommandBuffer::CopyImage(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions)
+{
+	vkCmdCopyImage
+	(
+		GetDeviceHandle(), 
+		pSrc->GetDeviceHandle(), pSrc->GetImageInfo().initialLayout,
+		pDst->GetDeviceHandle(), pDst->GetImageInfo().initialLayout,
+		regions.size(), regions.data()
+	);
+
+	AddToReferenceTable(pSrc);
+	AddToReferenceTable(pDst);
+}
+
+void CommandBuffer::CopyBufferImage(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions)
+{
+
 }
 
 void CommandBuffer::PrepareBufferCopyCommands(const BufferCopyCmdData& data)
@@ -227,8 +302,8 @@ void CommandBuffer::EndRecording()
 
 void CommandBuffer::AttachBarriers
 (
-	VkPipelineStageFlagBits src,
-	VkPipelineStageFlagBits dst,
+	VkPipelineStageFlags src,
+	VkPipelineStageFlags dst,
 	const std::vector<VkMemoryBarrier>& memBarriers,
 	const std::vector<VkBufferMemoryBarrier>& bufferMemBarriers,
 	const std::vector<VkImageMemoryBarrier>& imageMemBarriers

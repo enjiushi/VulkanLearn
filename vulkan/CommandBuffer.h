@@ -10,6 +10,7 @@ class VertexBuffer;
 class IndexBuffer;
 class FrameBuffer;
 class Buffer;
+class Image;
 
 class CommandBuffer : public DeviceObjectBase<CommandBuffer>
 {
@@ -68,10 +69,15 @@ public:
 	void EndRecording();
 	void PrepareNormalDrawCommands(const DrawCmdData& data);
 	void PrepareBufferCopyCommands(const BufferCopyCmdData& data);
+
+	void CopyBuffer(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Buffer>& pDst, const std::vector<VkBufferCopy>& regions);
+	void CopyImage(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions);
+	void CopyBufferImage(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions);
+
 	void AttachBarriers
 	(
-		VkPipelineStageFlagBits src,
-		VkPipelineStageFlagBits dst,
+		VkPipelineStageFlags src,
+		VkPipelineStageFlags dst,
 		const std::vector<VkMemoryBarrier>& memBarriers,
 		const std::vector<VkBufferMemoryBarrier>& bufferMemBarriers,
 		const std::vector<VkImageMemoryBarrier>& imageMemBarriers
