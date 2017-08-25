@@ -89,6 +89,11 @@ void Image::EnsureImageLayout()
 	if (m_info.initialLayout == VK_IMAGE_LAYOUT_UNDEFINED)
 		return;
 
+	// Don't change image layout if it's color or depth stencil attachement
+	// Since their actual raw layers are gonna changed by render pass
+	if (m_info.initialLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL || m_info.initialLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		return;
+
 	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 	pCmdBuffer->StartRecording();
 
