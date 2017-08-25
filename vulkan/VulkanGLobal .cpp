@@ -1313,9 +1313,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 		{ 1.0f, 0 }
 	};
 
-	VkCommandBufferBeginInfo cmdBeginInfo = {};
-	cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	CHECK_VK_ERROR(vkBeginCommandBuffer(pDrawCmdBuffer->GetDeviceHandle(), &cmdBeginInfo));
+	pDrawCmdBuffer->StartRecording();
 
 	UpdateUniforms(pPerFrameRes->GetFrameIndex(), m_pCameraComp);
 	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
@@ -1432,7 +1430,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
 
 
-	CHECK_VK_ERROR(vkEndCommandBuffer(pDrawCmdBuffer->GetDeviceHandle()));
+	pDrawCmdBuffer->EndRecording();
 	
 	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, waitFlags, false);

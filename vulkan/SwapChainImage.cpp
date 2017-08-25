@@ -53,11 +53,8 @@ std::shared_ptr<SwapChainImage> SwapChainImage::Create(const std::shared_ptr<Dev
 void SwapChainImage::EnsureImageLayout()
 {
 	std::shared_ptr<CommandBuffer> pCmdBuffer = GlobalObjects()->GetMainThreadCmdPool()->AllocatePrimaryCommandBuffer();
-	VkCommandBuffer cmdBuffer = pCmdBuffer->GetDeviceHandle();
-	VkCommandBufferBeginInfo beginInfo = {};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-	vkBeginCommandBuffer(cmdBuffer, &beginInfo);
+
+	pCmdBuffer->StartRecording();
 
 	//Change image layout
 	std::vector<VkImageMemoryBarrier> imgBarriers(1);
@@ -85,13 +82,7 @@ void SwapChainImage::EnsureImageLayout()
 		imgBarriers
 	);
 
-	CHECK_VK_ERROR(vkEndCommandBuffer(cmdBuffer));
+	pCmdBuffer->EndRecording();
 
-	VkSubmitInfo submitInfo = {};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &cmdBuffer;
-
-	CHECK_VK_ERROR(vkQueueSubmit(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle(), 1, &submitInfo, nullptr));
-	vkQueueWaitIdle(GlobalDeviceObjects::GetInstance()->GetGraphicQueue()->GetDeviceHandle());
+	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }
