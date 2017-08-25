@@ -34,21 +34,23 @@ void StagingBufferManager::FlushDataMainThread()
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 	vkBeginCommandBuffer(cmdBuffer, &beginInfo);
 
-	VkBufferMemoryBarrier barrier = {};
-	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-	barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-	barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barrier.buffer = m_pStagingBufferPool->GetDeviceHandle();
-	barrier.offset = 0;
-	barrier.size = m_usedNumBytes;
+	std::vector<VkBufferMemoryBarrier> bufferBarriers(1);
+	bufferBarriers[0] = {};
+	bufferBarriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+	bufferBarriers[0].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+	bufferBarriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	bufferBarriers[0].buffer = m_pStagingBufferPool->GetDeviceHandle();
+	bufferBarriers[0].offset = 0;
+	bufferBarriers[0].size = m_usedNumBytes;
 
-	vkCmdPipelineBarrier(cmdBuffer,
+	pCmdBuffer->AttachBarriers
+	(
 		VK_PIPELINE_STAGE_HOST_BIT,
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		0,
-		0, nullptr,
-		1, &barrier,
-		0, nullptr);
+		{},
+		bufferBarriers,
+		{}
+	);
 
 	// Copy each chunk to dst buffer
 	std::for_each(m_pendingUpdateBuffer.begin(), m_pendingUpdateBuffer.end(), [&](const PendingBufferInfo& info)
@@ -78,13 +80,14 @@ void StagingBufferManager::FlushDataMainThread()
 	// For each pipeline stage, apply barriers
 	std::for_each(barrierTable.begin(), barrierTable.end(), [&](const std::pair<VkPipelineStageFlagBits, std::vector<VkBufferMemoryBarrier>>& pair)
 	{
-		vkCmdPipelineBarrier(cmdBuffer,
+		pCmdBuffer->AttachBarriers
+		(
 			VK_PIPELINE_STAGE_TRANSFER_BIT,
 			pair.first,
-			0,
-			0, nullptr,
-			pair.second.size(), pair.second.data(),
-			0, nullptr);
+			{},
+			pair.second,
+			{}
+		);
 	});
 
 	CHECK_VK_ERROR(vkEndCommandBuffer(cmdBuffer));
@@ -105,21 +108,23 @@ void StagingBufferManager::RecordDataFlush(const std::shared_ptr<CommandBuffer>&
 {
 	VkCommandBuffer cmdBuffer = pCmdBuffer->GetDeviceHandle();
 
-	VkBufferMemoryBarrier barrier = {};
-	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-	barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-	barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barrier.buffer = m_pStagingBufferPool->GetDeviceHandle();
-	barrier.offset = 0;
-	barrier.size = m_usedNumBytes;
+	std::vector<VkBufferMemoryBarrier> bufferBarriers(1);
+	bufferBarriers[0] = {};
+	bufferBarriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+	bufferBarriers[0].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+	bufferBarriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	bufferBarriers[0].buffer = m_pStagingBufferPool->GetDeviceHandle();
+	bufferBarriers[0].offset = 0;
+	bufferBarriers[0].size = m_usedNumBytes;
 
-	vkCmdPipelineBarrier(cmdBuffer,
+	pCmdBuffer->AttachBarriers
+	(
 		VK_PIPELINE_STAGE_HOST_BIT,
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		0,
-		0, nullptr,
-		1, &barrier,
-		0, nullptr);
+		{},
+		bufferBarriers,
+		{}
+	);
 
 	// Copy each chunk to dst buffer
 	std::for_each(m_pendingUpdateBuffer.begin(), m_pendingUpdateBuffer.end(), [&](const PendingBufferInfo& info)
@@ -151,13 +156,14 @@ void StagingBufferManager::RecordDataFlush(const std::shared_ptr<CommandBuffer>&
 	// For each pipeline stage, apply barriers
 	std::for_each(barrierTable.begin(), barrierTable.end(), [&](const std::pair<VkPipelineStageFlagBits, std::vector<VkBufferMemoryBarrier>>& pair)
 	{
-		vkCmdPipelineBarrier(cmdBuffer,
+		pCmdBuffer->AttachBarriers
+		(
 			VK_PIPELINE_STAGE_TRANSFER_BIT,
 			pair.first,
-			0,
-			0, nullptr,
-			pair.second.size(), pair.second.data(),
-			0, nullptr);
+			{},
+			pair.second,
+			{}
+		);
 	});
 
 	m_pendingUpdateBuffer.clear();

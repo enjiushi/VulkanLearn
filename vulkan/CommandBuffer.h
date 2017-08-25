@@ -68,6 +68,14 @@ public:
 	void EndRecording();
 	void PrepareNormalDrawCommands(const DrawCmdData& data);
 	void PrepareBufferCopyCommands(const BufferCopyCmdData& data);
+	void AttachBarriers
+	(
+		VkPipelineStageFlagBits src,
+		VkPipelineStageFlagBits dst,
+		const std::vector<VkMemoryBarrier>& memBarriers,
+		const std::vector<VkBufferMemoryBarrier>& bufferMemBarriers,
+		const std::vector<VkImageMemoryBarrier>& imageMemBarriers
+	);
 
 protected:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);

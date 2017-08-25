@@ -224,3 +224,24 @@ void CommandBuffer::EndRecording()
 {
 	CHECK_VK_ERROR(vkEndCommandBuffer(m_commandBuffer));
 }
+
+void CommandBuffer::AttachBarriers
+(
+	VkPipelineStageFlagBits src,
+	VkPipelineStageFlagBits dst,
+	const std::vector<VkMemoryBarrier>& memBarriers,
+	const std::vector<VkBufferMemoryBarrier>& bufferMemBarriers,
+	const std::vector<VkImageMemoryBarrier>& imageMemBarriers
+)
+{
+	vkCmdPipelineBarrier
+	(
+		GetDeviceHandle(),
+		src,
+		dst,
+		0,
+		memBarriers.size(), memBarriers.data(),
+		bufferMemBarriers.size(), bufferMemBarriers.data(),
+		imageMemBarriers.size(), imageMemBarriers.data()
+	);
+}

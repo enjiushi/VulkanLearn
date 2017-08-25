@@ -118,17 +118,15 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t 
 		baseLayer, numLayers
 	};
 
-	std::vector<VkImageMemoryBarrier> barriers = { fbBarrier, inputImgBarrier };
+	std::vector<VkImageMemoryBarrier> imgBarriers = { fbBarrier, inputImgBarrier };
 
-	vkCmdPipelineBarrier
+	pCmdBuffer->AttachBarriers
 	(
-		pCmdBuffer->GetDeviceHandle(),
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		0,
-		0, nullptr,
-		0, nullptr,
-		barriers.size(), barriers.data()
+		{},
+		{},
+		imgBarriers
 	);
 
 	VkImageCopy copy = {};
@@ -188,18 +186,16 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t 
 		baseLayer, numLayers
 	};
 
-	barriers.clear();
-	barriers = { fbBarrier, inputImgBarrier };
+	imgBarriers.clear();
+	imgBarriers = { fbBarrier, inputImgBarrier };
 
-	vkCmdPipelineBarrier
+	pCmdBuffer->AttachBarriers
 	(
-		pCmdBuffer->GetDeviceHandle(),
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		0,
-		0, nullptr,
-		0, nullptr,
-		barriers.size(), barriers.data()
+		{},
+		{},
+		imgBarriers
 	);
 
 	pCmdBuffer->EndRecording();

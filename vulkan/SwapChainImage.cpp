@@ -60,28 +60,30 @@ void SwapChainImage::EnsureImageLayout()
 	vkBeginCommandBuffer(cmdBuffer, &beginInfo);
 
 	//Change image layout
-	VkImageMemoryBarrier imageBarrier = {};
-	imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imageBarrier.srcAccessMask = 0;
-	imageBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	imageBarrier.image = GetDeviceHandle();
-	imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	imageBarrier.subresourceRange.baseMipLevel = 0;
-	imageBarrier.subresourceRange.levelCount = 1;
-	imageBarrier.subresourceRange.baseArrayLayer = 0;
-	imageBarrier.subresourceRange.layerCount = 1;
+	std::vector<VkImageMemoryBarrier> imgBarriers(1);
+	imgBarriers[0] = {};
+	imgBarriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarriers[0].srcAccessMask = 0;
+	imgBarriers[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	imgBarriers[0].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imgBarriers[0].newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	imgBarriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imgBarriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imgBarriers[0].image = GetDeviceHandle();
+	imgBarriers[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imgBarriers[0].subresourceRange.baseMipLevel = 0;
+	imgBarriers[0].subresourceRange.levelCount = 1;
+	imgBarriers[0].subresourceRange.baseArrayLayer = 0;
+	imgBarriers[0].subresourceRange.layerCount = 1;
 
-	vkCmdPipelineBarrier(cmdBuffer,
+	pCmdBuffer->AttachBarriers
+	(
 		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		0,
-		0, nullptr,
-		0, nullptr,
-		1, &imageBarrier);
+		{},
+		{},
+		imgBarriers
+	);
 
 	CHECK_VK_ERROR(vkEndCommandBuffer(cmdBuffer));
 

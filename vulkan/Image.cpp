@@ -6,6 +6,7 @@
 #include "CommandPool.h"
 #include "CommandBuffer.h"
 #include "Queue.h"
+#include "VulkanUtil.h"
 
 Image::~Image()
 {
@@ -102,21 +103,14 @@ void Image::EnsureImageLayout()
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imgBarrier.srcAccessMask = 0;
 	imgBarrier.newLayout = m_info.initialLayout;
+	imgBarrier.dstAccessMask |= VulkanUtil::GetAccessFlagByLayout(m_info.initialLayout);
 
-	if (m_info.initialLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		imgBarrier.dstAccessMask |= (VK_ACCESS_SHADER_READ_BIT);
-	if (m_info.initialLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-		imgBarrier.dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	if (m_info.initialLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-		imgBarrier.dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-	vkCmdPipelineBarrier(pCmdBuffer->GetDeviceHandle(),
+	pCmdBuffer->AttachBarriers
+	(
 		VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
 		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		0,
-		0, nullptr,
-		0, nullptr,
-		1, &imgBarrier);
+		{}, {}, { imgBarrier }
+	);
 
 	pCmdBuffer->EndRecording();
 
@@ -129,21 +123,23 @@ std::shared_ptr<StagingBuffer> Image::PrepareStagingBuffer(const gli::texture& g
 	pStagingBuffer->UpdateByteStream(gliTex.data(), 0, gliTex.size(), (VkPipelineStageFlagBits)0, 0);
 
 	// Barrier for host data copy & transfer src
-	VkBufferMemoryBarrier barrier = {};
-	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-	barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-	barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barrier.buffer = pStagingBuffer->GetDeviceHandle();
-	barrier.offset = 0;
-	barrier.size = gliTex.size();
+	std::vector<VkBufferMemoryBarrier> bufferBarriers(1);
+	bufferBarriers[0] = {};
+	bufferBarriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+	bufferBarriers[0].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+	bufferBarriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	bufferBarriers[0].buffer = pStagingBuffer->GetDeviceHandle();
+	bufferBarriers[0].offset = 0;
+	bufferBarriers[0].size = gliTex.size();
 
-	vkCmdPipelineBarrier(pCmdBuffer->GetDeviceHandle(),
+	pCmdBuffer->AttachBarriers
+	(
 		VK_PIPELINE_STAGE_HOST_BIT,
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		0,
-		0, nullptr,
-		1, &barrier,
-		0, nullptr);
+		{},
+		bufferBarriers,
+		{}
+	);
 
 	return pStagingBuffer;
 }
@@ -157,29 +153,24 @@ void Image::ChangeImageLayoutBeforeCopy(const gli::texture& gliTex, const std::s
 	subresourceRange.levelCount = gliTex.levels();
 	subresourceRange.layerCount = m_info.arrayLayers;
 
-	VkImageMemoryBarrier imgBarrier = {};
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = m_info.initialLayout;
+	std::vector<VkImageMemoryBarrier> imgBarriers(1);
+	imgBarriers[0] = {};
+	imgBarriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarriers[0].image = GetDeviceHandle();
+	imgBarriers[0].subresourceRange = subresourceRange;
+	imgBarriers[0].oldLayout = m_info.initialLayout;
+	imgBarriers[0].srcAccessMask |= VulkanUtil::GetAccessFlagByLayout(m_info.initialLayout);
+	imgBarriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	imgBarriers[0].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-	if (m_info.initialLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		imgBarrier.srcAccessMask |= (VK_ACCESS_SHADER_READ_BIT);
-	if (m_info.initialLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-		imgBarrier.srcAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	if (m_info.initialLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-		imgBarrier.srcAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-	vkCmdPipelineBarrier(pCmdBuffer->GetDeviceHandle(),
+	pCmdBuffer->AttachBarriers
+	(
 		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		0,
-		0, nullptr,
-		0, nullptr,
-		1, &imgBarrier);
+		{},
+		{},
+		imgBarriers
+	);
 }
 
 void Image::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
@@ -225,28 +216,24 @@ void Image::ChangeImageLayoutAfterCopy(const gli::texture& gliTex, const std::sh
 	subresourceRange.levelCount = gliTex.levels();
 	subresourceRange.layerCount = m_info.arrayLayers;
 
-	VkImageMemoryBarrier imgBarrier = {};
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	imgBarrier.newLayout = m_info.initialLayout;
+	std::vector<VkImageMemoryBarrier> imgBarriers(1);
+	imgBarriers[0] = {};
+	imgBarriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarriers[0].image = GetDeviceHandle();
+	imgBarriers[0].subresourceRange = subresourceRange;
+	imgBarriers[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	imgBarriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	imgBarriers[0].newLayout = m_info.initialLayout;
+	imgBarriers[0].dstAccessMask |= VulkanUtil::GetAccessFlagByLayout(m_info.initialLayout);
 
-	if (m_info.initialLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		imgBarrier.dstAccessMask |= (VK_ACCESS_SHADER_READ_BIT);
-	if (m_info.initialLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-		imgBarrier.dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	if (m_info.initialLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-		imgBarrier.dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-	vkCmdPipelineBarrier(pCmdBuffer->GetDeviceHandle(),
+	pCmdBuffer->AttachBarriers
+	(
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-		0,
-		0, nullptr,
-		0, nullptr,
-		1, &imgBarrier);
+		{},
+		{},
+		imgBarriers
+	);
 }
 
 void Image::UpdateByteStream(const gli::texture& gliTex)
