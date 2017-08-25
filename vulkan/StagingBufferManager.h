@@ -11,8 +11,6 @@ class StagingBufferManager : public DeviceObjectBase<StagingBufferManager>
 	{
 		std::shared_ptr<Buffer> pBuffer;
 		uint32_t dstOffset;
-		VkPipelineStageFlagBits dstStage;
-		VkAccessFlags dstAccess;
 		uint32_t srcOffset;
 		uint32_t numBytes;
 	}PendingBufferInfo;
@@ -27,7 +25,7 @@ public:
 	void RecordDataFlush(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 protected:
-	void UpdateByteStream(const std::shared_ptr<Buffer>& pBuffer, const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
+	void UpdateByteStream(const std::shared_ptr<Buffer>& pBuffer, const void* pData, uint32_t offset, uint32_t numBytes);
 
 protected:
 	std::shared_ptr<StagingBuffer>	m_pStagingBufferPool;

@@ -120,26 +120,7 @@ void Image::EnsureImageLayout()
 std::shared_ptr<StagingBuffer> Image::PrepareStagingBuffer(const gli::texture& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, gliTex.size());
-	pStagingBuffer->UpdateByteStream(gliTex.data(), 0, gliTex.size(), (VkPipelineStageFlagBits)0, 0);
-
-	// Barrier for host data copy & transfer src
-	std::vector<VkBufferMemoryBarrier> bufferBarriers(1);
-	bufferBarriers[0] = {};
-	bufferBarriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-	bufferBarriers[0].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-	bufferBarriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	bufferBarriers[0].buffer = pStagingBuffer->GetDeviceHandle();
-	bufferBarriers[0].offset = 0;
-	bufferBarriers[0].size = gliTex.size();
-
-	pCmdBuffer->AttachBarriers
-	(
-		VK_PIPELINE_STAGE_HOST_BIT,
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
-		{},
-		bufferBarriers,
-		{}
-	);
+	pStagingBuffer->UpdateByteStream(gliTex.data(), 0, gliTex.size());
 
 	return pStagingBuffer;
 }

@@ -30,9 +30,9 @@ std::shared_ptr<Buffer> Buffer::Create(const std::shared_ptr<Device>& pDevice, c
 	return nullptr;
 }
 
-void Buffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess)
+void Buffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes)
 {
-	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->UpdateByteStream(GetSelfSharedPtr(), pData, offset, numBytes, dstStage, dstAccess);
+	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->UpdateByteStream(GetSelfSharedPtr(), pData, offset, numBytes);
 }
 
 VkMemoryRequirements Buffer::GetMemoryReqirments() const

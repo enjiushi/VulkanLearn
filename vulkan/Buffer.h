@@ -19,7 +19,7 @@ public:
 	VkAccessFlags GetAccessFlags() const { return m_accessFlags; }
 	virtual VkBuffer GetDeviceHandle() const { return m_buffer; }
 	const VkBufferCreateInfo& GetBufferInfo() const { return m_info; }
-	virtual void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess);
+	virtual void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes);
 	virtual uint32_t GetMemoryProperty() const { return m_memProperty; }
 	virtual VkMemoryRequirements GetMemoryReqirments() const;
 

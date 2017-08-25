@@ -14,5 +14,5 @@ public:
 		uint32_t numBytes);
 
 public:
-	void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes, VkPipelineStageFlagBits dstStage, VkAccessFlags dstAccess) override;
+	void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes) override;
 };

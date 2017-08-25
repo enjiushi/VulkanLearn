@@ -557,9 +557,9 @@ void VulkanGlobal::InitVertices()
 	offset += sizeof(float) * 3;
 
 	m_pVertexBuffer = VertexBuffer::Create(m_pDevice, verticesNumBytes, bindingDesc, attribDesc);
-	m_pVertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	m_pVertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes);
 	m_pIndexBuffer = IndexBuffer::Create(m_pDevice, indicesNumBytes, VK_INDEX_TYPE_UINT32);
-	m_pIndexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	m_pIndexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes);
 
 	float cubeVertices[] = {
 		// front
@@ -609,9 +609,9 @@ void VulkanGlobal::InitVertices()
 	attribDesc[0].offset = 0;
 
 	m_pCubeVertexBuffer = VertexBuffer::Create(m_pDevice, sizeof(cubeVertices), bindingDesc, attribDesc);
-	m_pCubeVertexBuffer->UpdateByteStream(cubeVertices, 0, sizeof(cubeVertices), VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	m_pCubeVertexBuffer->UpdateByteStream(cubeVertices, 0, sizeof(cubeVertices));
 	m_pCubeIndexBuffer = IndexBuffer::Create(m_pDevice, sizeof(cubeIndices), VK_INDEX_TYPE_UINT32);
-	m_pCubeIndexBuffer->UpdateByteStream(cubeIndices, 0, sizeof(cubeIndices), VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	m_pCubeIndexBuffer->UpdateByteStream(cubeIndices, 0, sizeof(cubeIndices));
 
 	float quadVertices[] = {
 		-1.0, -1.0,  0.0, 0.0, 0.0,
@@ -644,9 +644,9 @@ void VulkanGlobal::InitVertices()
 	attribDesc[1].offset = 3 * sizeof(float);
 
 	m_pQuadVertexBuffer = VertexBuffer::Create(m_pDevice, sizeof(quadVertices), bindingDesc, attribDesc);
-	m_pQuadVertexBuffer->UpdateByteStream(quadVertices, 0, sizeof(quadVertices), VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	m_pQuadVertexBuffer->UpdateByteStream(quadVertices, 0, sizeof(quadVertices));
 	m_pQuadIndexBuffer = IndexBuffer::Create(m_pDevice, sizeof(quadIndices), VK_INDEX_TYPE_UINT32);
-	m_pQuadIndexBuffer->UpdateByteStream(quadIndices, 0, sizeof(quadIndices), VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+	m_pQuadIndexBuffer->UpdateByteStream(quadIndices, 0, sizeof(quadIndices));
 }
 
 void VulkanGlobal::InitUniforms()
@@ -1298,7 +1298,7 @@ void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Cam
 	memcpy_s(&m_globalUniforms.roughness, sizeof(m_globalUniforms.roughness), &m_roughness, sizeof(m_roughness));
 
 	uint32_t totalUniformBytes = m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
-	m_pUniformBuffer->UpdateByteStream(&m_globalUniforms, totalUniformBytes * frameIndex, sizeof(m_globalUniforms), VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT);
+	m_pUniformBuffer->UpdateByteStream(&m_globalUniforms, totalUniformBytes * frameIndex, sizeof(m_globalUniforms));
 }
 
 void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
