@@ -90,6 +90,11 @@ protected:
 	bool IsValide() const { m_isValide; }
 	void SetIsValide(bool flag) { m_isValide = flag; }
 
+	void IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pBuffer, const std::vector<VkBufferCopy>& regions);
+	void IssueBarriersBeforeCopy(const std::shared_ptr<Image>& pBuffer, const std::vector<VkImageCopy>& regions);
+	void IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pBuffer, const std::vector<VkBufferCopy>& regions);
+	void IssueBarriersAfterCopy(const std::shared_ptr<Image>& pBuffe, const std::vector<VkImageCopy>& regionsr);
+
 protected:
 	VkCommandBuffer									m_commandBuffer;
 	VkCommandBufferAllocateInfo						m_info;
