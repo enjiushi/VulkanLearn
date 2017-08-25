@@ -25,6 +25,7 @@ public:
 
 	VkPipelineStageFlags GetAccessStages() const { return m_accessStages; }
 	VkAccessFlags GetAccessFlags() const { return m_accessFlags; }
+	uint32_t GetBytesPerPixel() const { return m_bytesPerPixel; }
 
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;
@@ -62,6 +63,7 @@ protected:
 
 	VkPipelineStageFlags		m_accessStages;
 	VkAccessFlags				m_accessFlags;
+	uint32_t					m_bytesPerPixel;
 
 	friend class DeviceMemoryManager;
 };

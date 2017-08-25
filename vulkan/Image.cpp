@@ -44,6 +44,8 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 
 	m_descriptorImgInfo = { m_sampler, m_view, m_info.initialLayout };
 
+	m_bytesPerPixel = VulkanUtil::GetBytesFromFormat(m_info.format);
+
 	return true;
 }
 
@@ -64,6 +66,9 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 	m_image = img;
 
 	CreateImageView();
+
+	//m_bytesPerPixel = VulkanUtil::GetBytesFromFormat(m_info.format);
+
 	return true;
 }
 
