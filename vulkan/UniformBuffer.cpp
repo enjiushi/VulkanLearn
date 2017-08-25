@@ -35,6 +35,14 @@ bool UniformBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shar
 	info.range = numBytes;
 	m_uniformBufferTable.push_back(info);
 	m_bufferIndex = m_uniformBufferTable.size() - 1;
+
+	m_accessStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+		VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
+		VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+		VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+
 	return true;
 }
 

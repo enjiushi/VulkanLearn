@@ -28,6 +28,9 @@ bool IndexBuffer::Init(const std::shared_ptr<Device>& pDevice,
 		break;
 	}
 
+	m_accessStages = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+
 	return true;
 }
 
