@@ -28,7 +28,7 @@ layout (binding = 0) uniform UBO
 	float roughness;
 }ubo;
 
-const vec3 lightPos = vec3(500, 0, 500);
+const vec3 lightPos = vec3(1000, 0, -1000);
 
 void main() 
 {
