@@ -38,6 +38,9 @@ bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 
 bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<TextureCube>& pSelf, uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format)
 {
+	m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	textureCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
