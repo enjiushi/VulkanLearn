@@ -131,6 +131,22 @@ bool Mesh::Init
 	return true;
 }
 
+std::shared_ptr<Mesh> Mesh::Create
+(
+	const void* pVertices, uint32_t verticesCount, uint32_t vertexAttribFlag,
+	const void* pIndices, uint32_t indicesCount, VkIndexType indexType
+)
+{
+	std::shared_ptr<Mesh> pRetMesh = std::make_shared<Mesh>();
+	if (pRetMesh.get() && pRetMesh->Init
+	(
+		pVertices, verticesCount, vertexAttribFlag,
+		pIndices, indicesCount, indexType
+	))
+		return pRetMesh;
+	return nullptr;
+}
+
 std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
 {
 	Assimp::Importer imp;

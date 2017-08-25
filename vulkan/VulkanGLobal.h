@@ -115,6 +115,8 @@ protected:
 	std::vector<std::shared_ptr<FrameBuffer>>m_offscreenFrameBuffers;
 
 	std::shared_ptr<Mesh>				m_pGunMesh;
+	std::shared_ptr<Mesh>				m_pCubeMesh;
+	std::shared_ptr<Mesh>				m_pQuadMesh;
 
 	std::shared_ptr<VertexBuffer>		m_pCubeVertexBuffer;
 	std::shared_ptr<IndexBuffer>		m_pCubeIndexBuffer;

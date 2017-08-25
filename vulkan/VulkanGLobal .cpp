@@ -438,10 +438,10 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
+	m_pGunMesh = Mesh::Create("../data/textures/cerberus/cerberus.fbx");
+
 	VkVertexInputBindingDescription bindingDesc = {};
 	std::vector<VkVertexInputAttributeDescription> attribDesc;
-
-	m_pGunMesh = Mesh::Create("../data/textures/cerberus/cerberus.fbx");
 
 	float cubeVertices[] = {
 		// front
@@ -477,23 +477,11 @@ void VulkanGlobal::InitVertices()
 		6, 3, 7,
 	};
 
-	bindingDesc = {};
-	bindingDesc.binding = 0;
-	bindingDesc.stride = 3 * sizeof(float);
-	bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-	attribDesc.clear();
-	attribDesc.resize(1);
-
-	attribDesc[0].binding = 0;
-	attribDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attribDesc[0].location = 0;	//layout location 0 in shader
-	attribDesc[0].offset = 0;
-
-	m_pCubeVertexBuffer = VertexBuffer::Create(m_pDevice, sizeof(cubeVertices), bindingDesc, attribDesc);
-	m_pCubeVertexBuffer->UpdateByteStream(cubeVertices, 0, sizeof(cubeVertices));
-	m_pCubeIndexBuffer = IndexBuffer::Create(m_pDevice, sizeof(cubeIndices), VK_INDEX_TYPE_UINT32);
-	m_pCubeIndexBuffer->UpdateByteStream(cubeIndices, 0, sizeof(cubeIndices));
+	m_pCubeMesh = Mesh::Create
+	(
+		cubeVertices, 8, 1 << Mesh::VAFPosition,
+		cubeIndices, 36, VK_INDEX_TYPE_UINT32
+	);
 
 	float quadVertices[] = {
 		-1.0, -1.0,  0.0, 0.0, 0.0,
@@ -642,14 +630,14 @@ void VulkanGlobal::InitIrradianceMap()
 		vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenIrradiancePipeline->GetDeviceHandle());
 		pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenIrradiancePipeline);
 
-		vertexBuffers = { m_pCubeVertexBuffer->GetDeviceHandle() };
+		vertexBuffers = { m_pCubeMesh->GetVertexBuffer()->GetDeviceHandle() };
 		offsets = { 0 };
 		vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-		vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetDeviceHandle(), 0, m_pCubeIndexBuffer->GetType());
-		pDrawCmdBuffer->AddToReferenceTable(m_pCubeVertexBuffer);
-		pDrawCmdBuffer->AddToReferenceTable(m_pCubeIndexBuffer);
+		vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetDeviceHandle(), 0, m_pCubeMesh->GetIndexBuffer()->GetType());
+		pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetVertexBuffer());
+		pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetIndexBuffer());
 
-		vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);
+		vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
 
@@ -756,14 +744,14 @@ void VulkanGlobal::InitPrefilterEnvMap()
 			vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenPrefilterEnvPipeline->GetDeviceHandle());
 			pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenPrefilterEnvPipeline);
 
-			vertexBuffers = { m_pCubeVertexBuffer->GetDeviceHandle() };
+			vertexBuffers = { m_pCubeMesh->GetVertexBuffer()->GetDeviceHandle() };
 			offsets = { 0 };
 			vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-			vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetDeviceHandle(), 0, m_pCubeIndexBuffer->GetType());
-			pDrawCmdBuffer->AddToReferenceTable(m_pCubeVertexBuffer);
-			pDrawCmdBuffer->AddToReferenceTable(m_pCubeIndexBuffer);
+			vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetDeviceHandle(), 0, m_pCubeMesh->GetIndexBuffer()->GetType());
+			pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetVertexBuffer());
+			pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetIndexBuffer());
 
-			vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);
+			vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
 
 			vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
 
@@ -978,8 +966,8 @@ void VulkanGlobal::InitPipeline()
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pSkyBoxVS;
 	info.pFragShader = m_pSkyBoxFS;
-	info.vertexBindingsInfo = { m_pCubeVertexBuffer->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pCubeVertexBuffer->GetAttribDesc();
+	info.vertexBindingsInfo = { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
 
 	m_pSkyBoxPipeline = GraphicPipeline::Create(m_pDevice, info);
 
@@ -997,8 +985,8 @@ void VulkanGlobal::InitPipeline()
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pSkyBoxVS;
 	info.pFragShader = m_pIrradianceFS;
-	info.vertexBindingsInfo = { m_pCubeVertexBuffer->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pCubeVertexBuffer->GetAttribDesc();
+	info.vertexBindingsInfo = { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
 
 	m_pOffScreenIrradiancePipeline = GraphicPipeline::Create(m_pDevice, info);
 
@@ -1007,8 +995,8 @@ void VulkanGlobal::InitPipeline()
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pSkyBoxVS;
 	info.pFragShader = m_pPrefilterEnvFS;
-	info.vertexBindingsInfo = { m_pCubeVertexBuffer->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pCubeVertexBuffer->GetAttribDesc();
+	info.vertexBindingsInfo = { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
 
 	m_pOffScreenPrefilterEnvPipeline = GraphicPipeline::Create(m_pDevice, info);
 
@@ -1266,14 +1254,14 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPipeline->GetDeviceHandle());
 	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPipeline);
 
-	vertexBuffers = { m_pCubeVertexBuffer->GetDeviceHandle() };
+	vertexBuffers = { m_pCubeMesh->GetVertexBuffer()->GetDeviceHandle() };
 	offsets = { 0 };
 	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetDeviceHandle(), 0, m_pCubeIndexBuffer->GetType());
-	pDrawCmdBuffer->AddToReferenceTable(m_pCubeVertexBuffer);
-	pDrawCmdBuffer->AddToReferenceTable(m_pCubeIndexBuffer);
+	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetDeviceHandle(), 0, m_pCubeMesh->GetIndexBuffer()->GetType());
+	pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetVertexBuffer());
+	pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetIndexBuffer());
 
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeIndexBuffer->GetCount(), 1, 0, 0, 0);
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
 
 	/*
 	renderPassBeginInfo = {};

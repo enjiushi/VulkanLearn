@@ -21,6 +21,12 @@ public:
 
 public:
 	static std::shared_ptr<Mesh> Create(const std::string& filePath);
+	static std::shared_ptr<Mesh> Create
+	(
+		const void* pVertices, uint32_t verticesCount, uint32_t vertexAttribFlag,
+		const void* pIndices, uint32_t indicesCount, VkIndexType indexType
+	);
+
 	static uint32_t GetVertexBytes(uint32_t vertexAttribFlag);
 	static uint32_t GetIndexBytes(VkIndexType indexType);
 
