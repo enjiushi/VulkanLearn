@@ -90,10 +90,14 @@ protected:
 	bool IsValide() const { m_isValide; }
 	void SetIsValide(bool flag) { m_isValide = flag; }
 
-	void IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pBuffer, const std::vector<VkBufferCopy>& regions);
-	void IssueBarriersBeforeCopy(const std::shared_ptr<Image>& pBuffer, const std::vector<VkImageCopy>& regions);
-	void IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pBuffer, const std::vector<VkBufferCopy>& regions);
-	void IssueBarriersAfterCopy(const std::shared_ptr<Image>& pBuffe, const std::vector<VkImageCopy>& regionsr);
+	void IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Buffer>& pDst, const std::vector<VkBufferCopy>& regions);
+	void IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Buffer>& pDst, const std::vector<VkBufferCopy>& regions);
+
+	void IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions);
+	void IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions);
+
+	void IssueBarriersBeforeCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions);
+	void IssueBarriersAfterCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions);
 
 protected:
 	VkCommandBuffer									m_commandBuffer;
