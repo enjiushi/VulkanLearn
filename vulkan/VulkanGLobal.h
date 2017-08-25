@@ -33,6 +33,7 @@
 #include "../component/Character.h"
 #include "Texture2D.h"
 #include "TextureCube.h"
+#include "../component/Mesh.h"
 
 typedef struct _GlobalUniforms
 {
@@ -113,8 +114,8 @@ protected:
 	std::shared_ptr<FrameBuffer>		m_pEnvFrameBuffer;
 	std::vector<std::shared_ptr<FrameBuffer>>m_offscreenFrameBuffers;
 
-	std::shared_ptr<VertexBuffer>		m_pVertexBuffer;
-	std::shared_ptr<IndexBuffer>		m_pIndexBuffer;
+	std::shared_ptr<Mesh>				m_pGunMesh;
+
 	std::shared_ptr<VertexBuffer>		m_pCubeVertexBuffer;
 	std::shared_ptr<IndexBuffer>		m_pCubeIndexBuffer;
 	std::shared_ptr<VertexBuffer>		m_pQuadVertexBuffer;

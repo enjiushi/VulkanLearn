@@ -556,10 +556,7 @@ void VulkanGlobal::InitVertices()
 	attribDesc[4].offset = offset;	//after xyz*/
 	offset += sizeof(float) * 3;
 
-	m_pVertexBuffer = VertexBuffer::Create(m_pDevice, verticesNumBytes, bindingDesc, attribDesc);
-	m_pVertexBuffer->UpdateByteStream(pVertices, 0, verticesNumBytes);
-	m_pIndexBuffer = IndexBuffer::Create(m_pDevice, indicesNumBytes, VK_INDEX_TYPE_UINT32);
-	m_pIndexBuffer->UpdateByteStream(pIndices, 0, indicesNumBytes);
+	m_pGunMesh = Mesh::Create("../data/textures/cerberus/cerberus.fbx");
 
 	float cubeVertices[] = {
 		// front
@@ -1086,8 +1083,8 @@ void VulkanGlobal::InitPipeline()
 	info.pPipelineLayout = m_pPipelineLayout;
 	info.pVertShader = m_pVertShader;
 	info.pFragShader = m_pFragShader;
-	info.vertexBindingsInfo = { m_pVertexBuffer->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pVertexBuffer->GetAttribDesc();
+	info.vertexBindingsInfo = { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
 
 	m_pPipeline = GraphicPipeline::Create(m_pDevice, info);
 
@@ -1105,8 +1102,8 @@ void VulkanGlobal::InitPipeline()
 	info.pPipelineLayout = m_pPipelineLayout;
 	info.pVertShader = m_pVertShader;
 	info.pFragShader = m_pFragShader;
-	info.vertexBindingsInfo = { m_pVertexBuffer->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pVertexBuffer->GetAttribDesc();
+	info.vertexBindingsInfo = { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
 
 	m_pOffScreenPipeline = GraphicPipeline::Create(m_pDevice, info);
 
@@ -1365,14 +1362,14 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipeline->GetDeviceHandle());
 	pDrawCmdBuffer->AddToReferenceTable(m_pPipeline);
 
-	vertexBuffers = { m_pVertexBuffer->GetDeviceHandle() };
+	vertexBuffers = { m_pGunMesh->GetVertexBuffer()->GetDeviceHandle() };
 	offsets = { 0 };
 	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetDeviceHandle(), 0, m_pIndexBuffer->GetType());
-	pDrawCmdBuffer->AddToReferenceTable(m_pVertexBuffer);
-	pDrawCmdBuffer->AddToReferenceTable(m_pIndexBuffer);
+	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pGunMesh->GetIndexBuffer()->GetDeviceHandle(), 0, m_pGunMesh->GetIndexBuffer()->GetType());
+	pDrawCmdBuffer->AddToReferenceTable(m_pGunMesh->GetVertexBuffer());
+	pDrawCmdBuffer->AddToReferenceTable(m_pGunMesh->GetIndexBuffer());
 
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pIndexBuffer->GetCount(), 1, 0, 0, 0);
+	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pGunMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
 
 	// Draw skybox
 	dsSets = { m_pSkyBoxDS->GetDeviceHandle() };
