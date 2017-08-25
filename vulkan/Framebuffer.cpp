@@ -7,6 +7,7 @@
 #include "CommandPool.h"
 #include "CommandBuffer.h"
 #include "Queue.h"
+#include "VulkanUtil.h"
 
 FrameBuffer::~FrameBuffer()
 {
@@ -105,10 +106,7 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t 
 	inputImgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	inputImgBarrier.image = pImage->GetDeviceHandle();
 	inputImgBarrier.oldLayout = pImage->GetImageInfo().initialLayout;
-	if (inputImgBarrier.oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		inputImgBarrier.srcAccessMask |= (VK_ACCESS_SHADER_READ_BIT);
-	if (inputImgBarrier.oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-		inputImgBarrier.srcAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	inputImgBarrier.srcAccessMask |= VulkanUtil::GetAccessFlagByLayout(inputImgBarrier.oldLayout);
 	inputImgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	inputImgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	inputImgBarrier.subresourceRange =
@@ -175,10 +173,8 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t 
 	inputImgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	inputImgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	inputImgBarrier.newLayout = pImage->GetImageInfo().initialLayout;
-	if (inputImgBarrier.newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		inputImgBarrier.dstAccessMask |= (VK_ACCESS_SHADER_READ_BIT);
-	if (inputImgBarrier.newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-		inputImgBarrier.dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	inputImgBarrier.dstAccessMask |= VulkanUtil::GetAccessFlagByLayout(inputImgBarrier.newLayout);
+
 	inputImgBarrier.subresourceRange =
 	{
 		VK_IMAGE_ASPECT_COLOR_BIT,
