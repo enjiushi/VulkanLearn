@@ -318,8 +318,8 @@ void VulkanGlobal::Update()
 			if (msg.message == WM_QUIT)
 			{
 				quitMessageReceived = true;
-				GetSwapChain()->SetInvalid(true);
-				break;
+				FrameMgr()->WaitForAllJobsDone();
+				return;
 			}
 		}
 		Draw();

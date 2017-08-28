@@ -28,8 +28,6 @@ bool SwapChain::Init(const std::shared_ptr<Device>& pDevice, const std::shared_p
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	m_invalid = false;
-
 	GET_DEVICE_PROC_ADDR(pDevice->GetDeviceHandle(), CreateSwapchainKHR);
 	GET_DEVICE_PROC_ADDR(pDevice->GetDeviceHandle(), DestroySwapchainKHR);
 	GET_DEVICE_PROC_ADDR(pDevice->GetDeviceHandle(), GetSwapchainImagesKHR);
@@ -109,9 +107,6 @@ void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue)
 {
 	// Flush pending submissions before present
 	m_pFrameManager->EndJobSubmission();
-
-	if (GetInvalid())
-		return;
 
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
