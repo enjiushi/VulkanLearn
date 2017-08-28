@@ -606,13 +606,8 @@ void VulkanGlobal::InitIrradianceMap()
 		// Draw skybox
 		pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
 		pDrawCmdBuffer->BindPipeline(m_pOffScreenIrradiancePipeline);
-
-		vertexBuffers = { m_pCubeMesh->GetVertexBuffer()->GetDeviceHandle() };
-		offsets = { 0 };
-		vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-		vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetDeviceHandle(), 0, m_pCubeMesh->GetIndexBuffer()->GetType());
-		pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetVertexBuffer());
-		pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetIndexBuffer());
+		pDrawCmdBuffer->BindVertexBuffers({ m_pCubeMesh->GetVertexBuffer() });
+		pDrawCmdBuffer->BindIndexBuffer(m_pCubeMesh->GetIndexBuffer());
 
 		vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
 
@@ -714,13 +709,8 @@ void VulkanGlobal::InitPrefilterEnvMap()
 			// Draw skybox
 			pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
 			pDrawCmdBuffer->BindPipeline(m_pOffScreenPrefilterEnvPipeline);
-
-			vertexBuffers = { m_pCubeMesh->GetVertexBuffer()->GetDeviceHandle() };
-			offsets = { 0 };
-			vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-			vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetDeviceHandle(), 0, m_pCubeMesh->GetIndexBuffer()->GetType());
-			pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetVertexBuffer());
-			pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetIndexBuffer());
+			pDrawCmdBuffer->BindVertexBuffers({ m_pCubeMesh->GetVertexBuffer() });
+			pDrawCmdBuffer->BindIndexBuffer(m_pCubeMesh->GetIndexBuffer());
 
 			vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
 
@@ -786,13 +776,8 @@ void VulkanGlobal::InitBRDFlutMap()
 	pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
 
 	pDrawCmdBuffer->BindPipeline(m_pOffScreenBRDFLutPipeline);
-
-	vertexBuffers = { m_pQuadMesh->GetVertexBuffer()->GetDeviceHandle() };
-	offsets = { 0 };
-	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadMesh->GetIndexBuffer()->GetDeviceHandle(), 0, m_pQuadMesh->GetIndexBuffer()->GetType());
-	pDrawCmdBuffer->AddToReferenceTable(m_pQuadMesh->GetVertexBuffer());
-	pDrawCmdBuffer->AddToReferenceTable(m_pQuadMesh->GetIndexBuffer());
+	pDrawCmdBuffer->BindVertexBuffers({ m_pQuadMesh->GetVertexBuffer() });
+	pDrawCmdBuffer->BindIndexBuffer(m_pQuadMesh->GetIndexBuffer());
 
 	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
 
@@ -1197,26 +1182,16 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	// Draw gun
 	pDrawCmdBuffer->BindDescriptorSets(m_pPipelineLayout, { m_pDescriptorSet }, { offset });
 	pDrawCmdBuffer->BindPipeline(m_pPipeline);
-
-	vertexBuffers = { m_pGunMesh->GetVertexBuffer()->GetDeviceHandle() };
-	offsets = { 0 };
-	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pGunMesh->GetIndexBuffer()->GetDeviceHandle(), 0, m_pGunMesh->GetIndexBuffer()->GetType());
-	pDrawCmdBuffer->AddToReferenceTable(m_pGunMesh->GetVertexBuffer());
-	pDrawCmdBuffer->AddToReferenceTable(m_pGunMesh->GetIndexBuffer());
+	pDrawCmdBuffer->BindVertexBuffers({ m_pGunMesh->GetVertexBuffer() });
+	pDrawCmdBuffer->BindIndexBuffer(m_pGunMesh->GetIndexBuffer());
 
 	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pGunMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
 
 	// Draw skybox
 	pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
 	pDrawCmdBuffer->BindPipeline(m_pSkyBoxPipeline);
-
-	vertexBuffers = { m_pCubeMesh->GetVertexBuffer()->GetDeviceHandle() };
-	offsets = { 0 };
-	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetDeviceHandle(), 0, m_pCubeMesh->GetIndexBuffer()->GetType());
-	pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetVertexBuffer());
-	pDrawCmdBuffer->AddToReferenceTable(m_pCubeMesh->GetIndexBuffer());
+	pDrawCmdBuffer->BindVertexBuffers({ m_pCubeMesh->GetVertexBuffer() });
+	pDrawCmdBuffer->BindIndexBuffer(m_pCubeMesh->GetIndexBuffer());
 
 	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
 
@@ -1238,13 +1213,8 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 	pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSimpleDS }, { offset });
 	pDrawCmdBuffer->BindPipeline(m_pSimplePipeline);
-
-	vertexBuffers = { m_pQuadVertexBuffer->GetDeviceHandle() };
-	offsets = { 0 };
-	vkCmdBindVertexBuffers(pDrawCmdBuffer->GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetDeviceHandle(), 0, m_pQuadIndexBuffer->GetType());
-	pDrawCmdBuffer->AddToReferenceTable(m_pQuadVertexBuffer);
-	pDrawCmdBuffer->AddToReferenceTable(m_pQuadIndexBuffer);
+	pDrawCmdBuffer->BindVertexBuffers({ m_pQuadVertexBuffer->GetVertexBuffer() });
+	pDrawCmdBuffer->BindIndexBuffer(m_pQuadVertexBuffer->GetIndexBuffer());
 
 	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetCount(), 1, 0, 0, 0);*/
 

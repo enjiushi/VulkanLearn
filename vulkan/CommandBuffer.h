@@ -89,6 +89,8 @@ public:
 
 	void BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets);
 	void BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeline);
+	void BindVertexBuffers(const std::vector<std::shared_ptr<VertexBuffer>>& vertexBuffers);
+	void BindIndexBuffer(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
 
 protected:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);

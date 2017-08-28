@@ -10,6 +10,8 @@
 #include "Buffer.h"
 #include "Image.h"
 #include "VulkanUtil.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 CommandBuffer::~CommandBuffer()
 {
@@ -684,4 +686,26 @@ void CommandBuffer::BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeli
 {
 	vkCmdBindPipeline(GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pPipeline->GetDeviceHandle());
 	AddToReferenceTable(pPipeline);
+}
+
+void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<VertexBuffer>>& vertexBuffers)
+{
+	std::vector<VkBuffer> rawVertexBuffers;
+	for (uint32_t i = 0; i < vertexBuffers.size(); i++)
+	{
+		rawVertexBuffers.push_back(vertexBuffers[i]->GetDeviceHandle());
+		AddToReferenceTable(vertexBuffers[i]);
+	}
+
+	std::vector<VkDeviceSize> offsets;
+	offsets.assign(vertexBuffers.size(), 0);
+
+	//FIXME: I didn't put vertex buffer into a big buffer, so offset is hard coded 0. Vertex & index buffer should be refactored
+	vkCmdBindVertexBuffers(GetDeviceHandle(), 0, rawVertexBuffers.size(), rawVertexBuffers.data(), offsets.data());
+}
+
+void CommandBuffer::BindIndexBuffer(const std::shared_ptr<IndexBuffer>& pIndexBuffer)
+{
+	vkCmdBindIndexBuffer(GetDeviceHandle(), pIndexBuffer->GetDeviceHandle(), 0, pIndexBuffer->GetType());
+	AddToReferenceTable(pIndexBuffer);
 }
