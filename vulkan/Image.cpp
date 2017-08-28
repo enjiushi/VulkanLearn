@@ -11,6 +11,7 @@
 Image::~Image()
 {
 	vkDestroyImageView(GetDevice()->GetDeviceHandle(), m_view, nullptr);
+	vkDestroySampler(GetDevice()->GetDeviceHandle(), m_sampler, nullptr);
 	if (m_shouldDestoryRawImage)
 		vkDestroyImage(GetDevice()->GetDeviceHandle(), m_image, nullptr);
 }
