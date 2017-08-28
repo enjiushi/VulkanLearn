@@ -965,25 +965,25 @@ void VulkanGlobal::InitDescriptorPool()
 void VulkanGlobal::InitDescriptorSet()
 {
 	m_pDescriptorSet = m_pDescriptorPool->AllocateDescriptorSet(m_pDescriptorSetLayout);
-	m_pDescriptorSet->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
+	m_pDescriptorSet->UpdateBufferDynamic(0, m_pUniformBuffer);
 
-	m_pDescriptorSet->UpdateImage(1, m_pAlbedo->GetDescriptorInfo());
-	m_pDescriptorSet->UpdateImage(2, m_pNormal->GetDescriptorInfo());
-	m_pDescriptorSet->UpdateImage(3, m_pRoughness->GetDescriptorInfo());
-	m_pDescriptorSet->UpdateImage(4, m_pMetalic->GetDescriptorInfo());
-	m_pDescriptorSet->UpdateImage(5, m_pAmbientOcclusion->GetDescriptorInfo());
-	m_pDescriptorSet->UpdateImage(6, m_pIrradianceTex->GetDescriptorInfo());
-	m_pDescriptorSet->UpdateImage(7, m_pPrefilterEnvTex->GetDescriptorInfo());
-	m_pDescriptorSet->UpdateImage(8, m_pBRDFLut->GetDescriptorInfo());
+	m_pDescriptorSet->UpdateImage(1, m_pAlbedo);
+	m_pDescriptorSet->UpdateImage(2, m_pNormal);
+	m_pDescriptorSet->UpdateImage(3, m_pRoughness);
+	m_pDescriptorSet->UpdateImage(4, m_pMetalic);
+	m_pDescriptorSet->UpdateImage(5, m_pAmbientOcclusion);
+	m_pDescriptorSet->UpdateImage(6, m_pIrradianceTex);
+	m_pDescriptorSet->UpdateImage(7, m_pPrefilterEnvTex);
+	m_pDescriptorSet->UpdateImage(8, m_pBRDFLut);
 
 	m_pSkyBoxDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
-	m_pSkyBoxDS->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
-	m_pSkyBoxDS->UpdateImage(1, m_pSkyBoxTex->GetDescriptorInfo());
+	m_pSkyBoxDS->UpdateBufferDynamic(0, m_pUniformBuffer);
+	m_pSkyBoxDS->UpdateImage(1, m_pSkyBoxTex);
 	//m_pSkyBoxDS->UpdateImage(1, m_pIrradianceTex->GetDescriptorInfo());
 
 	m_pSimpleDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
-	m_pSimpleDS->UpdateBufferDynamic(0, m_pUniformBuffer->GetDescBufferInfo());
-	m_pSimpleDS->UpdateImage(1, m_pBRDFLut->GetDescriptorInfo());
+	m_pSimpleDS->UpdateBufferDynamic(0, m_pUniformBuffer);
+	m_pSimpleDS->UpdateImage(1, m_pBRDFLut);
 }
 
 void VulkanGlobal::InitDrawCmdBuffers()

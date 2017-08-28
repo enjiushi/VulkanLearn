@@ -1,6 +1,9 @@
 #include "DescriptorSet.h"
 #include "DescriptorPool.h"
 #include "DescriptorSetLayout.h"
+#include "Buffer.h"
+#include "Image.h"
+#include "UniformBuffer.h"
 
 DescriptorSet::~DescriptorSet()
 {
@@ -40,7 +43,7 @@ std::shared_ptr<DescriptorSet> DescriptorSet::Create(const std::shared_ptr<Devic
 	return nullptr;
 }
 
-void DescriptorSet::UpdateBufferDynamic(uint32_t binding, const VkDescriptorBufferInfo& bufferInfo)
+void DescriptorSet::UpdateBufferDynamic(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer)
 {
 	std::vector<VkWriteDescriptorSet> writeData = { {} };
 	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -48,12 +51,16 @@ void DescriptorSet::UpdateBufferDynamic(uint32_t binding, const VkDescriptorBuff
 	writeData[0].dstBinding = binding;
 	writeData[0].descriptorCount = 1;
 	writeData[0].dstSet = GetDeviceHandle();
-	writeData[0].pBufferInfo = &bufferInfo;
+
+	VkDescriptorBufferInfo info = pBuffer->GetDescBufferInfo();
+	writeData[0].pBufferInfo = &info;
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+
+	AddToReferenceTable(pBuffer);
 }
 
-void DescriptorSet::UpdateBuffer(uint32_t binding, const VkDescriptorBufferInfo& bufferInfo)
+void DescriptorSet::UpdateBuffer(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer)
 {
 	std::vector<VkWriteDescriptorSet> writeData = { {} };
 	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -61,12 +68,16 @@ void DescriptorSet::UpdateBuffer(uint32_t binding, const VkDescriptorBufferInfo&
 	writeData[0].dstBinding = binding;
 	writeData[0].descriptorCount = 1;
 	writeData[0].dstSet = GetDeviceHandle();
-	writeData[0].pBufferInfo = &bufferInfo;
+
+	VkDescriptorBufferInfo info = pBuffer->GetDescBufferInfo();
+	writeData[0].pBufferInfo = &info;
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+
+	AddToReferenceTable(pBuffer);
 }
 
-void DescriptorSet::UpdateImage(uint32_t binding, const VkDescriptorImageInfo& imageInfo)
+void DescriptorSet::UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage)
 {
 	std::vector<VkWriteDescriptorSet> writeData = { {} };
 	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -74,9 +85,13 @@ void DescriptorSet::UpdateImage(uint32_t binding, const VkDescriptorImageInfo& i
 	writeData[0].dstBinding = binding;
 	writeData[0].descriptorCount = 1;
 	writeData[0].dstSet = GetDeviceHandle();
-	writeData[0].pImageInfo = &imageInfo;
+
+	VkDescriptorImageInfo info = pImage->GetDescriptorInfo();
+	writeData[0].pImageInfo = &info;
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+
+	AddToReferenceTable(pImage);
 }
 
 void DescriptorSet::UpdateTexBuffer(uint32_t binding, const VkBufferView& texBufferView)

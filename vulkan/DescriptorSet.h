@@ -4,6 +4,8 @@
 
 class DescriptorPool;
 class DescriptorSetLayout;
+class UniformBuffer;
+class Image;
 
 class DescriptorSet : public DeviceObjectBase<DescriptorSet>
 {
@@ -20,9 +22,11 @@ public:
 	const std::shared_ptr<DescriptorSetLayout> GetDescriptorSetLayout() const { return m_pDescriptorSetLayout; }
 	VkDescriptorSet GetDeviceHandle() const { return m_descriptorSet; }
 
-	void UpdateBufferDynamic(uint32_t binding, const VkDescriptorBufferInfo& bufferInfo);
-	void UpdateBuffer(uint32_t binding, const VkDescriptorBufferInfo& bufferInfo);
-	void UpdateImage(uint32_t binding, const VkDescriptorImageInfo& imageInfo);
+	void UpdateBufferDynamic(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer);
+	void UpdateBuffer(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer);
+	void UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage);
+
+	// FIXME: Refactor this when I create texture buffer object class
 	void UpdateTexBuffer(uint32_t binding, const VkBufferView& texBufferView);
 
 public:
