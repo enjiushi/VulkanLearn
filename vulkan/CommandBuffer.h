@@ -11,6 +11,7 @@ class IndexBuffer;
 class FrameBuffer;
 class Buffer;
 class Image;
+class PipelineLayout;
 
 class CommandBuffer : public DeviceObjectBase<CommandBuffer>
 {
@@ -85,6 +86,8 @@ public:
 
 	void SetViewports(const std::vector<VkViewport>& viewports);
 	void SetScissors(const std::vector<VkRect2D>& scissors);
+
+	void BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets);
 
 protected:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);

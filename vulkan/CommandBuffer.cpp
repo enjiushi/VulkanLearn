@@ -659,3 +659,23 @@ void CommandBuffer::SetScissors(const std::vector<VkRect2D>& scissors)
 {
 	vkCmdSetScissor(GetDeviceHandle(), 0, scissors.size(), scissors.data());
 }
+
+void CommandBuffer::BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets)
+{
+	std::vector<VkDescriptorSet> rawDSList;
+	for (uint32_t i = 0; i < descriptorSets.size(); i++)
+	{
+		AddToReferenceTable(descriptorSets[i]);
+		rawDSList.push_back(descriptorSets[i]->GetDeviceHandle());
+	}
+
+	vkCmdBindDescriptorSets
+	(
+		GetDeviceHandle(),
+		VK_PIPELINE_BIND_POINT_GRAPHICS, pPipelineLayout->GetDeviceHandle(),
+		0, descriptorSets.size(), rawDSList.data(),
+		offsets.size(), offsets.data()
+	);
+
+	AddToReferenceTable(pPipelineLayout);
+}

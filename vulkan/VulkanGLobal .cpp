@@ -604,11 +604,7 @@ void VulkanGlobal::InitIrradianceMap()
 		pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
 
 		// Draw skybox
-		dsSets = { m_pSkyBoxDS->GetDeviceHandle() };
-
-		vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
-		pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
-		pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxDS);
+		pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
 
 		vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenIrradiancePipeline->GetDeviceHandle());
 		pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenIrradiancePipeline);
@@ -718,11 +714,7 @@ void VulkanGlobal::InitPrefilterEnvMap()
 			pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
 
 			// Draw skybox
-			dsSets = { m_pSkyBoxDS->GetDeviceHandle() };
-
-			vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
-			pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
-			pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxDS);
+			pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
 
 			vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pOffScreenPrefilterEnvPipeline->GetDeviceHandle());
 			pDrawCmdBuffer->AddToReferenceTable(m_pOffScreenPrefilterEnvPipeline);
@@ -1189,7 +1181,6 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 	uint32_t offset = FrameMgr()->FrameIndex() * m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
 
-	std::vector<VkDescriptorSet> dsSets;
 	std::vector<VkBuffer> vertexBuffers;
 	std::vector<VkDeviceSize> offsets;
 
@@ -1209,11 +1200,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	pDrawCmdBuffer->AddToReferenceTable(m_framebuffers[pPerFrameRes->GetFrameIndex()]);
 
 	// Draw gun
-	dsSets = { m_pDescriptorSet->GetDeviceHandle() };
-
-	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
-	pDrawCmdBuffer->AddToReferenceTable(m_pPipelineLayout);
-	pDrawCmdBuffer->AddToReferenceTable(m_pDescriptorSet);
+	pDrawCmdBuffer->BindDescriptorSets(m_pPipelineLayout, { m_pDescriptorSet }, { offset });
 
 	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipeline->GetDeviceHandle());
 	pDrawCmdBuffer->AddToReferenceTable(m_pPipeline);
@@ -1228,11 +1215,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pGunMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
 
 	// Draw skybox
-	dsSets = { m_pSkyBoxDS->GetDeviceHandle() };
-
-	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
-	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
-	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxDS);
+	pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
 
 	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPipeline->GetDeviceHandle());
 	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPipeline);
@@ -1262,11 +1245,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
 	pDrawCmdBuffer->AddToReferenceTable(m_framebuffers[pPerFrameRes->GetFrameIndex()]);
 
-	dsSets = { m_pSimpleDS->GetDeviceHandle() };
-
-	vkCmdBindDescriptorSets(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSkyBoxPLayout->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 1, &offset);
-	pDrawCmdBuffer->AddToReferenceTable(m_pSkyBoxPLayout);
-	pDrawCmdBuffer->AddToReferenceTable(m_pSimpleDS);
+	pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSimpleDS }, { offset });
 
 	vkCmdBindPipeline(pDrawCmdBuffer->GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pSimplePipeline->GetDeviceHandle());
 	pDrawCmdBuffer->AddToReferenceTable(m_pSimplePipeline);
