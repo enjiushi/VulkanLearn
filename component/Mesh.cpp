@@ -24,7 +24,7 @@ uint32_t Mesh::GetVertexBytes(uint32_t vertexAttribFlag)
 	}
 	if (vertexAttribFlag & (1 << VAFTexCoord))
 	{
-		vertexByte += 3 * sizeof(float);
+		vertexByte += 2 * sizeof(float);
 	}
 	if (vertexAttribFlag & (1 << VAFTangent))
 	{
@@ -101,7 +101,7 @@ bool Mesh::Init
 		attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
 		attrib.location = VAFTexCoord;
 		attrib.offset = offset;
-		offset += sizeof(float) * 3;
+		offset += sizeof(float) * 2;
 		attribDesc.push_back(attrib);
 	}
 	if (vertexAttribFlag & (1 << VAFTangent))
@@ -179,7 +179,7 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
 	//FIXME: hard-coded index 0 here, we don't have more than 1 texture coord for now
 	if (pMesh->HasTextureCoords(0))
 	{
-		vertexSize += 3 * sizeof(float);
+		vertexSize += 2 * sizeof(float);
 		vertexAttribFlag |= (1 << VAFTexCoord);
 	}
 	if (pMesh->HasTangentsAndBitangents())
@@ -222,8 +222,7 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
 		{
 			pVertices[offset + count] = pMesh->mTextureCoords[0][i].x;
 			pVertices[offset + count + 1] = pMesh->mTextureCoords[0][i].y;
-			pVertices[offset + count + 2] = pMesh->mTextureCoords[0][i].z;
-			count += 3;
+			count += 2;
 		}
 		if (vertexAttribFlag & (1 << VAFTangent))
 		{

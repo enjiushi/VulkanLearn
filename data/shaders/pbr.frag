@@ -12,7 +12,7 @@ layout (binding = 6) uniform samplerCube irradianceTex;
 layout (binding = 7) uniform samplerCube prefilterEnvTex;
 layout (binding = 8) uniform sampler2D BRDFLut;
 
-layout (location = 0) in vec3 inUv;
+layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inViewDir;
 layout (location = 2) in vec3 inLightDir;
 layout (location = 3) in vec3 inNormal;
