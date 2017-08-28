@@ -64,8 +64,6 @@ public:
 	VkCommandBufferAllocateInfo GetAllocateInfo() const { return m_info; }
 	std::shared_ptr<CommandPool> GetCommandPool() const { return m_pCommandPool; }
 
-	void AddToReferenceTable(const std::shared_ptr<Base>& pObj) { m_referenceTable.push_back(pObj); }
-
 	void StartRecording();
 	void EndRecording();
 	void PrepareNormalDrawCommands(const DrawCmdData& data);
@@ -119,7 +117,6 @@ protected:
 	bool											m_isValide;
 
 	std::shared_ptr<CommandPool>					m_pCommandPool;
-	std::vector<std::shared_ptr<Base>>				m_referenceTable;
 
 	DrawCmdData										m_drawCmdData;
 	BufferCopyCmdData								m_bufferCopyCmdData;
