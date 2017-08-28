@@ -709,3 +709,30 @@ void CommandBuffer::BindIndexBuffer(const std::shared_ptr<IndexBuffer>& pIndexBu
 	vkCmdBindIndexBuffer(GetDeviceHandle(), pIndexBuffer->GetDeviceHandle(), 0, pIndexBuffer->GetType());
 	AddToReferenceTable(pIndexBuffer);
 }
+
+void CommandBuffer::DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer)
+{
+	vkCmdDrawIndexed(GetDeviceHandle(), pIndexBuffer->GetCount(), 1, 0, 0, 0);
+}
+
+void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::vector<VkClearValue>& clearValues)
+{
+	VkRenderPassBeginInfo renderPassBeginInfo = {};
+	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassBeginInfo.clearValueCount = clearValues.size();
+	renderPassBeginInfo.pClearValues = clearValues.data();
+	renderPassBeginInfo.renderPass = pFrameBuffer->GetRenderPass()->GetDeviceHandle();
+	renderPassBeginInfo.framebuffer = pFrameBuffer->GetDeviceHandle();
+	renderPassBeginInfo.renderArea.extent.width = pFrameBuffer->GetFramebufferInfo().width;
+	renderPassBeginInfo.renderArea.extent.height = pFrameBuffer->GetFramebufferInfo().height;
+	renderPassBeginInfo.renderArea.offset.x = 0;
+	renderPassBeginInfo.renderArea.offset.y = 0;
+
+	vkCmdBeginRenderPass(GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	AddToReferenceTable(pFrameBuffer);
+}
+
+void CommandBuffer::EndRenderPass()
+{
+	vkCmdEndRenderPass(GetDeviceHandle());
+}

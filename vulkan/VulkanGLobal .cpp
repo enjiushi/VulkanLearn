@@ -583,25 +583,8 @@ void VulkanGlobal::InitIrradianceMap()
 		pDrawCmdBuffer->SetScissors({ scissorRect });
 
 		uint32_t offset = 0;
-
-		std::vector<VkDescriptorSet> dsSets;
-		std::vector<VkBuffer> vertexBuffers;
-		std::vector<VkDeviceSize> offsets;
 		
-		VkRenderPassBeginInfo renderPassBeginInfo = {};
-		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassBeginInfo.clearValueCount = clearValues.size();
-		renderPassBeginInfo.pClearValues = clearValues.data();
-		renderPassBeginInfo.renderPass = m_pOffscreenRenderPass->GetDeviceHandle();
-		renderPassBeginInfo.framebuffer = m_pEnvFrameBuffer->GetDeviceHandle();
-		renderPassBeginInfo.renderArea.extent.width = OffScreenSize;
-		renderPassBeginInfo.renderArea.extent.height = OffScreenSize;
-		renderPassBeginInfo.renderArea.offset.x = 0;
-		renderPassBeginInfo.renderArea.offset.y = 0;
-
-		vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-		pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
-		pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
+		pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, clearValues);
 
 		// Draw skybox
 		pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
@@ -609,9 +592,9 @@ void VulkanGlobal::InitIrradianceMap()
 		pDrawCmdBuffer->BindVertexBuffers({ m_pCubeMesh->GetVertexBuffer() });
 		pDrawCmdBuffer->BindIndexBuffer(m_pCubeMesh->GetIndexBuffer());
 
-		vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
+		pDrawCmdBuffer->DrawIndexed(m_pCubeMesh->GetIndexBuffer());
 
-		vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
+		pDrawCmdBuffer->EndRenderPass();
 
 
 		pDrawCmdBuffer->EndRecording();
@@ -687,24 +670,7 @@ void VulkanGlobal::InitPrefilterEnvMap()
 
 			uint32_t offset = 0;
 
-			std::vector<VkDescriptorSet> dsSets;
-			std::vector<VkBuffer> vertexBuffers;
-			std::vector<VkDeviceSize> offsets;
-
-			VkRenderPassBeginInfo renderPassBeginInfo = {};
-			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			renderPassBeginInfo.clearValueCount = clearValues.size();
-			renderPassBeginInfo.pClearValues = clearValues.data();
-			renderPassBeginInfo.renderPass = m_pOffscreenRenderPass->GetDeviceHandle();
-			renderPassBeginInfo.framebuffer = m_pEnvFrameBuffer->GetDeviceHandle();
-			renderPassBeginInfo.renderArea.extent.width = OffScreenSize;
-			renderPassBeginInfo.renderArea.extent.height = OffScreenSize;
-			renderPassBeginInfo.renderArea.offset.x = 0;
-			renderPassBeginInfo.renderArea.offset.y = 0;
-
-			vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-			pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
-			pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
+			pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, clearValues);
 
 			// Draw skybox
 			pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
@@ -712,9 +678,9 @@ void VulkanGlobal::InitPrefilterEnvMap()
 			pDrawCmdBuffer->BindVertexBuffers({ m_pCubeMesh->GetVertexBuffer() });
 			pDrawCmdBuffer->BindIndexBuffer(m_pCubeMesh->GetIndexBuffer());
 
-			vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
+			pDrawCmdBuffer->DrawIndexed(m_pCubeMesh->GetIndexBuffer());
 
-			vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
+			pDrawCmdBuffer->EndRenderPass();
 
 
 			pDrawCmdBuffer->EndRecording();
@@ -756,32 +722,15 @@ void VulkanGlobal::InitBRDFlutMap()
 
 	uint32_t offset = 0;
 
-	std::vector<VkDescriptorSet> dsSets;
-	std::vector<VkBuffer> vertexBuffers;
-	std::vector<VkDeviceSize> offsets;
-
-	VkRenderPassBeginInfo renderPassBeginInfo = {};
-	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.clearValueCount = clearValues.size();
-	renderPassBeginInfo.pClearValues = clearValues.data();
-	renderPassBeginInfo.renderPass = m_pOffscreenRenderPass->GetDeviceHandle();
-	renderPassBeginInfo.framebuffer = m_pEnvFrameBuffer->GetDeviceHandle();
-	renderPassBeginInfo.renderArea.extent.width = OffScreenSize;
-	renderPassBeginInfo.renderArea.extent.height = OffScreenSize;
-	renderPassBeginInfo.renderArea.offset.x = 0;
-	renderPassBeginInfo.renderArea.offset.y = 0;
-
-	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
-	pDrawCmdBuffer->AddToReferenceTable(m_pEnvFrameBuffer);
+	pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, clearValues);
 
 	pDrawCmdBuffer->BindPipeline(m_pOffScreenBRDFLutPipeline);
 	pDrawCmdBuffer->BindVertexBuffers({ m_pQuadMesh->GetVertexBuffer() });
 	pDrawCmdBuffer->BindIndexBuffer(m_pQuadMesh->GetIndexBuffer());
 
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
+	pDrawCmdBuffer->DrawIndexed(m_pQuadMesh->GetIndexBuffer());
 
-	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
+	pDrawCmdBuffer->EndRenderPass();
 
 
 	pDrawCmdBuffer->EndRecording();
@@ -1161,23 +1110,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 	uint32_t offset = FrameMgr()->FrameIndex() * m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
 
-	std::vector<VkBuffer> vertexBuffers;
-	std::vector<VkDeviceSize> offsets;
-
-	VkRenderPassBeginInfo renderPassBeginInfo = {};
-	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.clearValueCount = clearValues.size();
-	renderPassBeginInfo.pClearValues = clearValues.data();
-	renderPassBeginInfo.renderPass = m_pRenderPass->GetDeviceHandle();
-	renderPassBeginInfo.framebuffer = m_framebuffers[pPerFrameRes->GetFrameIndex()]->GetDeviceHandle();
-	renderPassBeginInfo.renderArea.extent.width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
-	renderPassBeginInfo.renderArea.extent.height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
-	renderPassBeginInfo.renderArea.offset.x = 0;
-	renderPassBeginInfo.renderArea.offset.y = 0;
-
-	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
-	pDrawCmdBuffer->AddToReferenceTable(m_framebuffers[pPerFrameRes->GetFrameIndex()]);
+	pDrawCmdBuffer->BeginRenderPass(m_framebuffers[pPerFrameRes->GetFrameIndex()], clearValues);
 
 	// Draw gun
 	pDrawCmdBuffer->BindDescriptorSets(m_pPipelineLayout, { m_pDescriptorSet }, { offset });
@@ -1185,7 +1118,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	pDrawCmdBuffer->BindVertexBuffers({ m_pGunMesh->GetVertexBuffer() });
 	pDrawCmdBuffer->BindIndexBuffer(m_pGunMesh->GetIndexBuffer());
 
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pGunMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
+	pDrawCmdBuffer->DrawIndexed(m_pGunMesh->GetIndexBuffer());
 
 	// Draw skybox
 	pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
@@ -1193,32 +1126,19 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	pDrawCmdBuffer->BindVertexBuffers({ m_pCubeMesh->GetVertexBuffer() });
 	pDrawCmdBuffer->BindIndexBuffer(m_pCubeMesh->GetIndexBuffer());
 
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pCubeMesh->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
+	pDrawCmdBuffer->DrawIndexed(m_pCubeMesh->GetIndexBuffer());
 
 	/*
-	renderPassBeginInfo = {};
-	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.clearValueCount = clearValues.size();
-	renderPassBeginInfo.pClearValues = clearValues.data();
-	renderPassBeginInfo.renderPass = m_pRenderPass->GetDeviceHandle();
-	renderPassBeginInfo.framebuffer = m_framebuffers[pPerFrameRes->GetFrameIndex()]->GetDeviceHandle();
-	renderPassBeginInfo.renderArea.extent.width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
-	renderPassBeginInfo.renderArea.extent.height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
-	renderPassBeginInfo.renderArea.offset.x = 0;
-	renderPassBeginInfo.renderArea.offset.y = 0;
-
-	vkCmdBeginRenderPass(pDrawCmdBuffer->GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-	pDrawCmdBuffer->AddToReferenceTable(m_pRenderPass);
-	pDrawCmdBuffer->AddToReferenceTable(m_framebuffers[pPerFrameRes->GetFrameIndex()]);
+	pDrawCmdBuffer->BeginRenderPass(m_framebuffers[pPerFrameRes->GetFrameIndex()], clearValues);
 
 	pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSimpleDS }, { offset });
 	pDrawCmdBuffer->BindPipeline(m_pSimplePipeline);
 	pDrawCmdBuffer->BindVertexBuffers({ m_pQuadVertexBuffer->GetVertexBuffer() });
 	pDrawCmdBuffer->BindIndexBuffer(m_pQuadVertexBuffer->GetIndexBuffer());
 
-	vkCmdDrawIndexed(pDrawCmdBuffer->GetDeviceHandle(), m_pQuadIndexBuffer->GetCount(), 1, 0, 0, 0);*/
+	pDrawCmdBuffer->DrawIndexed(m_pQuadMesh->GetIndexBuffer());*/
 
-	vkCmdEndRenderPass(pDrawCmdBuffer->GetDeviceHandle());
+	pDrawCmdBuffer->EndRenderPass();
 
 
 	pDrawCmdBuffer->EndRecording();

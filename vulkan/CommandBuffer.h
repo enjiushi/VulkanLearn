@@ -92,6 +92,11 @@ public:
 	void BindVertexBuffers(const std::vector<std::shared_ptr<VertexBuffer>>& vertexBuffers);
 	void BindIndexBuffer(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
 
+	void BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::vector<VkClearValue>& clearValues);
+	void EndRenderPass();
+
+	void DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
+
 protected:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);
 
