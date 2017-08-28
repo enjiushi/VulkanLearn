@@ -679,3 +679,9 @@ void CommandBuffer::BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pP
 
 	AddToReferenceTable(pPipelineLayout);
 }
+
+void CommandBuffer::BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeline)
+{
+	vkCmdBindPipeline(GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pPipeline->GetDeviceHandle());
+	AddToReferenceTable(pPipeline);
+}
