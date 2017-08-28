@@ -83,6 +83,9 @@ public:
 		const std::vector<VkImageMemoryBarrier>& imageMemBarriers
 	);
 
+	void SetViewports(const std::vector<VkViewport>& viewports);
+	void SetScissors(const std::vector<VkRect2D>& scissors);
+
 protected:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);
 

@@ -579,8 +579,8 @@ void VulkanGlobal::InitIrradianceMap()
 		UpdateUniforms(0, m_pOffScreenCamComp);
 		StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
-		vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
-		vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
+		pDrawCmdBuffer->SetViewports({ viewport });
+		pDrawCmdBuffer->SetScissors({ scissorRect });
 
 		uint32_t offset = 0;
 
@@ -693,8 +693,8 @@ void VulkanGlobal::InitPrefilterEnvMap()
 			UpdateUniforms(0, m_pOffScreenCamComp);
 			StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
-			vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
-			vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
+			pDrawCmdBuffer->SetViewports({ viewport });
+			pDrawCmdBuffer->SetScissors({ scissorRect });
 
 			uint32_t offset = 0;
 
@@ -773,8 +773,8 @@ void VulkanGlobal::InitBRDFlutMap()
 
 	pDrawCmdBuffer->StartRecording();
 
-	vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
-	vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
+	pDrawCmdBuffer->SetViewports({ viewport });
+	pDrawCmdBuffer->SetScissors({ scissorRect });
 
 	uint32_t offset = 0;
 
@@ -1184,8 +1184,8 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 		GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height
 	};
 
-	vkCmdSetViewport(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &viewport);
-	vkCmdSetScissor(pDrawCmdBuffer->GetDeviceHandle(), 0, 1, &scissorRect);
+	pDrawCmdBuffer->SetViewports({ viewport });
+	pDrawCmdBuffer->SetScissors({ scissorRect });
 
 	uint32_t offset = FrameMgr()->FrameIndex() * m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
 

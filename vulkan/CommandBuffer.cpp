@@ -649,3 +649,13 @@ void CommandBuffer::AttachBarriers
 		imageMemBarriers.size(), imageMemBarriers.data()
 	);
 }
+
+void CommandBuffer::SetViewports(const std::vector<VkViewport>& viewports)
+{
+	vkCmdSetViewport(GetDeviceHandle(), 0, viewports.size(), viewports.data());
+}
+
+void CommandBuffer::SetScissors(const std::vector<VkRect2D>& scissors)
+{
+	vkCmdSetScissor(GetDeviceHandle(), 0, scissors.size(), scissors.data());
+}
