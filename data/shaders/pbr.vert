@@ -42,7 +42,6 @@ void main()
 	outUv = inUv;
 	outUv.t = 1.0 - inUv.t;
 
-	vec3 worldPos = (ubo.model * vec4(inPos.xyz, 1.0)).xyz;
-	outViewDir = normalize(ubo.camPos - worldPos);
-	outLightDir = normalize(lightPos - worldPos);
+	outViewDir = normalize(ubo.camPos - outWorldPos);
+	outLightDir = normalize(lightPos - outWorldPos);
 }
