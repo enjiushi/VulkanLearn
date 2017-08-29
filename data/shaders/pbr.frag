@@ -13,12 +13,8 @@ layout (binding = 7) uniform samplerCube prefilterEnvTex;
 layout (binding = 8) uniform sampler2D BRDFLut;
 
 layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec3 inViewDir;
-layout (location = 2) in vec3 inLightDir;
-layout (location = 3) in vec3 inNormal;
-layout (location = 4) in vec3 inTangent;
-layout (location = 5) in vec3 inBiTangent;
-layout (location = 6) in vec3 inWorldPos;
+layout (location = 1) in vec3 inNormal;
+layout (location = 2) in vec3 inWorldPos;
 
 layout (location = 0) out vec4 outFragColor;
 
@@ -29,6 +25,18 @@ const float PI = 3.14159265;
 vec3 F0 = vec3(0.04);
 const float exposure = 4.5;
 const float whiteScale = 11.2;
+const vec3 lightPos = vec3(1000, 0, -1000);
+
+layout (binding = 0) uniform UBO
+{
+	mat4 model;
+	mat4 view;
+	mat4 projection;
+	mat4 vulkanNDC;
+	mat4 mvp;
+	vec3 camPos;
+	float roughness;
+}ubo;
 
 float GGX_D(float NdotH, float roughness)
 {
@@ -110,8 +118,8 @@ void main()
 
 	vec3 n = normalize(perturbNormal());
 	//vec3 n = normalize(inNormal);
-	vec3 v = normalize(inViewDir);
-	vec3 l = normalize(inLightDir);
+	vec3 v = normalize(ubo.camPos - inWorldPos);
+	vec3 l = normalize(lightPos - inWorldPos);
 	vec3 h = normalize(l + v);
 
 	float NdotH = max(0.0f, dot(n, h));

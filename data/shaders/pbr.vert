@@ -10,12 +10,8 @@ layout (location = 4) in vec3 inTangent;
 layout (location = 5) in vec3 inBitangent;
 
 layout (location = 0) out vec2 outUv;
-layout (location = 1) out vec3 outViewDir;
-layout (location = 2) out vec3 outLightDir;
-layout (location = 3) out vec3 outNormal;
-layout (location = 4) out vec3 outTangent;
-layout (location = 5) out vec3 outBiTangent;
-layout (location = 6) out vec3 outWorldPos;
+layout (location = 1) out vec3 outNormal;
+layout (location = 2) out vec3 outWorldPos;
 
 layout (binding = 0) uniform UBO
 {
@@ -28,20 +24,13 @@ layout (binding = 0) uniform UBO
 	float roughness;
 }ubo;
 
-const vec3 lightPos = vec3(1000, 0, -1000);
-
 void main() 
 {
 	gl_Position = ubo.mvp * vec4(inPos.xyz, 1.0);
 
-	outTangent = normalize(vec3(ubo.model * vec4(inTangent, 0.0)));
-	outBiTangent = normalize(vec3(ubo.model * vec4(inBitangent, 0.0)));
 	outNormal = normalize(vec3(ubo.model * vec4(inNormal, 0.0)));
 	outWorldPos = vec3(ubo.model * vec4(inPos, 1.0));
 
 	outUv = inUv;
 	outUv.t = 1.0 - inUv.t;
-
-	outViewDir = normalize(ubo.camPos - outWorldPos);
-	outLightDir = normalize(lightPos - outWorldPos);
 }
