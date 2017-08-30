@@ -18,6 +18,7 @@
 #include "../thread/ThreadWorker.hpp"
 #include <gli\gli.hpp>
 #include "SharedVertexBuffer.h"
+#include "SharedIndexBuffer.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {

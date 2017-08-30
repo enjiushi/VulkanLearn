@@ -704,7 +704,7 @@ void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<VertexBu
 
 void CommandBuffer::BindIndexBuffer(const std::shared_ptr<IndexBuffer>& pIndexBuffer)
 {
-	vkCmdBindIndexBuffer(GetDeviceHandle(), pIndexBuffer->GetDeviceHandle(), 0, pIndexBuffer->GetType());
+	vkCmdBindIndexBuffer(GetDeviceHandle(), pIndexBuffer->GetDeviceHandle(), pIndexBuffer->GetBufferOffset(), pIndexBuffer->GetType());
 	AddToReferenceTable(pIndexBuffer);
 }
 

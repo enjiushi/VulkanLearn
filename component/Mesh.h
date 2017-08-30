@@ -4,9 +4,8 @@
 #include "../vulkan/DeviceObjectBase.h"
 #include <string>
 
-class VertexBuffer;
 class SharedVertexBuffer;
-class IndexBuffer;
+class SharedIndexBuffer;
 
 class Mesh : public SelfRefBase<Mesh>
 {
@@ -33,7 +32,7 @@ public:
 
 public:
 	std::shared_ptr<SharedVertexBuffer> GetVertexBuffer() const { return m_pVertexBuffer; }
-	std::shared_ptr<IndexBuffer> GetIndexBuffer() const { return m_pIndexBuffer; }
+	std::shared_ptr<SharedIndexBuffer> GetIndexBuffer() const { return m_pIndexBuffer; }
 	uint32_t GetVertexAttribFlag() const { return m_vertexAttribFlag; }
 	uint32_t GetVertexBytes() const { return m_vertexBytes; }
 	uint32_t GetVerticesCount() const { return m_verticesCount; }
@@ -47,7 +46,7 @@ protected:
 
 protected:
 	std::shared_ptr<SharedVertexBuffer>	m_pVertexBuffer;
-	std::shared_ptr<IndexBuffer>		m_pIndexBuffer;
+	std::shared_ptr<SharedIndexBuffer>	m_pIndexBuffer;
 	uint32_t							m_vertexAttribFlag;
 	uint32_t							m_verticesCount;
 	uint32_t							m_vertexBytes;

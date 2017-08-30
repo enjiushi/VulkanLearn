@@ -1,7 +1,6 @@
 #include "Mesh.h"
-#include "../vulkan/VertexBuffer.h"
-#include "../vulkan/IndexBuffer.h"
 #include "../vulkan/SharedVertexBuffer.h"
+#include "../vulkan/SharedIndexBuffer.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "Importer.hpp"
 #include "scene.h"
@@ -118,7 +117,7 @@ bool Mesh::Init
 
 	m_pVertexBuffer = SharedVertexBuffer::Create(GetDevice(), m_verticesCount * m_vertexBytes, bindingDesc, attribDesc);
 	m_pVertexBuffer->UpdateByteStream(pVertices, 0, m_verticesCount * m_vertexBytes);
-	m_pIndexBuffer = IndexBuffer::Create(GetDevice(), indicesCount * GetIndexBytes(indexType), indexType);
+	m_pIndexBuffer = SharedIndexBuffer::Create(GetDevice(), indicesCount * GetIndexBytes(indexType), indexType);
 	m_pIndexBuffer->UpdateByteStream(pIndices, 0, indicesCount * GetIndexBytes(indexType));
 
 	return true;
