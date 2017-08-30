@@ -38,7 +38,8 @@ class DeviceMemoryManager : public DeviceObjectBase<DeviceMemoryManager>
 		uint32_t numBytes = 0;
 	}BindingInfo;
 
-	static const uint32_t MEMORY_ALLOCATE_INC = 1024 * 1024 * 128;
+public:
+	static const uint32_t MEMORY_ALLOCATE_INC = 1024 * 1024 * 512;
 
 public:
 	~DeviceMemoryManager();

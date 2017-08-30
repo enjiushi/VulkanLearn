@@ -5,6 +5,7 @@
 #include "StagingBufferManager.h"
 #include "SwapChain.h"
 #include "../thread/ThreadWorker.hpp"
+#include "SharedBufferManager.h"
 
 bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 {
@@ -23,6 +24,8 @@ bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 	info.size = UNIFORM_BUFFER_SIZE;
 	m_pBigUniformBuffer = Buffer::Create(pDevice, info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
+	m_pVertexAttribBufferMgr = SharedBufferManager::Create(pDevice, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, ATTRIBUTE_BUFFER_SIZE);
+
 	m_pSwapChain = SwapChain::Create(pDevice);
 
 	m_pDevice = pDevice;
@@ -39,6 +42,14 @@ GlobalDeviceObjects::~GlobalDeviceObjects()
 {
 }
 
+bool GlobalDeviceObjects::RequestAttributeBuffer(uint32_t size, uint32_t& offset)
+{
+	ASSERTION(m_attributeBufferOffset + size < ATTRIBUTE_BUFFER_SIZE);
+	offset = m_attributeBufferOffset;
+	m_attributeBufferOffset += size;
+	return true;
+}
+
 std::shared_ptr<Queue> GlobalGraphicQueue() { return GlobalObjects()->GetGraphicQueue(); }
 std::shared_ptr<Queue> GlobalPresentQueue() { return GlobalObjects()->GetPresentQueue(); }
 std::shared_ptr<CommandPool> MainThreadPool() { return GlobalObjects()->GetMainThreadCmdPool(); }
@@ -50,3 +61,4 @@ std::shared_ptr<FrameManager> FrameMgr();
 std::shared_ptr<FrameManager> FrameMgr() { return GetSwapChain()->GetFrameManager(); }
 std::shared_ptr<Device> GetDevice() { return GlobalObjects()->GetDevice(); }
 std::shared_ptr<PhysicalDevice> GetPhysicalDevice() { return GetDevice()->GetPhysicalDevice(); }
+std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr() { return GlobalObjects()->GetVertexAttribBufferMgr(); }
