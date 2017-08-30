@@ -12,6 +12,8 @@ layout (location = 5) in vec3 inBitangent;
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outNormal;
 layout (location = 2) out vec3 outWorldPos;
+layout (location = 3) out vec3 outLightDir;
+layout (location = 4) out vec3 outViewDir;
 
 layout (binding = 0) uniform UBO
 {
@@ -24,6 +26,8 @@ layout (binding = 0) uniform UBO
 	float roughness;
 }ubo;
 
+const vec3 lightPos = vec3(1000, 0, -1000);
+
 void main() 
 {
 	gl_Position = ubo.mvp * vec4(inPos.xyz, 1.0);
@@ -33,4 +37,7 @@ void main()
 
 	outUv = inUv;
 	outUv.t = 1.0 - inUv.t;
+
+	outLightDir = vec3(lightPos - outWorldPos);
+	outViewDir = vec3(ubo.camPos - outWorldPos);
 }
