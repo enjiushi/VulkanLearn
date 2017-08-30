@@ -17,6 +17,8 @@ layout (location = 1) in vec3 inNormal;
 layout (location = 2) in vec3 inWorldPos;
 layout (location = 3) in vec3 inLightDir;
 layout (location = 4) in vec3 inViewDir;
+layout (location = 5) in vec3 inTangent;
+layout (location = 6) in vec3 inBitangent;
 
 layout (location = 0) out vec4 outFragColor;
 
@@ -111,13 +113,13 @@ vec3 Uncharted2Tonemap(vec3 x)
 
 void main() 
 {
-	//vec3 pertNormal = texture(bumpTex, inUv.st, 0.0).rgb;
-	//pertNormal = pertNormal * 2.0 - vec3(1.0);
+	vec3 pertNormal = texture(bumpTex, inUv.st, 0.0).rgb;
+	pertNormal = pertNormal * 2.0 - vec3(1.0);
 
-	//mat3 TBN = mat3(inTangent, inBiTangent, inNormal);
-	//pertNormal = TBN * pertNormal;
+	mat3 TBN = mat3(inTangent, inBitangent, inNormal);
+	pertNormal = TBN * pertNormal;
 
-	vec3 n = normalize(perturbNormal());
+	vec3 n = normalize(pertNormal);
 	//vec3 n = normalize(inNormal);
 	vec3 v = normalize(inViewDir);
 	vec3 l = normalize(inLightDir);

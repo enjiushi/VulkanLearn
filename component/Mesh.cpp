@@ -28,7 +28,7 @@ uint32_t Mesh::GetVertexBytes(uint32_t vertexAttribFlag)
 	}
 	if (vertexAttribFlag & (1 << VAFTangent))
 	{
-		vertexByte += 6 * sizeof(float);
+		vertexByte += 3 * sizeof(float);
 	}
 	return vertexByte;
 }
@@ -113,14 +113,6 @@ bool Mesh::Init
 		attrib.offset = offset;
 		offset += sizeof(float) * 3;
 		attribDesc.push_back(attrib);
-
-		attrib = {};
-		attrib.binding = 0;
-		attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
-		attrib.location = VAFTangent + 1;
-		attrib.offset = offset;
-		offset += sizeof(float) * 3;
-		attribDesc.push_back(attrib);
 	}
 
 	m_pVertexBuffer = VertexBuffer::Create(GetDevice(), m_verticesCount * m_vertexBytes, bindingDesc, attribDesc);
@@ -184,7 +176,7 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
 	}
 	if (pMesh->HasTangentsAndBitangents())
 	{
-		vertexSize += 6 * sizeof(float);
+		vertexSize += 3 * sizeof(float);
 		vertexAttribFlag |= (1 << VAFTangent);
 	}
 
@@ -229,10 +221,7 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
 			pVertices[offset + count] = pMesh->mTangents[i].x;
 			pVertices[offset + count + 1] = pMesh->mTangents[i].y;
 			pVertices[offset + count + 2] = pMesh->mTangents[i].z;
-			pVertices[offset + count + 3] = pMesh->mBitangents[i].x;
-			pVertices[offset + count + 4] = pMesh->mBitangents[i].y;
-			pVertices[offset + count + 5] = pMesh->mBitangents[i].z;
-			count += 6;
+			count += 3;
 		}
 	}
 
