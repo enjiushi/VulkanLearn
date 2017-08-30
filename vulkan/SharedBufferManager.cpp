@@ -1,4 +1,6 @@
 #include "SharedBufferManager.h"
+#include "GlobalDeviceObjects.h"
+#include "StagingBufferManager.h"
 
 std::shared_ptr<BufferKey> BufferKey::Create(const std::shared_ptr<SharedBufferManager>& pSharedBufMgr, uint32_t index)
 {
@@ -55,6 +57,7 @@ void SharedBufferManager::FreeBuffer(uint32_t index)
 std::shared_ptr<BufferKey> SharedBufferManager::AllocateBuffer(uint32_t numBytes)
 {
 	VkDescriptorBufferInfo info = {};
+	info.buffer = GetBuffer()->GetDeviceHandle();
 	uint32_t offset = 0;
 	uint32_t endByte = 0;
 	for (uint32_t i = 0; i < m_bufferTable.size(); i++)
@@ -75,4 +78,14 @@ std::shared_ptr<BufferKey> SharedBufferManager::AllocateBuffer(uint32_t numBytes
 
 	if (offset + numBytes > m_pBuffer->GetBufferInfo().size)
 		return nullptr;
+
+	info.offset = offset;
+	info.range = numBytes;
+	m_bufferTable.insert(m_bufferTable.end(), info);
+	return BufferKey::Create(GetSelfSharedPtr(), m_bufferTable.size() - 1);
+}
+
+void SharedBufferManager::UpdateByteStream(const void* pData, const std::shared_ptr<Buffer>& pWrapperBuffer, const std::shared_ptr<BufferKey>& pBufKey, uint32_t offset, uint32_t numBytes)
+{
+	StagingBufferMgr()->UpdateByteStream(pWrapperBuffer, pData, offset + m_bufferTable[pBufKey->m_index].offset, numBytes);
 }

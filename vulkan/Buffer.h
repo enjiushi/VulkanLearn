@@ -22,6 +22,7 @@ public:
 	virtual void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes);
 	virtual uint32_t GetMemoryProperty() const { return m_memProperty; }
 	virtual VkMemoryRequirements GetMemoryReqirments() const;
+	virtual uint32_t GetBufferOffset() const { return 0; }
 
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;

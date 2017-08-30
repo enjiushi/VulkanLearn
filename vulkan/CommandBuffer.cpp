@@ -691,16 +691,14 @@ void CommandBuffer::BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeli
 void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<VertexBuffer>>& vertexBuffers)
 {
 	std::vector<VkBuffer> rawVertexBuffers;
+	std::vector<VkDeviceSize> offsets;
 	for (uint32_t i = 0; i < vertexBuffers.size(); i++)
 	{
 		rawVertexBuffers.push_back(vertexBuffers[i]->GetDeviceHandle());
+		offsets.push_back(vertexBuffers[i]->GetBufferOffset());
 		AddToReferenceTable(vertexBuffers[i]);
 	}
 
-	std::vector<VkDeviceSize> offsets;
-	offsets.assign(vertexBuffers.size(), 0);
-
-	//FIXME: I didn't put vertex buffer into a big buffer, so offset is hard coded 0. Vertex & index buffer should be refactored
 	vkCmdBindVertexBuffers(GetDeviceHandle(), 0, rawVertexBuffers.size(), rawVertexBuffers.data(), offsets.data());
 }
 

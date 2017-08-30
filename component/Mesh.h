@@ -5,6 +5,7 @@
 #include <string>
 
 class VertexBuffer;
+class SharedVertexBuffer;
 class IndexBuffer;
 
 class Mesh : public SelfRefBase<Mesh>
@@ -31,7 +32,7 @@ public:
 	static uint32_t GetIndexBytes(VkIndexType indexType);
 
 public:
-	std::shared_ptr<VertexBuffer> GetVertexBuffer() const { return m_pVertexBuffer; }
+	std::shared_ptr<SharedVertexBuffer> GetVertexBuffer() const { return m_pVertexBuffer; }
 	std::shared_ptr<IndexBuffer> GetIndexBuffer() const { return m_pIndexBuffer; }
 	uint32_t GetVertexAttribFlag() const { return m_vertexAttribFlag; }
 	uint32_t GetVertexBytes() const { return m_vertexBytes; }
@@ -45,9 +46,9 @@ protected:
 	);
 
 protected:
-	std::shared_ptr<VertexBuffer>	m_pVertexBuffer;
-	std::shared_ptr<IndexBuffer>	m_pIndexBuffer;
-	uint32_t						m_vertexAttribFlag;
-	uint32_t						m_verticesCount;
-	uint32_t						m_vertexBytes;
+	std::shared_ptr<SharedVertexBuffer>	m_pVertexBuffer;
+	std::shared_ptr<IndexBuffer>		m_pIndexBuffer;
+	uint32_t							m_vertexAttribFlag;
+	uint32_t							m_verticesCount;
+	uint32_t							m_vertexBytes;
 };
