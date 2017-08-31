@@ -1,4 +1,6 @@
 #include "BaseObject.h"
+#include "../vulkan/GlobalDeviceObjects.h"
+#include "../vulkan/FrameManager.h"
 
 std::shared_ptr<BaseObject> BaseObject::Create()
 {
@@ -69,26 +71,26 @@ bool BaseObject::ContainObject(const std::shared_ptr<BaseObject>& pObj) const
 	return false;
 }
 
-void BaseObject::Update(float delta)
+void BaseObject::Update()
 {
 	//update components attached to this object
 	for (size_t i = 0; i < m_components.size(); i++)
-		m_components[i]->Update(delta);
+		FrameMgr()->AddJobToFrame(std::bind(&BaseComponent::Update, m_components[i].get(), std::placeholders::_1));
 
 	//update all children objects
 	for (size_t i = 0; i < m_children.size(); i++)
-		m_children[i]->Update(delta);
+		m_children[i]->Update();
 }
 
-void BaseObject::LateUpdate(float delta)
+void BaseObject::LateUpdate()
 {
 	//update components attached to this object
 	for (size_t i = 0; i < m_components.size(); i++)
-		m_components[i]->LateUpdate(delta);
+		FrameMgr()->AddJobToFrame(std::bind(&BaseComponent::LateUpdate, m_components[i].get(), std::placeholders::_1));
 
 	//update all children objects
 	for (size_t i = 0; i < m_children.size(); i++)
-		m_children[i]->LateUpdate(delta);
+		m_children[i]->LateUpdate();
 }
 
 void BaseObject::SetRotation(const Matrix3f& m)

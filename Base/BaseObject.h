@@ -29,8 +29,8 @@ public:
 
 	void Rotate(const Vector3f& v, float angle);
 
-	virtual void Update(float delta);
-	virtual void LateUpdate(float delta);
+	virtual void Update();
+	virtual void LateUpdate();
 
 	Vector3f GetLocalPosition() const { return m_localPosition; }
 	Vector3f GetWorldPosition() const;

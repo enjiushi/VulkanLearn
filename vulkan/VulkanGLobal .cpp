@@ -1028,12 +1028,11 @@ void VulkanGlobal::EndSetup()
 	m_pOffScreenCamComp = Camera::Create(camInfo);
 	m_pOffScreenCamObj->AddComponent(m_pOffScreenCamComp);
 
-	m_pCameraObj->SetPos({ 0, 0, 50 });
-	m_pCameraObj->Update(0);
-	m_pCameraComp->Update(0);
-
 	m_pCharacter = Character::Create({100.0f}, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
+
+	m_pCameraObj->SetPos({ 0, 0, 50 });
+	m_pCameraObj->Update();
 
 	InitIrradianceMap();
 	InitPrefilterEnvMap();

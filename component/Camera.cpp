@@ -18,11 +18,11 @@ std::shared_ptr<Camera> Camera::Create(const CameraInfo& info)
 	return nullptr;
 }
 
-void Camera::Update(float delta)
+void Camera::Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 {
 }
 
-void Camera::LateUpdate(float delta)
+void Camera::LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 {
 	UpdateViewMatrix();
 	UpdateProjMatrix();

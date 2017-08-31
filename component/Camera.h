@@ -17,8 +17,8 @@ typedef struct _CameraInfo
 class Camera : public BaseComponent
 {
 public:
-	void Update(float delta) override;
-	void LateUpdate(float delta) override;
+	void Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes) override;
+	void LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrameRes) override;
 
 	void SetFOV(float new_fov);
 	void SetAspect(float new_aspect);

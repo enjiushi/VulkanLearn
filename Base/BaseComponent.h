@@ -2,14 +2,15 @@
 #include "Base.h"
 
 class BaseObject;
+class PerFrameResource;
 
 class BaseComponent : public SelfRefBase<BaseComponent>
 {
 public:
 	virtual ~BaseComponent(void) {}
 
-	virtual void Update(float delta) {}
-	virtual void LateUpdate(float delta) {}
+	virtual void Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes) {}
+	virtual void LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrameRes) {}
 
 	std::shared_ptr<BaseObject> GetObject() const 
 	{
