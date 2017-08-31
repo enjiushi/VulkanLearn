@@ -12,6 +12,23 @@ class SwapChain;
 class FrameManager;
 class PhysicalDevice;
 class SharedBufferManager;
+class FrameBuffer;
+
+class GlobalDeviceObjects;
+
+GlobalDeviceObjects* GlobalObjects();
+std::shared_ptr<Queue> GlobalGraphicQueue();
+std::shared_ptr<Queue> GlobalPresentQueue();
+std::shared_ptr<CommandPool> MainThreadPool();
+std::shared_ptr<DeviceMemoryManager> DeviceMemMgr();
+std::shared_ptr<StagingBufferManager> StagingBufferMgr();
+std::shared_ptr<SwapChain> GetSwapChain();
+std::shared_ptr<FrameManager> FrameMgr();
+std::shared_ptr<Device> GetDevice();
+std::shared_ptr<PhysicalDevice> GetPhysicalDevice();
+std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr();
+std::shared_ptr<SharedBufferManager> IndexBufferMgr();
+std::shared_ptr<SharedBufferManager> UniformBufferMgr();
 
 class GlobalDeviceObjects : public Singleton<GlobalDeviceObjects>
 {
@@ -31,6 +48,7 @@ public:
 	const std::shared_ptr<SharedBufferManager> GetVertexAttribBufferMgr() const { return m_pVertexAttribBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetIndexBufferMgr() const { return m_pIndexBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetUniformBufferMgr() const { return m_pUniformBufferMgr; }
+	const std::shared_ptr<FrameBuffer> GetCurrentFrameBuffer() const;
 
 	bool RequestAttributeBuffer(uint32_t size, uint32_t& offset);
 
@@ -46,23 +64,11 @@ protected:
 	std::shared_ptr<SharedBufferManager>	m_pIndexBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pUniformBufferMgr;
 
+	std::vector<std::shared_ptr<FrameBuffer>>m_framebuffers;
+
 	static const uint32_t UNIFORM_BUFFER_SIZE = 1024 * 1024 * 8;
 	static const uint32_t ATTRIBUTE_BUFFER_SIZE = 1024 * 1024 * 256;
 	static const uint32_t INDEX_BUFFER_SIZE = 1024 * 1024 * 32;
 
 	uint32_t								m_attributeBufferOffset = 0;
 };
-
-GlobalDeviceObjects* GlobalObjects();
-std::shared_ptr<Queue> GlobalGraphicQueue();
-std::shared_ptr<Queue> GlobalPresentQueue();
-std::shared_ptr<CommandPool> MainThreadPool();
-std::shared_ptr<DeviceMemoryManager> DeviceMemMgr();
-std::shared_ptr<StagingBufferManager> StagingBufferMgr();
-std::shared_ptr<SwapChain> GetSwapChain();
-std::shared_ptr<FrameManager> FrameMgr();
-std::shared_ptr<Device> GetDevice();
-std::shared_ptr<PhysicalDevice> GetPhysicalDevice();
-std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr();
-std::shared_ptr<SharedBufferManager> IndexBufferMgr();
-std::shared_ptr<SharedBufferManager> UniformBufferMgr();
