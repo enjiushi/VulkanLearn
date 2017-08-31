@@ -42,6 +42,7 @@ public:
 	std::shared_ptr<Buffer> GetBuffer() const { return m_pBuffer; }
 	std::shared_ptr<BufferKey> AllocateBuffer(uint32_t numBytes);
 	uint32_t GetOffset(const std::shared_ptr<BufferKey>& pBufKey) const { return m_bufferTable[pBufKey->m_index].offset; }
+	VkDescriptorBufferInfo GetBufferDesc(const std::shared_ptr<BufferKey>& pBufKey) const { return m_bufferTable[pBufKey->m_index]; }
 
 	// Since m_pBuffer is used as internal buffer for shared buffers, we cannot directly use it, as many buffer specific member variables are missing
 	// So I add one more input parameter "pWrapperBuffer", which wrappers "m_pBuffer" and behave exactly like a shared buffer with its member variable inited properly

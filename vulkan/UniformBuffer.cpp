@@ -1,40 +1,21 @@
 #include "UniformBuffer.h"
 
-std::vector<VkDescriptorBufferInfo> UniformBuffer::m_uniformBufferTable;
-
 bool UniformBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<UniformBuffer>& pSelf, uint32_t numBytes)
 {
+	m_info = {};
+	m_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	m_info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+	m_info.size = numBytes;
+
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	VkDescriptorBufferInfo info = {};
-	info.buffer = GlobalDeviceObjects::GetInstance()->GetBigUniformBuffer()->GetDeviceHandle();
-	uint32_t offset = 0;
-	uint32_t endByte = 0;
-	for (uint32_t i = 0; i < m_uniformBufferTable.size(); i++)
-	{
-		endByte = offset + numBytes - 1;
-		if (endByte < m_uniformBufferTable[i].offset)
-		{
-			info.offset = offset;
-			info.range = numBytes;
-			m_uniformBufferTable.insert(m_uniformBufferTable.begin() + i, info);
-			m_bufferIndex = i;
-			return true;
-		}
-		else
-		{
-			offset = m_uniformBufferTable[i].offset + m_uniformBufferTable[i].range;
-		}
-	}
-
-	if (offset + numBytes > GlobalDeviceObjects::GetInstance()->GetBigUniformBuffer()->GetBufferInfo().size)
+	m_pBufferKey = UniformBufferMgr()->AllocateBuffer(numBytes);
+	if (!m_pBufferKey.get())
 		return false;
 
-	info.offset = offset;
-	info.range = numBytes;
-	m_uniformBufferTable.push_back(info);
-	m_bufferIndex = m_uniformBufferTable.size() - 1;
+	if (!DeviceObjectBase::Init(pDevice, pSelf))
+		return false;
 
 	// FIXME: add them back when necessary
 	m_accessStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
@@ -53,4 +34,14 @@ std::shared_ptr<UniformBuffer> UniformBuffer::Create(const std::shared_ptr<Devic
 	if (pUniformBuffer.get() && pUniformBuffer->Init(pDevice, pUniformBuffer, numBytes))
 		return pUniformBuffer;
 	return nullptr;
+}
+
+void UniformBuffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes)
+{
+	m_pBufferKey->GetSharedBufferMgr()->UpdateByteStream(pData, GetSelfSharedPtr(), m_pBufferKey, offset, numBytes);
+}
+
+uint32_t UniformBuffer::GetBufferOffset() const
+{
+	return m_pBufferKey->GetSharedBufferMgr()->GetOffset(m_pBufferKey);
 }
