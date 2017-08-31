@@ -427,10 +427,6 @@ void VulkanGlobal::InitRenderpass()
 
 void VulkanGlobal::InitFrameBuffer()
 {
-	m_framebuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
-	for (uint32_t i = 0; i < m_framebuffers.size(); i++)
-		m_framebuffers[i] = FrameBuffer::Create(m_pDevice, GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImage(i), m_pDSBuffer, m_pRenderPass);
-
 	m_pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, OffScreenSize, OffScreenSize, m_pOffscreenRenderPass);
 
 	m_offscreenFrameBuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
@@ -1111,7 +1107,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 
 	uint32_t offset = FrameMgr()->FrameIndex() * m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
 
-	pDrawCmdBuffer->BeginRenderPass(m_framebuffers[pPerFrameRes->GetFrameIndex()], clearValues);
+	pDrawCmdBuffer->BeginRenderPass(GlobalObjects()->GetCurrentFrameBuffer(), clearValues);
 
 	// Draw gun
 	pDrawCmdBuffer->BindDescriptorSets(m_pPipelineLayout, { m_pDescriptorSet }, { offset });
