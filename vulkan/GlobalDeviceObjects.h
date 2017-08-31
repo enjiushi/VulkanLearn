@@ -30,6 +30,7 @@ public:
 	const std::shared_ptr<Buffer> GetBigUniformBuffer() const { return m_pBigUniformBuffer; }
 	const std::shared_ptr<SwapChain> GetSwapChain() const { return m_pSwapChain; }
 	const std::shared_ptr<SharedBufferManager> GetVertexAttribBufferMgr() const { return m_pVertexAttribBufferMgr; }
+	const std::shared_ptr<SharedBufferManager> GetIndexBufferMgr() const { return m_pIndexBufferMgr; }
 
 	bool RequestAttributeBuffer(uint32_t size, uint32_t& offset);
 
@@ -43,9 +44,11 @@ protected:
 	std::shared_ptr<Buffer>					m_pBigUniformBuffer;
 	std::shared_ptr<SwapChain>				m_pSwapChain;
 	std::shared_ptr<SharedBufferManager>	m_pVertexAttribBufferMgr;
+	std::shared_ptr<SharedBufferManager>	m_pIndexBufferMgr;
 
 	static const uint32_t UNIFORM_BUFFER_SIZE = 1024 * 1024 * 8;
 	static const uint32_t ATTRIBUTE_BUFFER_SIZE = 1024 * 1024 * 256;
+	static const uint32_t INDEX_BUFFER_SIZE = 1024 * 1024 * 32;
 
 	uint32_t								m_attributeBufferOffset = 0;
 };
@@ -62,3 +65,4 @@ std::shared_ptr<FrameManager> FrameMgr();
 std::shared_ptr<Device> GetDevice();
 std::shared_ptr<PhysicalDevice> GetPhysicalDevice();
 std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr();
+std::shared_ptr<SharedBufferManager> IndexBufferMgr();

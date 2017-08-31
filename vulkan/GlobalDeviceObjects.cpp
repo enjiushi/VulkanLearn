@@ -24,7 +24,8 @@ bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 	info.size = UNIFORM_BUFFER_SIZE;
 	m_pBigUniformBuffer = Buffer::Create(pDevice, info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	m_pVertexAttribBufferMgr = SharedBufferManager::Create(pDevice, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, ATTRIBUTE_BUFFER_SIZE);
+	m_pVertexAttribBufferMgr = SharedBufferManager::Create(pDevice, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, ATTRIBUTE_BUFFER_SIZE);
+	m_pIndexBufferMgr = SharedBufferManager::Create(pDevice, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, INDEX_BUFFER_SIZE);
 
 	m_pSwapChain = SwapChain::Create(pDevice);
 
@@ -62,3 +63,4 @@ std::shared_ptr<FrameManager> FrameMgr() { return GetSwapChain()->GetFrameManage
 std::shared_ptr<Device> GetDevice() { return GlobalObjects()->GetDevice(); }
 std::shared_ptr<PhysicalDevice> GetPhysicalDevice() { return GetDevice()->GetPhysicalDevice(); }
 std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr() { return GlobalObjects()->GetVertexAttribBufferMgr(); }
+std::shared_ptr<SharedBufferManager> IndexBufferMgr() { return GlobalObjects()->GetIndexBufferMgr(); }

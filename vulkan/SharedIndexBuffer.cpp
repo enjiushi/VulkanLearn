@@ -13,7 +13,7 @@ bool SharedIndexBuffer::Init(const std::shared_ptr<Device>& pDevice,
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	m_pBufferKey = VertexAttribBufferMgr()->AllocateBuffer(numBytes);
+	m_pBufferKey = IndexBufferMgr()->AllocateBuffer(numBytes);
 	if (!m_pBufferKey.get())
 		return false;
 
