@@ -111,10 +111,10 @@ public:
 
 	std::shared_ptr<DepthStencilBuffer>	m_pDSBuffer;
 
-	std::shared_ptr<RenderPass>			m_pRenderPass;
 	std::shared_ptr<RenderPass>			m_pOffscreenRenderPass;
 	std::shared_ptr<FrameBuffer>		m_pEnvFrameBuffer;
 	std::vector<std::shared_ptr<FrameBuffer>>m_offscreenFrameBuffers;
+
 
 	std::shared_ptr<Mesh>				m_pGunMesh;
 	std::shared_ptr<Mesh>				m_pCubeMesh;
@@ -122,14 +122,10 @@ public:
 
 	std::shared_ptr<UniformBuffer>		m_pUniformBuffer;
 
-	std::shared_ptr<DescriptorSetLayout>m_pDescriptorSetLayout;
 	std::shared_ptr<DescriptorSetLayout>m_pSkyBoxDSLayout;
 
-	std::shared_ptr<PipelineLayout>		m_pPipelineLayout;
 	std::shared_ptr<PipelineLayout>		m_pSkyBoxPLayout;
 
-	std::shared_ptr<GraphicPipeline>	m_pPipeline;
-	std::shared_ptr<GraphicPipeline>	m_pOffScreenPipeline;
 	std::shared_ptr<GraphicPipeline>	m_pSkyBoxPipeline;
 	std::shared_ptr<GraphicPipeline>	m_pOffScreenIrradiancePipeline;
 	std::shared_ptr<GraphicPipeline>	m_pOffScreenPrefilterEnvPipeline;
@@ -137,12 +133,8 @@ public:
 	std::shared_ptr<GraphicPipeline>	m_pSimplePipeline;
 
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
-	std::shared_ptr<DescriptorSet>		m_pDescriptorSet;
 	std::shared_ptr<DescriptorSet>		m_pSkyBoxDS;
 	std::shared_ptr<DescriptorSet>		m_pSimpleDS;
-
-	std::shared_ptr<ShaderModule>		m_pVertShader;
-	std::shared_ptr<ShaderModule>		m_pFragShader;
 
 	std::shared_ptr<ShaderModule>		m_pSkyBoxVS;
 	std::shared_ptr<ShaderModule>		m_pSkyBoxFS;

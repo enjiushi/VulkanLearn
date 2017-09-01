@@ -368,8 +368,8 @@ void VulkanGlobal::InitRenderpass()
 {
 	std::vector<VkAttachmentDescription> attachmentDescs(2);
 	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	attachmentDescs[0].format = m_pPhysicalDevice->GetSurfaceFormat().format;
+	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	attachmentDescs[0].format = FrameBuffer::OFFSCREEN_HDR_COLOR_FORMAT;
 	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -378,7 +378,7 @@ void VulkanGlobal::InitRenderpass()
 
 	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachmentDescs[1].format = m_pPhysicalDevice->GetDepthStencilFormat();
+	attachmentDescs[1].format = FrameBuffer::OFFSCREEN_DEPTH_STENCIL_FORMAT;
 	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -417,11 +417,6 @@ void VulkanGlobal::InitRenderpass()
 	renderpassCreateInfo.dependencyCount = 1;
 	renderpassCreateInfo.pDependencies = &subpassDependency;
 
-	m_pRenderPass = RenderPass::Create(m_pDevice, renderpassCreateInfo);
-
-	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	attachmentDescs[0].format = FrameBuffer::OFFSCREEN_HDR_COLOR_FORMAT;
-	attachmentDescs[1].format = FrameBuffer::OFFSCREEN_DEPTH_STENCIL_FORMAT;
 	m_pOffscreenRenderPass = RenderPass::Create(m_pDevice, renderpassCreateInfo);
 }
 
@@ -740,82 +735,7 @@ void VulkanGlobal::InitBRDFlutMap()
 
 void VulkanGlobal::InitDescriptorSetLayout()
 {
-	std::vector<VkDescriptorSetLayoutBinding> dsLayoutBindings = 
-	{
-		{
-			0,	//binding
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	//type
-			1,
-			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			1,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			2,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			3,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			4,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			5,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			6,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			7,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			8,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		}
-	};
-
-	m_pDescriptorSetLayout = DescriptorSetLayout::Create(m_pDevice, dsLayoutBindings);
-
-	DescriptorSetLayoutList list =
-	{
-		m_pDescriptorSetLayout,
-	};
-	m_pPipelineLayout = PipelineLayout::Create(m_pDevice, list);
-
-	dsLayoutBindings =
+	std::vector<VkDescriptorSetLayoutBinding> dsLayoutBindings =
 	{
 		{
 			0,	//binding
@@ -835,7 +755,7 @@ void VulkanGlobal::InitDescriptorSetLayout()
 
 	m_pSkyBoxDSLayout = DescriptorSetLayout::Create(m_pDevice, dsLayoutBindings);
 
-	list =
+	DescriptorSetLayoutList list =
 	{
 		m_pSkyBoxDSLayout,
 	};
@@ -854,17 +774,7 @@ void VulkanGlobal::InitPipelineCache()
 void VulkanGlobal::InitPipeline()
 {
 	GraphicPipeline::SimplePipelineStateCreateInfo info = {};
-	info.pRenderPass = m_pRenderPass;
-	info.pPipelineLayout = m_pPipelineLayout;
-	info.pVertShader = m_pVertShader;
-	info.pFragShader = m_pFragShader;
-	info.vertexBindingsInfo = { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
-
-	m_pPipeline = GraphicPipeline::Create(m_pDevice, info);
-
-	info = {};
-	info.pRenderPass = m_pRenderPass;
+	info.pRenderPass = GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass();
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pSkyBoxVS;
 	info.pFragShader = m_pSkyBoxFS;
@@ -872,15 +782,6 @@ void VulkanGlobal::InitPipeline()
 	info.vertexAttributesInfo = m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
 
 	m_pSkyBoxPipeline = GraphicPipeline::Create(m_pDevice, info);
-
-	info.pRenderPass = m_pOffscreenRenderPass;
-	info.pPipelineLayout = m_pPipelineLayout;
-	info.pVertShader = m_pVertShader;
-	info.pFragShader = m_pFragShader;
-	info.vertexBindingsInfo = { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
-
-	m_pOffScreenPipeline = GraphicPipeline::Create(m_pDevice, info);
 
 	info = {};
 	info.pRenderPass = m_pOffscreenRenderPass;
@@ -913,7 +814,7 @@ void VulkanGlobal::InitPipeline()
 	m_pOffScreenBRDFLutPipeline = GraphicPipeline::Create(m_pDevice, info);
 
 	info = {};
-	info.pRenderPass = m_pRenderPass;
+	info.pRenderPass = GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass();
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pSimpleVS;
 	info.pFragShader = m_pSimpleFS;
@@ -924,9 +825,6 @@ void VulkanGlobal::InitPipeline()
 
 void VulkanGlobal::InitShaderModule()
 {
-	m_pVertShader = ShaderModule::Create(m_pDevice, L"../data/shaders/pbr.vert.spv", ShaderModule::ShaderTypeVertex, "main");
-	m_pFragShader = ShaderModule::Create(m_pDevice, L"../data/shaders/pbr.frag.spv", ShaderModule::ShaderTypeFragment, "main");
-
 	m_pSkyBoxVS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.vert.spv", ShaderModule::ShaderTypeVertex, "main");
 	m_pSkyBoxFS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.frag.spv", ShaderModule::ShaderTypeFragment, "main");
 
@@ -962,18 +860,6 @@ void VulkanGlobal::InitDescriptorPool()
 
 void VulkanGlobal::InitDescriptorSet()
 {
-	m_pDescriptorSet = m_pDescriptorPool->AllocateDescriptorSet(m_pDescriptorSetLayout);
-	m_pDescriptorSet->UpdateBufferDynamic(0, m_pUniformBuffer);
-
-	m_pDescriptorSet->UpdateImage(1, m_pAlbedo);
-	m_pDescriptorSet->UpdateImage(2, m_pNormal);
-	m_pDescriptorSet->UpdateImage(3, m_pRoughness);
-	m_pDescriptorSet->UpdateImage(4, m_pMetalic);
-	m_pDescriptorSet->UpdateImage(5, m_pAmbientOcclusion);
-	m_pDescriptorSet->UpdateImage(6, m_pIrradianceTex);
-	m_pDescriptorSet->UpdateImage(7, m_pPrefilterEnvTex);
-	m_pDescriptorSet->UpdateImage(8, m_pBRDFLut);
-
 	m_pSkyBoxDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
 	m_pSkyBoxDS->UpdateBufferDynamic(0, m_pUniformBuffer);
 	m_pSkyBoxDS->UpdateImage(1, m_pSkyBoxTex);
@@ -1202,14 +1088,6 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	uint32_t offset = FrameMgr()->FrameIndex() * m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
 
 	pDrawCmdBuffer->BeginRenderPass(GlobalObjects()->GetCurrentFrameBuffer(), clearValues);
-
-	// Draw gun
-	pDrawCmdBuffer->BindDescriptorSets(m_pPipelineLayout, { m_pDescriptorSet }, { offset });
-	pDrawCmdBuffer->BindPipeline(m_pPipeline);
-	pDrawCmdBuffer->BindVertexBuffers({ m_pGunMesh->GetVertexBuffer() });
-	pDrawCmdBuffer->BindIndexBuffer(m_pGunMesh->GetIndexBuffer());
-
-	pDrawCmdBuffer->DrawIndexed(m_pGunMesh->GetIndexBuffer());
 
 	// Draw skybox
 	pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
