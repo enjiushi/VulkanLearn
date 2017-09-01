@@ -8,6 +8,7 @@ class ShaderModule;
 
 class GraphicPipeline : public DeviceObjectBase<GraphicPipeline>
 {
+	static const uint32_t ENTRY_NAME_LENGTH = 64;
 public:
 	// Simple pipeline state, nearly all are pre-defined
 	typedef struct _SimplePipelineStateCreateInfo
@@ -29,9 +30,25 @@ public:
 
 public:
 	static std::shared_ptr<GraphicPipeline> Create(const std::shared_ptr<Device>& pDevice, const SimplePipelineStateCreateInfo& info);
+	static std::shared_ptr<GraphicPipeline> Create
+	(
+		const std::shared_ptr<Device>& pDevice, 
+		const VkGraphicsPipelineCreateInfo& info,
+		const std::vector<std::shared_ptr<ShaderModule>> shaders,
+		const std::shared_ptr<RenderPass>& pRenderPass,
+		const std::shared_ptr<PipelineLayout>& pPipelineLayout
+	);
+
+	static void FillupPipelineCreateInfo
+	(
+		VkGraphicsPipelineCreateInfo& info,
+		const std::vector<std::shared_ptr<ShaderModule>> shaders,
+		const std::shared_ptr<RenderPass>& pRenderPass,
+		const std::shared_ptr<PipelineLayout>& pPipelineLayout
+	);
 
 private:
-	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<GraphicPipeline>& pSelf);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<GraphicPipeline>& pSelf, const VkGraphicsPipelineCreateInfo& info);
 
 protected:
 	VkPipeline						m_pipeline;
@@ -52,8 +69,7 @@ protected:
 	VkPipelineVertexInputStateCreateInfo				m_vertexInputCreateInfo;
 	VkGraphicsPipelineCreateInfo						m_info;
 
-	std::shared_ptr<RenderPass>		m_pRenderPass;
-	std::shared_ptr<PipelineLayout> m_pPipelineLayout;
-	std::shared_ptr<ShaderModule>	m_pVertShader;
-	std::shared_ptr<ShaderModule>	m_pFragShader;
+	std::shared_ptr<RenderPass>							m_pRenderPass;
+	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
+	std::vector<std::shared_ptr<ShaderModule>>			m_shaders;
 };

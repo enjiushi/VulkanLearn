@@ -6,7 +6,7 @@ ShaderModule::~ShaderModule()
 	vkDestroyShaderModule(GetDevice()->GetDeviceHandle(), m_shaderModule, nullptr);
 }
 
-bool ShaderModule::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<ShaderModule>& pSelf, const std::wstring& path, ShaderType type)
+bool ShaderModule::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<ShaderModule>& pSelf, const std::wstring& path, ShaderType type, const std::string& entryName)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
@@ -27,13 +27,26 @@ bool ShaderModule::Init(const std::shared_ptr<Device>& pDevice, const std::share
 
 	m_shaderType = type;
 
+	switch (m_shaderType)
+	{
+	case ShaderTypeVertex: m_shaderStage = VK_SHADER_STAGE_VERTEX_BIT; break;
+	case ShaderTypeTessellationControl: m_shaderStage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT; break;
+	case ShaderTypeTessellationEvaluation: m_shaderStage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT; break;
+	case ShaderTypeGeometry: m_shaderStage = VK_SHADER_STAGE_GEOMETRY_BIT; break;
+	case ShaderTypeFragment: m_shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT; break;
+	case ShaderTypeCompute: m_shaderStage = VK_SHADER_STAGE_COMPUTE_BIT; break;
+	default: ASSERTION(false);
+	}
+
+	m_entryName = entryName;
+
 	return true;
 }
 
-std::shared_ptr<ShaderModule> ShaderModule::Create(const std::shared_ptr<Device>& pDevice, const std::wstring& path, ShaderType type)
+std::shared_ptr<ShaderModule> ShaderModule::Create(const std::shared_ptr<Device>& pDevice, const std::wstring& path, ShaderType type, const std::string& entryName)
 {
 	std::shared_ptr<ShaderModule> pModule = std::make_shared<ShaderModule>();
-	if (pModule.get() && pModule->Init(pDevice, pModule, path, type))
+	if (pModule.get() && pModule->Init(pDevice, pModule, path, type, entryName))
 		return pModule;
 	return nullptr;
 }

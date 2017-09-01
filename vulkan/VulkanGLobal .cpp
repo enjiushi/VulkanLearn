@@ -924,19 +924,19 @@ void VulkanGlobal::InitPipeline()
 
 void VulkanGlobal::InitShaderModule()
 {
-	m_pVertShader = ShaderModule::Create(m_pDevice, L"../data/shaders/pbr.vert.spv");
-	m_pFragShader = ShaderModule::Create(m_pDevice, L"../data/shaders/pbr.frag.spv");
+	m_pVertShader = ShaderModule::Create(m_pDevice, L"../data/shaders/pbr.vert.spv", ShaderModule::ShaderTypeVertex, "main");
+	m_pFragShader = ShaderModule::Create(m_pDevice, L"../data/shaders/pbr.frag.spv", ShaderModule::ShaderTypeFragment, "main");
 
-	m_pSkyBoxVS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.vert.spv");
-	m_pSkyBoxFS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.frag.spv");
+	m_pSkyBoxVS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.vert.spv", ShaderModule::ShaderTypeVertex, "main");
+	m_pSkyBoxFS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.frag.spv", ShaderModule::ShaderTypeFragment, "main");
 
-	m_pSimpleVS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.vert.spv");
-	m_pSimpleFS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.frag.spv");
+	m_pSimpleVS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.vert.spv", ShaderModule::ShaderTypeVertex, "main");
+	m_pSimpleFS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.frag.spv", ShaderModule::ShaderTypeFragment, "main");
 
-	m_pIrradianceFS = ShaderModule::Create(m_pDevice, L"../data/shaders/irradiance.frag.spv");
-	m_pPrefilterEnvFS = ShaderModule::Create(m_pDevice, L"../data/shaders/prefilter_env.frag.spv");
-	m_pBRDFLutVS = ShaderModule::Create(m_pDevice, L"../data/shaders/brdf_lut.vert.spv");
-	m_pBRDFLutFS = ShaderModule::Create(m_pDevice, L"../data/shaders/brdf_lut.frag.spv");
+	m_pIrradianceFS = ShaderModule::Create(m_pDevice, L"../data/shaders/irradiance.frag.spv", ShaderModule::ShaderTypeFragment, "main");
+	m_pPrefilterEnvFS = ShaderModule::Create(m_pDevice, L"../data/shaders/prefilter_env.frag.spv", ShaderModule::ShaderTypeFragment, "main");
+	m_pBRDFLutVS = ShaderModule::Create(m_pDevice, L"../data/shaders/brdf_lut.vert.spv", ShaderModule::ShaderTypeVertex, "main");
+	m_pBRDFLutFS = ShaderModule::Create(m_pDevice, L"../data/shaders/brdf_lut.frag.spv", ShaderModule::ShaderTypeFragment, "main");
 }
 
 void VulkanGlobal::InitDescriptorPool()
@@ -1152,7 +1152,8 @@ void VulkanGlobal::Draw()
 {
 	GetSwapChain()->AcquireNextImage();
 	m_pCharacter->Move(m_moveFlag, 0.001f);
-	FrameMgr()->AddJobToFrame(std::bind(&VulkanGlobal::PrepareDrawCommandBuffer, this, std::placeholders::_1));
+	//FrameMgr()->AddJobToFrame(std::bind(&VulkanGlobal::PrepareDrawCommandBuffer, this, std::placeholders::_1));
+	m_pGunObject->Update();
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 }
 
