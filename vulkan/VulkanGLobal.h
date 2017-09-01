@@ -34,6 +34,7 @@
 #include "Texture2D.h"
 #include "TextureCube.h"
 #include "../component/Mesh.h"
+#include "../component/MeshRenderer.h"
 
 typedef struct _GlobalUniforms
 {
@@ -97,7 +98,7 @@ public:
 	static const uint32_t				WINDOW_WIDTH = 1024;
 	static const uint32_t				WINDOW_HEIGHT = 768;
 
-protected:
+public:
 	std::shared_ptr<Instance>			m_pVulkanInstance;
 	std::shared_ptr<PhysicalDevice>		m_pPhysicalDevice;
 	std::shared_ptr<Device>				m_pDevice;
@@ -118,8 +119,6 @@ protected:
 	std::shared_ptr<Mesh>				m_pQuadMesh;
 
 	std::shared_ptr<UniformBuffer>		m_pUniformBuffer;
-
-	GlobalUniforms						m_globalUniforms;
 
 	std::shared_ptr<DescriptorSetLayout>m_pDescriptorSetLayout;
 	std::shared_ptr<DescriptorSetLayout>m_pSkyBoxDSLayout;
@@ -180,9 +179,13 @@ protected:
 	std::shared_ptr<TextureCube>		m_pPrefilterEnvTex;
 	std::shared_ptr<Texture2D>			m_pBRDFLut;
 
+	std::shared_ptr<BaseObject>			m_pGunObject;
+	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer;
+
 	float								m_roughness = 0.1;
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;
 #endif
+	GlobalUniforms						m_globalUniforms;
 };

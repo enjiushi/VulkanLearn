@@ -1030,6 +1030,10 @@ void VulkanGlobal::EndSetup()
 	m_pCameraObj->SetPos({ 0, 0, 50 });
 	m_pCameraObj->Update();
 
+	m_pGunObject = BaseObject::Create();
+	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh);
+	m_pGunObject->AddComponent(m_pGunMeshRenderer);
+
 	InitIrradianceMap();
 	InitPrefilterEnvMap();
 	InitBRDFlutMap();
