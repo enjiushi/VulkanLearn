@@ -35,6 +35,8 @@
 #include "TextureCube.h"
 #include "../component/Mesh.h"
 #include "../component/MeshRenderer.h"
+#include "../component/Material.h"
+#include "../component/MaterialInstance.h"
 
 typedef struct _GlobalUniforms
 {
@@ -181,6 +183,9 @@ public:
 
 	std::shared_ptr<BaseObject>			m_pGunObject;
 	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer;
+
+	std::shared_ptr<Material>			m_pGunMaterial;
+	std::shared_ptr<MaterialInstance>	m_pGunMaterialInstance;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)

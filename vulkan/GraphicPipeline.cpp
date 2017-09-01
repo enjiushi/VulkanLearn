@@ -95,7 +95,22 @@ std::shared_ptr<GraphicPipeline> GraphicPipeline::Create
 	pPipeline->m_pPipelineLayout = pPipelineLayout;
 
 	VkGraphicsPipelineCreateInfo createInfo = info;
-	FillupPipelineCreateInfo(createInfo, pPipeline->m_shaders, pRenderPass, pPipelineLayout);
+	createInfo.renderPass = pRenderPass->GetDeviceHandle();
+	createInfo.layout = pPipelineLayout->GetDeviceHandle();
+
+	std::vector<VkPipelineShaderStageCreateInfo> stages(shaders.size());
+	for (uint32_t i = 0; i < stages.size(); i++)
+	{
+		stages[i].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		stages[i].stage = shaders[i]->GetShaderStage();
+		stages[i].module = shaders[i]->GetDeviceHandle();
+
+		char* pEntryName = new char[ENTRY_NAME_LENGTH];
+		strcpy(pEntryName, shaders[i]->GetEntryName().c_str());
+		stages[i].pName = pEntryName;
+	}
+	createInfo.stageCount = stages.size();
+	createInfo.pStages = stages.data();
 
 	if (pPipeline.get() && pPipeline->Init(pDevice, pPipeline, createInfo))
 		return pPipeline;

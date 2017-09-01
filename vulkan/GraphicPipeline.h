@@ -1,10 +1,10 @@
 #pragma once
 
 #include "DeviceObjectBase.h"
+#include "ShaderModule.h"
 
 class RenderPass;
 class PipelineLayout;
-class ShaderModule;
 
 class GraphicPipeline : public DeviceObjectBase<GraphicPipeline>
 {
@@ -27,6 +27,8 @@ public:
 public:
 	VkPipeline GetDeviceHandle() const { return m_pipeline; }
 	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
+	std::shared_ptr<RenderPass> GetRenderPass() const { return m_pRenderPass; }
+	std::shared_ptr<ShaderModule> GetShader(ShaderModule::ShaderType type) const { return m_shaders[(uint32_t)type]; }
 
 public:
 	static std::shared_ptr<GraphicPipeline> Create(const std::shared_ptr<Device>& pDevice, const SimplePipelineStateCreateInfo& info);

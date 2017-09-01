@@ -1030,8 +1030,98 @@ void VulkanGlobal::EndSetup()
 	m_pCameraObj->SetPos({ 0, 0, 50 });
 	m_pCameraObj->Update();
 
+
+	std::vector<VkDescriptorSetLayoutBinding> dsLayoutBindings =
+	{
+		{
+			0,	//binding
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	//type
+			1,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			1,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			2,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			3,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			4,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			5,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			6,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			7,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			8,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		}
+	};
+
+	SimpleMaterialCreateInfo info =
+	{
+		{ L"../data/shaders/pbr.vert.spv", L"", L"", L"", L"../data/shaders/pbr.frag.spv", L"" },
+		{ dsLayoutBindings },
+		{ m_pGunMesh->GetVertexBuffer()->GetBindingDesc() },
+		m_pGunMesh->GetVertexBuffer()->GetAttribDesc(),
+		GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()
+	};
+	m_pGunMaterial = Material::CreateDefaultMaterial(info);
+	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
+
+	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
+
+	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pAlbedo);
+	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(2, m_pNormal);
+	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(3, m_pRoughness);
+	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(4, m_pMetalic);
+	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(5, m_pAmbientOcclusion);
+	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(6, m_pIrradianceTex);
+	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(7, m_pPrefilterEnvTex);
+	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(8, m_pBRDFLut);
+
 	m_pGunObject = BaseObject::Create();
-	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh);
+	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
 	m_pGunObject->AddComponent(m_pGunMeshRenderer);
 
 	InitIrradianceMap();
