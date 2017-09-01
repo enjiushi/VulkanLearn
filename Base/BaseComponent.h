@@ -1,5 +1,6 @@
 #pragma once
 #include "Base.h"
+#include <mutex>
 
 class BaseObject;
 class PerFrameResource;
@@ -33,7 +34,8 @@ protected:
 protected:
 	bool m_isDirty = false;
 
-	std::weak_ptr<BaseObject> m_pObject;
+	std::weak_ptr<BaseObject>	m_pObject;
+	std::mutex					m_updateMutex;
 
 	friend class BaseObject;
 };
