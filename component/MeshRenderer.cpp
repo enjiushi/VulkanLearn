@@ -62,15 +62,6 @@ void MeshRenderer::Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 	inheritanceInfo.framebuffer = GlobalObjects()->GetCurrentFrameBuffer()->GetDeviceHandle();
 	pDrawCmdBuffer->StartSecondaryRecording(inheritanceInfo);
 
-	// Should put this somewhere
-	//VulkanGlobal::GetInstance()->UpdateUniforms(pPerFrameRes->GetFrameIndex(), VulkanGlobal::GetInstance()->m_pCameraComp);
-	//StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
-
-	/*
-	uint32_t totalUniformBytes = VulkanGlobal::GetInstance()->m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
-	VulkanGlobal::GetInstance()->m_pUniformBuffer->UpdateByteStream(&VulkanGlobal::GetInstance()->m_globalUniforms, totalUniformBytes * pPerFrameRes->GetFrameIndex(), sizeof(VulkanGlobal::m_globalUniforms));
-	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);*/
-
 	VkViewport viewport =
 	{
 		0, 0,
@@ -89,22 +80,11 @@ void MeshRenderer::Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 
 	uint32_t offset = FrameMgr()->FrameIndex() * VulkanGlobal::GetInstance()->m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
 
-	// Draw gun
-
 	pDrawCmdBuffer->BindDescriptorSets(m_pMaterialInstance->GetMaterial()->GetPipelineLayout(), m_pMaterialInstance->GetDescriptorSets(), { offset });
 	pDrawCmdBuffer->BindPipeline(m_pMaterialInstance->GetMaterial()->GetGraphicPipeline());
 	pDrawCmdBuffer->BindVertexBuffers({ m_pMesh->GetVertexBuffer() });
 	pDrawCmdBuffer->BindIndexBuffer(m_pMesh->GetIndexBuffer());
 	pDrawCmdBuffer->DrawIndexed(m_pMesh->GetIndexBuffer());
-
-	// Draw skybox
-	/*
-	pDrawCmdBuffer->BindDescriptorSets(VulkanGlobal::GetInstance()->m_pSkyBoxPLayout, { VulkanGlobal::GetInstance()->m_pSkyBoxDS }, { offset });
-	pDrawCmdBuffer->BindPipeline(VulkanGlobal::GetInstance()->m_pSkyBoxPipeline);
-	pDrawCmdBuffer->BindVertexBuffers({ VulkanGlobal::GetInstance()->m_pCubeMesh->GetVertexBuffer() });
-	pDrawCmdBuffer->BindIndexBuffer(VulkanGlobal::GetInstance()->m_pCubeMesh->GetIndexBuffer());
-
-	pDrawCmdBuffer->DrawIndexed(VulkanGlobal::GetInstance()->m_pCubeMesh->GetIndexBuffer());*/
 
 	pDrawCmdBuffer->EndSecondaryRecording();
 
