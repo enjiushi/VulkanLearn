@@ -34,6 +34,7 @@ class FrameManager : public DeviceObjectBase<FrameManager>
 public:
 	std::shared_ptr<PerFrameResource> AllocatePerFrameResource(uint32_t frameIndex);
 	uint32_t FrameIndex() const { return m_currentFrameIndex; }
+	uint32_t MaxFrameCount() const { return m_maxFrameCount; }
 
 	void CacheSubmissioninfo(
 		const std::shared_ptr<Queue>& pQueue,
@@ -71,9 +72,9 @@ protected:
 	void WaitForGPUWork(uint32_t frameIndex);
 
 	std::shared_ptr<Semaphore> GetAcqurieDoneSemaphore() const;
-	std::shared_ptr<Semaphore> GetRenderDoneSemaphore() const;
-	std::shared_ptr<Semaphore> GetAcqurieDoneSemaphore(uint32_t index) const;
-	std::shared_ptr<Semaphore> GetRenderDoneSemaphore(uint32_t index) const;
+	std::vector<std::shared_ptr<Semaphore>> GetRenderDoneSemaphores() const;
+	std::shared_ptr<Semaphore> GetAcqurieDoneSemaphore(uint32_t frameIndex) const;
+	std::vector<std::shared_ptr<Semaphore>> GetRenderDoneSemaphores(uint32_t frameIndex) const;
 
 	void CacheSubmissioninfoInternal(
 		const std::shared_ptr<Queue>& pQueue,
@@ -87,7 +88,8 @@ private:
 	FrameResourceTable						m_frameResTable;
 	std::vector<std::shared_ptr<Fence>>		m_frameFences;
 	std::vector<std::shared_ptr<Semaphore>>	m_acquireDoneSemaphores;
-	std::vector<std::shared_ptr<Semaphore>>	m_renderDoneSemahpres;
+	//std::vector<std::shared_ptr<Semaphore>>	m_renderDoneSemahpres;
+	std::vector<std::vector<std::shared_ptr<Semaphore>>> m_renderDoneSemaphores;
 
 	uint32_t								m_currentFrameIndex;
 	std::deque<uint32_t>					m_frameIndexQueue;
@@ -98,7 +100,6 @@ private:
 
 	uint32_t m_maxFrameCount;
 
-	std::shared_ptr<ThreadTaskQueue>				m_pThreadTaskQueue;
 	std::mutex										m_mutex;
 
 	friend class SwapChain;

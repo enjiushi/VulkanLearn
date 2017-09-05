@@ -9,6 +9,7 @@
 #include "Framebuffer.h"
 #include "DepthStencilBuffer.h"
 #include "RenderPass.h"
+#include "../thread/ThreadTaskQueue.hpp"
 
 bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 {
@@ -84,6 +85,8 @@ bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 	for (uint32_t i = 0; i < m_framebuffers.size(); i++)
 		m_framebuffers[i] = FrameBuffer::Create(m_pDevice, m_pSwapChain->GetSwapChainImage(i), DepthStencilBuffer::Create(m_pDevice), RenderPass::Create(m_pDevice, renderpassCreateInfo));
 
+	m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(pDevice, FrameMgr()->MaxFrameCount(), FrameMgr());
+
 	return true;
 }
 
@@ -122,3 +125,4 @@ std::shared_ptr<PhysicalDevice> GetPhysicalDevice() { return GetDevice()->GetPhy
 std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr() { return GlobalObjects()->GetVertexAttribBufferMgr(); }
 std::shared_ptr<SharedBufferManager> IndexBufferMgr() { return GlobalObjects()->GetIndexBufferMgr(); }
 std::shared_ptr<SharedBufferManager> UniformBufferMgr() { return GlobalObjects()->GetUniformBufferMgr(); }
+std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue() { return GlobalObjects()->GetThreadTaskQueue(); }

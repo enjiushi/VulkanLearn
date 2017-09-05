@@ -13,6 +13,7 @@ class FrameManager;
 class PhysicalDevice;
 class SharedBufferManager;
 class FrameBuffer;
+class ThreadTaskQueue;
 
 class GlobalDeviceObjects;
 
@@ -29,6 +30,7 @@ std::shared_ptr<PhysicalDevice> GetPhysicalDevice();
 std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr();
 std::shared_ptr<SharedBufferManager> IndexBufferMgr();
 std::shared_ptr<SharedBufferManager> UniformBufferMgr();
+std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue();
 
 class GlobalDeviceObjects : public Singleton<GlobalDeviceObjects>
 {
@@ -49,6 +51,7 @@ public:
 	const std::shared_ptr<SharedBufferManager> GetIndexBufferMgr() const { return m_pIndexBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetUniformBufferMgr() const { return m_pUniformBufferMgr; }
 	const std::shared_ptr<FrameBuffer> GetCurrentFrameBuffer() const;
+	const std::shared_ptr<ThreadTaskQueue> GetThreadTaskQueue() const { return m_pThreadTaskQueue; }
 
 	bool RequestAttributeBuffer(uint32_t size, uint32_t& offset);
 
@@ -63,6 +66,8 @@ protected:
 	std::shared_ptr<SharedBufferManager>	m_pVertexAttribBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pIndexBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pUniformBufferMgr;
+
+	std::shared_ptr<ThreadTaskQueue>		m_pThreadTaskQueue;
 
 	std::vector<std::shared_ptr<FrameBuffer>>m_framebuffers;
 

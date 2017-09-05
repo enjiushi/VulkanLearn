@@ -24,15 +24,13 @@ bool FrameManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFram
 	m_currentSemaphoreIndex = 0;
 	m_maxFrameCount = maxFrameCount;
 
-	m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(pDevice, maxFrameCount, pSelf);
-
 	for (uint32_t i = 0; i < maxFrameCount; i++)
 	{
 		m_frameResTable[i] = std::vector<std::shared_ptr<PerFrameResource>>();
 		m_frameFences.push_back(Fence::Create(pDevice));
 		m_acquireDoneSemaphores.push_back(Semaphore::Create(pDevice));
-		m_renderDoneSemahpres.push_back(Semaphore::Create(pDevice));
 	}
+	m_renderDoneSemaphores.resize(maxFrameCount);
 
 	m_maxFrameCount = maxFrameCount;
 	
@@ -69,7 +67,7 @@ void FrameManager::WaitForFence(uint32_t frameIndex)
 
 void FrameManager::WaitForAllJobsDone()
 {
-	m_pThreadTaskQueue->WaitForFree();
+	GlobalThreadTaskQueue()->WaitForFree();
 
 	std::unique_lock<std::mutex> lock(m_mutex);
 	WaitForGPUWork(m_currentFrameIndex);
@@ -102,7 +100,7 @@ void FrameManager::CacheSubmissioninfo(
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
 	
-	CacheSubmissioninfoInternal(pQueue, cmdBuffer, { m_acquireDoneSemaphores[m_currentSemaphoreIndex] }, waitStages, { m_renderDoneSemahpres[m_currentSemaphoreIndex] }, waitUtilQueueIdle);
+	CacheSubmissioninfoInternal(pQueue, cmdBuffer, { }, waitStages, { }, waitUtilQueueIdle);
 }
 
 void FrameManager::CacheSubmissioninfo(
@@ -137,8 +135,13 @@ void FrameManager::CacheSubmissioninfoInternal(
 	}
 #endif //_DEBUG
 
+	// Attach acquire done semaphore to waiting list
 	std::vector<std::shared_ptr<Semaphore>> _waitSemaphores = waitSemaphores;
 	_waitSemaphores.push_back(GetAcqurieDoneSemaphore());
+
+	// Attach render done semaphores to signal list
+	std::vector<std::shared_ptr<Semaphore>> _signalSemaphores = signalSemaphores;
+	_signalSemaphores.insert(_signalSemaphores.end(), signalSemaphores.begin(), signalSemaphores.end());
 
 	SubmissionInfo info = 
 	{
@@ -179,7 +182,7 @@ void FrameManager::FlushCachedSubmission(uint32_t frameIndex)
 void FrameManager::AddJobToFrame(ThreadJobFunc jobFunc)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
-	m_pThreadTaskQueue->AddJob(jobFunc, FrameIndex());
+	GlobalThreadTaskQueue()->AddJob(jobFunc, FrameIndex());
 }
 
 // Wait until those gpu work of this frame finished
@@ -192,7 +195,7 @@ void FrameManager::WaitForGPUWork(uint32_t frameIndex)
 // End work submission, which means that current frame's work has been submitted completely
 void FrameManager::EndJobSubmission()
 {
-	m_pThreadTaskQueue->WaitForFree();
+	GlobalThreadTaskQueue()->WaitForFree();
 
 	std::unique_lock<std::mutex> lock(m_mutex);
 	// Flush cached submission after all cpu work done
@@ -204,17 +207,17 @@ std::shared_ptr<Semaphore> FrameManager::GetAcqurieDoneSemaphore() const
 	return m_acquireDoneSemaphores[m_currentSemaphoreIndex]; 
 }
 
-std::shared_ptr<Semaphore> FrameManager::GetRenderDoneSemaphore() const 
+std::vector<std::shared_ptr<Semaphore>> FrameManager::GetRenderDoneSemaphores() const
 { 
-	return m_renderDoneSemahpres[m_currentSemaphoreIndex];
+	return m_renderDoneSemaphores[m_currentSemaphoreIndex];
 }
 
-std::shared_ptr<Semaphore> FrameManager::GetAcqurieDoneSemaphore(uint32_t index) const
+std::shared_ptr<Semaphore> FrameManager::GetAcqurieDoneSemaphore(uint32_t frameIndex) const
 {
-	return m_acquireDoneSemaphores[index];
+	return m_acquireDoneSemaphores[frameIndex];
 }
 
-std::shared_ptr<Semaphore> FrameManager::GetRenderDoneSemaphore(uint32_t index) const
+std::vector<std::shared_ptr<Semaphore>> FrameManager::GetRenderDoneSemaphores(uint32_t frameIndex) const
 {
-	return m_renderDoneSemahpres[index];
+	return m_renderDoneSemaphores[frameIndex];
 }
