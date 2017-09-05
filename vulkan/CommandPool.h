@@ -15,7 +15,9 @@ public:
 
 public:
 	std::shared_ptr<CommandBuffer> AllocatePrimaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> AllocateSecondaryCommandBuffer();
 	std::vector<std::shared_ptr<CommandBuffer>> AllocatePrimaryCommandBuffers(uint32_t count);
+	std::vector<std::shared_ptr<CommandBuffer>> AllocateSecondaryCommandBuffers(uint32_t count);
 	VkCommandPool GetDeviceHandle() const { return m_commandPool; }
 	void Reset(const std::shared_ptr<Fence>& pFence);
 	std::weak_ptr<PerFrameResource> GetPerFrameResource() const { return m_pPerFrameRes; }

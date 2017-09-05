@@ -44,10 +44,16 @@ std::shared_ptr<PerFrameResource> PerFrameResource::Create(const std::shared_ptr
 	return nullptr;
 }
 
-std::shared_ptr<CommandBuffer> PerFrameResource::AllocateCommandBuffer()
+std::shared_ptr<CommandBuffer> PerFrameResource::AllocatePrimaryCommandBuffer()
 {
 	return m_pCommandPool->AllocatePrimaryCommandBuffer();
 }
+
+std::shared_ptr<CommandBuffer> PerFrameResource::AllocateSecondaryCommandBuffer()
+{
+	return m_pCommandPool->AllocatePrimaryCommandBuffer();
+}
+
 
 std::shared_ptr<DescriptorSet> PerFrameResource::AllocateDescriptorSet(const std::shared_ptr<DescriptorSetLayout>& pDsLayout)
 {

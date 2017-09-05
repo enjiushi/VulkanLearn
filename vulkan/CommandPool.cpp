@@ -32,11 +32,26 @@ std::shared_ptr<CommandBuffer> CommandPool::AllocatePrimaryCommandBuffer()
 	return pCmdBuffer;
 }
 
+std::shared_ptr<CommandBuffer> CommandPool::AllocateSecondaryCommandBuffer()
+{
+	std::shared_ptr<CommandBuffer> pCmdBuffer = CommandBuffer::Create(GetDevice(), GetSelfSharedPtr(), VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+	return pCmdBuffer;
+}
+
 std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocatePrimaryCommandBuffers(uint32_t count)
 {
 	std::vector<std::shared_ptr<CommandBuffer>> cmdBuffers;
 	for (uint32_t i = 0; i < count; i++)
 		cmdBuffers.push_back(AllocatePrimaryCommandBuffer());
+
+	return cmdBuffers;
+}
+
+std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocateSecondaryCommandBuffers(uint32_t count)
+{
+	std::vector<std::shared_ptr<CommandBuffer>> cmdBuffers;
+	for (uint32_t i = 0; i < count; i++)
+		cmdBuffers.push_back(AllocateSecondaryCommandBuffer());
 
 	return cmdBuffers;
 }
