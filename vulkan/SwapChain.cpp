@@ -5,6 +5,8 @@
 #include "Queue.h"
 #include "Semaphore.h"
 #include "Fence.h"
+#include "Framebuffer.h"
+#include "RenderPass.h"
 
 std::shared_ptr<SwapChain> SwapChain::Create(const std::shared_ptr<Device>& pDevice)
 {
@@ -112,10 +114,15 @@ void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue)
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = &m_swapchain;
-	presentInfo.waitSemaphoreCount = 1;
-	auto semaphore = m_pFrameManager->GetRenderDoneSemaphore()->GetDeviceHandle();
-	presentInfo.pWaitSemaphores = &semaphore;
+
+	std::vector<std::shared_ptr<Semaphore>> semaphores = m_pFrameManager->GetRenderDoneSemaphores();
+	std::vector<VkSemaphore> rawSemaphores(semaphores.size());
+	std::for_each(semaphores.begin(), semaphores.end(), [&rawSemaphores](auto & pSemaphore) {rawSemaphores.push_back(pSemaphore->GetDeviceHandle();});
+	presentInfo.waitSemaphoreCount = rawSemaphores.size();
+	presentInfo.pWaitSemaphores = rawSemaphores.data();
+
 	auto indices = m_pFrameManager->FrameIndex();
 	presentInfo.pImageIndices = &indices;
+
 	CHECK_VK_ERROR(m_fpQueuePresentKHR(pPresentQueue->GetDeviceHandle(), &presentInfo));
 }

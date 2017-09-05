@@ -102,7 +102,6 @@ void FrameManager::CacheSubmissioninfo(
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
 	
-	uint32_t frameIndex = cmdBuffer[0]->GetCommandPool()->GetPerFrameResource().lock()->GetFrameIndex();
 	CacheSubmissioninfoInternal(pQueue, cmdBuffer, { m_acquireDoneSemaphores[m_currentSemaphoreIndex] }, waitStages, { m_renderDoneSemahpres[m_currentSemaphoreIndex] }, waitUtilQueueIdle);
 }
 
@@ -137,7 +136,9 @@ void FrameManager::CacheSubmissioninfoInternal(
 		}
 	}
 #endif //_DEBUG
-	uint32_t frameIndex = cmdBuffer[0]->GetCommandPool()->GetPerFrameResource().lock()->GetFrameIndex();
+
+	std::vector<std::shared_ptr<Semaphore>> _waitSemaphores = waitSemaphores;
+	_waitSemaphores.push_back(GetAcqurieDoneSemaphore());
 
 	SubmissionInfo info = 
 	{
@@ -149,7 +150,7 @@ void FrameManager::CacheSubmissioninfoInternal(
 		waitUtilQueueIdle,
 	};
 
-	m_pendingSubmissionInfoTable[frameIndex].push_back(info);
+	m_pendingSubmissionInfoTable[m_currentFrameIndex].push_back(info);
 }
 
 void FrameManager::FlushCachedSubmission(uint32_t frameIndex)
