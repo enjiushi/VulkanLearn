@@ -1,5 +1,8 @@
 #include "RenderPass.h"
 #include <algorithm>
+#include "../thread/ThreadTaskQueue.hpp"
+#include "GlobalDeviceObjects.h"
+#include "CommandBuffer.h"
 
 RenderPass::~RenderPass()
 {
@@ -63,4 +66,22 @@ bool RenderPass::Init(const std::shared_ptr<Device>& pDevice, const std::shared_
 	CHECK_VK_ERROR(vkCreateRenderPass(pDevice->GetDeviceHandle(), &m_renderPassInfo, nullptr, &m_renderPass));
 
 	return true;
+}
+
+void RenderPass::CacheSecondaryCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	std::unique_lock<std::mutex>(m_secBufferMutex);
+	m_secondaryCommandBuffers.push_back(pCmdBuffer);
+}
+
+void RenderPass::ExecuteCachedSecondaryCommandBuffers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	GlobalThreadTaskQueue()->WaitForFree();
+
+	if (m_secondaryCommandBuffers.size() == 0)
+		return;
+
+	std::vector<VkCommandBuffer> rawCmdBuffers;
+	std::for_each(m_secondaryCommandBuffers.begin(), m_secondaryCommandBuffers.end(), [&rawCmdBuffers](auto& pCmdBuffer) {rawCmdBuffers.push_back(pCmdBuffer->GetDeviceHandle());});
+	vkCmdExecuteCommands(pCmdBuffer->GetDeviceHandle(), rawCmdBuffers.size(), rawCmdBuffers.data());
 }

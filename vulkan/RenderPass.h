@@ -1,4 +1,7 @@
 #include "DeviceObjectBase.h"
+#include <mutex>
+
+class CommandBuffer;
 
 class RenderPass : public DeviceObjectBase<RenderPass>
 {
@@ -13,6 +16,8 @@ protected:
 
 public:
 	VkRenderPass GetDeviceHandle() const { return m_renderPass; }
+	void CacheSecondaryCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	void ExecuteCachedSecondaryCommandBuffers(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 protected:
 
@@ -32,4 +37,7 @@ protected:
 	std::vector<SubpassDef>					m_subpasses;
 	std::vector<VkSubpassDescription>		m_subpassDescList;
 	std::vector<VkSubpassDependency>		m_subpassDependencyList;
+
+	std::vector<std::shared_ptr<CommandBuffer>> m_secondaryCommandBuffers;
+	std::mutex									m_secBufferMutex;
 };
