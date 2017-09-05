@@ -96,7 +96,7 @@ void Image::EnsureImageLayout()
 		return;
 
 	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
-	pCmdBuffer->StartRecording();
+	pCmdBuffer->StartPrimaryRecording();
 
 	VkImageSubresourceRange subresourceRange = {};
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -123,7 +123,7 @@ void Image::EnsureImageLayout()
 		{}, {}, { imgBarrier }
 	);
 
-	pCmdBuffer->EndRecording();
+	pCmdBuffer->EndPrimaryRecording();
 
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }
@@ -167,13 +167,13 @@ void Image::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<Stagin
 void Image::UpdateByteStream(const gli::texture& gliTex)
 {
 	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
-	pCmdBuffer->StartRecording();
+	pCmdBuffer->StartPrimaryRecording();
 
 	std::shared_ptr<StagingBuffer> pStagingBuffer = PrepareStagingBuffer(gliTex, pCmdBuffer);
 
 	ExecuteCopy(gliTex, pStagingBuffer, pCmdBuffer);
 
-	pCmdBuffer->EndRecording();
+	pCmdBuffer->EndPrimaryRecording();
 
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }

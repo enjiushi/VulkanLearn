@@ -37,6 +37,7 @@ std::shared_ptr<CommandBuffer> CommandBuffer::Create(const std::shared_ptr<Devic
 	info.commandPool = pCmdPool->GetDeviceHandle();
 	info.commandBufferCount = 1;
 	info.commandPool = pCmdPool->GetDeviceHandle();
+	info.level = cmdBufferLevel;
 	pCommandBuffer->m_pCommandPool = pCmdPool;
 
 	if (pCommandBuffer.get() && pCommandBuffer->Init(pDevice, pCommandBuffer, info))
@@ -618,7 +619,7 @@ void CommandBuffer::PrepareBufferCopyCommands(const BufferCopyCmdData& data)
 	m_bufferCopyCmdData = data;
 }
 
-void CommandBuffer::StartRecording()
+void CommandBuffer::StartPrimaryRecording()
 {
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -626,9 +627,33 @@ void CommandBuffer::StartRecording()
 	CHECK_VK_ERROR(vkBeginCommandBuffer(m_commandBuffer, &beginInfo));
 }
 
-void CommandBuffer::EndRecording()
+void CommandBuffer::EndPrimaryRecording()
 {
 	CHECK_VK_ERROR(vkEndCommandBuffer(m_commandBuffer));
+}
+
+void CommandBuffer::StartSecondaryRecording(const VkCommandBufferInheritanceInfo& inheritanceInfo)
+{
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+	beginInfo.pInheritanceInfo = &inheritanceInfo;
+	CHECK_VK_ERROR(vkBeginCommandBuffer(m_commandBuffer, &beginInfo));
+}
+
+void CommandBuffer::EndSecondaryRecording()
+{
+	CHECK_VK_ERROR(vkEndCommandBuffer(m_commandBuffer));
+}
+
+void CommandBuffer::ExecuteSecondaryCommandBuffer(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers)
+{
+	std::vector<VkCommandBuffer> rawCmdBuffers;
+	std::for_each(cmdBuffers.begin(), cmdBuffers.end(), [&rawCmdBuffers](auto& pCmdBuffer) {rawCmdBuffers.push_back(pCmdBuffer->GetDeviceHandle());});
+	vkCmdExecuteCommands(GetDeviceHandle(), rawCmdBuffers.size(), rawCmdBuffers.data());
+
+	for (uint32_t i = 0; i < cmdBuffers.size(); i++)
+		AddToReferenceTable(cmdBuffers[i]);
 }
 
 void CommandBuffer::AttachBarriers
@@ -713,7 +738,7 @@ void CommandBuffer::DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer
 	vkCmdDrawIndexed(GetDeviceHandle(), pIndexBuffer->GetCount(), 1, 0, 0, 0);
 }
 
-void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::vector<VkClearValue>& clearValues)
+void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::vector<VkClearValue>& clearValues, bool includeSecondary)
 {
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -726,7 +751,8 @@ void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBu
 	renderPassBeginInfo.renderArea.offset.x = 0;
 	renderPassBeginInfo.renderArea.offset.y = 0;
 
-	vkCmdBeginRenderPass(GetDeviceHandle(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	VkSubpassContents contents = includeSecondary ? VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS : VK_SUBPASS_CONTENTS_INLINE;
+	vkCmdBeginRenderPass(GetDeviceHandle(), &renderPassBeginInfo, contents);
 	AddToReferenceTable(pFrameBuffer);
 }
 

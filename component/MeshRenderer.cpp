@@ -47,7 +47,7 @@ void MeshRenderer::Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 {
 	std::unique_lock<std::mutex> lock(m_updateMutex);
 
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocateCommandBuffer();
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocateSecondaryCommandBuffer();
 
 	std::vector<VkClearValue> clearValues =
 	{
@@ -55,14 +55,21 @@ void MeshRenderer::Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 		{ 1.0f, 0 }
 	};
 
-	pDrawCmdBuffer->StartRecording();
+	VkCommandBufferInheritanceInfo inheritanceInfo = {};
+	inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+	inheritanceInfo.renderPass = GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()->GetDeviceHandle();
+	inheritanceInfo.subpass = 0;
+	inheritanceInfo.framebuffer = GlobalObjects()->GetCurrentFrameBuffer()->GetDeviceHandle();
+	pDrawCmdBuffer->StartSecondaryRecording(inheritanceInfo);
 
-	VulkanGlobal::GetInstance()->UpdateUniforms(pPerFrameRes->GetFrameIndex(), VulkanGlobal::GetInstance()->m_pCameraComp);
-	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
+	// Should put this somewhere
+	//VulkanGlobal::GetInstance()->UpdateUniforms(pPerFrameRes->GetFrameIndex(), VulkanGlobal::GetInstance()->m_pCameraComp);
+	//StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
+	/*
 	uint32_t totalUniformBytes = VulkanGlobal::GetInstance()->m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
 	VulkanGlobal::GetInstance()->m_pUniformBuffer->UpdateByteStream(&VulkanGlobal::GetInstance()->m_globalUniforms, totalUniformBytes * pPerFrameRes->GetFrameIndex(), sizeof(VulkanGlobal::m_globalUniforms));
-	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
+	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);*/
 
 	VkViewport viewport =
 	{
@@ -82,9 +89,8 @@ void MeshRenderer::Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 
 	uint32_t offset = FrameMgr()->FrameIndex() * VulkanGlobal::GetInstance()->m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
 
-	pDrawCmdBuffer->BeginRenderPass(GlobalObjects()->GetCurrentFrameBuffer(), clearValues);
-
 	// Draw gun
+
 	pDrawCmdBuffer->BindDescriptorSets(m_pMaterialInstance->GetMaterial()->GetPipelineLayout(), m_pMaterialInstance->GetDescriptorSets(), { offset });
 	pDrawCmdBuffer->BindPipeline(m_pMaterialInstance->GetMaterial()->GetGraphicPipeline());
 	pDrawCmdBuffer->BindVertexBuffers({ m_pMesh->GetVertexBuffer() });
@@ -92,19 +98,17 @@ void MeshRenderer::Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 	pDrawCmdBuffer->DrawIndexed(m_pMesh->GetIndexBuffer());
 
 	// Draw skybox
+	/*
 	pDrawCmdBuffer->BindDescriptorSets(VulkanGlobal::GetInstance()->m_pSkyBoxPLayout, { VulkanGlobal::GetInstance()->m_pSkyBoxDS }, { offset });
 	pDrawCmdBuffer->BindPipeline(VulkanGlobal::GetInstance()->m_pSkyBoxPipeline);
 	pDrawCmdBuffer->BindVertexBuffers({ VulkanGlobal::GetInstance()->m_pCubeMesh->GetVertexBuffer() });
 	pDrawCmdBuffer->BindIndexBuffer(VulkanGlobal::GetInstance()->m_pCubeMesh->GetIndexBuffer());
 
-	pDrawCmdBuffer->DrawIndexed(VulkanGlobal::GetInstance()->m_pCubeMesh->GetIndexBuffer());
+	pDrawCmdBuffer->DrawIndexed(VulkanGlobal::GetInstance()->m_pCubeMesh->GetIndexBuffer());*/
 
-	pDrawCmdBuffer->EndRenderPass();
+	pDrawCmdBuffer->EndSecondaryRecording();
 
-	pDrawCmdBuffer->EndRecording();
-
-	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, waitFlags, false);
+	GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
 }
 
 void MeshRenderer::LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrameRes)

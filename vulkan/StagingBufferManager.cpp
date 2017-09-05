@@ -29,7 +29,7 @@ void StagingBufferManager::FlushDataMainThread()
 {
 	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 
-	pCmdBuffer->StartRecording();
+	pCmdBuffer->StartPrimaryRecording();
 
 	// Copy each chunk to dst buffer
 	std::for_each(m_pendingUpdateBuffer.begin(), m_pendingUpdateBuffer.end(), [&](const PendingBufferInfo& info)
@@ -41,7 +41,7 @@ void StagingBufferManager::FlushDataMainThread()
 		pCmdBuffer->CopyBuffer(m_pStagingBufferPool, info.pBuffer, { copy });
 	});
 
-	pCmdBuffer->EndRecording();
+	pCmdBuffer->EndPrimaryRecording();
 
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 

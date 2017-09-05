@@ -567,7 +567,7 @@ void VulkanGlobal::InitIrradianceMap()
 
 		m_pOffScreenCamObj->SetRotation(cameraRotations[i]);
 
-		pDrawCmdBuffer->StartRecording();
+		pDrawCmdBuffer->StartPrimaryRecording();
 
 		UpdateUniforms(0, m_pOffScreenCamComp);
 		StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
@@ -590,7 +590,7 @@ void VulkanGlobal::InitIrradianceMap()
 		pDrawCmdBuffer->EndRenderPass();
 
 
-		pDrawCmdBuffer->EndRecording();
+		pDrawCmdBuffer->EndPrimaryRecording();
 
 		GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
@@ -653,7 +653,7 @@ void VulkanGlobal::InitPrefilterEnvMap()
 
 			m_pOffScreenCamObj->SetRotation(cameraRotations[i]);
 
-			pDrawCmdBuffer->StartRecording();
+			pDrawCmdBuffer->StartPrimaryRecording();
 
 			UpdateUniforms(0, m_pOffScreenCamComp);
 			StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
@@ -676,7 +676,7 @@ void VulkanGlobal::InitPrefilterEnvMap()
 			pDrawCmdBuffer->EndRenderPass();
 
 
-			pDrawCmdBuffer->EndRecording();
+			pDrawCmdBuffer->EndPrimaryRecording();
 
 			GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
@@ -708,7 +708,7 @@ void VulkanGlobal::InitBRDFlutMap()
 		OffScreenSize, OffScreenSize,
 	};
 
-	pDrawCmdBuffer->StartRecording();
+	pDrawCmdBuffer->StartPrimaryRecording();
 
 	pDrawCmdBuffer->SetViewports({ viewport });
 	pDrawCmdBuffer->SetScissors({ scissorRect });
@@ -726,7 +726,7 @@ void VulkanGlobal::InitBRDFlutMap()
 	pDrawCmdBuffer->EndRenderPass();
 
 
-	pDrawCmdBuffer->EndRecording();
+	pDrawCmdBuffer->EndPrimaryRecording();
 
 	GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
@@ -1010,6 +1010,32 @@ void VulkanGlobal::EndSetup()
 	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
 	m_pGunObject->AddComponent(m_pGunMeshRenderer);
 
+
+	info =
+	{
+		{ L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" },
+		{ dsLayoutBindings },
+		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
+		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
+		GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()
+	};
+	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
+	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
+
+	m_pSkyBoxMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
+	m_pSkyBoxMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pSkyBoxTex);
+
+	m_pSkyBoxObject = BaseObject::Create();
+	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, m_pSkyBoxMaterialInstance);
+	m_pSkyBoxObject->AddComponent(m_pSkyBoxMeshRenderer);
+
+	m_pRootObject = BaseObject::Create();
+	m_pRootObject->AddChild(m_pGunObject);
+	m_pRootObject->AddChild(m_pSkyBoxObject);
+
+	for (uint32_t i = 0; i < FrameMgr()->MaxFrameCount(); i++)
+		m_perFrameRes.push_back(FrameMgr()->AllocatePerFrameResource(i));
+
 	InitIrradianceMap();
 	InitPrefilterEnvMap();
 	InitBRDFlutMap();
@@ -1056,7 +1082,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 {
 	std::unique_lock<std::mutex> lock(m_updateMutex);
 
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocateCommandBuffer();
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocatePrimaryCommandBuffer();
 
 	std::vector<VkClearValue> clearValues = 
 	{
@@ -1064,7 +1090,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 		{ 1.0f, 0 }
 	};
 
-	pDrawCmdBuffer->StartRecording();
+	pDrawCmdBuffer->StartPrimaryRecording();
 
 	UpdateUniforms(pPerFrameRes->GetFrameIndex(), m_pCameraComp);
 	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
@@ -1110,7 +1136,7 @@ void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResour
 	pDrawCmdBuffer->EndRenderPass();
 
 
-	pDrawCmdBuffer->EndRecording();
+	pDrawCmdBuffer->EndPrimaryRecording();
 	
 	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, waitFlags, false);
@@ -1121,7 +1147,30 @@ void VulkanGlobal::Draw()
 	GetSwapChain()->AcquireNextImage();
 	m_pCharacter->Move(m_moveFlag, 0.001f);
 	//FrameMgr()->AddJobToFrame(std::bind(&VulkanGlobal::PrepareDrawCommandBuffer, this, std::placeholders::_1));
-	m_pGunObject->Update();
+
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
+	pDrawCmdBuffer->StartPrimaryRecording();
+
+	VulkanGlobal::GetInstance()->UpdateUniforms(FrameMgr()->FrameIndex(), VulkanGlobal::GetInstance()->m_pCameraComp);
+	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
+
+	std::vector<VkClearValue> clearValues =
+	{
+		{ 0.2f, 0.2f, 0.2f, 0.2f },
+		{ 1.0f, 0 }
+	};
+	pDrawCmdBuffer->BeginRenderPass(GlobalObjects()->GetCurrentFrameBuffer(), clearValues, true);
+
+	m_pRootObject->Update();
+	GlobalThreadTaskQueue()->WaitForFree();
+
+	GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
+
+	pDrawCmdBuffer->EndRenderPass();
+
+	pDrawCmdBuffer->EndPrimaryRecording();
+	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, {}, false);
+
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 }
 

@@ -116,8 +116,8 @@ void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue)
 	presentInfo.pSwapchains = &m_swapchain;
 
 	std::vector<std::shared_ptr<Semaphore>> semaphores = m_pFrameManager->GetRenderDoneSemaphores();
-	std::vector<VkSemaphore> rawSemaphores(semaphores.size());
-	std::for_each(semaphores.begin(), semaphores.end(), [&rawSemaphores](auto & pSemaphore) {rawSemaphores.push_back(pSemaphore->GetDeviceHandle();});
+	std::vector<VkSemaphore> rawSemaphores;
+	std::for_each(semaphores.begin(), semaphores.end(), [&rawSemaphores](auto & pSemaphore) {rawSemaphores.push_back(pSemaphore->GetDeviceHandle());});
 	presentInfo.waitSemaphoreCount = rawSemaphores.size();
 	presentInfo.pWaitSemaphores = rawSemaphores.data();
 

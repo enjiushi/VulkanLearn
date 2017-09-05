@@ -175,9 +175,15 @@ public:
 
 	std::shared_ptr<BaseObject>			m_pGunObject;
 	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer;
-
 	std::shared_ptr<Material>			m_pGunMaterial;
 	std::shared_ptr<MaterialInstance>	m_pGunMaterialInstance;
+
+	std::shared_ptr<BaseObject>			m_pSkyBoxObject;
+	std::shared_ptr<MeshRenderer>		m_pSkyBoxMeshRenderer;
+	std::shared_ptr<Material>			m_pSkyBoxMaterial;
+	std::shared_ptr<MaterialInstance>	m_pSkyBoxMaterialInstance;
+
+	std::shared_ptr<BaseObject>			m_pRootObject;
 
 	float								m_roughness = 0.1;
 #if defined(_WIN32)

@@ -72,9 +72,9 @@ protected:
 	void WaitForGPUWork(uint32_t frameIndex);
 
 	std::shared_ptr<Semaphore> GetAcqurieDoneSemaphore() const;
-	std::vector<std::shared_ptr<Semaphore>> GetRenderDoneSemaphores() const;
 	std::shared_ptr<Semaphore> GetAcqurieDoneSemaphore(uint32_t frameIndex) const;
-	std::vector<std::shared_ptr<Semaphore>> GetRenderDoneSemaphores(uint32_t frameIndex) const;
+	std::shared_ptr<Semaphore> GetRenderDoneSemaphore();
+	std::vector<std::shared_ptr<Semaphore>> GetRenderDoneSemaphores();
 
 	void CacheSubmissioninfoInternal(
 		const std::shared_ptr<Queue>& pQueue,
@@ -88,8 +88,9 @@ private:
 	FrameResourceTable						m_frameResTable;
 	std::vector<std::shared_ptr<Fence>>		m_frameFences;
 	std::vector<std::shared_ptr<Semaphore>>	m_acquireDoneSemaphores;
-	//std::vector<std::shared_ptr<Semaphore>>	m_renderDoneSemahpres;
-	std::vector<std::vector<std::shared_ptr<Semaphore>>> m_renderDoneSemaphores;
+
+	std::vector<std::vector<std::shared_ptr<Semaphore>>>	m_renderDoneSemaphores;
+	uint32_t												m_renderDoneSemaphoreIndex;
 
 	uint32_t								m_currentFrameIndex;
 	std::deque<uint32_t>					m_frameIndexQueue;

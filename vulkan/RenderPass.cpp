@@ -70,7 +70,7 @@ bool RenderPass::Init(const std::shared_ptr<Device>& pDevice, const std::shared_
 
 void RenderPass::CacheSecondaryCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	std::unique_lock<std::mutex>(m_secBufferMutex);
+	std::unique_lock<std::mutex> lock(m_secBufferMutex);
 	m_secondaryCommandBuffers.push_back(pCmdBuffer);
 }
 
@@ -78,10 +78,12 @@ void RenderPass::ExecuteCachedSecondaryCommandBuffers(const std::shared_ptr<Comm
 {
 	GlobalThreadTaskQueue()->WaitForFree();
 
+	std::unique_lock<std::mutex> lock(m_secBufferMutex);
+
 	if (m_secondaryCommandBuffers.size() == 0)
 		return;
 
-	std::vector<VkCommandBuffer> rawCmdBuffers;
-	std::for_each(m_secondaryCommandBuffers.begin(), m_secondaryCommandBuffers.end(), [&rawCmdBuffers](auto& pCmdBuffer) {rawCmdBuffers.push_back(pCmdBuffer->GetDeviceHandle());});
-	vkCmdExecuteCommands(pCmdBuffer->GetDeviceHandle(), rawCmdBuffers.size(), rawCmdBuffers.data());
+	pCmdBuffer->ExecuteSecondaryCommandBuffer(m_secondaryCommandBuffers);
+
+	m_secondaryCommandBuffers.clear();
 }

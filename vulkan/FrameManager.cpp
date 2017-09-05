@@ -30,7 +30,9 @@ bool FrameManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFram
 		m_frameFences.push_back(Fence::Create(pDevice));
 		m_acquireDoneSemaphores.push_back(Semaphore::Create(pDevice));
 	}
+
 	m_renderDoneSemaphores.resize(maxFrameCount);
+	m_renderDoneSemaphoreIndex = 0;
 
 	m_maxFrameCount = maxFrameCount;
 	
@@ -139,17 +141,21 @@ void FrameManager::CacheSubmissioninfoInternal(
 	std::vector<std::shared_ptr<Semaphore>> _waitSemaphores = waitSemaphores;
 	_waitSemaphores.push_back(GetAcqurieDoneSemaphore());
 
+	std::vector<VkPipelineStageFlags> _waitStages;
+	_waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
 	// Attach render done semaphores to signal list
 	std::vector<std::shared_ptr<Semaphore>> _signalSemaphores = signalSemaphores;
 	_signalSemaphores.insert(_signalSemaphores.end(), signalSemaphores.begin(), signalSemaphores.end());
+	_signalSemaphores.push_back(GetRenderDoneSemaphore());
 
 	SubmissionInfo info = 
 	{
 		pQueue,
 		cmdBuffer,
-		waitSemaphores,
-		waitStages,
-		signalSemaphores,
+		_waitSemaphores,
+		_waitStages,
+		_signalSemaphores,
 		waitUtilQueueIdle,
 	};
 
@@ -200,6 +206,9 @@ void FrameManager::EndJobSubmission()
 	std::unique_lock<std::mutex> lock(m_mutex);
 	// Flush cached submission after all cpu work done
 	FlushCachedSubmission(m_currentFrameIndex);
+
+	// Reset
+	m_renderDoneSemaphoreIndex = 0;
 }
 
 std::shared_ptr<Semaphore> FrameManager::GetAcqurieDoneSemaphore() const 
@@ -207,17 +216,23 @@ std::shared_ptr<Semaphore> FrameManager::GetAcqurieDoneSemaphore() const
 	return m_acquireDoneSemaphores[m_currentSemaphoreIndex]; 
 }
 
-std::vector<std::shared_ptr<Semaphore>> FrameManager::GetRenderDoneSemaphores() const
-{ 
-	return m_renderDoneSemaphores[m_currentSemaphoreIndex];
-}
-
 std::shared_ptr<Semaphore> FrameManager::GetAcqurieDoneSemaphore(uint32_t frameIndex) const
 {
 	return m_acquireDoneSemaphores[frameIndex];
 }
 
-std::vector<std::shared_ptr<Semaphore>> FrameManager::GetRenderDoneSemaphores(uint32_t frameIndex) const
+std::shared_ptr<Semaphore> FrameManager::GetRenderDoneSemaphore()
 {
-	return m_renderDoneSemaphores[frameIndex];
+	// Cached semaphores not enough? create a new one
+	if (m_renderDoneSemaphoreIndex >= m_renderDoneSemaphores[m_currentFrameIndex].size())
+		m_renderDoneSemaphores[m_currentFrameIndex].push_back(Semaphore::Create(GetDevice()));
+
+	return m_renderDoneSemaphores[m_currentFrameIndex][m_renderDoneSemaphoreIndex++];
+}
+
+std::vector<std::shared_ptr<Semaphore>> FrameManager::GetRenderDoneSemaphores()
+{
+	std::vector<std::shared_ptr<Semaphore>> semaphores;
+	semaphores.insert(semaphores.end(), m_renderDoneSemaphores[m_currentFrameIndex].begin(), m_renderDoneSemaphores[m_currentFrameIndex].begin() + m_renderDoneSemaphoreIndex + 1);
+	return semaphores;
 }

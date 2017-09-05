@@ -64,8 +64,11 @@ public:
 	VkCommandBufferAllocateInfo GetAllocateInfo() const { return m_info; }
 	std::shared_ptr<CommandPool> GetCommandPool() const { return m_pCommandPool; }
 
-	void StartRecording();
-	void EndRecording();
+	void StartPrimaryRecording();
+	void EndPrimaryRecording();
+	void StartSecondaryRecording(const VkCommandBufferInheritanceInfo& inheritanceInfo);
+	void EndSecondaryRecording();
+	void ExecuteSecondaryCommandBuffer(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers);
 	void PrepareNormalDrawCommands(const DrawCmdData& data);
 	void PrepareBufferCopyCommands(const BufferCopyCmdData& data);
 
@@ -90,7 +93,7 @@ public:
 	void BindVertexBuffers(const std::vector<std::shared_ptr<VertexBuffer>>& vertexBuffers);
 	void BindIndexBuffer(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
 
-	void BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::vector<VkClearValue>& clearValues);
+	void BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::vector<VkClearValue>& clearValues, bool includeSecondary = false);
 	void EndRenderPass();
 
 	void DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer);

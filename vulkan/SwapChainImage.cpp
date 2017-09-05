@@ -54,7 +54,7 @@ void SwapChainImage::EnsureImageLayout()
 {
 	std::shared_ptr<CommandBuffer> pCmdBuffer = GlobalObjects()->GetMainThreadCmdPool()->AllocatePrimaryCommandBuffer();
 
-	pCmdBuffer->StartRecording();
+	pCmdBuffer->StartPrimaryRecording();
 
 	//Change image layout
 	std::vector<VkImageMemoryBarrier> imgBarriers(1);
@@ -82,7 +82,7 @@ void SwapChainImage::EnsureImageLayout()
 		imgBarriers
 	);
 
-	pCmdBuffer->EndRecording();
+	pCmdBuffer->EndPrimaryRecording();
 
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }

@@ -51,7 +51,7 @@ std::shared_ptr<CommandBuffer> PerFrameResource::AllocatePrimaryCommandBuffer()
 
 std::shared_ptr<CommandBuffer> PerFrameResource::AllocateSecondaryCommandBuffer()
 {
-	return m_pCommandPool->AllocatePrimaryCommandBuffer();
+	return m_pCommandPool->AllocateSecondaryCommandBuffer();
 }
 
 
