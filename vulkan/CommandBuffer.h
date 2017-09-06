@@ -93,7 +93,7 @@ public:
 	void BindVertexBuffers(const std::vector<std::shared_ptr<VertexBuffer>>& vertexBuffers);
 	void BindIndexBuffer(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
 
-	void BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::vector<VkClearValue>& clearValues, bool includeSecondary = false);
+	void BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::shared_ptr<RenderPass>& pRenderPass, const std::vector<VkClearValue>& clearValues, bool includeSecondary = false);
 	void EndRenderPass();
 
 	void DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer);

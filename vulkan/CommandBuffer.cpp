@@ -738,13 +738,13 @@ void CommandBuffer::DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer
 	vkCmdDrawIndexed(GetDeviceHandle(), pIndexBuffer->GetCount(), 1, 0, 0, 0);
 }
 
-void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::vector<VkClearValue>& clearValues, bool includeSecondary)
+void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::shared_ptr<RenderPass>& pRenderPass, const std::vector<VkClearValue>& clearValues, bool includeSecondary)
 {
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassBeginInfo.clearValueCount = clearValues.size();
 	renderPassBeginInfo.pClearValues = clearValues.data();
-	renderPassBeginInfo.renderPass = pFrameBuffer->GetRenderPass()->GetDeviceHandle();
+	renderPassBeginInfo.renderPass = pRenderPass->GetDeviceHandle();
 	renderPassBeginInfo.framebuffer = pFrameBuffer->GetDeviceHandle();
 	renderPassBeginInfo.renderArea.extent.width = pFrameBuffer->GetFramebufferInfo().width;
 	renderPassBeginInfo.renderArea.extent.height = pFrameBuffer->GetFramebufferInfo().height;
@@ -754,6 +754,7 @@ void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBu
 	VkSubpassContents contents = includeSecondary ? VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS : VK_SUBPASS_CONTENTS_INLINE;
 	vkCmdBeginRenderPass(GetDeviceHandle(), &renderPassBeginInfo, contents);
 	AddToReferenceTable(pFrameBuffer);
+	AddToReferenceTable(pRenderPass);
 }
 
 void CommandBuffer::EndRenderPass()

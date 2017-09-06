@@ -19,6 +19,7 @@
 #include <gli\gli.hpp>
 #include "SharedVertexBuffer.h"
 #include "SharedIndexBuffer.h"
+#include "RenderWorkManager.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -366,67 +367,15 @@ void VulkanGlobal::InitDepthStencil()
 
 void VulkanGlobal::InitRenderpass()
 {
-	std::vector<VkAttachmentDescription> attachmentDescs(2);
-	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	attachmentDescs[0].format = FrameBuffer::OFFSCREEN_HDR_COLOR_FORMAT;
-	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
-
-	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachmentDescs[1].format = FrameBuffer::OFFSCREEN_DEPTH_STENCIL_FORMAT;
-	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachmentDescs[1].samples = VK_SAMPLE_COUNT_1_BIT;
-
-	VkAttachmentReference colorAttach = {};
-	colorAttach.attachment = 0;
-	colorAttach.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	VkAttachmentReference dsAttach = {};
-	dsAttach.attachment = 1;
-	dsAttach.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	VkSubpassDescription subpass = {};
-	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &colorAttach;
-	subpass.pDepthStencilAttachment = &dsAttach;
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-
-	VkSubpassDependency subpassDependency = {};
-	subpassDependency.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	subpassDependency.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpassDependency.dstSubpass = 0;
-	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	subpassDependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-	VkRenderPassCreateInfo renderpassCreateInfo = {};
-	renderpassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassCreateInfo.attachmentCount = attachmentDescs.size();
-	renderpassCreateInfo.pAttachments = attachmentDescs.data();
-	renderpassCreateInfo.subpassCount = 1;
-	renderpassCreateInfo.pSubpasses = &subpass;
-	renderpassCreateInfo.dependencyCount = 1;
-	renderpassCreateInfo.pDependencies = &subpassDependency;
-
-	m_pOffscreenRenderPass = RenderPass::Create(m_pDevice, renderpassCreateInfo);
 }
 
 void VulkanGlobal::InitFrameBuffer()
 {
-	m_pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, OffScreenSize, OffScreenSize, m_pOffscreenRenderPass);
+	m_pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, OffScreenSize, OffScreenSize, RenderWorkManager::GetDefaultOffscreenRenderPass());
 
 	m_offscreenFrameBuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
 	for (uint32_t i = 0; i < m_offscreenFrameBuffers.size(); i++)
-		m_offscreenFrameBuffers[i] = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetPhysicalDevice()->GetSurfaceCap().currentExtent.height, m_pOffscreenRenderPass);
+		m_offscreenFrameBuffers[i] = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetPhysicalDevice()->GetSurfaceCap().currentExtent.height, RenderWorkManager::GetDefaultOffscreenRenderPass());
 }
 
 void VulkanGlobal::InitVertices()
@@ -519,6 +468,8 @@ void VulkanGlobal::InitUniforms()
 
 void VulkanGlobal::InitIrradianceMap()
 {
+	RenderWorkMgr()->SetDefaultOffscreenRenderPass();
+
 	Vector3f up = { 0, 1, 0 };
 	Vector3f look = { 0, 0, -1 };
 	look.Normalize();
@@ -577,7 +528,7 @@ void VulkanGlobal::InitIrradianceMap()
 
 		uint32_t offset = 0;
 		
-		pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, clearValues);
+		pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, RenderWorkMgr()->GetCurrentRenderPass(), clearValues);
 
 		// Draw skybox
 		pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
@@ -600,6 +551,8 @@ void VulkanGlobal::InitIrradianceMap()
 
 void VulkanGlobal::InitPrefilterEnvMap()
 {
+	RenderWorkMgr()->SetDefaultOffscreenRenderPass();
+
 	Vector3f up = { 0, 1, 0 };
 	Vector3f look = { 0, 0, -1 };
 	look.Normalize();
@@ -663,7 +616,7 @@ void VulkanGlobal::InitPrefilterEnvMap()
 
 			uint32_t offset = 0;
 
-			pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, clearValues);
+			pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, RenderWorkMgr()->GetCurrentRenderPass(), clearValues);
 
 			// Draw skybox
 			pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
@@ -687,6 +640,8 @@ void VulkanGlobal::InitPrefilterEnvMap()
 
 void VulkanGlobal::InitBRDFlutMap()
 {
+	RenderWorkMgr()->SetDefaultOffscreenRenderPass();
+
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 
 	std::vector<VkClearValue> clearValues =
@@ -715,7 +670,7 @@ void VulkanGlobal::InitBRDFlutMap()
 
 	uint32_t offset = 0;
 
-	pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, clearValues);
+	pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, RenderWorkMgr()->GetCurrentRenderPass(), clearValues);
 
 	pDrawCmdBuffer->BindPipeline(m_pOffScreenBRDFLutPipeline);
 	pDrawCmdBuffer->BindVertexBuffers({ m_pQuadMesh->GetVertexBuffer() });
@@ -784,7 +739,7 @@ void VulkanGlobal::InitPipeline()
 	m_pSkyBoxPipeline = GraphicPipeline::Create(m_pDevice, info);
 
 	info = {};
-	info.pRenderPass = m_pOffscreenRenderPass;
+	info.pRenderPass = RenderWorkManager::GetDefaultOffscreenRenderPass();
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pSkyBoxVS;
 	info.pFragShader = m_pIrradianceFS;
@@ -794,7 +749,7 @@ void VulkanGlobal::InitPipeline()
 	m_pOffScreenIrradiancePipeline = GraphicPipeline::Create(m_pDevice, info);
 
 	info = {};
-	info.pRenderPass = m_pOffscreenRenderPass;
+	info.pRenderPass = RenderWorkManager::GetDefaultOffscreenRenderPass();
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pSkyBoxVS;
 	info.pFragShader = m_pPrefilterEnvFS;
@@ -804,7 +759,7 @@ void VulkanGlobal::InitPipeline()
 	m_pOffScreenPrefilterEnvPipeline = GraphicPipeline::Create(m_pDevice, info);
 
 	info = {};
-	info.pRenderPass = m_pOffscreenRenderPass;
+	info.pRenderPass = RenderWorkManager::GetDefaultOffscreenRenderPass();
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pBRDFLutVS;
 	info.pFragShader = m_pBRDFLutFS;
@@ -863,7 +818,6 @@ void VulkanGlobal::InitDescriptorSet()
 	m_pSkyBoxDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
 	m_pSkyBoxDS->UpdateBufferDynamic(0, m_pUniformBuffer);
 	m_pSkyBoxDS->UpdateImage(1, m_pSkyBoxTex);
-	//m_pSkyBoxDS->UpdateImage(1, m_pIrradianceTex->GetDescriptorInfo());
 
 	m_pSimpleDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
 	m_pSimpleDS->UpdateBufferDynamic(0, m_pUniformBuffer);
@@ -873,11 +827,7 @@ void VulkanGlobal::InitDescriptorSet()
 void VulkanGlobal::InitDrawCmdBuffers()
 {
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-	{
 		m_perFrameRes.push_back(FrameMgr()->AllocatePerFrameResource(i));
-		//m_drawCmdBuffers.push_back(m_perFrameRes[i]->AllocateCommandBuffer());
-		//PrepareDrawCommandBuffer(m_drawCmdBuffers[i], i);
-	}
 }
 
 void VulkanGlobal::InitSemaphore()
@@ -1078,75 +1028,12 @@ void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Cam
 	m_pUniformBuffer->UpdateByteStream(&m_globalUniforms, totalUniformBytes * frameIndex, sizeof(m_globalUniforms));
 }
 
-void VulkanGlobal::PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
-{
-	std::unique_lock<std::mutex> lock(m_updateMutex);
-
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocatePrimaryCommandBuffer();
-
-	std::vector<VkClearValue> clearValues = 
-	{
-		{ 0.2f, 0.2f, 0.2f, 0.2f },
-		{ 1.0f, 0 }
-	};
-
-	pDrawCmdBuffer->StartPrimaryRecording();
-
-	UpdateUniforms(pPerFrameRes->GetFrameIndex(), m_pCameraComp);
-	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
-
-	VkViewport viewport =
-	{
-		0, 0,
-		GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height,
-		0, 1
-	};
-
-	VkRect2D scissorRect =
-	{
-		0, 0,
-		GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height
-	};
-
-	pDrawCmdBuffer->SetViewports({ viewport });
-	pDrawCmdBuffer->SetScissors({ scissorRect });
-
-	uint32_t offset = FrameMgr()->FrameIndex() * m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
-
-	pDrawCmdBuffer->BeginRenderPass(GlobalObjects()->GetCurrentFrameBuffer(), clearValues);
-
-	// Draw skybox
-	pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
-	pDrawCmdBuffer->BindPipeline(m_pSkyBoxPipeline);
-	pDrawCmdBuffer->BindVertexBuffers({ m_pCubeMesh->GetVertexBuffer() });
-	pDrawCmdBuffer->BindIndexBuffer(m_pCubeMesh->GetIndexBuffer());
-
-	pDrawCmdBuffer->DrawIndexed(m_pCubeMesh->GetIndexBuffer());
-
-	/*
-	pDrawCmdBuffer->BeginRenderPass(m_framebuffers[pPerFrameRes->GetFrameIndex()], clearValues);
-
-	pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSimpleDS }, { offset });
-	pDrawCmdBuffer->BindPipeline(m_pSimplePipeline);
-	pDrawCmdBuffer->BindVertexBuffers({ m_pQuadVertexBuffer->GetVertexBuffer() });
-	pDrawCmdBuffer->BindIndexBuffer(m_pQuadVertexBuffer->GetIndexBuffer());
-
-	pDrawCmdBuffer->DrawIndexed(m_pQuadMesh->GetIndexBuffer());*/
-
-	pDrawCmdBuffer->EndRenderPass();
-
-
-	pDrawCmdBuffer->EndPrimaryRecording();
-	
-	std::vector<VkPipelineStageFlags> waitFlags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, waitFlags, false);
-}
-
 void VulkanGlobal::Draw()
 {
 	GetSwapChain()->AcquireNextImage();
 	m_pCharacter->Move(m_moveFlag, 0.001f);
-	//FrameMgr()->AddJobToFrame(std::bind(&VulkanGlobal::PrepareDrawCommandBuffer, this, std::placeholders::_1));
+
+	RenderWorkMgr()->SetDefaultRenderPass();
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
 	pDrawCmdBuffer->StartPrimaryRecording();
@@ -1159,7 +1046,7 @@ void VulkanGlobal::Draw()
 		{ 0.2f, 0.2f, 0.2f, 0.2f },
 		{ 1.0f, 0 }
 	};
-	pDrawCmdBuffer->BeginRenderPass(GlobalObjects()->GetCurrentFrameBuffer(), clearValues, true);
+	pDrawCmdBuffer->BeginRenderPass(GlobalObjects()->GetCurrentFrameBuffer(), RenderWorkMgr()->GetCurrentRenderPass(), clearValues, true);
 
 	m_pRootObject->Update();
 	GlobalThreadTaskQueue()->WaitForFree();

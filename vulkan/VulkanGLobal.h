@@ -111,7 +111,6 @@ public:
 
 	std::shared_ptr<DepthStencilBuffer>	m_pDSBuffer;
 
-	std::shared_ptr<RenderPass>			m_pOffscreenRenderPass;
 	std::shared_ptr<FrameBuffer>		m_pEnvFrameBuffer;
 	std::vector<std::shared_ptr<FrameBuffer>>m_offscreenFrameBuffers;
 

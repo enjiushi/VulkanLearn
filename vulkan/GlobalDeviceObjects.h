@@ -14,6 +14,7 @@ class PhysicalDevice;
 class SharedBufferManager;
 class FrameBuffer;
 class ThreadTaskQueue;
+class RenderWorkManager;
 
 class GlobalDeviceObjects;
 
@@ -31,6 +32,8 @@ std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr();
 std::shared_ptr<SharedBufferManager> IndexBufferMgr();
 std::shared_ptr<SharedBufferManager> UniformBufferMgr();
 std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue();
+std::vector<std::shared_ptr<FrameBuffer>> DefaultFrameBuffers();
+std::shared_ptr<RenderWorkManager> RenderWorkMgr();
 
 class GlobalDeviceObjects : public Singleton<GlobalDeviceObjects>
 {
@@ -50,9 +53,15 @@ public:
 	const std::shared_ptr<SharedBufferManager> GetVertexAttribBufferMgr() const { return m_pVertexAttribBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetIndexBufferMgr() const { return m_pIndexBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetUniformBufferMgr() const { return m_pUniformBufferMgr; }
-	const std::shared_ptr<FrameBuffer> GetCurrentFrameBuffer() const;
-	const std::shared_ptr<ThreadTaskQueue> GetThreadTaskQueue() const { return m_pThreadTaskQueue; }
 
+	//FIXME : remove me
+	const std::shared_ptr<FrameBuffer> GetCurrentFrameBuffer() const;
+
+	const std::vector<std::shared_ptr<FrameBuffer>> GetDefaultFrameBuffers() const { return m_framebuffers; }
+	const std::shared_ptr<ThreadTaskQueue> GetThreadTaskQueue() const { return m_pThreadTaskQueue; }
+	const std::shared_ptr<RenderWorkManager> GetRenderWorkMgr() const { return m_pRenderWorkMgr; }
+
+	//FIXME : remove me
 	bool RequestAttributeBuffer(uint32_t size, uint32_t& offset);
 
 protected:
@@ -66,6 +75,7 @@ protected:
 	std::shared_ptr<SharedBufferManager>	m_pVertexAttribBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pIndexBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pUniformBufferMgr;
+	std::shared_ptr<RenderWorkManager>		m_pRenderWorkMgr;
 
 	std::shared_ptr<ThreadTaskQueue>		m_pThreadTaskQueue;
 

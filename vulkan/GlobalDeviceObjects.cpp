@@ -10,6 +10,7 @@
 #include "DepthStencilBuffer.h"
 #include "RenderPass.h"
 #include "../thread/ThreadTaskQueue.hpp"
+#include "RenderWorkManager.h"
 
 bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 {
@@ -30,60 +31,11 @@ bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 
 	m_pSwapChain = SwapChain::Create(pDevice);
 
-	std::vector<VkAttachmentDescription> attachmentDescs(2);
-	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	attachmentDescs[0].format = pDevice->GetPhysicalDevice()->GetSurfaceFormat().format;
-	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
-
-	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachmentDescs[1].format = pDevice->GetPhysicalDevice()->GetDepthStencilFormat();
-	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachmentDescs[1].samples = VK_SAMPLE_COUNT_1_BIT;
-
-	VkAttachmentReference colorAttach = {};
-	colorAttach.attachment = 0;
-	colorAttach.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	VkAttachmentReference dsAttach = {};
-	dsAttach.attachment = 1;
-	dsAttach.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	VkSubpassDescription subpass = {};
-	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &colorAttach;
-	subpass.pDepthStencilAttachment = &dsAttach;
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-
-	VkSubpassDependency subpassDependency = {};
-	subpassDependency.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	subpassDependency.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpassDependency.dstSubpass = 0;
-	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	subpassDependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-	VkRenderPassCreateInfo renderpassCreateInfo = {};
-	renderpassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassCreateInfo.attachmentCount = attachmentDescs.size();
-	renderpassCreateInfo.pAttachments = attachmentDescs.data();
-	renderpassCreateInfo.subpassCount = 1;
-	renderpassCreateInfo.pSubpasses = &subpass;
-	renderpassCreateInfo.dependencyCount = 1;
-	renderpassCreateInfo.pDependencies = &subpassDependency;
+	m_pRenderWorkMgr = RenderWorkManager::Create(pDevice);
 
 	m_framebuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
 	for (uint32_t i = 0; i < m_framebuffers.size(); i++)
-		m_framebuffers[i] = FrameBuffer::Create(m_pDevice, m_pSwapChain->GetSwapChainImage(i), DepthStencilBuffer::Create(m_pDevice), RenderPass::Create(m_pDevice, renderpassCreateInfo));
+		m_framebuffers[i] = FrameBuffer::Create(m_pDevice, m_pSwapChain->GetSwapChainImage(i), DepthStencilBuffer::Create(m_pDevice), RenderWorkManager::GetDefaultRenderPass());
 
 	m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(pDevice, FrameMgr()->MaxFrameCount(), FrameMgr());
 
@@ -126,3 +78,5 @@ std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr() { return GlobalObje
 std::shared_ptr<SharedBufferManager> IndexBufferMgr() { return GlobalObjects()->GetIndexBufferMgr(); }
 std::shared_ptr<SharedBufferManager> UniformBufferMgr() { return GlobalObjects()->GetUniformBufferMgr(); }
 std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue() { return GlobalObjects()->GetThreadTaskQueue(); }
+std::vector<std::shared_ptr<FrameBuffer>> DefaultFrameBuffers() { return GlobalObjects()->GetDefaultFrameBuffers(); }
+std::shared_ptr<RenderWorkManager> RenderWorkMgr() { return GlobalObjects()->GetRenderWorkMgr(); }

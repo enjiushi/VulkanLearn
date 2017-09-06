@@ -15,6 +15,7 @@ class Semaphore;
 class Queue;
 class ThreadTaskQueue;
 
+// FIXME: Rename to FrameWorkManager
 class FrameManager : public DeviceObjectBase<FrameManager>
 {
 	typedef struct _SubmissionInfo
