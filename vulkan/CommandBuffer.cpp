@@ -12,6 +12,8 @@
 #include "VulkanUtil.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "RenderWorkManager.h"
+#include "GlobalDeviceObjects.h"
 
 CommandBuffer::~CommandBuffer()
 {
@@ -755,6 +757,11 @@ void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBu
 	vkCmdBeginRenderPass(GetDeviceHandle(), &renderPassBeginInfo, contents);
 	AddToReferenceTable(pFrameBuffer);
 	AddToReferenceTable(pRenderPass);
+}
+
+void CommandBuffer::BeginRenderPass(const std::vector<VkClearValue>& clearValues, bool includeSecondary)
+{
+	BeginRenderPass(RenderWorkMgr()->GetCurrentFrameBuffer(), RenderWorkMgr()->GetCurrentRenderPass(), clearValues, includeSecondary);
 }
 
 void CommandBuffer::EndRenderPass()

@@ -468,7 +468,7 @@ void VulkanGlobal::InitUniforms()
 
 void VulkanGlobal::InitIrradianceMap()
 {
-	RenderWorkMgr()->SetDefaultOffscreenRenderPass();
+	RenderWorkMgr()->SetDefaultOffscreenRenderPass(m_pEnvFrameBuffer);
 
 	Vector3f up = { 0, 1, 0 };
 	Vector3f look = { 0, 0, -1 };
@@ -528,7 +528,7 @@ void VulkanGlobal::InitIrradianceMap()
 
 		uint32_t offset = 0;
 		
-		pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, RenderWorkMgr()->GetCurrentRenderPass(), clearValues);
+		pDrawCmdBuffer->BeginRenderPass(clearValues);
 
 		// Draw skybox
 		pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
@@ -551,7 +551,7 @@ void VulkanGlobal::InitIrradianceMap()
 
 void VulkanGlobal::InitPrefilterEnvMap()
 {
-	RenderWorkMgr()->SetDefaultOffscreenRenderPass();
+	RenderWorkMgr()->SetDefaultOffscreenRenderPass(m_pEnvFrameBuffer);
 
 	Vector3f up = { 0, 1, 0 };
 	Vector3f look = { 0, 0, -1 };
@@ -616,7 +616,7 @@ void VulkanGlobal::InitPrefilterEnvMap()
 
 			uint32_t offset = 0;
 
-			pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, RenderWorkMgr()->GetCurrentRenderPass(), clearValues);
+			pDrawCmdBuffer->BeginRenderPass(clearValues);
 
 			// Draw skybox
 			pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
@@ -640,7 +640,7 @@ void VulkanGlobal::InitPrefilterEnvMap()
 
 void VulkanGlobal::InitBRDFlutMap()
 {
-	RenderWorkMgr()->SetDefaultOffscreenRenderPass();
+	RenderWorkMgr()->SetDefaultOffscreenRenderPass(m_pEnvFrameBuffer);
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 
@@ -670,7 +670,7 @@ void VulkanGlobal::InitBRDFlutMap()
 
 	uint32_t offset = 0;
 
-	pDrawCmdBuffer->BeginRenderPass(m_pEnvFrameBuffer, RenderWorkMgr()->GetCurrentRenderPass(), clearValues);
+	pDrawCmdBuffer->BeginRenderPass(clearValues);
 
 	pDrawCmdBuffer->BindPipeline(m_pOffScreenBRDFLutPipeline);
 	pDrawCmdBuffer->BindVertexBuffers({ m_pQuadMesh->GetVertexBuffer() });
@@ -729,7 +729,7 @@ void VulkanGlobal::InitPipelineCache()
 void VulkanGlobal::InitPipeline()
 {
 	GraphicPipeline::SimplePipelineStateCreateInfo info = {};
-	info.pRenderPass = GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass();
+	info.pRenderPass = RenderWorkManager::GetDefaultRenderPass();
 	info.pPipelineLayout = m_pSkyBoxPLayout;
 	info.pVertShader = m_pSkyBoxVS;
 	info.pFragShader = m_pSkyBoxFS;
@@ -1033,7 +1033,7 @@ void VulkanGlobal::Draw()
 	GetSwapChain()->AcquireNextImage();
 	m_pCharacter->Move(m_moveFlag, 0.001f);
 
-	RenderWorkMgr()->SetDefaultRenderPass();
+	RenderWorkMgr()->SetDefaultRenderPass(GlobalObjects()->GetCurrentFrameBuffer());
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
 	pDrawCmdBuffer->StartPrimaryRecording();
@@ -1046,7 +1046,7 @@ void VulkanGlobal::Draw()
 		{ 0.2f, 0.2f, 0.2f, 0.2f },
 		{ 1.0f, 0 }
 	};
-	pDrawCmdBuffer->BeginRenderPass(GlobalObjects()->GetCurrentFrameBuffer(), RenderWorkMgr()->GetCurrentRenderPass(), clearValues, true);
+	pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
 	m_pRootObject->Update();
 	GlobalThreadTaskQueue()->WaitForFree();

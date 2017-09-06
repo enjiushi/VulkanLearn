@@ -16,6 +16,7 @@
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/VulkanGlobal.h"
 #include "../vulkan/StagingBufferManager.h"
+#include "../vulkan/RenderWorkManager.h"
 
 std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance)
 {
@@ -57,9 +58,9 @@ void MeshRenderer::Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 
 	VkCommandBufferInheritanceInfo inheritanceInfo = {};
 	inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-	inheritanceInfo.renderPass = GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()->GetDeviceHandle();
-	inheritanceInfo.subpass = 0;
-	inheritanceInfo.framebuffer = GlobalObjects()->GetCurrentFrameBuffer()->GetDeviceHandle();
+	inheritanceInfo.renderPass = RenderWorkMgr()->GetCurrentRenderPass()->GetDeviceHandle();
+	inheritanceInfo.subpass = RenderWorkMgr()->GetCurrentRenderPass()->GetCurrentSubpass();
+	inheritanceInfo.framebuffer = RenderWorkMgr()->GetCurrentFrameBuffer()->GetDeviceHandle();
 	pDrawCmdBuffer->StartSecondaryRecording(inheritanceInfo);
 
 	VkViewport viewport =
