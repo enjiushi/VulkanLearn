@@ -89,7 +89,7 @@ void MeshRenderer::Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 
 	pDrawCmdBuffer->EndSecondaryRecording();
 
-	GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
+	RenderWorkMgr()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
 }
 
 void MeshRenderer::LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
