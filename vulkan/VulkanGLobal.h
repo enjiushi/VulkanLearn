@@ -87,9 +87,9 @@ public:
 	void InitDescriptorSet();
 	void InitDrawCmdBuffers();
 	void InitSemaphore();
+	void InitMaterials();
 	void EndSetup();
 
-	void PrepareDrawCommandBuffer(const std::shared_ptr<PerFrameResource>& pPerFrameRes);
 	void UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera);
 	void Draw();
 	void Update();

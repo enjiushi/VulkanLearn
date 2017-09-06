@@ -834,39 +834,9 @@ void VulkanGlobal::InitSemaphore()
 {
 }
 
-void VulkanGlobal::EndSetup()
+void VulkanGlobal::InitMaterials()
 {
-	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
-
-	CameraInfo camInfo =
-	{
-		3.1415f / 3.0f,
-		1024.0f / 768.0f,
-		1.0f,
-		2000.0f,
-	};
-	m_pCameraComp = Camera::Create(camInfo);
-	m_pCameraObj = BaseObject::Create();
-	m_pCameraObj->AddComponent(m_pCameraComp);
-
-	camInfo =
-	{
-		3.1415f / 2.0f,
-		OffScreenSize / OffScreenSize,
-		1.0f,
-		2000.0f,
-	};
-	m_pOffScreenCamObj = BaseObject::Create();
-	m_pOffScreenCamComp = Camera::Create(camInfo);
-	m_pOffScreenCamObj->AddComponent(m_pOffScreenCamComp);
-
-	m_pCharacter = Character::Create({100.0f}, m_pCameraComp);
-	m_pCameraObj->AddComponent(m_pCharacter);
-
-	m_pCameraObj->SetPos({ 0, 0, 50 });
-	m_pCameraObj->Update();
-
-
+	// Gun material
 	std::vector<VkDescriptorSetLayoutBinding> dsLayoutBindings =
 	{
 		{
@@ -942,11 +912,10 @@ void VulkanGlobal::EndSetup()
 		m_pGunMesh->GetVertexBuffer()->GetAttribDesc(),
 		GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()
 	};
+
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
-
 	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
-
 	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pAlbedo);
 	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(2, m_pNormal);
 	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(3, m_pRoughness);
@@ -956,10 +925,24 @@ void VulkanGlobal::EndSetup()
 	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(7, m_pPrefilterEnvTex);
 	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(8, m_pBRDFLut);
 
-	m_pGunObject = BaseObject::Create();
-	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
-	m_pGunObject->AddComponent(m_pGunMeshRenderer);
-
+	// Skybox material
+	dsLayoutBindings =
+	{
+		{
+			0,	//binding
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	//type
+			1,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		},
+		{
+			1,	//binding
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
+			1,
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			nullptr
+		}
+	};
 
 	info =
 	{
@@ -974,6 +957,43 @@ void VulkanGlobal::EndSetup()
 
 	m_pSkyBoxMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
 	m_pSkyBoxMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pSkyBoxTex);
+}
+
+void VulkanGlobal::EndSetup()
+{
+	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
+
+	CameraInfo camInfo =
+	{
+		3.1415f / 3.0f,
+		1024.0f / 768.0f,
+		1.0f,
+		2000.0f,
+	};
+	m_pCameraComp = Camera::Create(camInfo);
+	m_pCameraObj = BaseObject::Create();
+	m_pCameraObj->AddComponent(m_pCameraComp);
+
+	camInfo =
+	{
+		3.1415f / 2.0f,
+		OffScreenSize / OffScreenSize,
+		1.0f,
+		2000.0f,
+	};
+	m_pOffScreenCamObj = BaseObject::Create();
+	m_pOffScreenCamComp = Camera::Create(camInfo);
+	m_pOffScreenCamObj->AddComponent(m_pOffScreenCamComp);
+
+	m_pCharacter = Character::Create({100.0f}, m_pCameraComp);
+	m_pCameraObj->AddComponent(m_pCharacter);
+
+	m_pCameraObj->SetPos({ 0, 0, 50 });
+	m_pCameraObj->Update();
+
+	m_pGunObject = BaseObject::Create();
+	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
+	m_pGunObject->AddComponent(m_pGunMeshRenderer);
 
 	m_pSkyBoxObject = BaseObject::Create();
 	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, m_pSkyBoxMaterialInstance);
@@ -1089,5 +1109,6 @@ void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
 	InitDescriptorSet();
 	InitDrawCmdBuffers();
 	InitSemaphore();
+	InitMaterials();
 	EndSetup();
 }
