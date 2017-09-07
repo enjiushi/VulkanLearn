@@ -11,6 +11,8 @@
 #include "RenderPass.h"
 #include "../thread/ThreadTaskQueue.hpp"
 #include "RenderWorkManager.h"
+#include "GlobalVulkanStates.h"
+#include "PhysicalDevice.h"
 
 bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 {
@@ -38,6 +40,8 @@ bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
 		m_framebuffers[i] = FrameBuffer::Create(m_pDevice, m_pSwapChain->GetSwapChainImage(i), DepthStencilBuffer::Create(m_pDevice), RenderWorkManager::GetDefaultRenderPass());
 
 	m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(pDevice, FrameMgr()->MaxFrameCount(), FrameMgr());
+
+	m_pGlobalVulkanStates = GlobalVulkanStates::Create(pDevice);
 
 	return true;
 }
@@ -80,3 +84,4 @@ std::shared_ptr<SharedBufferManager> UniformBufferMgr() { return GlobalObjects()
 std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue() { return GlobalObjects()->GetThreadTaskQueue(); }
 std::vector<std::shared_ptr<FrameBuffer>> DefaultFrameBuffers() { return GlobalObjects()->GetDefaultFrameBuffers(); }
 std::shared_ptr<RenderWorkManager> RenderWorkMgr() { return GlobalObjects()->GetRenderWorkMgr(); }
+std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates() { return GlobalObjects()->GetGlobalVulkanStates(); }

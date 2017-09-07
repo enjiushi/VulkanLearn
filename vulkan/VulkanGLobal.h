@@ -88,6 +88,8 @@ public:
 	void InitDrawCmdBuffers();
 	void InitSemaphore();
 	void InitMaterials();
+	void InitScene();
+	void InitEnviromentMap();
 	void EndSetup();
 
 	void UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera);
@@ -121,30 +123,7 @@ public:
 
 	std::shared_ptr<UniformBuffer>		m_pUniformBuffer;
 
-	std::shared_ptr<DescriptorSetLayout>m_pSkyBoxDSLayout;
-
-	std::shared_ptr<PipelineLayout>		m_pSkyBoxPLayout;
-
-	std::shared_ptr<GraphicPipeline>	m_pSkyBoxPipeline;
-	std::shared_ptr<GraphicPipeline>	m_pOffScreenIrradiancePipeline;
-	std::shared_ptr<GraphicPipeline>	m_pOffScreenPrefilterEnvPipeline;
-	std::shared_ptr<GraphicPipeline>	m_pOffScreenBRDFLutPipeline;
-	std::shared_ptr<GraphicPipeline>	m_pSimplePipeline;
-
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
-	std::shared_ptr<DescriptorSet>		m_pSkyBoxDS;
-	std::shared_ptr<DescriptorSet>		m_pSimpleDS;
-
-	std::shared_ptr<ShaderModule>		m_pSkyBoxVS;
-	std::shared_ptr<ShaderModule>		m_pSkyBoxFS;
-
-	std::shared_ptr<ShaderModule>		m_pSimpleVS;
-	std::shared_ptr<ShaderModule>		m_pSimpleFS;
-
-	std::shared_ptr<ShaderModule>		m_pIrradianceFS;
-	std::shared_ptr<ShaderModule>		m_pPrefilterEnvFS;
-	std::shared_ptr<ShaderModule>		m_pBRDFLutVS;
-	std::shared_ptr<ShaderModule>		m_pBRDFLutFS;
 
 	//std::vector<VkCommandBuffer>		m_drawCmdBuffers;
 	std::vector<std::shared_ptr<CommandBuffer>>		m_drawCmdBuffers;
@@ -181,6 +160,18 @@ public:
 	std::shared_ptr<MeshRenderer>		m_pSkyBoxMeshRenderer;
 	std::shared_ptr<Material>			m_pSkyBoxMaterial;
 	std::shared_ptr<MaterialInstance>	m_pSkyBoxMaterialInstance;
+
+	std::shared_ptr<Material>			m_pSkyBoxIrradianceMaterial;
+	std::shared_ptr<MaterialInstance>	m_pSkyBoxIrradianceMaterialInstance;
+
+	std::shared_ptr<Material>			m_pSkyBoxReflectionMaterial;
+	std::shared_ptr<MaterialInstance>	m_pSkyBoxReflectionMaterialInstance;
+
+	std::shared_ptr<Material>			m_pBRDFLutMaterial;
+	std::shared_ptr<MaterialInstance>	m_pBRDFLutMaterialInstance;
+
+	std::shared_ptr<BaseObject>			m_pQuadObject;
+	std::shared_ptr<MeshRenderer>		m_pQuadRenderer;
 
 	std::shared_ptr<BaseObject>			m_pRootObject;
 

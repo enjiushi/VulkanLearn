@@ -17,11 +17,20 @@
 #include "../vulkan/VulkanGlobal.h"
 #include "../vulkan/StagingBufferManager.h"
 #include "../vulkan/RenderWorkManager.h"
+#include "../vulkan/GlobalVulkanStates.h"
 
 std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance)
 {
 	std::shared_ptr<MeshRenderer> pMeshRenderer = std::make_shared<MeshRenderer>();
-	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, pMesh, pMaterialInstance))
+	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, pMesh, { pMaterialInstance }))
+		return pMeshRenderer;
+	return nullptr;
+}
+
+std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances)
+{
+	std::shared_ptr<MeshRenderer> pMeshRenderer = std::make_shared<MeshRenderer>();
+	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, pMesh, materialInstances))
 		return pMeshRenderer;
 	return nullptr;
 }
@@ -29,18 +38,18 @@ std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> p
 std::shared_ptr<MeshRenderer> MeshRenderer::Create()
 {
 	std::shared_ptr<MeshRenderer> pMeshRenderer = std::make_shared<MeshRenderer>();
-	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, nullptr, nullptr))
+	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, nullptr, {}))
 		return pMeshRenderer;
 	return nullptr;
 }
 
-bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance)
+bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances)
 {
 	if (!BaseComponent::Init(pSelf))
 		return false;
 
 	m_pMesh = pMesh;
-	m_pMaterialInstance = pMaterialInstance;
+	m_materialInstances = materialInstances;
 	return true;
 }
 
@@ -48,48 +57,54 @@ void MeshRenderer::Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 {
 	std::unique_lock<std::mutex> lock(m_updateMutex);
 
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocateSecondaryCommandBuffer();
-
-	std::vector<VkClearValue> clearValues =
+	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
 	{
-		{ 0.2f, 0.2f, 0.2f, 0.2f },
-		{ 1.0f, 0 }
-	};
+		if (((1 << GetGlobalVulkanStates()->GetRenderState()) & m_materialInstances[i]->GetRenderMask()) == 0)
+			continue;
 
-	VkCommandBufferInheritanceInfo inheritanceInfo = {};
-	inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-	inheritanceInfo.renderPass = RenderWorkMgr()->GetCurrentRenderPass()->GetDeviceHandle();
-	inheritanceInfo.subpass = RenderWorkMgr()->GetCurrentRenderPass()->GetCurrentSubpass();
-	inheritanceInfo.framebuffer = RenderWorkMgr()->GetCurrentFrameBuffer()->GetDeviceHandle();
-	pDrawCmdBuffer->StartSecondaryRecording(inheritanceInfo);
+		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocateSecondaryCommandBuffer();
 
-	VkViewport viewport =
-	{
-		0, 0,
-		GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height,
-		0, 1
-	};
+		std::vector<VkClearValue> clearValues =
+		{
+			{ 0.2f, 0.2f, 0.2f, 0.2f },
+			{ 1.0f, 0 }
+		};
 
-	VkRect2D scissorRect =
-	{
-		0, 0,
-		GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height
-	};
+		VkCommandBufferInheritanceInfo inheritanceInfo = {};
+		inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+		inheritanceInfo.renderPass = RenderWorkMgr()->GetCurrentRenderPass()->GetDeviceHandle();
+		inheritanceInfo.subpass = RenderWorkMgr()->GetCurrentRenderPass()->GetCurrentSubpass();
+		inheritanceInfo.framebuffer = RenderWorkMgr()->GetCurrentFrameBuffer()->GetDeviceHandle();
+		pDrawCmdBuffer->StartSecondaryRecording(inheritanceInfo);
 
-	pDrawCmdBuffer->SetViewports({ viewport });
-	pDrawCmdBuffer->SetScissors({ scissorRect });
+		VkViewport viewport =
+		{
+			0, 0,
+			RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+			0, 1
+		};
 
-	uint32_t offset = FrameMgr()->FrameIndex() * VulkanGlobal::GetInstance()->m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
+		VkRect2D scissorRect =
+		{
+			0, 0,
+			RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+		};
 
-	pDrawCmdBuffer->BindDescriptorSets(m_pMaterialInstance->GetMaterial()->GetPipelineLayout(), m_pMaterialInstance->GetDescriptorSets(), { offset });
-	pDrawCmdBuffer->BindPipeline(m_pMaterialInstance->GetMaterial()->GetGraphicPipeline());
-	pDrawCmdBuffer->BindVertexBuffers({ m_pMesh->GetVertexBuffer() });
-	pDrawCmdBuffer->BindIndexBuffer(m_pMesh->GetIndexBuffer());
-	pDrawCmdBuffer->DrawIndexed(m_pMesh->GetIndexBuffer());
+		pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
+		pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
 
-	pDrawCmdBuffer->EndSecondaryRecording();
+		uint32_t offset = FrameMgr()->FrameIndex() * VulkanGlobal::GetInstance()->m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
 
-	RenderWorkMgr()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
+		pDrawCmdBuffer->BindDescriptorSets(m_materialInstances[i]->GetMaterial()->GetPipelineLayout(), m_materialInstances[i]->GetDescriptorSets(), { 0 });
+		pDrawCmdBuffer->BindPipeline(m_materialInstances[i]->GetMaterial()->GetGraphicPipeline());
+		pDrawCmdBuffer->BindVertexBuffers({ m_pMesh->GetVertexBuffer() });
+		pDrawCmdBuffer->BindIndexBuffer(m_pMesh->GetIndexBuffer());
+		pDrawCmdBuffer->DrawIndexed(m_pMesh->GetIndexBuffer());
+
+		pDrawCmdBuffer->EndSecondaryRecording();
+
+		RenderWorkMgr()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
+	}
 }
 
 void MeshRenderer::LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrameRes)

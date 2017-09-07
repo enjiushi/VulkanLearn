@@ -20,6 +20,8 @@
 #include "SharedVertexBuffer.h"
 #include "SharedIndexBuffer.h"
 #include "RenderWorkManager.h"
+#include <iostream>
+#include "GlobalVulkanStates.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -468,7 +470,7 @@ void VulkanGlobal::InitUniforms()
 
 void VulkanGlobal::InitIrradianceMap()
 {
-	RenderWorkMgr()->SetDefaultOffscreenRenderPass(m_pEnvFrameBuffer);
+	GetGlobalVulkanStates()->SetRenderState(GlobalVulkanStates::IrradianceGen);
 
 	Vector3f up = { 0, 1, 0 };
 	Vector3f look = { 0, 0, -1 };
@@ -516,6 +518,9 @@ void VulkanGlobal::InitIrradianceMap()
 			OffScreenSize, OffScreenSize,
 		};
 
+		GetGlobalVulkanStates()->SetViewport(viewport);
+		GetGlobalVulkanStates()->SetScissorRect(scissorRect);
+
 		m_pOffScreenCamObj->SetRotation(cameraRotations[i]);
 
 		pDrawCmdBuffer->StartPrimaryRecording();
@@ -523,20 +528,12 @@ void VulkanGlobal::InitIrradianceMap()
 		UpdateUniforms(0, m_pOffScreenCamComp);
 		StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
-		pDrawCmdBuffer->SetViewports({ viewport });
-		pDrawCmdBuffer->SetScissors({ scissorRect });
-
 		uint32_t offset = 0;
 		
-		pDrawCmdBuffer->BeginRenderPass(clearValues);
+		pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
-		// Draw skybox
-		pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
-		pDrawCmdBuffer->BindPipeline(m_pOffScreenIrradiancePipeline);
-		pDrawCmdBuffer->BindVertexBuffers({ m_pCubeMesh->GetVertexBuffer() });
-		pDrawCmdBuffer->BindIndexBuffer(m_pCubeMesh->GetIndexBuffer());
-
-		pDrawCmdBuffer->DrawIndexed(m_pCubeMesh->GetIndexBuffer());
+		m_pRootObject->Update();
+		RenderWorkMgr()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
 		pDrawCmdBuffer->EndRenderPass();
 
@@ -551,7 +548,7 @@ void VulkanGlobal::InitIrradianceMap()
 
 void VulkanGlobal::InitPrefilterEnvMap()
 {
-	RenderWorkMgr()->SetDefaultOffscreenRenderPass(m_pEnvFrameBuffer);
+	GetGlobalVulkanStates()->SetRenderState(GlobalVulkanStates::ReflectionGen);
 
 	Vector3f up = { 0, 1, 0 };
 	Vector3f look = { 0, 0, -1 };
@@ -604,6 +601,9 @@ void VulkanGlobal::InitPrefilterEnvMap()
 				size, size,
 			};
 
+			GetGlobalVulkanStates()->SetViewport(viewport);
+			GetGlobalVulkanStates()->SetScissorRect(scissorRect);
+
 			m_pOffScreenCamObj->SetRotation(cameraRotations[i]);
 
 			pDrawCmdBuffer->StartPrimaryRecording();
@@ -611,20 +611,14 @@ void VulkanGlobal::InitPrefilterEnvMap()
 			UpdateUniforms(0, m_pOffScreenCamComp);
 			StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
-			pDrawCmdBuffer->SetViewports({ viewport });
-			pDrawCmdBuffer->SetScissors({ scissorRect });
-
 			uint32_t offset = 0;
 
-			pDrawCmdBuffer->BeginRenderPass(clearValues);
+			pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
-			// Draw skybox
-			pDrawCmdBuffer->BindDescriptorSets(m_pSkyBoxPLayout, { m_pSkyBoxDS }, { offset });
-			pDrawCmdBuffer->BindPipeline(m_pOffScreenPrefilterEnvPipeline);
-			pDrawCmdBuffer->BindVertexBuffers({ m_pCubeMesh->GetVertexBuffer() });
-			pDrawCmdBuffer->BindIndexBuffer(m_pCubeMesh->GetIndexBuffer());
+			m_pRootObject->Update();
 
-			pDrawCmdBuffer->DrawIndexed(m_pCubeMesh->GetIndexBuffer());
+			RenderWorkMgr()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
+
 
 			pDrawCmdBuffer->EndRenderPass();
 
@@ -640,7 +634,7 @@ void VulkanGlobal::InitPrefilterEnvMap()
 
 void VulkanGlobal::InitBRDFlutMap()
 {
-	RenderWorkMgr()->SetDefaultOffscreenRenderPass(m_pEnvFrameBuffer);
+	GetGlobalVulkanStates()->SetRenderState(GlobalVulkanStates::BrdfLutGen);
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 
@@ -665,18 +659,16 @@ void VulkanGlobal::InitBRDFlutMap()
 
 	pDrawCmdBuffer->StartPrimaryRecording();
 
-	pDrawCmdBuffer->SetViewports({ viewport });
-	pDrawCmdBuffer->SetScissors({ scissorRect });
+	GetGlobalVulkanStates()->SetViewport(viewport);
+	GetGlobalVulkanStates()->SetScissorRect(scissorRect);
 
 	uint32_t offset = 0;
 
-	pDrawCmdBuffer->BeginRenderPass(clearValues);
+	pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
-	pDrawCmdBuffer->BindPipeline(m_pOffScreenBRDFLutPipeline);
-	pDrawCmdBuffer->BindVertexBuffers({ m_pQuadMesh->GetVertexBuffer() });
-	pDrawCmdBuffer->BindIndexBuffer(m_pQuadMesh->GetIndexBuffer());
+	m_pRootObject->Update();
 
-	pDrawCmdBuffer->DrawIndexed(m_pQuadMesh->GetIndexBuffer());
+	RenderWorkMgr()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
 	pDrawCmdBuffer->EndRenderPass();
 
@@ -690,31 +682,6 @@ void VulkanGlobal::InitBRDFlutMap()
 
 void VulkanGlobal::InitDescriptorSetLayout()
 {
-	std::vector<VkDescriptorSetLayoutBinding> dsLayoutBindings =
-	{
-		{
-			0,	//binding
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	//type
-			1,
-			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			1,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-	};
-
-	m_pSkyBoxDSLayout = DescriptorSetLayout::Create(m_pDevice, dsLayoutBindings);
-
-	DescriptorSetLayoutList list =
-	{
-		m_pSkyBoxDSLayout,
-	};
-	m_pSkyBoxPLayout = PipelineLayout::Create(m_pDevice, list);
 }
 
 void VulkanGlobal::InitPipelineCache()
@@ -728,68 +695,10 @@ void VulkanGlobal::InitPipelineCache()
 
 void VulkanGlobal::InitPipeline()
 {
-	GraphicPipeline::SimplePipelineStateCreateInfo info = {};
-	info.pRenderPass = RenderWorkManager::GetDefaultRenderPass();
-	info.pPipelineLayout = m_pSkyBoxPLayout;
-	info.pVertShader = m_pSkyBoxVS;
-	info.pFragShader = m_pSkyBoxFS;
-	info.vertexBindingsInfo = { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
-
-	m_pSkyBoxPipeline = GraphicPipeline::Create(m_pDevice, info);
-
-	info = {};
-	info.pRenderPass = RenderWorkManager::GetDefaultOffscreenRenderPass();
-	info.pPipelineLayout = m_pSkyBoxPLayout;
-	info.pVertShader = m_pSkyBoxVS;
-	info.pFragShader = m_pIrradianceFS;
-	info.vertexBindingsInfo = { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
-
-	m_pOffScreenIrradiancePipeline = GraphicPipeline::Create(m_pDevice, info);
-
-	info = {};
-	info.pRenderPass = RenderWorkManager::GetDefaultOffscreenRenderPass();
-	info.pPipelineLayout = m_pSkyBoxPLayout;
-	info.pVertShader = m_pSkyBoxVS;
-	info.pFragShader = m_pPrefilterEnvFS;
-	info.vertexBindingsInfo = { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
-
-	m_pOffScreenPrefilterEnvPipeline = GraphicPipeline::Create(m_pDevice, info);
-
-	info = {};
-	info.pRenderPass = RenderWorkManager::GetDefaultOffscreenRenderPass();
-	info.pPipelineLayout = m_pSkyBoxPLayout;
-	info.pVertShader = m_pBRDFLutVS;
-	info.pFragShader = m_pBRDFLutFS;
-	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
-
-	m_pOffScreenBRDFLutPipeline = GraphicPipeline::Create(m_pDevice, info);
-
-	info = {};
-	info.pRenderPass = GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass();
-	info.pPipelineLayout = m_pSkyBoxPLayout;
-	info.pVertShader = m_pSimpleVS;
-	info.pFragShader = m_pSimpleFS;
-	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
-	m_pSimplePipeline = GraphicPipeline::Create(m_pDevice, info);
 }
 
 void VulkanGlobal::InitShaderModule()
 {
-	m_pSkyBoxVS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.vert.spv", ShaderModule::ShaderTypeVertex, "main");
-	m_pSkyBoxFS = ShaderModule::Create(m_pDevice, L"../data/shaders/sky_box.frag.spv", ShaderModule::ShaderTypeFragment, "main");
-
-	m_pSimpleVS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.vert.spv", ShaderModule::ShaderTypeVertex, "main");
-	m_pSimpleFS = ShaderModule::Create(m_pDevice, L"../data/shaders/simple.frag.spv", ShaderModule::ShaderTypeFragment, "main");
-
-	m_pIrradianceFS = ShaderModule::Create(m_pDevice, L"../data/shaders/irradiance.frag.spv", ShaderModule::ShaderTypeFragment, "main");
-	m_pPrefilterEnvFS = ShaderModule::Create(m_pDevice, L"../data/shaders/prefilter_env.frag.spv", ShaderModule::ShaderTypeFragment, "main");
-	m_pBRDFLutVS = ShaderModule::Create(m_pDevice, L"../data/shaders/brdf_lut.vert.spv", ShaderModule::ShaderTypeVertex, "main");
-	m_pBRDFLutFS = ShaderModule::Create(m_pDevice, L"../data/shaders/brdf_lut.frag.spv", ShaderModule::ShaderTypeFragment, "main");
 }
 
 void VulkanGlobal::InitDescriptorPool()
@@ -815,13 +724,6 @@ void VulkanGlobal::InitDescriptorPool()
 
 void VulkanGlobal::InitDescriptorSet()
 {
-	m_pSkyBoxDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
-	m_pSkyBoxDS->UpdateBufferDynamic(0, m_pUniformBuffer);
-	m_pSkyBoxDS->UpdateImage(1, m_pSkyBoxTex);
-
-	m_pSimpleDS = m_pDescriptorPool->AllocateDescriptorSet(m_pSkyBoxDSLayout);
-	m_pSimpleDS->UpdateBufferDynamic(0, m_pUniformBuffer);
-	m_pSimpleDS->UpdateImage(1, m_pBRDFLut);
 }
 
 void VulkanGlobal::InitDrawCmdBuffers()
@@ -910,11 +812,12 @@ void VulkanGlobal::InitMaterials()
 		{ dsLayoutBindings },
 		{ m_pGunMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pGunMesh->GetVertexBuffer()->GetAttribDesc(),
-		GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()
+		RenderWorkManager::GetDefaultRenderPass()
 	};
 
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
+	m_pGunMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
 	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
 	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pAlbedo);
 	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(2, m_pNormal);
@@ -950,19 +853,81 @@ void VulkanGlobal::InitMaterials()
 		{ dsLayoutBindings },
 		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
-		GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()
+		RenderWorkManager::GetDefaultRenderPass()
 	};
 	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
-
+	m_pSkyBoxMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
 	m_pSkyBoxMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
 	m_pSkyBoxMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pSkyBoxTex);
+
+	info =
+	{
+		{ L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" },
+		{ dsLayoutBindings },
+		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
+		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
+		RenderWorkManager::GetDefaultOffscreenRenderPass()
+	};
+
+	m_pSkyBoxIrradianceMaterial = Material::CreateDefaultMaterial(info);
+	m_pSkyBoxIrradianceMaterialInstance = m_pSkyBoxIrradianceMaterial->CreateMaterialInstance();
+	m_pSkyBoxIrradianceMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::IrradianceGen);
+	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
+	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pSkyBoxTex);
+
+	/*
+	info = {};
+	info.pRenderPass = RenderWorkManager::GetDefaultOffscreenRenderPass();
+	info.pPipelineLayout = m_pSkyBoxPLayout;
+	info.pVertShader = m_pSkyBoxVS;
+	info.pFragShader = m_pPrefilterEnvFS;
+	info.vertexBindingsInfo = { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
+	*/
+
+	info =
+	{
+		{ L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" },
+		{ dsLayoutBindings },
+		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
+		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
+		RenderWorkManager::GetDefaultOffscreenRenderPass()
+	};
+
+	m_pSkyBoxReflectionMaterial = Material::CreateDefaultMaterial(info);
+	m_pSkyBoxReflectionMaterialInstance = m_pSkyBoxReflectionMaterial->CreateMaterialInstance();
+	m_pSkyBoxReflectionMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::ReflectionGen);
+	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
+	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pSkyBoxTex);
+
+	info =
+	{
+		{ L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" },
+		{ dsLayoutBindings },
+		{ m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() },
+		m_pQuadMesh->GetVertexBuffer()->GetAttribDesc(),
+		RenderWorkManager::GetDefaultOffscreenRenderPass()
+	};
+
+	m_pBRDFLutMaterial = Material::CreateDefaultMaterial(info);
+	m_pBRDFLutMaterialInstance = m_pBRDFLutMaterial->CreateMaterialInstance();
+	m_pBRDFLutMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::BrdfLutGen);
+	m_pBRDFLutMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
+	m_pBRDFLutMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pSkyBoxTex);
 }
 
-void VulkanGlobal::EndSetup()
+void VulkanGlobal::InitEnviromentMap()
 {
-	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
+	RenderWorkMgr()->SetDefaultOffscreenRenderPass(m_pEnvFrameBuffer);
 
+	InitIrradianceMap();
+	InitPrefilterEnvMap();
+	InitBRDFlutMap();
+}
+
+void VulkanGlobal::InitScene()
+{
 	CameraInfo camInfo =
 	{
 		3.1415f / 3.0f,
@@ -985,7 +950,7 @@ void VulkanGlobal::EndSetup()
 	m_pOffScreenCamComp = Camera::Create(camInfo);
 	m_pOffScreenCamObj->AddComponent(m_pOffScreenCamComp);
 
-	m_pCharacter = Character::Create({100.0f}, m_pCameraComp);
+	m_pCharacter = Character::Create({ 100.0f }, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
 
 	m_pCameraObj->SetPos({ 0, 0, 50 });
@@ -996,19 +961,22 @@ void VulkanGlobal::EndSetup()
 	m_pGunObject->AddComponent(m_pGunMeshRenderer);
 
 	m_pSkyBoxObject = BaseObject::Create();
-	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, m_pSkyBoxMaterialInstance);
+	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, { m_pSkyBoxMaterialInstance, m_pSkyBoxIrradianceMaterialInstance, m_pSkyBoxReflectionMaterialInstance });
 	m_pSkyBoxObject->AddComponent(m_pSkyBoxMeshRenderer);
+
+	m_pQuadObject = BaseObject::Create();
+	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, m_pBRDFLutMaterialInstance);
+	m_pQuadObject->AddComponent(m_pQuadRenderer);
 
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pGunObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
+	m_pRootObject->AddChild(m_pQuadObject);
+}
 
-	for (uint32_t i = 0; i < FrameMgr()->MaxFrameCount(); i++)
-		m_perFrameRes.push_back(FrameMgr()->AllocatePerFrameResource(i));
-
-	InitIrradianceMap();
-	InitPrefilterEnvMap();
-	InitBRDFlutMap();
+void VulkanGlobal::EndSetup()
+{
+	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
 }
 
 void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera)
@@ -1051,6 +1019,11 @@ void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Cam
 void VulkanGlobal::Draw()
 {
 	GetSwapChain()->AcquireNextImage();
+
+	GetGlobalVulkanStates()->SetRenderState(GlobalVulkanStates::Scene);
+	GetGlobalVulkanStates()->RestoreViewport();
+	GetGlobalVulkanStates()->RestoreScissor();
+
 	m_pCharacter->Move(m_moveFlag, 0.001f);
 
 	RenderWorkMgr()->SetDefaultRenderPass(GlobalObjects()->GetCurrentFrameBuffer());
@@ -1069,7 +1042,6 @@ void VulkanGlobal::Draw()
 	pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
 	m_pRootObject->Update();
-	GlobalThreadTaskQueue()->WaitForFree();
 
 	GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
@@ -1110,5 +1082,7 @@ void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
 	InitDrawCmdBuffers();
 	InitSemaphore();
 	InitMaterials();
+	InitScene();
+	InitEnviromentMap();
 	EndSetup();
 }

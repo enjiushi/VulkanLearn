@@ -11,16 +11,19 @@ class MeshRenderer : public BaseComponent
 {
 public:
 	static std::shared_ptr<MeshRenderer> Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance);
+	static std::shared_ptr<MeshRenderer> Create(const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances);
 	static std::shared_ptr<MeshRenderer> Create();
 
 public:
 	void Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes) override;
 	void LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrameRes) override;
 
-protected:
-	bool Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance);
+	std::shared_ptr<Mesh> GetMesh() const { return m_pMesh; }
 
 protected:
-	std::shared_ptr<Mesh>				m_pMesh;
-	std::shared_ptr<MaterialInstance>	m_pMaterialInstance;
+	bool Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances);
+
+protected:
+	std::shared_ptr<Mesh>							m_pMesh;
+	std::vector<std::shared_ptr<MaterialInstance>>	m_materialInstances;
 };
