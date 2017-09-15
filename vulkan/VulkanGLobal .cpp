@@ -812,6 +812,7 @@ void VulkanGlobal::InitMaterials()
 		{ dsLayoutBindings },
 		{ m_pGunMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pGunMesh->GetVertexBuffer()->GetAttribDesc(),
+		32,
 		RenderWorkManager::GetDefaultRenderPass()
 	};
 
@@ -853,6 +854,7 @@ void VulkanGlobal::InitMaterials()
 		{ dsLayoutBindings },
 		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
+		32,
 		RenderWorkManager::GetDefaultRenderPass()
 	};
 	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
@@ -867,6 +869,7 @@ void VulkanGlobal::InitMaterials()
 		{ dsLayoutBindings },
 		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
+		32,
 		RenderWorkManager::GetDefaultOffscreenRenderPass()
 	};
 
@@ -892,6 +895,7 @@ void VulkanGlobal::InitMaterials()
 		{ dsLayoutBindings },
 		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
+		32,
 		RenderWorkManager::GetDefaultOffscreenRenderPass()
 	};
 
@@ -907,6 +911,7 @@ void VulkanGlobal::InitMaterials()
 		{ dsLayoutBindings },
 		{ m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pQuadMesh->GetVertexBuffer()->GetAttribDesc(),
+		32,
 		RenderWorkManager::GetDefaultOffscreenRenderPass()
 	};
 

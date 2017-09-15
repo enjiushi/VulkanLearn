@@ -117,7 +117,7 @@ std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCr
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetDeviceHandle();
 
-	if (pMaterial.get() && pMaterial->Init(pMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.descriptorBindingLayout, simpleMaterialInfo.pRenderPass, createInfo))
+	if (pMaterial.get() && pMaterial->Init(pMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.descriptorBindingLayout, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.maxMaterialInstance))
 		return pMaterial;
 	return nullptr;
 }
@@ -128,7 +128,8 @@ bool Material::Init
 	const std::vector<std::wstring>	shaderPaths,
 	const std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingLayout,
 	const std::shared_ptr<RenderPass>& pRenderPass,
-	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo
+	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
+	uint32_t maxMaterialInstance
 )
 {
 	if (!SelfRefBase<Material>::Init(pSelf))
@@ -162,16 +163,18 @@ bool Material::Init
 	for (uint32_t i = 0; i < counts.size(); i++)
 	{
 		if (counts[i] != 0)
-			descPoolSize.push_back({ (VkDescriptorType)i, MAX_MATERIAL_INSTANCE * counts[i] });
+			descPoolSize.push_back({ (VkDescriptorType)i, maxMaterialInstance * counts[i] });
 	}
 
 	VkDescriptorPoolCreateInfo descPoolInfo = {};
 	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descPoolInfo.pPoolSizes = descPoolSize.data();
 	descPoolInfo.poolSizeCount = descPoolSize.size();
-	descPoolInfo.maxSets = MAX_MATERIAL_INSTANCE;
+	descPoolInfo.maxSets = maxMaterialInstance;
 
 	m_pDescriptorPool = DescriptorPool::Create(GetDevice(), descPoolInfo);
+
+	m_maxMaterialInstance = maxMaterialInstance;
 
 	return true;
 }
