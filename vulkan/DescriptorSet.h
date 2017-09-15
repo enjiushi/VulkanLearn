@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DeviceObjectBase.h"
+#include <map>
 
 class DescriptorPool;
 class DescriptorSetLayout;
@@ -38,4 +39,5 @@ protected:
 	VkDescriptorSet									m_descriptorSet;
 	std::shared_ptr<DescriptorPool>					m_pDescriptorPool;
 	std::shared_ptr<DescriptorSetLayout>			m_pDescriptorSetLayout;
+	std::map<uint32_t, std::shared_ptr<Base>>		m_resourceTable;
 };

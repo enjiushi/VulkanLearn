@@ -57,7 +57,7 @@ void DescriptorSet::UpdateBufferDynamic(uint32_t binding, const std::shared_ptr<
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
 
-	AddToReferenceTable(pBuffer);
+	m_resourceTable[binding] = pBuffer;
 }
 
 void DescriptorSet::UpdateBuffer(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer)
@@ -74,7 +74,7 @@ void DescriptorSet::UpdateBuffer(uint32_t binding, const std::shared_ptr<Uniform
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
 
-	AddToReferenceTable(pBuffer);
+	m_resourceTable[binding] = pBuffer;
 }
 
 void DescriptorSet::UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage)
@@ -91,7 +91,7 @@ void DescriptorSet::UpdateImage(uint32_t binding, const std::shared_ptr<Image>& 
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
 
-	AddToReferenceTable(pImage);
+	m_resourceTable[binding] = pImage;
 }
 
 void DescriptorSet::UpdateTexBuffer(uint32_t binding, const VkBufferView& texBufferView)
