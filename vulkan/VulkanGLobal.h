@@ -121,7 +121,9 @@ public:
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
 
-	std::shared_ptr<UniformBuffer>		m_pUniformBuffer;
+	std::shared_ptr<UniformBuffer>		m_pGlobalUniformBuffer;
+	std::shared_ptr<UniformBuffer>		m_pPerFrameUniformBuffer;
+	std::shared_ptr<UniformBuffer>		m_pPerObjectUniformBuffer;
 
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
 

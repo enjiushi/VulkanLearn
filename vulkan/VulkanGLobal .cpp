@@ -451,7 +451,9 @@ void VulkanGlobal::InitUniforms()
 	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
 	uint32_t alignedBytes = sizeof(GlobalUniforms) / minAlign * minAlign + (sizeof(GlobalUniforms) % minAlign > 0 ? minAlign : 0);
 	uint32_t totalUniformBytes = alignedBytes * GetSwapChain()->GetSwapChainImageCount();
-	m_pUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
+	m_pGlobalUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
+	m_pPerFrameUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
+	m_pPerObjectUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
 
 	m_pAlbedo = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	m_pAmbientOcclusion = Texture2D::Create(m_pDevice, "../data/textures/cerberus/ao.ktx", VK_FORMAT_R8_UNORM);
@@ -739,187 +741,149 @@ void VulkanGlobal::InitSemaphore()
 void VulkanGlobal::InitMaterials()
 {
 	// Gun material
-	std::vector<VkDescriptorSetLayoutBinding> dsLayoutBindings =
+	std::vector<std::vector<MaterialVariable>> layout =
 	{
-		{
-			0,	//binding
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	//type
-			1,
-			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			1,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			2,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			3,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			4,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			5,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			6,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			7,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			8,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
+		{ 
+			{
+				DynamicUniformBuffer,
+				"MaterialVariables",
+				{
+					{ Mat4Unit, "ModelTransform" },
+					{ Mat4Unit, "ViewTransform" },
+					{ Mat4Unit, "ProjectionTransform" },
+					{ Mat4Unit, "vulkanNDCTransform" },
+					{ Mat4Unit, "MVP" },
+					{ Vec3Unit, "CameraPosition" },
+					{ OneUnit, "Roughness" }
+				}
+			},
+			{ CombinedSampler, "AlbedoMap" },
+			{ CombinedSampler, "Normalmap" },
+			{ CombinedSampler, "RoughnessMap" },
+			{ CombinedSampler, "MetalicMap" },
+			{ CombinedSampler, "AmbientOcclusionMap" },
+			{ CombinedSampler, "EnviromentIrradiance" },
+			{ CombinedSampler, "PrefilterEnviromentReflection" },
+			{ CombinedSampler, "BRDFLut" }
 		}
 	};
 
 	SimpleMaterialCreateInfo info =
 	{
 		{ L"../data/shaders/pbr.vert.spv", L"", L"", L"", L"../data/shaders/pbr.frag.spv", L"" },
-		{ dsLayoutBindings },
 		{ m_pGunMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pGunMesh->GetVertexBuffer()->GetAttribDesc(),
 		32,
+		layout,
 		RenderWorkManager::GetDefaultRenderPass()
 	};
 
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
-	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
-	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pAlbedo);
-	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(2, m_pNormal);
-	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(3, m_pRoughness);
-	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(4, m_pMetalic);
-	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(5, m_pAmbientOcclusion);
-	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(6, m_pIrradianceTex);
-	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(7, m_pPrefilterEnvTex);
-	m_pGunMaterialInstance->GetDescriptorSet(0)->UpdateImage(8, m_pBRDFLut);
+	m_pGunMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateBufferDynamic(0, m_pGlobalUniformBuffer);
+	m_pGunMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateBufferDynamic(0, m_pPerFrameUniformBuffer);
+	m_pGunMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
+	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(1, m_pAlbedo);
+	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(2, m_pNormal);
+	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(3, m_pRoughness);
+	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(4, m_pMetalic);
+	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(5, m_pAmbientOcclusion);
+	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(6, m_pIrradianceTex);
+	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(7, m_pPrefilterEnvTex);
+	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(8, m_pBRDFLut);
 
 	// Skybox material
-	dsLayoutBindings =
+	layout =
 	{
 		{
-			0,	//binding
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	//type
-			1,
-			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
-		},
-		{
-			1,	//binding
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	//type
-			1,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			nullptr
+			{
+				DynamicUniformBuffer,
+				"MaterialVariables",
+				{
+					{ Mat4Unit, "ModelTransform" },
+					{ Mat4Unit, "ViewTransform" },
+					{ Mat4Unit, "ProjectionTransform" },
+					{ Mat4Unit, "vulkanNDCTransform" },
+					{ Mat4Unit, "MVP" },
+					{ Vec3Unit, "CameraPosition" },
+					{ OneUnit, "Roughness" }
+				}
+			},
+			{ CombinedSampler, "SkyBoxTexture" },
 		}
 	};
 
 	info =
 	{
 		{ L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" },
-		{ dsLayoutBindings },
 		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
-		32,
+		1,
+		layout,
 		RenderWorkManager::GetDefaultRenderPass()
 	};
 	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
-	m_pSkyBoxMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
-	m_pSkyBoxMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pSkyBoxTex);
+	m_pSkyBoxMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateBufferDynamic(0, m_pGlobalUniformBuffer);
+	m_pSkyBoxMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateBufferDynamic(0, m_pPerFrameUniformBuffer);
+	m_pSkyBoxMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
+	m_pSkyBoxMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(1, m_pSkyBoxTex);
 
 	info =
 	{
 		{ L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" },
-		{ dsLayoutBindings },
 		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
-		32,
+		1,
+		layout,
 		RenderWorkManager::GetDefaultOffscreenRenderPass()
 	};
 
 	m_pSkyBoxIrradianceMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxIrradianceMaterialInstance = m_pSkyBoxIrradianceMaterial->CreateMaterialInstance();
 	m_pSkyBoxIrradianceMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::IrradianceGen);
-	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
-	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pSkyBoxTex);
-
-	/*
-	info = {};
-	info.pRenderPass = RenderWorkManager::GetDefaultOffscreenRenderPass();
-	info.pPipelineLayout = m_pSkyBoxPLayout;
-	info.pVertShader = m_pSkyBoxVS;
-	info.pFragShader = m_pPrefilterEnvFS;
-	info.vertexBindingsInfo = { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
-	*/
+	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateBufferDynamic(0, m_pGlobalUniformBuffer);
+	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateBufferDynamic(0, m_pPerFrameUniformBuffer);
+	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
+	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(1, m_pSkyBoxTex);
 
 	info =
 	{
 		{ L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" },
-		{ dsLayoutBindings },
 		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
-		32,
+		1,
+		layout,
 		RenderWorkManager::GetDefaultOffscreenRenderPass()
 	};
 
 	m_pSkyBoxReflectionMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxReflectionMaterialInstance = m_pSkyBoxReflectionMaterial->CreateMaterialInstance();
 	m_pSkyBoxReflectionMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::ReflectionGen);
-	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
-	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pSkyBoxTex);
+	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateBufferDynamic(0, m_pGlobalUniformBuffer);
+	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateBufferDynamic(0, m_pPerFrameUniformBuffer);
+	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
+	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(1, m_pSkyBoxTex);
 
 	info =
 	{
 		{ L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" },
-		{ dsLayoutBindings },
 		{ m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() },
 		m_pQuadMesh->GetVertexBuffer()->GetAttribDesc(),
-		32,
+		1,
+		layout,
 		RenderWorkManager::GetDefaultOffscreenRenderPass()
 	};
 
 	m_pBRDFLutMaterial = Material::CreateDefaultMaterial(info);
 	m_pBRDFLutMaterialInstance = m_pBRDFLutMaterial->CreateMaterialInstance();
 	m_pBRDFLutMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::BrdfLutGen);
-	m_pBRDFLutMaterialInstance->GetDescriptorSet(0)->UpdateBufferDynamic(0, m_pUniformBuffer);
-	m_pBRDFLutMaterialInstance->GetDescriptorSet(0)->UpdateImage(1, m_pSkyBoxTex);
+	m_pBRDFLutMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateBufferDynamic(0, m_pGlobalUniformBuffer);
+	m_pBRDFLutMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateBufferDynamic(0, m_pPerFrameUniformBuffer);
+	m_pBRDFLutMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
+	m_pBRDFLutMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(1, m_pSkyBoxTex);
 }
 
 void VulkanGlobal::InitEnviromentMap()
@@ -1017,8 +981,8 @@ void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Cam
 		m_roughness = 0.0;
 	memcpy_s(&m_globalUniforms.roughness, sizeof(m_globalUniforms.roughness), &m_roughness, sizeof(m_roughness));
 
-	uint32_t totalUniformBytes = m_pUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
-	m_pUniformBuffer->UpdateByteStream(&m_globalUniforms, totalUniformBytes * frameIndex, sizeof(m_globalUniforms));
+	uint32_t totalUniformBytes = m_pPerFrameUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
+	m_pPerFrameUniformBuffer->UpdateByteStream(&m_globalUniforms, totalUniformBytes * frameIndex, sizeof(m_globalUniforms));
 }
 
 void VulkanGlobal::Draw()

@@ -13,13 +13,54 @@ class MaterialInstance;
 class DescriptorPool;
 class UniformBuffer;
 
+enum UBOType
+{
+	OneUnit,
+	Vec2Unit,
+	Vec3Unit,
+	Vec4Unit,
+	Mat3Unit,
+	Mat4Unit,
+	UBOTypeCount
+};
+
+// More to add
+enum MaterialVariableType
+{
+	DynamicUniformBuffer,
+	CombinedSampler,
+	MaterialVariableTypeCount
+};
+
+enum DescriptorLayout
+{
+	GlobalVariable,
+	PerFrameVariable,
+	PerObjectVariable,
+	PerObjectMaterialVariable,
+	DescriptorLayoutCount
+};
+
+typedef struct _UBOVariable
+{
+	UBOType		type;
+	std::string name;
+}UBOVariable;
+
+typedef struct _MaterialVariable
+{
+	MaterialVariableType		type;
+	std::string					name;
+	std::vector<UBOVariable>	UBOLayout;
+}MaterialVariable;
+
 typedef struct _SimpleMaterialCreateInfo
 {
 	std::vector<std::wstring>								shaderPaths;
-	std::vector<std::vector<VkDescriptorSetLayoutBinding>>	descriptorBindingLayout;
 	std::vector<VkVertexInputBindingDescription>			vertexBindingsInfo;
 	std::vector<VkVertexInputAttributeDescription>			vertexAttributesInfo;
 	uint32_t												maxMaterialInstance = 512;
+	std::vector<std::vector<MaterialVariable>>				materialVariableLayout;
 	// FIXME: Render pass is wired thing, as it's used both for pipeline and frame buffer
 	// Need to think about where it belongs or belongs to itself
 	std::shared_ptr<RenderPass>						pRenderPass;
@@ -35,17 +76,20 @@ public:
 	std::shared_ptr<GraphicPipeline> GetGraphicPipeline() const { return m_pPipeline; }
 	std::vector<std::shared_ptr<DescriptorSetLayout>> GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
+	uint32_t GetUniformBufferSize() const { return m_uniformBufferSize; }
 
 protected:
 	bool Init
 	(
 		const std::shared_ptr<Material>& pSelf, 
 		const std::vector<std::wstring>	shaderPaths,
-		const std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingLayout,
 		const std::shared_ptr<RenderPass>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
-		uint32_t maxMaterialInstance
+		uint32_t maxMaterialInstance,
+		const std::vector<std::vector<MaterialVariable>>& materialVariableLayout
 	);
+
+	static uint32_t GetByteSize(const std::vector<UBOVariable>& UBOLayout);
 
 protected:
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
@@ -54,4 +98,8 @@ protected:
 	std::shared_ptr<DescriptorPool>						m_pDescriptorPool;
 	std::shared_ptr<UniformBuffer>						m_pMaterialVariableBuffer;
 	uint32_t											m_maxMaterialInstance;
+	uint32_t											m_uniformBufferSize;
+	std::vector<std::vector<MaterialVariable>>			m_materialVariableLayout;
+
+	friend class MaterialInstance;
 };

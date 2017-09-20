@@ -3,14 +3,14 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (binding = 1) uniform sampler2D albedoTex;
-layout (binding = 2) uniform sampler2D bumpTex;
-layout (binding = 3) uniform sampler2D roughnessTex;
-layout (binding = 4) uniform sampler2D metalicTex;
-layout (binding = 5) uniform sampler2D aoTex;
-layout (binding = 6) uniform samplerCube irradianceTex;
-layout (binding = 7) uniform samplerCube prefilterEnvTex;
-layout (binding = 8) uniform sampler2D BRDFLut;
+layout (set = 3, binding = 1) uniform sampler2D albedoTex;
+layout (set = 3, binding = 2) uniform sampler2D bumpTex;
+layout (set = 3, binding = 3) uniform sampler2D roughnessTex;
+layout (set = 3, binding = 4) uniform sampler2D metalicTex;
+layout (set = 3, binding = 5) uniform sampler2D aoTex;
+layout (set = 3, binding = 6) uniform samplerCube irradianceTex;
+layout (set = 3, binding = 7) uniform samplerCube prefilterEnvTex;
+layout (set = 3, binding = 8) uniform sampler2D BRDFLut;
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inNormal;
@@ -30,7 +30,7 @@ vec3 F0 = vec3(0.04);
 const float exposure = 4.5;
 const float whiteScale = 11.2;
 
-layout (binding = 0) uniform UBO
+layout (set = 1, binding = 0) uniform UBO
 {
 	mat4 model;
 	mat4 view;

@@ -117,7 +117,7 @@ std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCr
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetDeviceHandle();
 
-	if (pMaterial.get() && pMaterial->Init(pMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.descriptorBindingLayout, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.maxMaterialInstance))
+	if (pMaterial.get() && pMaterial->Init(pMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.maxMaterialInstance, simpleMaterialInfo.materialVariableLayout))
 		return pMaterial;
 	return nullptr;
 }
@@ -126,17 +126,109 @@ bool Material::Init
 (
 	const std::shared_ptr<Material>& pSelf,
 	const std::vector<std::wstring>	shaderPaths,
-	const std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingLayout,
 	const std::shared_ptr<RenderPass>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
-	uint32_t maxMaterialInstance
+	uint32_t maxMaterialInstance,
+	const std::vector<std::vector<MaterialVariable>>& materialVariableLayout
 )
 {
 	if (!SelfRefBase<Material>::Init(pSelf))
 		return false;
 
-	for (auto & bindings : descriptorBindingLayout)
+	std::vector<std::vector<MaterialVariable>> _materialVariableLayout = materialVariableLayout;
+
+	// Every material needs a global layout
+	_materialVariableLayout.insert(_materialVariableLayout.begin() + GlobalVariable,
+	{ 
+		// Only one dynamic buffer
+		{
+			DynamicUniformBuffer,
+			"GlobalUniforms",
+			{
+				// Only one variable "vulkan ndc transform"
+				{
+					Mat4Unit,
+					"VulkanNDCTransform"
+				}
+			}
+		}
+	});
+
+	// Every material needs a per frame layout
+	_materialVariableLayout.insert(_materialVariableLayout.begin() + PerFrameVariable,
+	{
+		// Only one dynamic buffer
+		{
+			DynamicUniformBuffer,
+			"GlobalUniforms",
+			{
+				{ Mat4Unit, "ViewTransform" },
+				{ Mat4Unit, "ProjectionTransform" },
+				{ Mat4Unit, "VP" },
+				{ Vec3Unit, "CameraPosition" }
+			}
+		}
+	});
+
+	// Every material needs a per object layout
+	_materialVariableLayout.insert(_materialVariableLayout.begin() + PerObjectVariable,
+	{
+		// Only one dynamic buffer
+		{
+			DynamicUniformBuffer,
+			"GlobalUniforms",
+			{
+				{ Mat4Unit, "ModelTransform" },
+			}
+		}
+	});
+
+	m_materialVariableLayout = _materialVariableLayout;
+
+	uint32_t uboIndex = 0;
+
+	// Build vulkan layout bindings
+	std::vector<std::vector<VkDescriptorSetLayoutBinding>> layoutBindings;
+	for (auto & variables : _materialVariableLayout)
+	{
+		std::vector<VkDescriptorSetLayoutBinding> bindings;
+		for (auto & var : variables)
+		{ 
+			switch (var.type)
+			{
+			case DynamicUniformBuffer:
+				bindings.push_back
+				({
+					(uint32_t)bindings.size(),
+					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+					1,
+					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+					nullptr
+				});
+			
+				// Record uniform buffer index for later use
+				if (layoutBindings.size() == PerObjectMaterialVariable)
+					uboIndex = bindings.size() - 1;
+
+				break;
+			case CombinedSampler:
+				bindings.push_back
+				({
+					(uint32_t)bindings.size(),
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+					1,
+					VK_SHADER_STAGE_FRAGMENT_BIT,
+					nullptr
+				});
+				break;
+			default:
+				ASSERTION(false);
+				break;
+			}
+		}
 		m_descriptorSetLayouts.push_back(DescriptorSetLayout::Create(GetDevice(), bindings));
+		layoutBindings.push_back(bindings);
+	}
 
 	m_pPipelineLayout = PipelineLayout::Create(GetDevice(), m_descriptorSetLayouts);
 
@@ -151,7 +243,7 @@ bool Material::Init
 	m_pPipeline = GraphicPipeline::Create(GetDevice(), pipelineCreateInfo, shaders, pRenderPass, m_pPipelineLayout);
 
 	std::vector<uint32_t> counts(VK_DESCRIPTOR_TYPE_RANGE_SIZE);
-	for (auto & bindings : descriptorBindingLayout)
+	for (auto & bindings : layoutBindings)
 	{
 		for (auto & binding : bindings)
 		{
@@ -170,13 +262,61 @@ bool Material::Init
 	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descPoolInfo.pPoolSizes = descPoolSize.data();
 	descPoolInfo.poolSizeCount = descPoolSize.size();
-	descPoolInfo.maxSets = maxMaterialInstance;
+	descPoolInfo.maxSets = maxMaterialInstance * DescriptorLayoutCount;
 
 	m_pDescriptorPool = DescriptorPool::Create(GetDevice(), descPoolInfo);
 
 	m_maxMaterialInstance = maxMaterialInstance;
+	m_uniformBufferSize = GetByteSize(m_materialVariableLayout[PerObjectMaterialVariable][uboIndex].UBOLayout);
+	if (m_uniformBufferSize > 0)
+		m_pMaterialVariableBuffer = UniformBuffer::Create(GetDevice(), m_uniformBufferSize);
 
 	return true;
+}
+
+// This function follows rule of std430
+// Could be bugs in it
+uint32_t Material::GetByteSize(const std::vector<UBOVariable>& UBOLayout)
+{
+	uint32_t unitCount = 0;
+	for (auto & var : UBOLayout)
+	{
+		switch (var.type)
+		{
+		case OneUnit:
+			unitCount += 1;
+			break;
+		case Vec2Unit:
+			unitCount = (unitCount + 1) / 2 * 2;
+			unitCount += 2;
+			break;
+		case Vec3Unit:
+			unitCount = (unitCount + 3) / 4 * 4;
+			unitCount += 3;
+			break;
+		case Vec4Unit:
+			unitCount = (unitCount + 3) / 4 * 4;
+			unitCount += 4;
+			break;
+		case Mat3Unit:
+			unitCount = (unitCount + 3) / 4 * 4;
+			unitCount += 4 * 3;
+			break;
+		case Mat4Unit:
+			unitCount = (unitCount + 3) / 4 * 4;
+			unitCount += 4 * 4;
+			break;
+		default:
+			ASSERTION(false);
+			break;
+		}
+	}
+
+	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
+	uint32_t alignedBytes = (unitCount * 4) / minAlign * minAlign + ((unitCount * 4) % minAlign > 0 ? minAlign : 0);
+	uint32_t totalUniformBytes = alignedBytes * GetSwapChain()->GetSwapChainImageCount();
+
+	return totalUniformBytes;
 }
 
 std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
