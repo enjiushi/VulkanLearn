@@ -18,6 +18,8 @@
 #include "../vulkan/StagingBufferManager.h"
 #include "../vulkan/RenderWorkManager.h"
 #include "../vulkan/GlobalVulkanStates.h"
+#include "../common/PerObjectBuffer.h"
+#include "../common/Singleton.h"
 
 std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance)
 {
@@ -43,6 +45,11 @@ std::shared_ptr<MeshRenderer> MeshRenderer::Create()
 	return nullptr;
 }
 
+MeshRenderer::~MeshRenderer()
+{
+	PerObjectBuffer::GetInstance()->FreePreObjectChunk(m_perObjectBufferIndex);
+}
+
 bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances)
 {
 	if (!BaseComponent::Init(pSelf))
@@ -50,6 +57,8 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 
 	m_pMesh = pMesh;
 	m_materialInstances = materialInstances;
+
+	m_perObjectBufferIndex = PerObjectBuffer::GetInstance()->AllocatePerObjectChunk();
 	return true;
 }
 

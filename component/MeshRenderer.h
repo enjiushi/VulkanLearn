@@ -14,6 +14,8 @@ public:
 	static std::shared_ptr<MeshRenderer> Create(const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances);
 	static std::shared_ptr<MeshRenderer> Create();
 
+	~MeshRenderer();
+
 public:
 	void Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes) override;
 	void LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrameRes) override;
@@ -26,4 +28,5 @@ protected:
 protected:
 	std::shared_ptr<Mesh>							m_pMesh;
 	std::vector<std::shared_ptr<MaterialInstance>>	m_materialInstances;
+	uint32_t										m_perObjectBufferIndex;
 };

@@ -19,6 +19,7 @@
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/DescriptorPool.h"
 #include "MaterialInstance.h"
+#include "../common/PerObjectBuffer.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -326,6 +327,7 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 		pMaterialInstance->m_pMaterial = GetSelfSharedPtr();
 
 		// FIXME: there should a enum or something to mark it
+		pMaterialInstance->m_descriptorSets[PerObjectVariable]->UpdateBufferDynamic(0, PerObjectBuffer::GetInstance()->GetUniformBuffer());
 		pMaterialInstance->m_descriptorSets[PerObjectMaterialVariable]->UpdateBufferDynamic(0, m_pMaterialVariableBuffer);
 
 		// Init texture vector
