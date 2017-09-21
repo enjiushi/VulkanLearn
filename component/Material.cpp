@@ -312,11 +312,7 @@ uint32_t Material::GetByteSize(const std::vector<UBOVariable>& UBOLayout)
 		}
 	}
 
-	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
-	uint32_t alignedBytes = (unitCount * 4) / minAlign * minAlign + ((unitCount * 4) % minAlign > 0 ? minAlign : 0);
-	uint32_t totalUniformBytes = alignedBytes * GetSwapChain()->GetSwapChainImageCount();
-
-	return totalUniformBytes;
+	return (unitCount * 4) * GetSwapChain()->GetSwapChainImageCount();
 }
 
 std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()

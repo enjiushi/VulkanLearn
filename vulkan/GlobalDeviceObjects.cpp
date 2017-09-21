@@ -14,7 +14,7 @@
 #include "GlobalVulkanStates.h"
 #include "PhysicalDevice.h"
 
-bool GlobalDeviceObjects::Init(const std::shared_ptr<Device>& pDevice)
+bool GlobalDeviceObjects::InitObjects(const std::shared_ptr<Device>& pDevice)
 {
 	m_pDevice = pDevice;
 

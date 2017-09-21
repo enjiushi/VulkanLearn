@@ -55,7 +55,7 @@ class VulkanGlobal : public Singleton<VulkanGlobal>
 
 public:
 #if defined(_WIN32)
-	void Init(HINSTANCE hInstance, WNDPROC wndproc);
+	void InitVulkan(HINSTANCE hInstance, WNDPROC wndproc);
 #endif
 	void InitVulkanInstance();
 	void InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd);

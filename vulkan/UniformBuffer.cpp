@@ -1,16 +1,23 @@
 #include "UniformBuffer.h"
+#include "GlobalDeviceObjects.h"
+#include "SwapChain.h"
 
 bool UniformBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<UniformBuffer>& pSelf, uint32_t numBytes)
 {
 	m_info = {};
 	m_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	m_info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-	m_info.size = numBytes;
+
+	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
+	uint32_t alignedBytes = numBytes / minAlign * minAlign + (numBytes % minAlign > 0 ? minAlign : 0);
+	uint32_t totalUniformBytes = alignedBytes * GetSwapChain()->GetSwapChainImageCount();
+
+	m_info.size = totalUniformBytes;
 
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	m_pBufferKey = UniformBufferMgr()->AllocateBuffer(numBytes);
+	m_pBufferKey = UniformBufferMgr()->AllocateBuffer(m_info.size);
 	if (!m_pBufferKey.get())
 		return false;
 

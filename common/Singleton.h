@@ -10,7 +10,10 @@ public:
 			return m_instance;
 
 		m_instance = new T;
-		return m_instance;
+		if (m_instance->Init())
+			return m_instance;
+		else
+			return nullptr;
 	}
 
 	static void Free()
@@ -23,6 +26,8 @@ public:
 protected:
 	Singleton<T>() {}
 	virtual ~Singleton<T>() {}
+
+	virtual bool Init() { return true; }
 
 protected:
 	static T* m_instance;

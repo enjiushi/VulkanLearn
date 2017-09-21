@@ -40,7 +40,7 @@ std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates();
 class GlobalDeviceObjects : public Singleton<GlobalDeviceObjects>
 {
 public:
-	bool Init(const std::shared_ptr<Device>& pDevice);
+	bool InitObjects(const std::shared_ptr<Device>& pDevice);
 
 	~GlobalDeviceObjects();
 

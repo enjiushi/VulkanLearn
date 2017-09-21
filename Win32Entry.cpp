@@ -12,7 +12,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 #endif
 {
-	VulkanGlobal::GetInstance()->Init(hInstance, WndProc);
+	VulkanGlobal::GetInstance()->InitVulkan(hInstance, WndProc);
 	VulkanGlobal::GetInstance()->Update();
 	VulkanGlobal::Free();
 	GlobalDeviceObjects::Free();

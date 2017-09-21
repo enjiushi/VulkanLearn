@@ -448,9 +448,7 @@ void VulkanGlobal::InitVertices()
 
 void VulkanGlobal::InitUniforms()
 {
-	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
-	uint32_t alignedBytes = sizeof(GlobalUniforms) / minAlign * minAlign + (sizeof(GlobalUniforms) % minAlign > 0 ? minAlign : 0);
-	uint32_t totalUniformBytes = alignedBytes * GetSwapChain()->GetSwapChainImageCount();
+	uint32_t totalUniformBytes = sizeof(GlobalUniforms) * GetSwapChain()->GetSwapChainImageCount();
 	m_pGlobalUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
 	m_pPerFrameUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
 	m_pPerObjectUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
@@ -768,15 +766,14 @@ void VulkanGlobal::InitMaterials()
 		}
 	};
 
-	SimpleMaterialCreateInfo info =
-	{
-		{ L"../data/shaders/pbr.vert.spv", L"", L"", L"", L"../data/shaders/pbr.frag.spv", L"" },
-		{ m_pGunMesh->GetVertexBuffer()->GetBindingDesc() },
-		m_pGunMesh->GetVertexBuffer()->GetAttribDesc(),
-		32,
-		layout,
-		RenderWorkManager::GetDefaultRenderPass()
-	};
+	SimpleMaterialCreateInfo info = {};
+	info.shaderPaths			= { L"../data/shaders/pbr.vert.spv", L"", L"", L"", L"../data/shaders/pbr.frag.spv", L"" };
+	info.vertexBindingsInfo		= { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo	= m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
+	info.maxMaterialInstance	= 32;
+	info.materialVariableLayout = layout;
+	info.pRenderPass			= RenderWorkManager::GetDefaultRenderPass();
+
 
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
@@ -814,15 +811,13 @@ void VulkanGlobal::InitMaterials()
 		}
 	};
 
-	info =
-	{
-		{ L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" },
-		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
-		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
-		1,
-		layout,
-		RenderWorkManager::GetDefaultRenderPass()
-	};
+	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" };
+	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo	= m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
+	info.maxMaterialInstance	= 1;
+	info.materialVariableLayout = layout;
+	info.pRenderPass			= RenderWorkManager::GetDefaultRenderPass();
+
 	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
@@ -831,15 +826,12 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
 	m_pSkyBoxMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
-	info =
-	{
-		{ L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" },
-		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
-		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
-		1,
-		layout,
-		RenderWorkManager::GetDefaultOffscreenRenderPass()
-	};
+	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" };
+	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo	= m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
+	info.maxMaterialInstance	= 1;
+	info.materialVariableLayout = layout;
+	info.pRenderPass			= RenderWorkManager::GetDefaultOffscreenRenderPass();
 
 	m_pSkyBoxIrradianceMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxIrradianceMaterialInstance = m_pSkyBoxIrradianceMaterial->CreateMaterialInstance();
@@ -849,15 +841,12 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
 	m_pSkyBoxIrradianceMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
-	info =
-	{
-		{ L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" },
-		{ m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() },
-		m_pCubeMesh->GetVertexBuffer()->GetAttribDesc(),
-		1,
-		layout,
-		RenderWorkManager::GetDefaultOffscreenRenderPass()
-	};
+	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" };
+	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo	= m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
+	info.maxMaterialInstance	= 1;
+	info.materialVariableLayout = layout;
+	info.pRenderPass			= RenderWorkManager::GetDefaultOffscreenRenderPass();
 
 	m_pSkyBoxReflectionMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxReflectionMaterialInstance = m_pSkyBoxReflectionMaterial->CreateMaterialInstance();
@@ -867,15 +856,12 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
 	m_pSkyBoxReflectionMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
-	info =
-	{
-		{ L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" },
-		{ m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() },
-		m_pQuadMesh->GetVertexBuffer()->GetAttribDesc(),
-		1,
-		layout,
-		RenderWorkManager::GetDefaultOffscreenRenderPass()
-	};
+	info.shaderPaths			= { L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" };
+	info.vertexBindingsInfo		= { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo	= m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
+	info.maxMaterialInstance	= 1;
+	info.materialVariableLayout = layout;
+	info.pRenderPass			= RenderWorkManager::GetDefaultOffscreenRenderPass();
 
 	m_pBRDFLutMaterial = Material::CreateDefaultMaterial(info);
 	m_pBRDFLutMaterialInstance = m_pBRDFLutMaterial->CreateMaterialInstance();
@@ -1022,14 +1008,14 @@ void VulkanGlobal::Draw()
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 }
 
-void VulkanGlobal::Init(HINSTANCE hInstance, WNDPROC wndproc)
+void VulkanGlobal::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)
 {
 	SetupWindow(hInstance, wndproc);
 	InitVulkanInstance();
 	InitPhysicalDevice(m_hPlatformInst, m_hWindow);
 	InitSurface();
 	InitVulkanDevice();
-	GlobalDeviceObjects::GetInstance()->Init(m_pDevice);
+	GlobalDeviceObjects::GetInstance()->InitObjects(m_pDevice);
 	InitSwapchain();
 	InitQueue();
 
