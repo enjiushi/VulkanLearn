@@ -784,14 +784,14 @@ void VulkanGlobal::InitMaterials()
 	m_pGunMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateBufferDynamic(0, m_pGlobalUniformBuffer);
 	m_pGunMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pGunMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
-	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(1, m_pAlbedo);
-	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(2, m_pNormal);
-	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(3, m_pRoughness);
-	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(4, m_pMetalic);
-	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(5, m_pAmbientOcclusion);
-	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(6, m_pIrradianceTex);
-	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(7, m_pPrefilterEnvTex);
-	m_pGunMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(8, m_pBRDFLut);
+	m_pGunMaterialInstance->SetMaterialTexture(0, m_pAlbedo);
+	m_pGunMaterialInstance->SetMaterialTexture(1, m_pNormal);
+	m_pGunMaterialInstance->SetMaterialTexture(2, m_pRoughness);
+	m_pGunMaterialInstance->SetMaterialTexture(3, m_pMetalic);
+	m_pGunMaterialInstance->SetMaterialTexture(4, m_pAmbientOcclusion);
+	m_pGunMaterialInstance->SetMaterialTexture(5, m_pIrradianceTex);
+	m_pGunMaterialInstance->SetMaterialTexture(6, m_pPrefilterEnvTex);
+	m_pGunMaterialInstance->SetMaterialTexture(7, m_pBRDFLut);
 
 	// Skybox material
 	layout =
@@ -829,7 +829,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateBufferDynamic(0, m_pGlobalUniformBuffer);
 	m_pSkyBoxMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pSkyBoxMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
-	m_pSkyBoxMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(1, m_pSkyBoxTex);
+	m_pSkyBoxMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
 	info =
 	{
@@ -847,7 +847,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateBufferDynamic(0, m_pGlobalUniformBuffer);
 	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
-	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(1, m_pSkyBoxTex);
+	m_pSkyBoxIrradianceMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
 	info =
 	{
@@ -865,7 +865,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateBufferDynamic(0, m_pGlobalUniformBuffer);
 	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
-	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(1, m_pSkyBoxTex);
+	m_pSkyBoxReflectionMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
 	info =
 	{
@@ -883,7 +883,7 @@ void VulkanGlobal::InitMaterials()
 	m_pBRDFLutMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateBufferDynamic(0, m_pGlobalUniformBuffer);
 	m_pBRDFLutMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pBRDFLutMaterialInstance->GetDescriptorSet(PerObjectVariable)->UpdateBufferDynamic(0, m_pPerObjectUniformBuffer);
-	m_pBRDFLutMaterialInstance->GetDescriptorSet(PerObjectMaterialVariable)->UpdateImage(1, m_pSkyBoxTex);
+	m_pBRDFLutMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 }
 
 void VulkanGlobal::InitEnviromentMap()

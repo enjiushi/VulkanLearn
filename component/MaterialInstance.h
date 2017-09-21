@@ -4,6 +4,7 @@
 class DescriptorSet;
 class DescriptorPool;
 class Material;
+class Image;
 
 class MaterialInstance : public BaseComponent
 {
@@ -13,6 +14,8 @@ public:
 	std::shared_ptr<Material> GetMaterial() const { return m_pMaterial; }
 	uint32_t GetRenderMask() const { return m_renderMask; }
 	void SetRenderMask(uint32_t renderMask) { m_renderMask = renderMask; }
+	void SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture);
+	std::shared_ptr<Image> GetMaterialTexture(uint32_t index) { return m_textures[index]; }
 
 protected:
 	bool Init(const std::shared_ptr<MaterialInstance>& pMaterialInstance);
@@ -20,6 +23,8 @@ protected:
 protected:
 	std::vector<std::shared_ptr<DescriptorSet>>	m_descriptorSets;
 	std::shared_ptr<Material>					m_pMaterial;
+	std::vector<uint32_t>						m_materialVariables;
+	std::vector<std::shared_ptr<Image>>			m_textures;
 	uint32_t									m_renderMask = 0xffffffff;
 
 	friend class Material;

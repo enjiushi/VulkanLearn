@@ -328,6 +328,19 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 		for (auto & layout : m_descriptorSetLayouts)
 			pMaterialInstance->m_descriptorSets.push_back(m_pDescriptorPool->AllocateDescriptorSet(layout));
 		pMaterialInstance->m_pMaterial = GetSelfSharedPtr();
+
+		// FIXME: there should a enum or something to mark it
+		pMaterialInstance->m_descriptorSets[PerObjectMaterialVariable]->UpdateBufferDynamic(0, m_pMaterialVariableBuffer);
+
+		// Init texture vector
+		uint32_t textureCount = 0;
+		for (auto & var : m_materialVariableLayout[PerObjectMaterialVariable])
+		{
+			if (var.type == CombinedSampler)
+				textureCount++;
+		}
+		pMaterialInstance->m_textures.resize(textureCount);
+
 		return pMaterialInstance;
 	}
 
