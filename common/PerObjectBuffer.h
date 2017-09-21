@@ -10,7 +10,7 @@ typedef struct _PerObjectVariables
 
 class PerObjectBuffer : public Singleton<PerObjectBuffer>
 {
-	static const uint32_t MAXIMUM_OBJECTS = 1024;
+	static const uint32_t MAXIMUM_OBJECTS = 128;
 
 public:
 	std::shared_ptr<UniformBuffer> GetUniformBuffer() { return m_pUniformBuffer; }

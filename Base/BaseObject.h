@@ -31,6 +31,7 @@ public:
 
 	virtual void Update();
 	virtual void LateUpdate();
+	virtual void Draw();
 
 	Vector3f GetLocalPosition() const { return m_localPosition; }
 	Vector3f GetWorldPosition() const;

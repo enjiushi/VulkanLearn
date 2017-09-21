@@ -12,6 +12,7 @@ public:
 
 	virtual void Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes) {}
 	virtual void LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrameRes) {}
+	virtual void Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes) {}
 
 	std::shared_ptr<BaseObject> GetObject() const 
 	{

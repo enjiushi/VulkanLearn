@@ -93,6 +93,17 @@ void BaseObject::LateUpdate()
 		m_children[i]->LateUpdate();
 }
 
+void BaseObject::Draw()
+{
+	//update components attached to this object
+	for (size_t i = 0; i < m_components.size(); i++)
+		FrameMgr()->AddJobToFrame(std::bind(&BaseComponent::Draw, m_components[i].get(), std::placeholders::_1));
+
+	//update all children objects
+	for (size_t i = 0; i < m_children.size(); i++)
+		m_children[i]->Draw();
+}
+
 void BaseObject::SetRotation(const Matrix3f& m)
 {
 	m_localRotationM = m;

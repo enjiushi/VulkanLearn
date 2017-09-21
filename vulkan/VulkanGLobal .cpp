@@ -989,6 +989,12 @@ void VulkanGlobal::Draw()
 	VulkanGlobal::GetInstance()->UpdateUniforms(FrameMgr()->FrameIndex(), VulkanGlobal::GetInstance()->m_pCameraComp);
 	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
 
+	/*
+	m_pRootObject->Update();
+	GlobalThreadTaskQueue()->WaitForFree();
+	m_pRootObject->LateUpdate();
+	GlobalThreadTaskQueue()->WaitForFree();*/
+
 	std::vector<VkClearValue> clearValues =
 	{
 		{ 0.2f, 0.2f, 0.2f, 0.2f },
@@ -996,7 +1002,7 @@ void VulkanGlobal::Draw()
 	};
 	pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
-	m_pRootObject->Update();
+	m_pRootObject->Draw();
 
 	GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 

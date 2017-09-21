@@ -120,3 +120,57 @@ void MeshRenderer::LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrame
 {
 
 }
+
+void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+{
+	std::unique_lock<std::mutex> lock(m_updateMutex);
+
+	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
+	{
+		if (((1 << GetGlobalVulkanStates()->GetRenderState()) & m_materialInstances[i]->GetRenderMask()) == 0)
+			continue;
+
+		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocateSecondaryCommandBuffer();
+
+		std::vector<VkClearValue> clearValues =
+		{
+			{ 0.2f, 0.2f, 0.2f, 0.2f },
+			{ 1.0f, 0 }
+		};
+
+		VkCommandBufferInheritanceInfo inheritanceInfo = {};
+		inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+		inheritanceInfo.renderPass = RenderWorkMgr()->GetCurrentRenderPass()->GetDeviceHandle();
+		inheritanceInfo.subpass = RenderWorkMgr()->GetCurrentRenderPass()->GetCurrentSubpass();
+		inheritanceInfo.framebuffer = RenderWorkMgr()->GetCurrentFrameBuffer()->GetDeviceHandle();
+		pDrawCmdBuffer->StartSecondaryRecording(inheritanceInfo);
+
+		VkViewport viewport =
+		{
+			0, 0,
+			RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+			0, 1
+		};
+
+		VkRect2D scissorRect =
+		{
+			0, 0,
+			RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+		};
+
+		pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
+		pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
+
+		uint32_t offset = FrameMgr()->FrameIndex() * VulkanGlobal::GetInstance()->m_pPerFrameUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
+
+		pDrawCmdBuffer->BindDescriptorSets(m_materialInstances[i]->GetMaterial()->GetPipelineLayout(), m_materialInstances[i]->GetDescriptorSets(), { offset, offset, offset, offset });
+		pDrawCmdBuffer->BindPipeline(m_materialInstances[i]->GetMaterial()->GetGraphicPipeline());
+		pDrawCmdBuffer->BindVertexBuffers({ m_pMesh->GetVertexBuffer() });
+		pDrawCmdBuffer->BindIndexBuffer(m_pMesh->GetIndexBuffer());
+		pDrawCmdBuffer->DrawIndexed(m_pMesh->GetIndexBuffer());
+
+		pDrawCmdBuffer->EndSecondaryRecording();
+
+		RenderWorkMgr()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
+	}
+}
