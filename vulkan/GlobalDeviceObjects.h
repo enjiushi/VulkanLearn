@@ -75,6 +75,7 @@ protected:
 	std::shared_ptr<SharedBufferManager>	m_pVertexAttribBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pIndexBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pUniformBufferMgr;
+	std::shared_ptr<SharedBufferManager>	m_pShaderStorageBufferMgr;
 	std::shared_ptr<RenderWorkManager>		m_pRenderWorkMgr;
 	std::shared_ptr<GlobalVulkanStates>		m_pGlobalVulkanStates;
 
