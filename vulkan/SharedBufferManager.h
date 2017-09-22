@@ -29,6 +29,7 @@ protected:
 	bool Init(const std::shared_ptr<Device>& pDevice, 
 		const std::shared_ptr<SharedBufferManager>& pSelf,
 		VkBufferUsageFlags usage,
+		VkMemoryPropertyFlagBits memFlag,
 		uint32_t numBytes);
 
 	void FreeBuffer(uint32_t index);
@@ -36,6 +37,7 @@ protected:
 public:
 	static std::shared_ptr<SharedBufferManager> Create(const std::shared_ptr<Device>& pDevice,
 		VkBufferUsageFlags usage,
+		VkMemoryPropertyFlagBits memFlag,
 		uint32_t numBytes);
 
 public:

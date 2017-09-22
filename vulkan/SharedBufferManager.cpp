@@ -27,6 +27,7 @@ BufferKey::~BufferKey()
 bool SharedBufferManager::Init(const std::shared_ptr<Device>& pDevice,
 	const std::shared_ptr<SharedBufferManager>& pSelf,
 	VkBufferUsageFlags usage,
+	VkMemoryPropertyFlagBits memFlag,
 	uint32_t numBytes)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
@@ -36,17 +37,18 @@ bool SharedBufferManager::Init(const std::shared_ptr<Device>& pDevice,
 	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	info.usage = usage;
 	info.size = numBytes;
-	m_pBuffer = Buffer::Create(pDevice, info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	m_pBuffer = Buffer::Create(pDevice, info, memFlag);
 
 	return true;
 }
 
 std::shared_ptr<SharedBufferManager> SharedBufferManager::Create(const std::shared_ptr<Device>& pDevice,
 	VkBufferUsageFlags usage,
+	VkMemoryPropertyFlagBits memFlag,
 	uint32_t numBytes)
 {
 	std::shared_ptr<SharedBufferManager> pSharedBufferManager = std::make_shared<SharedBufferManager>();
-	if (pSharedBufferManager.get() && pSharedBufferManager->Init(pDevice, pSharedBufferManager, usage, numBytes))
+	if (pSharedBufferManager.get() && pSharedBufferManager->Init(pDevice, pSharedBufferManager, usage, memFlag, numBytes))
 		return pSharedBufferManager;
 	return nullptr;
 }
