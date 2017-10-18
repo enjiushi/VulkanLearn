@@ -26,16 +26,18 @@ class DeviceMemoryManager : public DeviceObjectBase<DeviceMemoryManager>
 {
 	typedef struct _MemoryNode
 	{
-		uint32_t numBytes = 0;
-		VkDeviceMemory memory;
-		std::vector<uint32_t> bindingList;
+		uint32_t				numBytes = 0;
+		VkDeviceMemory			memory;
+		void*					pData = nullptr;
+		std::vector<uint32_t>	bindingList;
 	}MemoryNode;
 
 	typedef struct _BindingInfo
 	{
-		uint32_t typeIndex;
-		uint32_t startByte = 0;
-		uint32_t numBytes = 0;
+		uint32_t	typeIndex;
+		uint32_t	startByte = 0;
+		uint32_t	numBytes = 0;
+		void*		pData = nullptr;
 	}BindingInfo;
 
 public:
@@ -52,6 +54,7 @@ public:
 	std::shared_ptr<MemoryKey> AllocateImageMemChunk(const std::shared_ptr<Image>& pImage, uint32_t memoryPropertyBits, const void* pData = nullptr);
 	bool UpdateBufferMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes);
 	bool UpdateImageMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes);
+	void* GetDataPtr(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t offset, uint32_t numBytes);
 
 protected:
 	void AllocateBufferMemory(uint32_t key, uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& offset);
@@ -61,7 +64,7 @@ protected:
 	void AllocateImageMemory(uint32_t key, uint32_t numBytes, uint32_t memoryTypeBits, uint32_t memoryPropertyBits, uint32_t& typeIndex, uint32_t& offset);
 	void FreeImageMemChunk(uint32_t key);
 
-	void UpdateMemoryChunk(VkDeviceMemory memory, uint32_t offset, uint32_t numBytes, const void* pData);
+	void UpdateMemoryChunk(VkDeviceMemory memory, uint32_t offset, uint32_t numBytes, void* pDst, const void* pData);
 	void ReleaseMemory();
 
 protected:

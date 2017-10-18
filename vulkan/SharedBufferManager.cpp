@@ -38,6 +38,7 @@ bool SharedBufferManager::Init(const std::shared_ptr<Device>& pDevice,
 	info.usage = usage;
 	info.size = numBytes;
 	m_pBuffer = Buffer::Create(pDevice, info, memFlag);
+	m_pData = m_pBuffer->GetDataPtr();
 
 	return true;
 }

@@ -9,7 +9,7 @@ bool StagingBuffer::Init(const std::shared_ptr<Device>& pDevice,
 	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	info.size = numBytes;
-	if (!Buffer::Init(pDevice, pSelf, info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))
+	if (!Buffer::Init(pDevice, pSelf, info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))
 		return false;
 
 	m_accessStages = VK_PIPELINE_STAGE_HOST_BIT;

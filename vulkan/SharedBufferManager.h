@@ -60,6 +60,8 @@ protected:
 	// Key is BufferKey's m_key, and value is m_bufferTable's index
 	std::map<uint32_t, uint32_t>			m_lookupTable;
 
+	void*									m_pData;
+
 	// After allocating a buffer key, this static variable is increased by one
 	static uint32_t m_numAllocatedKeys;
 

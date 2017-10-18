@@ -46,3 +46,13 @@ void Buffer::BindMemory(VkDeviceMemory memory, uint32_t offset) const
 {
 	CHECK_VK_ERROR(vkBindBufferMemory(GetDevice()->GetDeviceHandle(), GetDeviceHandle(), memory, offset));
 }
+
+void* Buffer::GetDataPtr()
+{
+	return GetDataPtr(0, m_info.size);
+}
+
+void* Buffer::GetDataPtr(uint32_t offset, uint32_t numBytes)
+{
+	return DeviceMemMgr()->GetDataPtr(m_pMemKey, offset, numBytes);
+}

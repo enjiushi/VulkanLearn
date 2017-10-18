@@ -15,6 +15,8 @@ public:
 	static std::shared_ptr<Buffer> Create(const std::shared_ptr<Device>& pDevice, const VkBufferCreateInfo& info, uint32_t memoryPropertyFlag);
 
 public:
+	void* GetDataPtr();
+	void* GetDataPtr(uint32_t offset, uint32_t numBytes);
 	VkPipelineStageFlags GetAccessStages() const { return m_accessStages; }
 	VkAccessFlags GetAccessFlags() const { return m_accessFlags; }
 	virtual VkBuffer GetDeviceHandle() const { return m_buffer; }
