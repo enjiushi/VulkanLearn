@@ -28,6 +28,7 @@ public:
 
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;
+	void* GetDataPtrInternal();
 
 protected:
 	VkBuffer						m_buffer = 0;
@@ -36,6 +37,7 @@ protected:
 	std::shared_ptr<MemoryKey>		m_pMemKey;
 	VkPipelineStageFlags			m_accessStages;
 	VkAccessFlags					m_accessFlags;
+	void*							m_pData;
 
 	friend class StagingBufferManager;
 	friend class DeviceMemoryManager;

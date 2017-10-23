@@ -67,7 +67,9 @@ std::shared_ptr<MemoryKey> DeviceMemoryManager::AllocateBufferMemChunk(const std
 	m_bufferBindingTable[pMemKey->m_key].typeIndex = typeIndex;
 	m_bufferBindingTable[pMemKey->m_key].startByte = offset;
 	m_bufferBindingTable[pMemKey->m_key].numBytes = reqs.size;
-	m_bufferBindingTable[pMemKey->m_key].pData = (char*)m_bufferMemPool[typeIndex].pData + offset;
+
+	if (m_bufferMemPool[typeIndex].pData)
+		m_bufferBindingTable[pMemKey->m_key].pData = (char*)m_bufferMemPool[typeIndex].pData + offset;
 
 	UpdateBufferMemChunk(pMemKey, memoryPropertyBits, pData, offset, reqs.size);
 

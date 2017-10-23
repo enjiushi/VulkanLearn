@@ -38,7 +38,6 @@ bool SharedBufferManager::Init(const std::shared_ptr<Device>& pDevice,
 	info.usage = usage;
 	info.size = numBytes;
 	m_pBuffer = Buffer::Create(pDevice, info, memFlag);
-	m_pData = m_pBuffer->GetDataPtr();
 
 	return true;
 }
@@ -114,7 +113,13 @@ std::shared_ptr<BufferKey> SharedBufferManager::AllocateBuffer(uint32_t numBytes
 
 void SharedBufferManager::UpdateByteStream(const void* pData, const std::shared_ptr<Buffer>& pWrapperBuffer, const std::shared_ptr<BufferKey>& pBufKey, uint32_t offset, uint32_t numBytes)
 {
-	StagingBufferMgr()->UpdateByteStream(pWrapperBuffer, pData, offset + m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
+	if (m_pBuffer->GetDataPtr())
+		m_pBuffer->UpdateByteStream(pData, offset + m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
+	// Since shared buffer manager holds a buffer shared by different shared buffers, with various usage and access flags, we can't simply let buffer do its update
+	// Without specific buffer's information
+	// So here we do a little hack to override, by directly call staging buffer to update wrapper buffer with its information
+	else
+		StagingBufferMgr()->UpdateByteStream(pWrapperBuffer, pData, offset + m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
 }
 
 uint32_t SharedBufferManager::GetOffset(const std::shared_ptr<BufferKey>& pBufKey)
