@@ -32,6 +32,7 @@ std::shared_ptr<PhysicalDevice> GetPhysicalDevice();
 std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr();
 std::shared_ptr<SharedBufferManager> IndexBufferMgr();
 std::shared_ptr<SharedBufferManager> UniformBufferMgr();
+std::shared_ptr<SharedBufferManager> ShaderStorageBufferMgr();
 std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue();
 std::vector<std::shared_ptr<FrameBuffer>> DefaultFrameBuffers();
 std::shared_ptr<RenderWorkManager> RenderWorkMgr();
@@ -55,6 +56,7 @@ public:
 	const std::shared_ptr<SharedBufferManager> GetVertexAttribBufferMgr() const { return m_pVertexAttribBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetIndexBufferMgr() const { return m_pIndexBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetUniformBufferMgr() const { return m_pUniformBufferMgr; }
+	const std::shared_ptr<SharedBufferManager> GetShaderStorageBufferMgr() const { return m_pShaderStorageBufferMgr; }
 	const std::shared_ptr<FrameBuffer> GetCurrentFrameBuffer() const;
 	const std::vector<std::shared_ptr<FrameBuffer>> GetDefaultFrameBuffers() const { return m_framebuffers; }
 	const std::shared_ptr<ThreadTaskQueue> GetThreadTaskQueue() const { return m_pThreadTaskQueue; }
@@ -83,9 +85,10 @@ protected:
 
 	std::vector<std::shared_ptr<FrameBuffer>>m_framebuffers;
 
-	static const uint32_t UNIFORM_BUFFER_SIZE = 1024 * 1024 * 8;
 	static const uint32_t ATTRIBUTE_BUFFER_SIZE = 1024 * 1024 * 256;
 	static const uint32_t INDEX_BUFFER_SIZE = 1024 * 1024 * 32;
+	static const uint32_t UNIFORM_BUFFER_SIZE = 1024 * 1024 * 8;
+	static const uint32_t SHADER_STORAGE_BUFFER_SIZE = 1024 * 1024 * 256;
 
 	uint32_t								m_attributeBufferOffset = 0;
 };

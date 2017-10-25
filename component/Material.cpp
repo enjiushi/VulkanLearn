@@ -20,6 +20,7 @@
 #include "../vulkan/DescriptorPool.h"
 #include "MaterialInstance.h"
 #include "../common/PerObjectBuffer.h"
+#include "../vulkan/ShaderStorageBuffer.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -130,13 +131,21 @@ bool Material::Init
 	const std::shared_ptr<RenderPass>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	uint32_t maxMaterialInstance,
-	const std::vector<std::vector<MaterialVariable>>& materialVariableLayout
+	const std::vector<MaterialVariable>& materialVariableLayout
 )
 {
 	if (!SelfRefBase<Material>::Init(pSelf))
 		return false;
 
-	std::vector<std::vector<MaterialVariable>> _materialVariableLayout = materialVariableLayout;
+	std::vector<std::vector<MaterialVariable>> _materialVariableLayout;
+	_materialVariableLayout.push_back(materialVariableLayout);
+
+	// Force per object material variable to be shader storage buffer
+	for (auto& var : _materialVariableLayout[0])
+	{
+		if (var.type == DynamicUniformBuffer)
+			var.type = DynamicShaderStorageBuffer;
+	}
 
 	// Every material needs a global layout
 	_materialVariableLayout.insert(_materialVariableLayout.begin() + GlobalVariable,
@@ -186,8 +195,6 @@ bool Material::Init
 
 	m_materialVariableLayout = _materialVariableLayout;
 
-	uint32_t uboIndex = 0;
-
 	// Build vulkan layout bindings
 	std::vector<std::vector<VkDescriptorSetLayoutBinding>> layoutBindings;
 	for (auto & variables : _materialVariableLayout)
@@ -206,10 +213,17 @@ bool Material::Init
 					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 					nullptr
 				});
-			
-				// Record uniform buffer index for later use
-				if (layoutBindings.size() == PerObjectMaterialVariable)
-					uboIndex = bindings.size() - 1;
+
+				break;
+			case DynamicShaderStorageBuffer:
+				bindings.push_back
+				({
+					(uint32_t)bindings.size(),
+					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
+					1,
+					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+					nullptr
+				});
 
 				break;
 			case CombinedSampler:
@@ -268,9 +282,18 @@ bool Material::Init
 	m_pDescriptorPool = DescriptorPool::Create(GetDevice(), descPoolInfo);
 
 	m_maxMaterialInstance = maxMaterialInstance;
-	m_uniformBufferSize = GetByteSize(m_materialVariableLayout[PerObjectMaterialVariable][uboIndex].UBOLayout);
-	if (m_uniformBufferSize > 0)
-		m_pMaterialVariableBuffer = UniformBuffer::Create(GetDevice(), m_uniformBufferSize);
+
+	for (uint32_t i = 0; i < m_materialVariableLayout[PerObjectMaterialVariable].size(); i++)
+	{
+		auto variable = m_materialVariableLayout[PerObjectMaterialVariable][i];
+		// Force DynamicUniformBuffer to DynamicShaderStorageBuffer
+		// Since for per object material variable, uniform buffer isn't big enough
+		if (variable.type == DynamicUniformBuffer || variable.type == DynamicShaderStorageBuffer)
+		{
+			uint32_t size = GetByteSize(m_materialVariableLayout[PerObjectMaterialVariable][i].UBOLayout);
+			m_materialVariableBuffers[i] = ShaderStorageBuffer::Create(GetDevice(), size);
+		}
+	}
 
 	return true;
 }
@@ -327,8 +350,11 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 		pMaterialInstance->m_pMaterial = GetSelfSharedPtr();
 
 		// FIXME: there should a enum or something to mark it
-		pMaterialInstance->m_descriptorSets[PerObjectVariable]->UpdateBufferDynamic(0, PerObjectBuffer::GetInstance()->GetUniformBuffer());
-		pMaterialInstance->m_descriptorSets[PerObjectMaterialVariable]->UpdateBufferDynamic(0, m_pMaterialVariableBuffer);
+		pMaterialInstance->m_descriptorSets[PerObjectVariable]->UpdateUniformBufferDynamic(0, PerObjectBuffer::GetInstance()->GetUniformBuffer());
+		for (auto& var : m_materialVariableBuffers)
+		{
+			pMaterialInstance->m_descriptorSets[PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(var.first, var.second);
+		}
 
 		// Init texture vector
 		uint32_t textureCount = 0;
@@ -343,4 +369,12 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 	}
 
 	return nullptr;
+}
+
+uint32_t Material::GetUniformBufferSize(uint32_t bindingIndex) const
+{
+	if (m_materialVariableBuffers.find(bindingIndex) != m_materialVariableBuffers.end())
+		return m_materialVariableBuffers.at(bindingIndex)->GetBufferInfo().size;
+
+	return 0;
 }

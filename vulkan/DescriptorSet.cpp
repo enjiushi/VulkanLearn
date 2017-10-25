@@ -4,6 +4,7 @@
 #include "Buffer.h"
 #include "Image.h"
 #include "UniformBuffer.h"
+#include "ShaderStorageBuffer.h"
 
 DescriptorSet::~DescriptorSet()
 {
@@ -43,7 +44,7 @@ std::shared_ptr<DescriptorSet> DescriptorSet::Create(const std::shared_ptr<Devic
 	return nullptr;
 }
 
-void DescriptorSet::UpdateBufferDynamic(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer)
+void DescriptorSet::UpdateUniformBufferDynamic(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer)
 {
 	std::vector<VkWriteDescriptorSet> writeData = { {} };
 	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -60,7 +61,7 @@ void DescriptorSet::UpdateBufferDynamic(uint32_t binding, const std::shared_ptr<
 	m_resourceTable[binding] = pBuffer;
 }
 
-void DescriptorSet::UpdateBuffer(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer)
+void DescriptorSet::UpdateUniformBuffer(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer)
 {
 	std::vector<VkWriteDescriptorSet> writeData = { {} };
 	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -105,4 +106,38 @@ void DescriptorSet::UpdateTexBuffer(uint32_t binding, const VkBufferView& texBuf
 	writeData[0].pTexelBufferView = &texBufferView;
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+}
+
+void DescriptorSet::UpdateShaderStorageBufferDynamic(uint32_t binding, const std::shared_ptr<ShaderStorageBuffer>& pBuffer)
+{
+	std::vector<VkWriteDescriptorSet> writeData = { {} };
+	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+	writeData[0].dstBinding = binding;
+	writeData[0].descriptorCount = 1;
+	writeData[0].dstSet = GetDeviceHandle();
+
+	VkDescriptorBufferInfo info = pBuffer->GetDescBufferInfo();
+	writeData[0].pBufferInfo = &info;
+
+	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+
+	m_resourceTable[binding] = pBuffer;
+}
+
+void DescriptorSet::UpdateShaderStorageBuffer(uint32_t binding, const std::shared_ptr<ShaderStorageBuffer>& pBuffer)
+{
+	std::vector<VkWriteDescriptorSet> writeData = { {} };
+	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	writeData[0].dstBinding = binding;
+	writeData[0].descriptorCount = 1;
+	writeData[0].dstSet = GetDeviceHandle();
+
+	VkDescriptorBufferInfo info = pBuffer->GetDescBufferInfo();
+	writeData[0].pBufferInfo = &info;
+
+	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+
+	m_resourceTable[binding] = pBuffer;
 }

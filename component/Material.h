@@ -12,6 +12,7 @@ class RenderPass;
 class MaterialInstance;
 class DescriptorPool;
 class UniformBuffer;
+class ShaderStorageBuffer;
 
 enum UBOType
 {
@@ -28,6 +29,7 @@ enum UBOType
 enum MaterialVariableType
 {
 	DynamicUniformBuffer,
+	DynamicShaderStorageBuffer,
 	CombinedSampler,
 	MaterialVariableTypeCount
 };
@@ -60,7 +62,7 @@ typedef struct _SimpleMaterialCreateInfo
 	std::vector<VkVertexInputBindingDescription>			vertexBindingsInfo;
 	std::vector<VkVertexInputAttributeDescription>			vertexAttributesInfo;
 	uint32_t												maxMaterialInstance = 512;
-	std::vector<std::vector<MaterialVariable>>				materialVariableLayout;
+	std::vector<MaterialVariable>							materialVariableLayout;
 	// FIXME: Render pass is wired thing, as it's used both for pipeline and frame buffer
 	// Need to think about where it belongs or belongs to itself
 	std::shared_ptr<RenderPass>						pRenderPass;
@@ -76,7 +78,7 @@ public:
 	std::shared_ptr<GraphicPipeline> GetGraphicPipeline() const { return m_pPipeline; }
 	std::vector<std::shared_ptr<DescriptorSetLayout>> GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
-	uint32_t GetUniformBufferSize() const { return m_uniformBufferSize; }
+	uint32_t GetUniformBufferSize(uint32_t bindingIndex) const;
 
 protected:
 	bool Init
@@ -86,7 +88,7 @@ protected:
 		const std::shared_ptr<RenderPass>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 		uint32_t maxMaterialInstance,
-		const std::vector<std::vector<MaterialVariable>>& materialVariableLayout
+		const std::vector<MaterialVariable>& materialVariableLayout
 	);
 
 	static uint32_t GetByteSize(const std::vector<UBOVariable>& UBOLayout);
@@ -96,10 +98,9 @@ protected:
 	std::shared_ptr<GraphicPipeline>					m_pPipeline;
 	std::vector<std::shared_ptr<DescriptorSetLayout>>	m_descriptorSetLayouts;
 	std::shared_ptr<DescriptorPool>						m_pDescriptorPool;
-	std::shared_ptr<UniformBuffer>						m_pMaterialVariableBuffer;
 	uint32_t											m_maxMaterialInstance;
-	uint32_t											m_uniformBufferSize;
 	std::vector<std::vector<MaterialVariable>>			m_materialVariableLayout;
+	std::map<uint32_t, std::shared_ptr<ShaderStorageBuffer>>	m_materialVariableBuffers;
 
 	friend class MaterialInstance;
 };
