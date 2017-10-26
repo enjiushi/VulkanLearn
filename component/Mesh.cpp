@@ -2,6 +2,7 @@
 #include "../vulkan/SharedVertexBuffer.h"
 #include "../vulkan/SharedIndexBuffer.h"
 #include "../vulkan/GlobalDeviceObjects.h"
+#include "../vulkan/CommandBuffer.h"
 #include "Importer.hpp"
 #include "scene.h"
 #include "postprocess.h"
@@ -242,4 +243,10 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
 	))
 		return pRetMesh;
 	return nullptr;
+}
+
+void Mesh::PrepareMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	pCmdBuffer->BindVertexBuffers({ GetVertexBuffer() });
+	pCmdBuffer->BindIndexBuffer(GetIndexBuffer());
 }

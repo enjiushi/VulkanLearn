@@ -6,6 +6,7 @@
 
 class SharedVertexBuffer;
 class SharedIndexBuffer;
+class CommandBuffer;
 
 class Mesh : public SelfRefBase<Mesh>
 {
@@ -36,6 +37,7 @@ public:
 	uint32_t GetVertexAttribFlag() const { return m_vertexAttribFlag; }
 	uint32_t GetVertexBytes() const { return m_vertexBytes; }
 	uint32_t GetVerticesCount() const { return m_verticesCount; }
+	void PrepareMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 protected:
 	bool Init

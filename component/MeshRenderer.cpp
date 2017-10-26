@@ -114,9 +114,8 @@ void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 		pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
 
 		m_materialInstances[i]->PrepareMaterial(pDrawCmdBuffer);
+		m_pMesh->PrepareMeshData(pDrawCmdBuffer);
 
-		pDrawCmdBuffer->BindVertexBuffers({ m_pMesh->GetVertexBuffer() });
-		pDrawCmdBuffer->BindIndexBuffer(m_pMesh->GetIndexBuffer());
 		pDrawCmdBuffer->DrawIndexed(m_pMesh->GetIndexBuffer());
 
 		pDrawCmdBuffer->EndSecondaryRecording();
