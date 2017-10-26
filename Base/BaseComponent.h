@@ -10,8 +10,8 @@ class BaseComponent : public SelfRefBase<BaseComponent>
 public:
 	virtual ~BaseComponent(void) {}
 
-	virtual void Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes) {}
-	virtual void LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrameRes) {}
+	virtual void Update() {}
+	virtual void LateUpdate() {}
 	virtual void Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes) {}
 
 	std::shared_ptr<BaseObject> GetObject() const 

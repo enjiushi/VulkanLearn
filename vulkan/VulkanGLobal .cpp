@@ -928,8 +928,8 @@ void VulkanGlobal::EndSetup()
 
 void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera)
 {
-	pCamera->Update(0);
-	pCamera->LateUpdate(0);
+	pCamera->Update();
+	pCamera->LateUpdate();
 
 	memset(&m_globalUniforms, 0, sizeof(GlobalUniforms));
 

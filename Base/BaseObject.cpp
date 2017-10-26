@@ -75,7 +75,7 @@ void BaseObject::Update()
 {
 	//update components attached to this object
 	for (size_t i = 0; i < m_components.size(); i++)
-		FrameMgr()->AddJobToFrame(std::bind(&BaseComponent::Update, m_components[i].get(), std::placeholders::_1));
+		m_components[i]->Update();
 
 	//update all children objects
 	for (size_t i = 0; i < m_children.size(); i++)
@@ -86,7 +86,7 @@ void BaseObject::LateUpdate()
 {
 	//update components attached to this object
 	for (size_t i = 0; i < m_components.size(); i++)
-		FrameMgr()->AddJobToFrame(std::bind(&BaseComponent::LateUpdate, m_components[i].get(), std::placeholders::_1));
+		m_components[i]->LateUpdate();
 
 	//update all children objects
 	for (size_t i = 0; i < m_children.size(); i++)

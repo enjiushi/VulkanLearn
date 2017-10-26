@@ -64,11 +64,11 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 	return true;
 }
 
-void MeshRenderer::Update(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+void MeshRenderer::Update()
 {
 }
 
-void MeshRenderer::LateUpdate(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+void MeshRenderer::LateUpdate()
 {
 
 }
