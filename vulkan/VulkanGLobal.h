@@ -37,6 +37,7 @@
 #include "../component/MeshRenderer.h"
 #include "../component/Material.h"
 #include "../component/MaterialInstance.h"
+#include "ShaderStorageBuffer.h"
 
 typedef struct _GlobalUniforms
 {
@@ -123,7 +124,8 @@ public:
 
 	std::shared_ptr<UniformBuffer>		m_pGlobalUniformBuffer;
 	std::shared_ptr<UniformBuffer>		m_pPerFrameUniformBuffer;
-	std::shared_ptr<UniformBuffer>		m_pPerObjectUniformBuffer;
+
+	uint32_t							m_perObjectDataIndex;
 
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
 

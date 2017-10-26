@@ -170,7 +170,7 @@ bool Material::Init
 		// Only one dynamic buffer
 		{
 			DynamicUniformBuffer,
-			"GlobalUniforms",
+			"PerFrameUniforms",
 			{
 				{ Mat4Unit, "ViewTransform" },
 				{ Mat4Unit, "ProjectionTransform" },
@@ -185,8 +185,8 @@ bool Material::Init
 	{
 		// Only one dynamic buffer
 		{
-			DynamicUniformBuffer,
-			"GlobalUniforms",
+			DynamicShaderStorageBuffer,
+			"PerObjectUniforms",
 			{
 				{ Mat4Unit, "ModelTransform" },
 			}
@@ -350,7 +350,7 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 		pMaterialInstance->m_pMaterial = GetSelfSharedPtr();
 
 		// FIXME: there should a enum or something to mark it
-		pMaterialInstance->m_descriptorSets[PerObjectVariable]->UpdateUniformBufferDynamic(0, PerObjectBuffer::GetInstance()->GetUniformBuffer());
+		pMaterialInstance->m_descriptorSets[PerObjectVariable]->UpdateShaderStorageBufferDynamic(0, PerObjectBuffer::GetInstance()->GetShaderStorageBuffer());
 		for (auto& var : m_materialVariableBuffers)
 		{
 			pMaterialInstance->m_descriptorSets[PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(var.first, var.second);

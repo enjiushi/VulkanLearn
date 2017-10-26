@@ -1,13 +1,16 @@
 #pragma once
 #include "PerObjectBuffer.h"
+#include "../vulkan/SwapChain.h"
+#include "../vulkan/GlobalDeviceObjects.h"
 
 bool PerObjectBuffer::Init()
 {
 	if (!Singleton<PerObjectBuffer>::Init())
 		return false;
 
-	m_pUniformBuffer = UniformBuffer::Create(GetDevice(), MAXIMUM_OBJECTS * sizeof(Matrix4f));
+	m_pShaderStorageBuffer = ShaderStorageBuffer::Create(GetDevice(), MAXIMUM_OBJECTS * sizeof(PerObjectVariables) * GetSwapChain()->GetSwapChainImageCount());
 	m_freeChunks.push_back({ 0, MAXIMUM_OBJECTS });
+	m_frameOffset = MAXIMUM_OBJECTS * sizeof(PerObjectVariables);
 	return true;
 }
 
@@ -86,4 +89,9 @@ void PerObjectBuffer::FreePreObjectChunk(uint32_t index)
 	// If not, insert a new free chunk
 	else
 		m_freeChunks.insert(m_freeChunks.begin() + range.second, { index, index });
+}
+
+void PerObjectBuffer::UpdateObjectUniformData(uint32_t index, const void* pData)
+{
+	m_pShaderStorageBuffer->UpdateByteStream(pData, index * sizeof(PerObjectVariables) + FrameMgr()->FrameIndex() * m_frameOffset, sizeof(PerObjectVariables));
 }

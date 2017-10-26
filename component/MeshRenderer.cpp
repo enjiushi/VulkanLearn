@@ -163,7 +163,8 @@ void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 
 		uint32_t offset = FrameMgr()->FrameIndex() * VulkanGlobal::GetInstance()->m_pPerFrameUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
 
-		pDrawCmdBuffer->BindDescriptorSets(m_materialInstances[i]->GetMaterial()->GetPipelineLayout(), m_materialInstances[i]->GetDescriptorSets(), { offset, offset, offset, offset });
+		// FIXME: I should let material instance to do descriptor & pipeline binding
+		pDrawCmdBuffer->BindDescriptorSets(m_materialInstances[i]->GetMaterial()->GetPipelineLayout(), m_materialInstances[i]->GetDescriptorSets(), { offset, offset, PerObjectBuffer::GetInstance()->GetFrameOffset(), offset });
 		pDrawCmdBuffer->BindPipeline(m_materialInstances[i]->GetMaterial()->GetGraphicPipeline());
 		pDrawCmdBuffer->BindVertexBuffers({ m_pMesh->GetVertexBuffer() });
 		pDrawCmdBuffer->BindIndexBuffer(m_pMesh->GetIndexBuffer());

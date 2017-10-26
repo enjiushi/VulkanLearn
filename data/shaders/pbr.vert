@@ -27,14 +27,24 @@ layout (set = 1, binding = 0) uniform UBO
 	float roughness;
 }ubo;
 
+struct PerObjectData
+{
+	mat4 model;
+};
+
+layout (set = 2, binding = 0) buffer PerObjectBuffer
+{
+	PerObjectData perObjectData[];
+};
+
 const vec3 lightPos = vec3(1000, 0, -1000);
 
 void main() 
 {
 	gl_Position = ubo.mvp * vec4(inPos.xyz, 1.0);
 
-	outNormal = normalize(vec3(ubo.model * vec4(inNormal, 0.0)));
-	outWorldPos = vec3(ubo.model * vec4(inPos, 1.0));
+	outNormal = normalize(vec3(perObjectData[0].model * vec4(inNormal, 0.0)));
+	outWorldPos = vec3(perObjectData[0].model * vec4(inPos, 1.0));
 
 	outUv = inUv;
 	outUv.t = 1.0 - inUv.t;
@@ -43,5 +53,5 @@ void main()
 	outViewDir = vec3(ubo.camPos - outWorldPos);
 
 	outTangent = inTangent;
-	outBitangent = normalize(cross(outNormal, normalize(vec3(ubo.model * vec4(inTangent, 0.0)))));
+	outBitangent = normalize(cross(outNormal, normalize(vec3(perObjectData[0].model * vec4(inTangent, 0.0)))));
 }

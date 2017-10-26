@@ -30,17 +30,6 @@ vec3 F0 = vec3(0.04);
 const float exposure = 4.5;
 const float whiteScale = 11.2;
 
-layout (set = 1, binding = 0) uniform UBO
-{
-	mat4 model;
-	mat4 view;
-	mat4 projection;
-	mat4 vulkanNDC;
-	mat4 mvp;
-	vec3 camPos;
-	float roughness;
-}ubo;
-
 float GGX_D(float NdotH, float roughness)
 {
 	float m2 = roughness * roughness;
