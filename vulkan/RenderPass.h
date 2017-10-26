@@ -1,3 +1,5 @@
+#pragma once
+
 #include "DeviceObjectBase.h"
 #include <mutex>
 
