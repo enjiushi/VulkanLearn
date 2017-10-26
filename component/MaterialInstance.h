@@ -5,6 +5,7 @@ class DescriptorSet;
 class DescriptorPool;
 class Material;
 class Image;
+class CommandBuffer;
 
 class MaterialInstance : public BaseComponent
 {
@@ -16,9 +17,12 @@ public:
 	void SetRenderMask(uint32_t renderMask) { m_renderMask = renderMask; }
 	void SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture);
 	std::shared_ptr<Image> GetMaterialTexture(uint32_t index) { return m_textures[index]; }
+	void PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 protected:
 	bool Init(const std::shared_ptr<MaterialInstance>& pMaterialInstance);
+	void BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 protected:
 	std::vector<std::shared_ptr<DescriptorSet>>	m_descriptorSets;

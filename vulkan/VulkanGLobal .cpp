@@ -533,7 +533,7 @@ void VulkanGlobal::InitIrradianceMap()
 		
 		pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
-		m_pRootObject->Update();
+		m_pRootObject->Draw();
 		RenderWorkMgr()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
 		pDrawCmdBuffer->EndRenderPass();
@@ -616,7 +616,7 @@ void VulkanGlobal::InitPrefilterEnvMap()
 
 			pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
-			m_pRootObject->Update();
+			m_pRootObject->Draw();
 
 			RenderWorkMgr()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
@@ -667,7 +667,7 @@ void VulkanGlobal::InitBRDFlutMap()
 
 	pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
-	m_pRootObject->Update();
+	m_pRootObject->Draw();
 
 	RenderWorkMgr()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
