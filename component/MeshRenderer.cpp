@@ -17,7 +17,7 @@
 #include "../vulkan/StagingBufferManager.h"
 #include "../vulkan/RenderWorkManager.h"
 #include "../vulkan/GlobalVulkanStates.h"
-#include "../common/PerObjectBuffer.h"
+#include "../class/PerObjectBuffer.h"
 #include "../common/Singleton.h"
 #include "../vulkan/RenderPass.h"
 #include "../vulkan/Framebuffer.h"

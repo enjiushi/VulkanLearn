@@ -6,7 +6,7 @@
 #include "../vulkan/FrameManager.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/SwapChain.h"
-#include "../common/PerObjectBuffer.h"
+#include "../class/PerObjectBuffer.h"
 
 bool MaterialInstance::Init(const std::shared_ptr<MaterialInstance>& pMaterialInstance)
 {

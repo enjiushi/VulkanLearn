@@ -1,6 +1,6 @@
 #pragma once
 #include "../vulkan/ShaderStorageBuffer.h"
-#include "Singleton.h"
+#include "../common/Singleton.h"
 #include "../Maths/Matrix.h"
 
 typedef struct _PerObjectVariables

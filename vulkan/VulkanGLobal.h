@@ -33,9 +33,9 @@
 #include "../component/Character.h"
 #include "Texture2D.h"
 #include "TextureCube.h"
-#include "../component/Mesh.h"
+#include "../class/Mesh.h"
 #include "../component/MeshRenderer.h"
-#include "../component/Material.h"
+#include "../class/Material.h"
 #include "../component/MaterialInstance.h"
 #include "ShaderStorageBuffer.h"
 

@@ -18,8 +18,8 @@
 #include "../vulkan/ShaderModule.h"
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/DescriptorPool.h"
-#include "MaterialInstance.h"
-#include "../common/PerObjectBuffer.h"
+#include "../component/MaterialInstance.h"
+#include "../class/PerObjectBuffer.h"
 #include "../vulkan/ShaderStorageBuffer.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)

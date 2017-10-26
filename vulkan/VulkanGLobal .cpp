@@ -22,7 +22,7 @@
 #include "RenderWorkManager.h"
 #include <iostream>
 #include "GlobalVulkanStates.h"
-#include "../common/PerObjectBuffer.h"
+#include "../class/PerObjectBuffer.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
