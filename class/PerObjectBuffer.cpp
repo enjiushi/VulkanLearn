@@ -8,9 +8,9 @@ bool PerObjectBuffer::Init()
 	if (!Singleton<PerObjectBuffer>::Init())
 		return false;
 
-	m_pShaderStorageBuffer = ShaderStorageBuffer::Create(GetDevice(), MAXIMUM_OBJECTS * sizeof(PerObjectVariables) * GetSwapChain()->GetSwapChainImageCount());
+	m_pShaderStorageBuffer = ShaderStorageBuffer::Create(GetDevice(), MAXIMUM_OBJECTS * sizeof(PerObjectVariables1) * GetSwapChain()->GetSwapChainImageCount());
 	m_freeChunks.push_back({ 0, MAXIMUM_OBJECTS });
-	m_frameOffset = MAXIMUM_OBJECTS * sizeof(PerObjectVariables);
+	m_frameOffset = MAXIMUM_OBJECTS * sizeof(PerObjectVariables1);
 	return true;
 }
 
@@ -93,5 +93,5 @@ void PerObjectBuffer::FreePreObjectChunk(uint32_t index)
 
 void PerObjectBuffer::UpdateObjectUniformData(uint32_t index, const void* pData)
 {
-	m_pShaderStorageBuffer->UpdateByteStream(pData, index * sizeof(PerObjectVariables) + FrameMgr()->FrameIndex() * m_frameOffset, sizeof(PerObjectVariables));
+	m_pShaderStorageBuffer->UpdateByteStream(pData, index * sizeof(PerObjectVariables1) + FrameMgr()->FrameIndex() * m_frameOffset, sizeof(PerObjectVariables1));
 }

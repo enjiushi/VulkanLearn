@@ -39,7 +39,7 @@
 #include "../component/MaterialInstance.h"
 #include "ShaderStorageBuffer.h"
 
-typedef struct _GlobalUniforms
+typedef struct _GlobalUniforms1
 {
 	float	model[16];
 	float	view[16];
@@ -48,7 +48,7 @@ typedef struct _GlobalUniforms
 	float	mvp[16];
 	float   camPos[3];
 	float	roughness;
-}GlobalUniforms;
+}GlobalUniforms1;
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
@@ -184,5 +184,5 @@ public:
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;
 #endif
-	GlobalUniforms						m_globalUniforms;
+	GlobalUniforms1						m_globalUniforms;
 };

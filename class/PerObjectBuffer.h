@@ -3,10 +3,10 @@
 #include "../common/Singleton.h"
 #include "../Maths/Matrix.h"
 
-typedef struct _PerObjectVariables
+typedef struct _PerObjectVariables1
 {
 	Matrix4f modelTransform;
-}PerObjectVariables;
+}PerObjectVariables1;
 
 class PerObjectBuffer : public Singleton<PerObjectBuffer>
 {

@@ -23,6 +23,7 @@
 #include <iostream>
 #include "GlobalVulkanStates.h"
 #include "../class/PerObjectBuffer.h"
+#include "../class/UniformData.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -449,7 +450,7 @@ void VulkanGlobal::InitVertices()
 
 void VulkanGlobal::InitUniforms()
 {
-	uint32_t totalUniformBytes = sizeof(GlobalUniforms) * GetSwapChain()->GetSwapChainImageCount();
+	uint32_t totalUniformBytes = sizeof(GlobalUniforms1) * GetSwapChain()->GetSwapChainImageCount();
 	m_pGlobalUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
 	m_pPerFrameUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
 	m_perObjectDataIndex = PerObjectBuffer::GetInstance()->AllocatePerObjectChunk();
@@ -467,6 +468,8 @@ void VulkanGlobal::InitUniforms()
 
 	// FIXME: 2 channels should be enough, I don't intend to do it now as I have to create new render passes and frame buffers, leave it to later refactor
 	m_pBRDFLut = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
+
+
 }
 
 void VulkanGlobal::InitIrradianceMap()
@@ -740,7 +743,7 @@ void VulkanGlobal::InitSemaphore()
 void VulkanGlobal::InitMaterials()
 {
 	// Gun material
-	std::vector<MaterialVariable> layout =
+	std::vector<UniformVarList> layout =
 	{ 
 		{
 			DynamicUniformBuffer,
@@ -777,8 +780,8 @@ void VulkanGlobal::InitMaterials()
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
-	m_pGunMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateUniformBufferDynamic(0, m_pGlobalUniformBuffer);
-	m_pGunMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
+	m_pGunMaterialInstance->GetDescriptorSet(UniformDataStorage::GlobalVariable)->UpdateUniformBufferDynamic(0, m_pGlobalUniformBuffer);
+	m_pGunMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pGunMaterialInstance->SetMaterialTexture(0, m_pAlbedo);
 	m_pGunMaterialInstance->SetMaterialTexture(1, m_pNormal);
 	m_pGunMaterialInstance->SetMaterialTexture(2, m_pRoughness);
@@ -817,8 +820,8 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
-	m_pSkyBoxMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateUniformBufferDynamic(0, m_pGlobalUniformBuffer);
-	m_pSkyBoxMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
+	m_pSkyBoxMaterialInstance->GetDescriptorSet(UniformDataStorage::GlobalVariable)->UpdateUniformBufferDynamic(0, m_pGlobalUniformBuffer);
+	m_pSkyBoxMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pSkyBoxMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" };
@@ -831,8 +834,8 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxIrradianceMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxIrradianceMaterialInstance = m_pSkyBoxIrradianceMaterial->CreateMaterialInstance();
 	m_pSkyBoxIrradianceMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::IrradianceGen);
-	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateUniformBufferDynamic(0, m_pGlobalUniformBuffer);
-	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
+	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(UniformDataStorage::GlobalVariable)->UpdateUniformBufferDynamic(0, m_pGlobalUniformBuffer);
+	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pSkyBoxIrradianceMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" };
@@ -845,8 +848,8 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxReflectionMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxReflectionMaterialInstance = m_pSkyBoxReflectionMaterial->CreateMaterialInstance();
 	m_pSkyBoxReflectionMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::ReflectionGen);
-	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateUniformBufferDynamic(0, m_pGlobalUniformBuffer);
-	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
+	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(UniformDataStorage::GlobalVariable)->UpdateUniformBufferDynamic(0, m_pGlobalUniformBuffer);
+	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pSkyBoxReflectionMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
 	info.shaderPaths			= { L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" };
@@ -859,8 +862,8 @@ void VulkanGlobal::InitMaterials()
 	m_pBRDFLutMaterial = Material::CreateDefaultMaterial(info);
 	m_pBRDFLutMaterialInstance = m_pBRDFLutMaterial->CreateMaterialInstance();
 	m_pBRDFLutMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::BrdfLutGen);
-	m_pBRDFLutMaterialInstance->GetDescriptorSet(GlobalVariable)->UpdateUniformBufferDynamic(0, m_pGlobalUniformBuffer);
-	m_pBRDFLutMaterialInstance->GetDescriptorSet(PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
+	m_pBRDFLutMaterialInstance->GetDescriptorSet(UniformDataStorage::GlobalVariable)->UpdateUniformBufferDynamic(0, m_pGlobalUniformBuffer);
+	m_pBRDFLutMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pBRDFLutMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 }
 
@@ -931,7 +934,7 @@ void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Cam
 	pCamera->Update();
 	pCamera->LateUpdate();
 
-	memset(&m_globalUniforms, 0, sizeof(GlobalUniforms));
+	memset(&m_globalUniforms, 0, sizeof(GlobalUniforms1));
 
 	Matrix4f model;
 
@@ -940,14 +943,14 @@ void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Cam
 	vulkanNDC.c[2].z = vulkanNDC.c[3].z = 0.5f;
 
 	Matrix4f projMat;
-	projMat = pCamera->GetProjMatrix();
+	projMat = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix();
 
-	Matrix4f mvp = vulkanNDC * projMat * pCamera->GetViewMatrix() * model;
+	Matrix4f mvp = vulkanNDC * projMat * UniformData::GetInstance()->GetPerFrameUniforms()->GetViewMatrix() * model;
 
 	Vector3f camPos = pCamera->GetObjectA()->GetWorldPosition();
 
 	memcpy_s(m_globalUniforms.model, sizeof(m_globalUniforms.model), &model, sizeof(model));
-	memcpy_s(m_globalUniforms.view, sizeof(m_globalUniforms.view), &pCamera->GetViewMatrix(), sizeof(pCamera->GetViewMatrix()));
+	memcpy_s(m_globalUniforms.view, sizeof(m_globalUniforms.view), &UniformData::GetInstance()->GetPerFrameUniforms()->GetViewMatrix(), sizeof(Matrix4f));
 	memcpy_s(m_globalUniforms.projection, sizeof(m_globalUniforms.projection), &projMat, sizeof(projMat));
 	memcpy_s(m_globalUniforms.vulkanNDC, sizeof(m_globalUniforms.vulkanNDC), &vulkanNDC, sizeof(vulkanNDC));
 	memcpy_s(m_globalUniforms.mvp, sizeof(m_globalUniforms.mvp), &mvp, sizeof(mvp));
@@ -996,6 +999,9 @@ void VulkanGlobal::Draw()
 	};
 	pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
+	m_pRootObject->Update();
+	m_pRootObject->LateUpdate();
+	UniformData::GetInstance()->SyncDataBuffer();
 	m_pRootObject->Draw();
 
 	GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);

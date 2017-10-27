@@ -21,7 +21,7 @@ void MaterialInstance::SetMaterialTexture(uint32_t index, const std::shared_ptr<
 	m_textures[index] = pTexture;
 
 	// index 0 is reserved for material uniform buffer FIXME: there should a enum or something to mark it
-	m_descriptorSets[PerObjectMaterialVariable]->UpdateImage(index + 1, pTexture);
+	m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateImage(index + 1, pTexture);
 }
 
 void MaterialInstance::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)

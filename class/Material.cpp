@@ -21,6 +21,7 @@
 #include "../component/MaterialInstance.h"
 #include "../class/PerObjectBuffer.h"
 #include "../vulkan/ShaderStorageBuffer.h"
+#include "../class/UniformData.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -131,13 +132,13 @@ bool Material::Init
 	const std::shared_ptr<RenderPass>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	uint32_t maxMaterialInstance,
-	const std::vector<MaterialVariable>& materialVariableLayout
+	const std::vector<UniformVarList>& materialVariableLayout
 )
 {
 	if (!SelfRefBase<Material>::Init(pSelf))
 		return false;
 
-	std::vector<std::vector<MaterialVariable>> _materialVariableLayout;
+	std::vector<std::vector<UniformVarList>> _materialVariableLayout;
 	_materialVariableLayout.push_back(materialVariableLayout);
 
 	// Force per object material variable to be shader storage buffer
@@ -147,8 +148,15 @@ bool Material::Init
 			var.type = DynamicShaderStorageBuffer;
 	}
 
+	std::vector<UniformVarList> predefinedUniformLayout = UniformData::GetInstance()->GenerateUniformVarLayout();
+	for (uint32_t i = 0; i < UniformDataStorage::PerObjectMaterialVariable; i++)
+	{
+		_materialVariableLayout.insert(_materialVariableLayout.begin() + i, { predefinedUniformLayout[i] });
+	}
+
+	/*
 	// Every material needs a global layout
-	_materialVariableLayout.insert(_materialVariableLayout.begin() + GlobalVariable,
+	_materialVariableLayout.insert(_materialVariableLayout.begin() + UniformData::GlobalVariable,
 	{ 
 		// Only one dynamic buffer
 		{
@@ -165,7 +173,7 @@ bool Material::Init
 	});
 
 	// Every material needs a per frame layout
-	_materialVariableLayout.insert(_materialVariableLayout.begin() + PerFrameVariable,
+	_materialVariableLayout.insert(_materialVariableLayout.begin() + UniformData::PerFrameVariable,
 	{
 		// Only one dynamic buffer
 		{
@@ -191,7 +199,7 @@ bool Material::Init
 				{ Mat4Unit, "ModelTransform" },
 			}
 		}
-	});
+	});*/
 
 	m_materialVariableLayout = _materialVariableLayout;
 
@@ -277,20 +285,20 @@ bool Material::Init
 	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descPoolInfo.pPoolSizes = descPoolSize.data();
 	descPoolInfo.poolSizeCount = descPoolSize.size();
-	descPoolInfo.maxSets = maxMaterialInstance * DescriptorLayoutCount;
+	descPoolInfo.maxSets = maxMaterialInstance * UniformDataStorage::UniformTypeCount;
 
 	m_pDescriptorPool = DescriptorPool::Create(GetDevice(), descPoolInfo);
 
 	m_maxMaterialInstance = maxMaterialInstance;
 
-	for (uint32_t i = 0; i < m_materialVariableLayout[PerObjectMaterialVariable].size(); i++)
+	for (uint32_t i = 0; i < m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size(); i++)
 	{
-		auto variable = m_materialVariableLayout[PerObjectMaterialVariable][i];
+		auto variable = m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i];
 		// Force DynamicUniformBuffer to DynamicShaderStorageBuffer
 		// Since for per object material variable, uniform buffer isn't big enough
 		if (variable.type == DynamicUniformBuffer || variable.type == DynamicShaderStorageBuffer)
 		{
-			uint32_t size = GetByteSize(m_materialVariableLayout[PerObjectMaterialVariable][i].UBOLayout);
+			uint32_t size = GetByteSize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i].vars);
 			m_materialVariableBuffers[i] = ShaderStorageBuffer::Create(GetDevice(), size);
 		}
 	}
@@ -300,7 +308,7 @@ bool Material::Init
 
 // This function follows rule of std430
 // Could be bugs in it
-uint32_t Material::GetByteSize(const std::vector<UBOVariable>& UBOLayout)
+uint32_t Material::GetByteSize(const std::vector<UniformVar>& UBOLayout)
 {
 	uint32_t unitCount = 0;
 	for (auto & var : UBOLayout)
@@ -350,15 +358,15 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 		pMaterialInstance->m_pMaterial = GetSelfSharedPtr();
 
 		// FIXME: there should a enum or something to mark it
-		pMaterialInstance->m_descriptorSets[PerObjectVariable]->UpdateShaderStorageBufferDynamic(0, PerObjectBuffer::GetInstance()->GetShaderStorageBuffer());
+		pMaterialInstance->m_descriptorSets[UniformDataStorage::PerObjectVariable]->UpdateShaderStorageBufferDynamic(0, PerObjectBuffer::GetInstance()->GetShaderStorageBuffer());
 		for (auto& var : m_materialVariableBuffers)
 		{
-			pMaterialInstance->m_descriptorSets[PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(var.first, var.second);
+			pMaterialInstance->m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(var.first, var.second);
 		}
 
 		// Init texture vector
 		uint32_t textureCount = 0;
-		for (auto & var : m_materialVariableLayout[PerObjectMaterialVariable])
+		for (auto & var : m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable])
 		{
 			if (var.type == CombinedSampler)
 				textureCount++;

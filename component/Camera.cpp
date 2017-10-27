@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include "../Base/BaseObject.h"
+#include "../class/UniformData.h"
 
 bool Camera::Init(const CameraInfo& info, const std::shared_ptr<Camera>& pCamera)
 {
@@ -26,7 +27,6 @@ void Camera::LateUpdate()
 {
 	UpdateViewMatrix();
 	UpdateProjMatrix();
-	UpdateVPMatrix();
 }
 
 void Camera::UpdateViewMatrix()
@@ -34,7 +34,7 @@ void Camera::UpdateViewMatrix()
 	if (m_pObject.expired())
 		return;
 
-	m_viewMatrix = m_pObject.lock()->GetWorldTransform().Inverse();
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetWorldTransform().Inverse());
 }
 
 void Camera::UpdateProjMatrix()
@@ -44,18 +44,20 @@ void Camera::UpdateProjMatrix()
 
 	float tanFOV2 = std::tanf(m_cameraInfo.fov / 2.0f);
 
-	m_projMatrix = Matrix4f();
-	m_projMatrix.x0 = 1.0f / (m_cameraInfo.aspect * tanFOV2 * m_cameraInfo.near);
-	m_projMatrix.y1 = 1.0f / (tanFOV2 * m_cameraInfo.near);
-	m_projMatrix.z2 = -(m_cameraInfo.far + m_cameraInfo.near) / (m_cameraInfo.far - m_cameraInfo.near);
-	m_projMatrix.z3 = -1.0f;
-	m_projMatrix.w2 = -2.0f * m_cameraInfo.near * m_cameraInfo.far / (m_cameraInfo.far - m_cameraInfo.near);
-	m_projMatrix.w3 = 0.0f;
+	Matrix4f proj;
+	proj.x0 = 1.0f / (m_cameraInfo.aspect * tanFOV2 * m_cameraInfo.near);
+	proj.y1 = 1.0f / (tanFOV2 * m_cameraInfo.near);
+	proj.z2 = -(m_cameraInfo.far + m_cameraInfo.near) / (m_cameraInfo.far - m_cameraInfo.near);
+	proj.z3 = -1.0f;
+	proj.w2 = -2.0f * m_cameraInfo.near * m_cameraInfo.far / (m_cameraInfo.far - m_cameraInfo.near);
+	proj.w3 = 0.0f;
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetProjectionMatrix(proj);
 }
 
-void Camera::UpdateVPMatrix()
+void Camera::UpdateCameraPosition()
 {
-	m_vpMatrix = m_projMatrix * m_viewMatrix;
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetObject()->GetWorldPosition());
 }
 
 void Camera::SetFOV(float new_fov)

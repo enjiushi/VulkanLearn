@@ -1,6 +1,7 @@
 #pragma once
 #include "../Base/BaseComponent.h"
 #include "../vulkan/DeviceObjectBase.h"
+#include "../class/UniformData.h"
 #include <map>
 
 class PipelineLayout;
@@ -14,6 +15,7 @@ class DescriptorPool;
 class UniformBuffer;
 class ShaderStorageBuffer;
 
+/*
 enum UBOType
 {
 	OneUnit,
@@ -23,7 +25,7 @@ enum UBOType
 	Mat3Unit,
 	Mat4Unit,
 	UBOTypeCount
-};
+};*/
 
 // More to add
 enum MaterialVariableType
@@ -33,16 +35,7 @@ enum MaterialVariableType
 	CombinedSampler,
 	MaterialVariableTypeCount
 };
-
-enum DescriptorLayout
-{
-	GlobalVariable,
-	PerFrameVariable,
-	PerObjectVariable,
-	PerObjectMaterialVariable,
-	DescriptorLayoutCount
-};
-
+/*
 typedef struct _UBOVariable
 {
 	UBOType		type;
@@ -55,6 +48,7 @@ typedef struct _MaterialVariable
 	std::string					name;
 	std::vector<UBOVariable>	UBOLayout;
 }MaterialVariable;
+*/
 
 typedef struct _SimpleMaterialCreateInfo
 {
@@ -62,7 +56,7 @@ typedef struct _SimpleMaterialCreateInfo
 	std::vector<VkVertexInputBindingDescription>			vertexBindingsInfo;
 	std::vector<VkVertexInputAttributeDescription>			vertexAttributesInfo;
 	uint32_t												maxMaterialInstance = 512;
-	std::vector<MaterialVariable>							materialVariableLayout;
+	std::vector<UniformVarList>								materialVariableLayout;
 	// FIXME: Render pass is wired thing, as it's used both for pipeline and frame buffer
 	// Need to think about where it belongs or belongs to itself
 	std::shared_ptr<RenderPass>						pRenderPass;
@@ -88,10 +82,10 @@ protected:
 		const std::shared_ptr<RenderPass>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 		uint32_t maxMaterialInstance,
-		const std::vector<MaterialVariable>& materialVariableLayout
+		const std::vector<UniformVarList>& materialVariableLayout
 	);
 
-	static uint32_t GetByteSize(const std::vector<UBOVariable>& UBOLayout);
+	static uint32_t GetByteSize(const std::vector<UniformVar>& UBOLayout);
 
 protected:
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
@@ -99,7 +93,7 @@ protected:
 	std::vector<std::shared_ptr<DescriptorSetLayout>>	m_descriptorSetLayouts;
 	std::shared_ptr<DescriptorPool>						m_pDescriptorPool;
 	uint32_t											m_maxMaterialInstance;
-	std::vector<std::vector<MaterialVariable>>			m_materialVariableLayout;
+	std::vector<std::vector<UniformVarList>>			m_materialVariableLayout;
 	std::map<uint32_t, std::shared_ptr<ShaderStorageBuffer>>	m_materialVariableBuffers;
 
 	friend class MaterialInstance;
