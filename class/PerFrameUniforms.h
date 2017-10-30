@@ -6,7 +6,6 @@
 typedef struct _PerFrameVariables
 {
 	Matrix4f viewMatrix;
-	Matrix4f VP;	// view * projection
 	Matrix4f VPN;	// vulkanNDC * view * projection
 	Vector3f cameraPosition;
 }PerFrameVariables;
@@ -22,8 +21,7 @@ public:
 public:
 	void SetViewMatrix(const Matrix4f& viewMatrix);
 	Matrix4f GetViewMatrix() const { return m_perFrameVariables.viewMatrix; }
-	Matrix4f GetVPMatrix() const { return m_perFrameVariables.viewMatrix; }
-	Matrix4f GetNVPMatrix() const { return m_perFrameVariables.viewMatrix; }
+	Matrix4f GetVPNMatrix() const { return m_perFrameVariables.VPN; }
 	void SetCameraPosition(const Vector3f& camPos);
 	Vector3f GetCameraPosition() const { return m_perFrameVariables.cameraPosition; }
 

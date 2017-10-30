@@ -16,7 +16,7 @@ public:
 	Matrix4f GetProjectionMatrix() const { return m_globalVariables.projectionMatrix; }
 	void SetVulkanNDCMatrix(const Matrix4f& vndc);
 	Matrix4f GetVulkanNDCMatrix() const { return m_globalVariables.vulkanNDC; }
-	Matrix4f GetNPMatrix() const { return m_globalVariables.PN; }
+	Matrix4f GetPNMatrix() const { return m_globalVariables.PN; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

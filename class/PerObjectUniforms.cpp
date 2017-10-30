@@ -35,7 +35,7 @@ void PerObjectUniforms::SyncBufferDataInternal()
 
 void PerObjectUniforms::SetDirty()
 {
-	m_perObjectVariables.MVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPMatrix() * m_perObjectVariables.modelMatrix;
+	m_perObjectVariables.MVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPNMatrix() * m_perObjectVariables.modelMatrix;
 	UniformDataStorage::SetDirty();
 }
 
