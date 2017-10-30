@@ -24,13 +24,19 @@ std::shared_ptr<PerObjectUniforms> PerObjectUniforms::Create()
 void PerObjectUniforms::SetModelMatrix(const Matrix4f& modelMatrix)
 {
 	m_perObjectVariables.modelMatrix = modelMatrix;
-	m_perObjectVariables.MVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * UniformData::GetInstance()->GetPerFrameUniforms()->GetViewMatrix() * modelMatrix;
+	m_perObjectVariables.MVPN = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * UniformData::GetInstance()->GetPerFrameUniforms()->GetViewMatrix() * modelMatrix;
 	SetDirty();
 }
 
 void PerObjectUniforms::SyncBufferDataInternal()
 {
 	GetBuffer()->UpdateByteStream(&m_perObjectVariables, FrameMgr()->FrameIndex() * sizeof(PerObjectVariables), sizeof(PerObjectVariables));
+}
+
+void PerObjectUniforms::SetDirty()
+{
+	m_perObjectVariables.MVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPMatrix() * m_perObjectVariables.modelMatrix;
+	UniformDataStorage::SetDirty();
 }
 
 UniformVarList PerObjectUniforms::PrepareUniformVarList()
