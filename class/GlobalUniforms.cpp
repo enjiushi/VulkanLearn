@@ -45,6 +45,12 @@ void GlobalUniforms::SyncBufferDataInternal()
 	GetBuffer()->UpdateByteStream(&m_globalVariables, FrameMgr()->FrameIndex() * sizeof(GlobalVariables), sizeof(GlobalVariables));
 }
 
+void GlobalUniforms::SetDirty()
+{
+	m_globalVariables.NP = m_globalVariables.vulkanNDC * m_globalVariables.projection;
+	UniformDataStorage::SetDirty();
+}
+
 UniformVarList GlobalUniforms::PrepareUniformVarList()
 {
 	return 
