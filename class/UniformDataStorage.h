@@ -55,7 +55,7 @@ public:
 
 protected:
 	virtual void SyncBufferDataInternal() = 0;
-	void SetDirty();
+	virtual void SetDirty();
 
 protected:
 	std::shared_ptr<UniformBuffer>			m_pUniformBuffer;
