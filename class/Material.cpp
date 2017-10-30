@@ -154,53 +154,6 @@ bool Material::Init
 		_materialVariableLayout.insert(_materialVariableLayout.begin() + i, { predefinedUniformLayout[i] });
 	}
 
-	/*
-	// Every material needs a global layout
-	_materialVariableLayout.insert(_materialVariableLayout.begin() + UniformData::GlobalVariable,
-	{ 
-		// Only one dynamic buffer
-		{
-			DynamicUniformBuffer,
-			"GlobalUniforms",
-			{
-				// Only one variable "vulkan ndc transform"
-				{
-					Mat4Unit,
-					"VulkanNDCTransform"
-				}
-			}
-		}
-	});
-
-	// Every material needs a per frame layout
-	_materialVariableLayout.insert(_materialVariableLayout.begin() + UniformData::PerFrameVariable,
-	{
-		// Only one dynamic buffer
-		{
-			DynamicUniformBuffer,
-			"PerFrameUniforms",
-			{
-				{ Mat4Unit, "ViewTransform" },
-				{ Mat4Unit, "ProjectionTransform" },
-				{ Mat4Unit, "VP" },
-				{ Vec3Unit, "CameraPosition" }
-			}
-		}
-	});
-
-	// Every material needs a per object layout
-	_materialVariableLayout.insert(_materialVariableLayout.begin() + PerObjectVariable,
-	{
-		// Only one dynamic buffer
-		{
-			DynamicShaderStorageBuffer,
-			"PerObjectUniforms",
-			{
-				{ Mat4Unit, "ModelTransform" },
-			}
-		}
-	});*/
-
 	m_materialVariableLayout = _materialVariableLayout;
 
 	// Build vulkan layout bindings
