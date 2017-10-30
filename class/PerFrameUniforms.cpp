@@ -24,7 +24,6 @@ std::shared_ptr<PerFrameUniforms> PerFrameUniforms::Create()
 void PerFrameUniforms::SetViewMatrix(const Matrix4f& viewMatrix)
 {
 	m_perFrameVariables.viewMatrix = viewMatrix;
-	m_perFrameVariables.viewProjMatrix = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * viewMatrix;
 	SetDirty();
 }
 
@@ -37,6 +36,13 @@ void PerFrameUniforms::SetCameraPosition(const Vector3f& camPos)
 void PerFrameUniforms::SyncBufferDataInternal()
 {
 	GetBuffer()->UpdateByteStream(&m_perFrameVariables, FrameMgr()->FrameIndex() * sizeof(PerFrameVariables), sizeof(PerFrameVariables));
+}
+
+void PerFrameUniforms::SetDirty()
+{
+	m_perFrameVariables.VP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perFrameVariables.viewMatrix;
+	m_perFrameVariables.NVP = UniformData::GetInstance()->GetGlobalUniforms()->GetNPMatrix() * m_perFrameVariables.viewMatrix;
+	UniformDataStorage::SetDirty();
 }
 
 UniformVarList PerFrameUniforms::PrepareUniformVarList()
