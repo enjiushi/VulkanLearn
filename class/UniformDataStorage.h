@@ -49,6 +49,7 @@ public:
 	bool Init(const std::shared_ptr<UniformDataStorage>& pSelf, uint32_t numBytes);
 
 public:
+	uint32_t GetFrameOffset() const { return m_frameOffset; }
 	void SyncBufferData();
 	std::shared_ptr<Buffer> GetBuffer();
 	virtual UniformVarList PrepareUniformVarList() = 0;
@@ -61,4 +62,5 @@ protected:
 	std::shared_ptr<UniformBuffer>			m_pUniformBuffer;
 	std::shared_ptr<ShaderStorageBuffer>	m_pShaderStorageBuffer;
 	uint32_t								m_pendingSyncCount;
+	uint32_t								m_frameOffset;
 };

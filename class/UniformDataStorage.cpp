@@ -11,11 +11,14 @@ bool UniformDataStorage::Init(const std::shared_ptr<UniformDataStorage>& pSelf, 
 
 	m_pendingSyncCount = 0;
 
-	numBytes *= GetSwapChain()->GetSwapChainImageCount();
-	if (numBytes < GetDevice()->GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.maxUniformBufferRange)
-		m_pUniformBuffer = UniformBuffer::Create(GetDevice(), numBytes);
+	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
+	m_frameOffset = numBytes / minAlign * minAlign + (numBytes % minAlign > 0 ? minAlign : 0);
+	uint32_t totalUniformBytes = m_frameOffset * GetSwapChain()->GetSwapChainImageCount();
+
+	if (totalUniformBytes < GetDevice()->GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.maxUniformBufferRange)
+		m_pUniformBuffer = UniformBuffer::Create(GetDevice(), totalUniformBytes);
 	else
-		m_pShaderStorageBuffer = ShaderStorageBuffer::Create(GetDevice(), numBytes);
+		m_pShaderStorageBuffer = ShaderStorageBuffer::Create(GetDevice(), totalUniformBytes);
 
 	return true;
 }

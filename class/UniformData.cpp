@@ -1,5 +1,7 @@
 #include "UniformData.h"
 #include "Material.h"
+#include "../vulkan/GlobalDeviceObjects.h"
+#include "../vulkan/FrameManager.h"
 
 bool UniformData::Init()
 {
@@ -35,4 +37,12 @@ std::vector<UniformVarList> UniformData::GenerateUniformVarLayout() const
 	for (uint32_t i = 0; i < UniformDataStorage::PerObjectMaterialVariable; i++)
 		layout.push_back(m_uniforms[i]->PrepareUniformVarList());
 	return layout;
+}
+
+std::vector<uint32_t> UniformData::GetFrameOffsets() const
+{
+	std::vector<uint32_t> offsets;
+	for (uint32_t i = 0; i < UniformDataStorage::PerObjectMaterialVariable; i++)
+		offsets.push_back(m_uniforms[i]->GetFrameOffset() * FrameMgr()->FrameIndex());
+	return offsets;
 }
