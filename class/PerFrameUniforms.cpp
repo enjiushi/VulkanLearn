@@ -8,7 +8,7 @@
 
 bool PerFrameUniforms::Init(const std::shared_ptr<PerFrameUniforms>& pSelf)
 {
-	if (!UniformDataStorage::Init(pSelf, sizeof(PerFrameVariables)))
+	if (!UniformDataStorage::Init(pSelf, sizeof(m_perFrameVariables)))
 		return false;
 	return true;
 }
@@ -35,7 +35,7 @@ void PerFrameUniforms::SetCameraPosition(const Vector3f& camPos)
 
 void PerFrameUniforms::SyncBufferDataInternal()
 {
-	GetBuffer()->UpdateByteStream(&m_perFrameVariables, FrameMgr()->FrameIndex() * sizeof(PerFrameVariables), sizeof(PerFrameVariables));
+	GetBuffer()->UpdateByteStream(&m_perFrameVariables, FrameMgr()->FrameIndex() * sizeof(m_perFrameVariables), sizeof(m_perFrameVariables));
 }
 
 void PerFrameUniforms::SetDirty()

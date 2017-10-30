@@ -8,7 +8,7 @@
 
 bool PerObjectUniforms::Init(const std::shared_ptr<PerObjectUniforms>& pSelf)
 {
-	if (!UniformDataStorage::Init(pSelf, sizeof(PerObjectVariables)))
+	if (!UniformDataStorage::Init(pSelf, sizeof(m_perObjectVariables)))
 		return false;
 
 	m_freeChunks.push_back({ 0, MAXIMUM_OBJECTS });
@@ -31,7 +31,7 @@ void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4f& modelMatr
 
 void PerObjectUniforms::SyncBufferDataInternal()
 {
-	GetBuffer()->UpdateByteStream(&m_perObjectVariables, FrameMgr()->FrameIndex() * sizeof(PerObjectVariables), sizeof(PerObjectVariables));
+	GetBuffer()->UpdateByteStream(&m_perObjectVariables, FrameMgr()->FrameIndex() * sizeof(m_perObjectVariables), sizeof(m_perObjectVariables));
 }
 
 void PerObjectUniforms::SetDirty(uint32_t index)

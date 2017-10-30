@@ -6,7 +6,7 @@
 
 bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 {
-	if (!UniformDataStorage::Init(pSelf, sizeof(GlobalVariables)))
+	if (!UniformDataStorage::Init(pSelf, sizeof(m_globalVariables)))
 		return false;
 
 	// NDC space Y axis is reversed in Vulkan compared to OpenGL
@@ -42,7 +42,7 @@ void GlobalUniforms::SetVulkanNDCMatrix(const Matrix4f& vndc)
 
 void GlobalUniforms::SyncBufferDataInternal()
 {
-	GetBuffer()->UpdateByteStream(&m_globalVariables, FrameMgr()->FrameIndex() * sizeof(GlobalVariables), sizeof(GlobalVariables));
+	GetBuffer()->UpdateByteStream(&m_globalVariables, FrameMgr()->FrameIndex() * sizeof(m_globalVariables), sizeof(m_globalVariables));
 }
 
 void GlobalUniforms::SetDirty()
