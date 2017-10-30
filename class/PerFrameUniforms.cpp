@@ -41,7 +41,7 @@ void PerFrameUniforms::SyncBufferDataInternal()
 void PerFrameUniforms::SetDirty()
 {
 	m_perFrameVariables.VP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perFrameVariables.viewMatrix;
-	m_perFrameVariables.NVP = UniformData::GetInstance()->GetGlobalUniforms()->GetNPMatrix() * m_perFrameVariables.viewMatrix;
+	m_perFrameVariables.VPN = UniformData::GetInstance()->GetGlobalUniforms()->GetNPMatrix() * m_perFrameVariables.viewMatrix;
 	UniformDataStorage::SetDirty();
 }
 

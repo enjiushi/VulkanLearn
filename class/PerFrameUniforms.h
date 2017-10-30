@@ -7,7 +7,7 @@ typedef struct _PerFrameVariables
 {
 	Matrix4f viewMatrix;
 	Matrix4f VP;	// view * projection
-	Matrix4f NVP;	// vulkanNDC * view * projection
+	Matrix4f VPN;	// vulkanNDC * view * projection
 	Vector3f cameraPosition;
 }PerFrameVariables;
 

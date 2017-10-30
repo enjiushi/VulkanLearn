@@ -30,7 +30,7 @@ std::shared_ptr<GlobalUniforms> GlobalUniforms::Create()
 
 void GlobalUniforms::SetProjectionMatrix(const Matrix4f& proj) 
 { 
-	m_globalVariables.projection = proj;
+	m_globalVariables.projectionMatrix = proj;
 	SetDirty();
 }
 
@@ -47,7 +47,7 @@ void GlobalUniforms::SyncBufferDataInternal()
 
 void GlobalUniforms::SetDirty()
 {
-	m_globalVariables.NP = m_globalVariables.vulkanNDC * m_globalVariables.projection;
+	m_globalVariables.PN = m_globalVariables.vulkanNDC * m_globalVariables.projectionMatrix;
 	UniformDataStorage::SetDirty();
 }
 
