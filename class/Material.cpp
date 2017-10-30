@@ -310,7 +310,9 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 			pMaterialInstance->m_descriptorSets.push_back(m_pDescriptorPool->AllocateDescriptorSet(layout));
 		pMaterialInstance->m_pMaterial = GetSelfSharedPtr();
 
-		// FIXME: there should a enum or something to mark it
+		pMaterialInstance->m_descriptorSets[UniformDataStorage::GlobalVariable]->UpdateUniformBufferDynamic(0, std::dynamic_pointer_cast<UniformBuffer>(UniformData::GetInstance()->GetGlobalUniforms()->GetBuffer()));
+		pMaterialInstance->m_descriptorSets[UniformDataStorage::PerFrameVariable]->UpdateUniformBufferDynamic(0, std::dynamic_pointer_cast<UniformBuffer>(UniformData::GetInstance()->GetPerFrameUniforms()->GetBuffer()));
+
 		pMaterialInstance->m_descriptorSets[UniformDataStorage::PerObjectVariable]->UpdateShaderStorageBufferDynamic(0, PerObjectBuffer::GetInstance()->GetShaderStorageBuffer());
 		for (auto& var : m_materialVariableBuffers)
 		{
