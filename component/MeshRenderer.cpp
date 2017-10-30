@@ -22,6 +22,7 @@
 #include "../vulkan/RenderPass.h"
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/VulkanGlobal.h"
+#include "../class/UniformData.h"
 
 std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance)
 {
@@ -49,7 +50,7 @@ std::shared_ptr<MeshRenderer> MeshRenderer::Create()
 
 MeshRenderer::~MeshRenderer()
 {
-	PerObjectBuffer::GetInstance()->FreePreObjectChunk(m_perObjectBufferIndex);
+	UniformData::GetInstance()->GetPerObjectUniforms()->FreePreObjectChunk(m_perObjectBufferIndex);
 }
 
 bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances)
@@ -60,7 +61,7 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 	m_pMesh = pMesh;
 	m_materialInstances = materialInstances;
 
-	m_perObjectBufferIndex = PerObjectBuffer::GetInstance()->AllocatePerObjectChunk();
+	m_perObjectBufferIndex = UniformData::GetInstance()->GetPerObjectUniforms()->AllocatePerObjectChunk();
 	return true;
 }
 

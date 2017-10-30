@@ -19,16 +19,23 @@ public:
 	static std::shared_ptr<PerObjectUniforms> Create();
 
 public:
-	void SetModelMatrix(const Matrix4f& modelMatrix);
-	Matrix4f GetViewMatrix() const { return m_perObjectVariables.modelMatrix; }
-	Matrix4f GetMVPN() const { return m_perObjectVariables.MVPN; }
+	void SetModelMatrix(uint32_t index, const Matrix4f& modelMatrix);
+	Matrix4f GetModelMatrix(uint32_t index) const { return m_perObjectVariables[index].modelMatrix; }
+	Matrix4f GetMVPN(uint32_t index) const { return m_perObjectVariables[index].MVPN; }
 
 	UniformVarList PrepareUniformVarList() override;
 
-protected:
-	void SyncBufferDataInternal() override;
-	void SetDirty() override;
+	uint32_t AllocatePerObjectChunk();
+	void FreePreObjectChunk(uint32_t index);
 
 protected:
-	PerObjectVariables	m_perObjectVariables;
+	void SyncBufferDataInternal() override;
+	void SetDirty(uint32_t index);
+
+	// Search an used index within freed chunk, return value gives freed chunk index just after of input index
+	std::pair<uint32_t, uint32_t> SearchFreeChunkIndex(uint32_t index, std::pair<uint32_t, uint32_t> range);
+
+protected:
+	PerObjectVariables	m_perObjectVariables[MAXIMUM_OBJECTS];
+	std::vector<std::pair<uint32_t, uint32_t>>	m_freeChunks;
 };
