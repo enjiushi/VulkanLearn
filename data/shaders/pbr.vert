@@ -30,6 +30,7 @@ layout (set = 1, binding = 0) uniform UBO
 struct PerObjectData
 {
 	mat4 model;
+	mat4 mvpn;
 };
 
 layout (set = 2, binding = 0) buffer PerObjectBuffer
@@ -41,7 +42,7 @@ const vec3 lightPos = vec3(1000, 0, -1000);
 
 void main() 
 {
-	gl_Position = ubo.mvp * vec4(inPos.xyz, 1.0);
+	gl_Position = perObjectData[0].mvpn * vec4(inPos.xyz, 1.0);
 
 	outNormal = normalize(vec3(perObjectData[0].model * vec4(inNormal, 0.0)));
 	outWorldPos = vec3(perObjectData[0].model * vec4(inPos, 1.0));

@@ -71,7 +71,7 @@ void MeshRenderer::Update()
 
 void MeshRenderer::LateUpdate()
 {
-
+	UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, GetBaseObject()->GetLocalTransform());
 }
 
 void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)

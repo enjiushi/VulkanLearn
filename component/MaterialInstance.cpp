@@ -7,6 +7,7 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/SwapChain.h"
 #include "../class/PerObjectBuffer.h"
+#include "../class/UniformData.h"
 
 bool MaterialInstance::Init(const std::shared_ptr<MaterialInstance>& pMaterialInstance)
 {
@@ -31,8 +32,13 @@ void MaterialInstance::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBu
 
 void MaterialInstance::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	uint32_t offset = FrameMgr()->FrameIndex() * VulkanGlobal::GetInstance()->m_pPerFrameUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
-	pCmdBuffer->BindDescriptorSets(GetMaterial()->GetPipelineLayout(), GetDescriptorSets(), { offset, offset, PerObjectBuffer::GetInstance()->GetFrameOffset(), offset });
+	std::vector<uint32_t> offsets = UniformData::GetInstance()->GetFrameOffsets();
+	offsets.push_back(0);
+
+	// FIXME: Temp
+	offsets[1] = FrameMgr()->FrameIndex() * VulkanGlobal::GetInstance()->m_pPerFrameUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();;
+
+	pCmdBuffer->BindDescriptorSets(GetMaterial()->GetPipelineLayout(), GetDescriptorSets(), offsets);
 }
 
 void MaterialInstance::PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
