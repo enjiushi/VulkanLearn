@@ -14,7 +14,7 @@ public:
 	virtual void LateUpdate() {}
 	virtual void Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes) {}
 
-	std::shared_ptr<BaseObject> GetObject() const 
+	std::shared_ptr<BaseObject> GetBaseObject() const 
 	{
 		if (!m_pObject.expired())
 			return m_pObject.lock();

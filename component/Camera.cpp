@@ -57,7 +57,7 @@ void Camera::UpdateProjMatrix()
 
 void Camera::UpdateCameraPosition()
 {
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetObject()->GetWorldPosition());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetWorldPosition());
 }
 
 void Camera::SetFOV(float new_fov)

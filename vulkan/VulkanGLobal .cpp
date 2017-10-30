@@ -947,7 +947,7 @@ void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Cam
 
 	Matrix4f mvp = vulkanNDC * projMat * UniformData::GetInstance()->GetPerFrameUniforms()->GetViewMatrix() * model;
 
-	Vector3f camPos = pCamera->GetObjectA()->GetWorldPosition();
+	Vector3f camPos = pCamera->GetBaseObject()->GetWorldPosition();
 
 	memcpy_s(m_globalUniforms.model, sizeof(m_globalUniforms.model), &model, sizeof(model));
 	memcpy_s(m_globalUniforms.view, sizeof(m_globalUniforms.view), &UniformData::GetInstance()->GetPerFrameUniforms()->GetViewMatrix(), sizeof(Matrix4f));
