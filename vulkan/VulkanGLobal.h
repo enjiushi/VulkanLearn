@@ -122,7 +122,6 @@ public:
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
 
-	std::shared_ptr<UniformBuffer>		m_pGlobalUniformBuffer;
 	std::shared_ptr<UniformBuffer>		m_pPerFrameUniformBuffer;
 
 	uint32_t							m_perObjectDataIndex;
