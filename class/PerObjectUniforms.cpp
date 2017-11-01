@@ -51,70 +51,64 @@ uint32_t PerObjectUniforms::AllocatePerObjectChunk()
 	return index;
 }
 
-std::pair<uint32_t, uint32_t> PerObjectUniforms::SearchFreeChunkIndex(uint32_t index, std::pair<uint32_t, uint32_t> range)
+void PerObjectUniforms::FreePreObjectChunk(uint32_t index, uint32_t start, uint32_t end)
 {
-	if (range.first + 1 == range.second)
+	uint32_t midChunkIndex = (start + end) / 2;
+
+	std::pair<bool, bool> val;
+	val = std::make_pair<bool, bool>(index <= m_freeChunks[midChunkIndex].first, index >= m_freeChunks[midChunkIndex].first);
+
+	int32_t left, right;
+
+	// If index is already freed
+	if (val.first && val.second)
+		return;
+	else if (val.first)
 	{
-		if (m_freeChunks[range.first].second < index < m_freeChunks[range.second].first)
-			return range;
-		else if (index < m_freeChunks[range.first].first)
-			return std::make_pair(range.first - 1, range.first);
-		else if (index > m_freeChunks[range.second].second)
-			return std::make_pair(range.second, range.second + 1);
-		else
-			return std::make_pair(-1, -1);
+		left = midChunkIndex - 1;
+		right = midChunkIndex;
+	}
+	else
+	{
+		left = midChunkIndex;
+		right = midChunkIndex + 1;
 	}
 
-	uint32_t midChunkIndex = (range.first + range.second) / 2;
-
-	if (m_freeChunks[midChunkIndex].first > index)
-		return SearchFreeChunkIndex(index, std::make_pair(range.first, midChunkIndex));
+	if ((left < 0 || right == m_freeChunks.size()) || 
+		(index > m_freeChunks[left].second)	||
+		(index < m_freeChunks[right].first))
+		InsertIntoFreeChunk(index, midChunkIndex);
 	else
-		return SearchFreeChunkIndex(index, std::make_pair(midChunkIndex, range.second));
+	{
+		if (right == midChunkIndex)
+			FreePreObjectChunk(index, start, midChunkIndex);
+		else
+			FreePreObjectChunk(index, midChunkIndex, end);
+	}
+}
+
+void PerObjectUniforms::InsertIntoFreeChunk(uint32_t index, uint32_t chunkIndex)
+{
+	if (index < m_freeChunks[chunkIndex].first)
+	{
+		if (index == m_freeChunks[chunkIndex].first - 1)
+			m_freeChunks[chunkIndex].first--;
+		else
+			m_freeChunks.insert(m_freeChunks.begin() + chunkIndex, { index, index });
+	}
+	else if (index > m_freeChunks[chunkIndex].second)
+	{
+		if (index == m_freeChunks[chunkIndex].second + 1)
+			m_freeChunks[chunkIndex].second++;
+		else
+			m_freeChunks.insert(m_freeChunks.begin() + chunkIndex + 1, { index, index });
+	}
 
 }
 
 void PerObjectUniforms::FreePreObjectChunk(uint32_t index)
 {
-	std::pair<uint32_t, uint32_t> range = SearchFreeChunkIndex(index, std::make_pair(0, m_freeChunks.size() - 1));
-
-	// Already freed
-	if (range.first == range.second)
-		return;
-
-	// If input index is smallest
-	if (range.first == -1)
-	{
-		// See if input index can be added into later free chunk
-		if (m_freeChunks[range.second].first - 1 == index)
-			m_freeChunks[range.second].first--;
-		// If not, insert a new free chunk
-		else
-			m_freeChunks.insert(m_freeChunks.begin() + range.second, { index, index });
-		return;
-	}
-
-	// If input index is biggest
-	if (range.second == m_freeChunks.size())
-	{
-		// See if input index can be added into prior free chunk
-		if (m_freeChunks[range.first].second + 1 == index)
-			m_freeChunks[range.first].second++;
-		// If not, insert a new free chunk
-		else
-			m_freeChunks.insert(m_freeChunks.begin() + range.second, { index, index });
-		return;
-	}
-
-	// See if input index can be added into prior free chunk
-	if (m_freeChunks[range.first].second + 1 == index)
-		m_freeChunks[range.first].second++;
-	// See if input index can be added into later free chunk
-	else if (m_freeChunks[range.second].first == index + 1)
-		m_freeChunks[range.second].first--;
-	// If not, insert a new free chunk
-	else
-		m_freeChunks.insert(m_freeChunks.begin() + range.second, { index, index });
+	FreePreObjectChunk(index, 0, m_freeChunks.size() - 1);
 }
 
 UniformVarList PerObjectUniforms::PrepareUniformVarList()

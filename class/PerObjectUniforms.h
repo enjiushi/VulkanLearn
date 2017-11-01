@@ -32,8 +32,8 @@ protected:
 	void SyncBufferDataInternal() override;
 	void SetDirty(uint32_t index);
 
-	// Search an used index within freed chunk, return value gives freed chunk index just after of input index
-	std::pair<uint32_t, uint32_t> SearchFreeChunkIndex(uint32_t index, std::pair<uint32_t, uint32_t> range);
+	void InsertIntoFreeChunk(uint32_t index, uint32_t chunkIndex);
+	void FreePreObjectChunk(uint32_t index, uint32_t start, uint32_t end);
 
 protected:
 	PerObjectVariables	m_perObjectVariables[MAXIMUM_OBJECTS];
