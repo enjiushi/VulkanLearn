@@ -32,10 +32,9 @@ void MaterialInstance::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBu
 void MaterialInstance::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	std::vector<uint32_t> offsets = UniformData::GetInstance()->GetFrameOffsets();
-	offsets.push_back(0);
 
-	// FIXME: Temp
-	//offsets[1] = FrameMgr()->FrameIndex() * VulkanGlobal::GetInstance()->m_pPerFrameUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();;
+	// FIXME: Remove this after per material uniform finished
+	offsets.push_back(0);
 
 	pCmdBuffer->BindDescriptorSets(GetMaterial()->GetPipelineLayout(), GetDescriptorSets(), offsets);
 }
