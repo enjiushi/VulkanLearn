@@ -964,10 +964,6 @@ void VulkanGlobal::EndSetup()
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
 }
 
-void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera)
-{
-}
-
 void VulkanGlobal::Draw()
 {
 	GetSwapChain()->AcquireNextImage();

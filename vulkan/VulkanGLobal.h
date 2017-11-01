@@ -82,7 +82,6 @@ public:
 	void InitEnviromentMap();
 	void EndSetup();
 
-	void UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera);
 	void Draw();
 	void Update();
 
