@@ -141,7 +141,7 @@ void main()
 	reflectSampleDir.y *= -1.0;
 
 	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
-	float lod = pow(roughness, 1 / 5.0) * MAX_REFLECTION_LOD;
+	float lod = roughness * MAX_REFLECTION_LOD;
 	vec3 reflect = textureLod(prefilterEnvTex, reflectSampleDir, lod).rgb;
 	vec2 brdf_lut = texture(BRDFLut, vec2(NdotV, roughness)).rg;
 

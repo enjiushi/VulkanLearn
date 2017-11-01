@@ -450,10 +450,6 @@ void VulkanGlobal::InitVertices()
 
 void VulkanGlobal::InitUniforms()
 {
-	uint32_t totalUniformBytes = sizeof(GlobalUniforms1) * GetSwapChain()->GetSwapChainImageCount();
-	m_pPerFrameUniformBuffer = UniformBuffer::Create(m_pDevice, totalUniformBytes);
-	m_perObjectDataIndex = PerObjectBuffer::GetInstance()->AllocatePerObjectChunk();
-
 	m_pAlbedo = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	m_pAmbientOcclusion = Texture2D::Create(m_pDevice, "../data/textures/cerberus/ao.ktx", VK_FORMAT_R8_UNORM);
 	m_pMetalic = Texture2D::Create(m_pDevice, "../data/textures/cerberus/metallic.ktx", VK_FORMAT_R8_UNORM);
@@ -528,13 +524,13 @@ void VulkanGlobal::InitIrradianceMap()
 
 		pDrawCmdBuffer->StartPrimaryRecording();
 
-		UpdateUniforms(0, m_pOffScreenCamComp);
-		StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
-
 		uint32_t offset = 0;
 		
 		pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
+		m_pRootObject->Update();
+		m_pRootObject->LateUpdate();
+		UniformData::GetInstance()->SyncDataBuffer();
 		m_pRootObject->Draw();
 		RenderWorkMgr()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
@@ -579,7 +575,7 @@ void VulkanGlobal::InitPrefilterEnvMap()
 	uint32_t mipLevels = std::log2(OffScreenSize);
 	for (uint32_t mipLevel = 0; mipLevel < mipLevels + 1; mipLevel++)
 	{
-		m_globalUniforms.roughness = mipLevel / (float)mipLevels;
+		UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding(mipLevel / (float)mipLevels);
 		uint32_t size = std::pow(2, mipLevels - mipLevel);
 		for (uint32_t i = 0; i < 6; i++)
 		{
@@ -611,13 +607,13 @@ void VulkanGlobal::InitPrefilterEnvMap()
 
 			pDrawCmdBuffer->StartPrimaryRecording();
 
-			UpdateUniforms(0, m_pOffScreenCamComp);
-			StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
-
 			uint32_t offset = 0;
 
 			pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
+			m_pRootObject->Update();
+			m_pRootObject->LateUpdate();
+			UniformData::GetInstance()->SyncDataBuffer();
 			m_pRootObject->Draw();
 
 			RenderWorkMgr()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
@@ -669,6 +665,9 @@ void VulkanGlobal::InitBRDFlutMap()
 
 	pDrawCmdBuffer->BeginRenderPass(clearValues, true);
 
+	m_pRootObject->Update();
+	m_pRootObject->LateUpdate();
+	UniformData::GetInstance()->SyncDataBuffer();
 	m_pRootObject->Draw();
 
 	RenderWorkMgr()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
@@ -779,7 +778,6 @@ void VulkanGlobal::InitMaterials()
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
-	m_pGunMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pGunMaterialInstance->SetMaterialTexture(0, m_pAlbedo);
 	m_pGunMaterialInstance->SetMaterialTexture(1, m_pNormal);
 	m_pGunMaterialInstance->SetMaterialTexture(2, m_pRoughness);
@@ -818,7 +816,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
-	m_pSkyBoxMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
+	//m_pSkyBoxMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pSkyBoxMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" };
@@ -831,7 +829,6 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxIrradianceMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxIrradianceMaterialInstance = m_pSkyBoxIrradianceMaterial->CreateMaterialInstance();
 	m_pSkyBoxIrradianceMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::IrradianceGen);
-	m_pSkyBoxIrradianceMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pSkyBoxIrradianceMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" };
@@ -844,7 +841,6 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxReflectionMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxReflectionMaterialInstance = m_pSkyBoxReflectionMaterial->CreateMaterialInstance();
 	m_pSkyBoxReflectionMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::ReflectionGen);
-	m_pSkyBoxReflectionMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pSkyBoxReflectionMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
 	info.shaderPaths			= { L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" };
@@ -857,17 +853,57 @@ void VulkanGlobal::InitMaterials()
 	m_pBRDFLutMaterial = Material::CreateDefaultMaterial(info);
 	m_pBRDFLutMaterialInstance = m_pBRDFLutMaterial->CreateMaterialInstance();
 	m_pBRDFLutMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::BrdfLutGen);
-	m_pBRDFLutMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pBRDFLutMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
+
+	layout =
+	{
+		{
+			DynamicUniformBuffer,
+			"MaterialVariables",
+			{
+				{ Mat4Unit, "ModelTransform" },
+				{ Mat4Unit, "ViewTransform" },
+				{ Mat4Unit, "ProjectionTransform" },
+				{ Mat4Unit, "vulkanNDCTransform" },
+				{ Mat4Unit, "MVP" },
+				{ Vec3Unit, "CameraPosition" },
+				{ OneUnit, "Roughness" }
+			}
+		},
+		{ CombinedSampler, "tex0" },
+		{ CombinedSampler, "tex1" },
+	};
+
+	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/screen_quad.frag.spv", L"" };
+	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
+	info.maxMaterialInstance = 1;
+	info.materialVariableLayout = layout;
+	info.pRenderPass = RenderWorkManager::GetDefaultRenderPass();
+
+	m_pTestMaterial = Material::CreateDefaultMaterial(info);
+	m_pTestMaterialInstance = m_pTestMaterial->CreateMaterialInstance();
+	m_pTestMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
+	m_pTestMaterialInstance->SetMaterialTexture(0, m_pPrefilterEnvTex);
+	m_pTestMaterialInstance->SetMaterialTexture(1, m_pBRDFLut);
 }
 
 void VulkanGlobal::InitEnviromentMap()
 {
 	RenderWorkMgr()->SetDefaultOffscreenRenderPass(m_pEnvFrameBuffer);
 
+	StagingBufferMgr()->FlushDataMainThread();
+
+	// FIXME: Temp 
+	m_pRootObject->AddChild(m_pOffScreenCamObj);
+
 	InitIrradianceMap();
 	InitPrefilterEnvMap();
 	InitBRDFlutMap();
+
+	// FIXME: Temp 
+	m_pRootObject->DelChild(3);
+	m_pRootObject->AddChild(m_pCameraObj);
 }
 
 void VulkanGlobal::InitScene()
@@ -912,8 +948,13 @@ void VulkanGlobal::InitScene()
 	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, m_pBRDFLutMaterialInstance);
 	m_pQuadObject->AddComponent(m_pQuadRenderer);
 
+	m_pTestObject = BaseObject::Create();
+	m_pTestRenderer = MeshRenderer::Create(m_pQuadMesh, m_pTestMaterialInstance);
+	m_pTestObject->AddComponent(m_pTestRenderer);
+
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pGunObject);
+	//m_pRootObject->AddChild(m_pTestObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pQuadObject);
 }
@@ -925,41 +966,6 @@ void VulkanGlobal::EndSetup()
 
 void VulkanGlobal::UpdateUniforms(uint32_t frameIndex, const std::shared_ptr<Camera>& pCamera)
 {
-	pCamera->Update();
-	pCamera->LateUpdate();
-
-	memset(&m_globalUniforms, 0, sizeof(GlobalUniforms1));
-
-	Matrix4f model;
-
-	Matrix4f vulkanNDC;
-	vulkanNDC.c[1].y = -1.0f;
-	vulkanNDC.c[2].z = vulkanNDC.c[3].z = 0.5f;
-
-	Matrix4f projMat;
-	projMat = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix();
-
-	Matrix4f mvp = vulkanNDC * projMat * UniformData::GetInstance()->GetPerFrameUniforms()->GetViewMatrix() * model;
-
-	Vector3f camPos = pCamera->GetBaseObject()->GetWorldPosition();
-
-	memcpy_s(m_globalUniforms.model, sizeof(m_globalUniforms.model), &model, sizeof(model));
-	memcpy_s(m_globalUniforms.view, sizeof(m_globalUniforms.view), &UniformData::GetInstance()->GetPerFrameUniforms()->GetViewMatrix(), sizeof(Matrix4f));
-	memcpy_s(m_globalUniforms.projection, sizeof(m_globalUniforms.projection), &projMat, sizeof(projMat));
-	memcpy_s(m_globalUniforms.vulkanNDC, sizeof(m_globalUniforms.vulkanNDC), &vulkanNDC, sizeof(vulkanNDC));
-	memcpy_s(m_globalUniforms.mvp, sizeof(m_globalUniforms.mvp), &mvp, sizeof(mvp));
-	memcpy_s(m_globalUniforms.camPos, sizeof(m_globalUniforms.camPos), &camPos, sizeof(camPos));
-
-	if (m_pCameraComp == pCamera)
-		m_roughness = 1.0;
-	else
-		m_roughness = 0.0;
-	memcpy_s(&m_globalUniforms.roughness, sizeof(m_globalUniforms.roughness), &m_roughness, sizeof(m_roughness));
-
-	uint32_t totalUniformBytes = m_pPerFrameUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();
-	m_pPerFrameUniformBuffer->UpdateByteStream(&m_globalUniforms, totalUniformBytes * frameIndex, sizeof(m_globalUniforms));
-
-	PerObjectBuffer::GetInstance()->UpdateObjectUniformData(m_perObjectDataIndex, &m_globalUniforms.model);
 }
 
 void VulkanGlobal::Draw()
@@ -976,15 +982,6 @@ void VulkanGlobal::Draw()
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
 	pDrawCmdBuffer->StartPrimaryRecording();
-
-	VulkanGlobal::GetInstance()->UpdateUniforms(FrameMgr()->FrameIndex(), VulkanGlobal::GetInstance()->m_pCameraComp);
-	StagingBufferMgr()->RecordDataFlush(pDrawCmdBuffer);
-
-	/*
-	m_pRootObject->Update();
-	GlobalThreadTaskQueue()->WaitForFree();
-	m_pRootObject->LateUpdate();
-	GlobalThreadTaskQueue()->WaitForFree();*/
 
 	std::vector<VkClearValue> clearValues =
 	{

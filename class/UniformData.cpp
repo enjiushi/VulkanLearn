@@ -2,6 +2,7 @@
 #include "Material.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/FrameManager.h"
+#include "../vulkan/Buffer.h"
 
 bool UniformData::Init()
 {

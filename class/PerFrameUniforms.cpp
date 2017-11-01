@@ -35,7 +35,7 @@ void PerFrameUniforms::SetCameraPosition(const Vector3f& camPos)
 
 void PerFrameUniforms::SyncBufferDataInternal()
 {
-	GetBuffer()->UpdateByteStream(&m_perFrameVariables, FrameMgr()->FrameIndex() * sizeof(m_perFrameVariables), sizeof(m_perFrameVariables));
+	GetBuffer()->UpdateByteStream(&m_perFrameVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perFrameVariables));
 }
 
 void PerFrameUniforms::SetDirty()

@@ -5,9 +5,10 @@
 
 typedef struct _PerFrameVariables
 {
-	Matrix4f viewMatrix;
-	Matrix4f VPN;	// vulkanNDC * view * projection
-	Vector3f cameraPosition;
+	Matrix4f	viewMatrix;
+	Matrix4f	VPN;	// vulkanNDC * view * projection
+	Vector3f	cameraPosition;
+	float		padding;
 }PerFrameVariables;
 
 class PerFrameUniforms : public UniformDataStorage
@@ -24,6 +25,8 @@ public:
 	Matrix4f GetVPNMatrix() const { return m_perFrameVariables.VPN; }
 	void SetCameraPosition(const Vector3f& camPos);
 	Vector3f GetCameraPosition() const { return m_perFrameVariables.cameraPosition; }
+	void SetPadding(float val) { m_perFrameVariables.padding = val; }
+	float GetPadding() const { return m_perFrameVariables.padding; }
 
 	UniformVarList PrepareUniformVarList() override;
 

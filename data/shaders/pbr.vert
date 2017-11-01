@@ -16,21 +16,35 @@ layout (location = 4) out vec3 outViewDir;
 layout (location = 5) out vec3 outTangent;
 layout (location = 6) out vec3 outBitangent;
 
-layout (set = 1, binding = 0) uniform UBO
+//layout (set = 1, binding = 0) uniform UBO
+//{
+//	mat4 model;
+//	mat4 view;
+//	mat4 projection;
+//	mat4 vulkanNDC;
+//	mat4 mvp;
+//	vec3 camPos;
+//	float roughness;
+//}ubo;
+
+layout (set = 0, binding = 0) uniform GlobalUniforms
 {
-	mat4 model;
-	mat4 view;
 	mat4 projection;
 	mat4 vulkanNDC;
-	mat4 mvp;
-	vec3 camPos;
-	float roughness;
-}ubo;
+	mat4 PN;
+}globalUniforms;
+
+layout (set = 1, binding = 0) uniform PerFrameUniforms
+{
+	mat4 view;
+	mat4 VPN;
+	vec4 camPos;
+}perFrameUniforms;
 
 struct PerObjectData
 {
 	mat4 model;
-	mat4 mvpn;
+	mat4 MVPN;
 };
 
 layout (set = 2, binding = 0) buffer PerObjectBuffer
@@ -42,7 +56,7 @@ const vec3 lightPos = vec3(1000, 0, -1000);
 
 void main() 
 {
-	gl_Position = perObjectData[0].mvpn * vec4(inPos.xyz, 1.0);
+	gl_Position = perObjectData[0].MVPN * vec4(inPos.xyz, 1.0);
 
 	outNormal = normalize(vec3(perObjectData[0].model * vec4(inNormal, 0.0)));
 	outWorldPos = vec3(perObjectData[0].model * vec4(inPos, 1.0));
@@ -51,7 +65,7 @@ void main()
 	outUv.t = 1.0 - inUv.t;
 
 	outLightDir = vec3(lightPos - outWorldPos);
-	outViewDir = vec3(ubo.camPos - outWorldPos);
+	outViewDir = vec3(perFrameUniforms.camPos.xyz - outWorldPos);
 
 	outTangent = inTangent;
 	outBitangent = normalize(cross(outNormal, normalize(vec3(perObjectData[0].model * vec4(inTangent, 0.0)))));

@@ -7,20 +7,20 @@ layout (location = 0) in vec3 inPos;
 layout (location = 3) in vec2 inUv;
 layout (location = 0) out vec2 outUv;
 
-layout (set = 1, binding = 0) uniform UBO
+struct PerObjectData
 {
 	mat4 model;
-	mat4 view;
-	mat4 projection;
-	mat4 vulkanNDC;
-	mat4 mvp;
-	vec3 camPos;
-	float roughness;
-}ubo;
+	mat4 MVPN;
+};
+
+layout (set = 2, binding = 0) buffer PerObjectBuffer
+{
+	PerObjectData perObjectData[];
+};
 
 void main() 
 {
-	gl_Position = ubo.mvp * vec4(inPos.xyz, 1.0);
+	gl_Position = perObjectData[0].MVPN * vec4(inPos.xyz, 1.0);
 
 	outUv = inUv.st;
 	outUv.t = 1.0 - outUv.t;

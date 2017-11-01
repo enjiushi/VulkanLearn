@@ -31,7 +31,7 @@ void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4f& modelMatr
 
 void PerObjectUniforms::SyncBufferDataInternal()
 {
-	GetBuffer()->UpdateByteStream(m_perObjectVariables, FrameMgr()->FrameIndex() * sizeof(m_perObjectVariables), sizeof(m_perObjectVariables));
+	GetBuffer()->UpdateByteStream(m_perObjectVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perObjectVariables));
 }
 
 void PerObjectUniforms::SetDirty(uint32_t index)

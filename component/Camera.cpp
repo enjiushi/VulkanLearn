@@ -25,6 +25,7 @@ void Camera::Update()
 
 void Camera::LateUpdate()
 {
+	UpdateCameraPosition();
 	UpdateViewMatrix();
 	UpdateProjMatrix();
 }
@@ -53,6 +54,8 @@ void Camera::UpdateProjMatrix()
 	proj.w3 = 0.0f;
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetProjectionMatrix(proj);
+
+	m_projDirty = false;
 }
 
 void Camera::UpdateCameraPosition()

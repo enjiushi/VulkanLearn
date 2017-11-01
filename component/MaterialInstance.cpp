@@ -1,8 +1,7 @@
+#include "../class/Material.h"
 #include "MaterialInstance.h"
-#include "Material.h"
 #include "../vulkan/DescriptorSet.h"
 #include "../vulkan/CommandBuffer.h"
-#include "../vulkan/VulkanGlobal.h"
 #include "../vulkan/FrameManager.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/SwapChain.h"
@@ -36,7 +35,7 @@ void MaterialInstance::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& p
 	offsets.push_back(0);
 
 	// FIXME: Temp
-	offsets[1] = FrameMgr()->FrameIndex() * VulkanGlobal::GetInstance()->m_pPerFrameUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();;
+	//offsets[1] = FrameMgr()->FrameIndex() * VulkanGlobal::GetInstance()->m_pPerFrameUniformBuffer->GetDescBufferInfo().range / GetSwapChain()->GetSwapChainImageCount();;
 
 	pCmdBuffer->BindDescriptorSets(GetMaterial()->GetPipelineLayout(), GetDescriptorSets(), offsets);
 }

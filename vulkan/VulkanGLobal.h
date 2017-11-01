@@ -39,17 +39,6 @@
 #include "../component/MaterialInstance.h"
 #include "ShaderStorageBuffer.h"
 
-typedef struct _GlobalUniforms1
-{
-	float	model[16];
-	float	view[16];
-	float	projection[16];
-	float	vulkanNDC[16];
-	float	mvp[16];
-	float   camPos[3];
-	float	roughness;
-}GlobalUniforms1;
-
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
 	const static uint32_t OffScreenSize = 512;
@@ -122,10 +111,6 @@ public:
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
 
-	std::shared_ptr<UniformBuffer>		m_pPerFrameUniformBuffer;
-
-	uint32_t							m_perObjectDataIndex;
-
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
 
 	//std::vector<VkCommandBuffer>		m_drawCmdBuffers;
@@ -176,12 +161,15 @@ public:
 	std::shared_ptr<BaseObject>			m_pQuadObject;
 	std::shared_ptr<MeshRenderer>		m_pQuadRenderer;
 
+	std::shared_ptr<BaseObject>			m_pTestObject;
+	std::shared_ptr<MeshRenderer>		m_pTestRenderer;
+	std::shared_ptr<Material>			m_pTestMaterial;
+	std::shared_ptr<MaterialInstance>	m_pTestMaterialInstance;
+
 	std::shared_ptr<BaseObject>			m_pRootObject;
 
-	float								m_roughness = 0.1;
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;
 #endif
-	GlobalUniforms1						m_globalUniforms;
 };

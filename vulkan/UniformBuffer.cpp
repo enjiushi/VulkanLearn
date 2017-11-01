@@ -10,9 +10,8 @@ bool UniformBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shar
 
 	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
 	uint32_t alignedBytes = numBytes / minAlign * minAlign + (numBytes % minAlign > 0 ? minAlign : 0);
-	uint32_t totalUniformBytes = alignedBytes * GetSwapChain()->GetSwapChainImageCount();
 
-	m_info.size = totalUniformBytes;
+	m_info.size = alignedBytes;
 
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;

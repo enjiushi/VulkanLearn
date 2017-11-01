@@ -1,8 +1,9 @@
 #include "MeshRenderer.h"
-#include "Mesh.h"
+#include "../class/Mesh.h"
 #include "Material.h"
 #include "MaterialInstance.h"
 #include <mutex>
+#include "../Base/BaseObject.h"
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/PerFrameResource.h"
 #include "../vulkan/PhysicalDevice.h"
@@ -21,7 +22,6 @@
 #include "../common/Singleton.h"
 #include "../vulkan/RenderPass.h"
 #include "../vulkan/Framebuffer.h"
-#include "../vulkan/VulkanGlobal.h"
 #include "../class/UniformData.h"
 
 std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance)

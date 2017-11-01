@@ -9,16 +9,12 @@ layout (location = 0) in vec3 inSampleDir;
 
 layout (location = 0) out vec4 outFragColor;
 
-layout (set = 1, binding = 0) uniform UBO
+layout (set = 1, binding = 0) uniform PerFrameUniforms
 {
-	mat4 model;
 	mat4 view;
-	mat4 projection;
-	mat4 vulkanNDC;
-	mat4 mvp;
-	vec3 camPos;
-	float roughness;
-}ubo;
+	mat4 VPN;
+	vec4 camPos;
+}perFrameUniforms;
 
 const vec3 up = {0.0, 1.0, 0.0};
 const float PI = 3.14159265;
@@ -79,7 +75,7 @@ void main()
 	for (int samples = 0; samples < numSamples; samples++)
 	{
 		vec2 Xi = Hammersley(samples, numSamples);
-		vec3 L = ImportanceSampleGGX(Xi, N, ubo.roughness);
+		vec3 L = ImportanceSampleGGX(Xi, N, perFrameUniforms.camPos.w);
 
 		float NdotL = dot(N, L);
 		if (NdotL > 0)

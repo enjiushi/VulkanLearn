@@ -42,7 +42,7 @@ void GlobalUniforms::SetVulkanNDCMatrix(const Matrix4f& vndc)
 
 void GlobalUniforms::SyncBufferDataInternal()
 {
-	GetBuffer()->UpdateByteStream(&m_globalVariables, FrameMgr()->FrameIndex() * sizeof(m_globalVariables), sizeof(m_globalVariables));
+	GetBuffer()->UpdateByteStream(&m_globalVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_globalVariables));
 }
 
 void GlobalUniforms::SetDirty()
