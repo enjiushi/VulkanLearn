@@ -19,7 +19,6 @@
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/DescriptorPool.h"
 #include "../component/MaterialInstance.h"
-#include "../class/PerObjectBuffer.h"
 #include "../vulkan/ShaderStorageBuffer.h"
 #include "../class/UniformData.h"
 
