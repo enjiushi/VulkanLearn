@@ -13,6 +13,7 @@ bool PerMaterialUniforms::Init(const std::shared_ptr<PerMaterialUniforms>& pSelf
 		return false;
 
 	m_pData = new uint8_t[GetFrameOffset()];
+	memset(m_pData, 0, GetFrameOffset());
 	m_perMaterialInstanceBytes = numBytes;
 
 	return true;
