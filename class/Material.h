@@ -14,6 +14,7 @@ class MaterialInstance;
 class DescriptorPool;
 class UniformBuffer;
 class ShaderStorageBuffer;
+class PerMaterialUniforms;
 
 /*
 enum UBOType
@@ -94,7 +95,6 @@ protected:
 	std::shared_ptr<DescriptorPool>						m_pDescriptorPool;
 	uint32_t											m_maxMaterialInstance;
 	std::vector<std::vector<UniformVarList>>			m_materialVariableLayout;
-	std::map<uint32_t, std::shared_ptr<ShaderStorageBuffer>>	m_materialVariableBuffers;
-
+	std::vector<std::shared_ptr<PerMaterialUniforms>>	m_perMaterialUniforms;
 	friend class MaterialInstance;
 };

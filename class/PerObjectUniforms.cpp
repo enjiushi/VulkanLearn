@@ -8,7 +8,7 @@
 
 bool PerObjectUniforms::Init(const std::shared_ptr<PerObjectUniforms>& pSelf)
 {
-	if (!ChunkBasedUniforms::Init(pSelf, sizeof(m_perObjectVariables)))
+	if (!ChunkBasedUniforms::Init(pSelf, sizeof(PerObjectVariables)))
 		return false;
 
 	m_freeChunks.push_back({ 0, MAXIMUM_OBJECTS });

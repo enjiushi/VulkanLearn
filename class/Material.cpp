@@ -21,6 +21,7 @@
 #include "../component/MaterialInstance.h"
 #include "../vulkan/ShaderStorageBuffer.h"
 #include "../class/UniformData.h"
+#include "PerMaterialUniforms.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -243,6 +244,7 @@ bool Material::Init
 
 	m_maxMaterialInstance = maxMaterialInstance;
 
+	m_perMaterialUniforms.resize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size());
 	for (uint32_t i = 0; i < m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size(); i++)
 	{
 		auto variable = m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i];
@@ -251,7 +253,7 @@ bool Material::Init
 		if (variable.type == DynamicUniformBuffer || variable.type == DynamicShaderStorageBuffer)
 		{
 			uint32_t size = GetByteSize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i].vars);
-			m_materialVariableBuffers[i] = ShaderStorageBuffer::Create(GetDevice(), size);
+			m_perMaterialUniforms[i] = PerMaterialUniforms::Create(size);
 		}
 	}
 
@@ -296,7 +298,7 @@ uint32_t Material::GetByteSize(const std::vector<UniformVar>& UBOLayout)
 		}
 	}
 
-	return (unitCount * 4) * GetSwapChain()->GetSwapChainImageCount();
+	return unitCount * 4;
 }
 
 std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
@@ -313,9 +315,10 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 		pMaterialInstance->m_descriptorSets[UniformDataStorage::PerFrameVariable]->UpdateUniformBufferDynamic(0, std::dynamic_pointer_cast<UniformBuffer>(UniformData::GetInstance()->GetPerFrameUniforms()->GetBuffer()));
 
 		pMaterialInstance->m_descriptorSets[UniformDataStorage::PerObjectVariable]->UpdateShaderStorageBufferDynamic(0, std::dynamic_pointer_cast<ShaderStorageBuffer>(UniformData::GetInstance()->GetPerObjectUniforms()->GetBuffer()));
-		for (auto& var : m_materialVariableBuffers)
+		for (uint32_t i = 0; i < m_perMaterialUniforms.size(); i++)
 		{
-			pMaterialInstance->m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(var.first, var.second);
+			if (m_perMaterialUniforms[i] != nullptr)
+				pMaterialInstance->m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(i, std::dynamic_pointer_cast<ShaderStorageBuffer>(m_perMaterialUniforms[i]->GetBuffer()));
 		}
 
 		// Init texture vector
@@ -335,8 +338,7 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 
 uint32_t Material::GetUniformBufferSize(uint32_t bindingIndex) const
 {
-	if (m_materialVariableBuffers.find(bindingIndex) != m_materialVariableBuffers.end())
-		return m_materialVariableBuffers.at(bindingIndex)->GetBufferInfo().size;
-
+	if (m_perMaterialUniforms[bindingIndex] != nullptr)
+		return m_perMaterialUniforms[bindingIndex]->GetBuffer()->GetBufferInfo().size;
 	return 0;
 }

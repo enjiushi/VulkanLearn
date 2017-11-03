@@ -8,7 +8,7 @@
 
 bool ChunkBasedUniforms::Init(const std::shared_ptr<ChunkBasedUniforms>& pSelf, uint32_t numBytes)
 {
-	if (!UniformDataStorage::Init(pSelf, numBytes))
+	if (!UniformDataStorage::Init(pSelf, numBytes * MAXIMUM_OBJECTS))
 		return false;
 
 	m_freeChunks.push_back({ 0, MAXIMUM_OBJECTS });
