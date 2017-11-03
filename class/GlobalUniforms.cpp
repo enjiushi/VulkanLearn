@@ -6,7 +6,7 @@
 
 bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 {
-	if (!UniformDataStorage::Init(pSelf, sizeof(m_globalVariables)))
+	if (!UniformDataStorage::Init(pSelf, sizeof(m_globalVariables), false))
 		return false;
 
 	// NDC space Y axis is reversed in Vulkan compared to OpenGL

@@ -8,7 +8,7 @@
 
 bool PerFrameUniforms::Init(const std::shared_ptr<PerFrameUniforms>& pSelf)
 {
-	if (!UniformDataStorage::Init(pSelf, sizeof(m_perFrameVariables)))
+	if (!UniformDataStorage::Init(pSelf, sizeof(m_perFrameVariables), false))
 		return false;
 	return true;
 }

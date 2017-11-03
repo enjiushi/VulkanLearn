@@ -47,7 +47,7 @@ public:
 	};
 
 public:
-	bool Init(const std::shared_ptr<UniformDataStorage>& pSelf, uint32_t numBytes);
+	bool Init(const std::shared_ptr<UniformDataStorage>& pSelf, uint32_t numBytes, bool perObject);
 
 public:
 	uint32_t GetFrameOffset() const { return m_frameOffset; }
