@@ -16,18 +16,6 @@ class DescriptorPool;
 class UniformBuffer;
 class ShaderStorageBuffer;
 
-/*
-enum UBOType
-{
-	OneUnit,
-	Vec2Unit,
-	Vec3Unit,
-	Vec4Unit,
-	Mat3Unit,
-	Mat4Unit,
-	UBOTypeCount
-};*/
-
 // More to add
 enum MaterialVariableType
 {
@@ -36,20 +24,6 @@ enum MaterialVariableType
 	CombinedSampler,
 	MaterialVariableTypeCount
 };
-/*
-typedef struct _UBOVariable
-{
-	UBOType		type;
-	std::string name;
-}UBOVariable;
-
-typedef struct _MaterialVariable
-{
-	MaterialVariableType		type;
-	std::string					name;
-	std::vector<UBOVariable>	UBOLayout;
-}MaterialVariable;
-*/
 
 typedef struct _SimpleMaterialCreateInfo
 {
