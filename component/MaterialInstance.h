@@ -19,6 +19,19 @@ public:
 	std::shared_ptr<Image> GetMaterialTexture(uint32_t index) { return m_textures[index]; }
 	void PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
+	// FIXME: should add name based functions to ease of use
+	template <typename T>
+	void SetParameter(uint32_t bindingIndex, uint32_t parameterIndex, T val)
+	{
+		m_pMaterial->SetParameter(m_materialBufferChunkIndex[bindingIndex], bindingIndex, parameterIndex, val);
+	}
+
+	template <typename T>
+	T GetParameter(uint32_t bindingIndex, uint32_t parameterIndex)
+	{
+		return m_pMaterial->GetParameter<T>(m_materialBufferChunkIndex[bindingIndex], bindingIndex, parameterIndex);
+	}
+
 protected:
 	bool Init(const std::shared_ptr<MaterialInstance>& pMaterialInstance);
 	void BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
@@ -30,6 +43,7 @@ protected:
 	std::vector<uint32_t>						m_materialVariables;
 	std::vector<std::shared_ptr<Image>>			m_textures;
 	uint32_t									m_renderMask = 0xffffffff;
+	std::vector<uint32_t>						m_materialBufferChunkIndex;
 
 	friend class Material;
 };

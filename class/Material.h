@@ -2,6 +2,7 @@
 #include "../Base/BaseComponent.h"
 #include "../vulkan/DeviceObjectBase.h"
 #include "../class/UniformData.h"
+#include "PerMaterialUniforms.h"
 #include <map>
 
 class PipelineLayout;
@@ -14,7 +15,6 @@ class MaterialInstance;
 class DescriptorPool;
 class UniformBuffer;
 class ShaderStorageBuffer;
-class PerMaterialUniforms;
 
 /*
 enum UBOType
@@ -76,6 +76,18 @@ public:
 	uint32_t GetUniformBufferSize(uint32_t bindingIndex) const;
 	std::vector<uint32_t> GetFrameOffsets() const;
 
+	template <typename T>
+	void SetParameter(uint32_t chunkIndex, uint32_t bindingIndex, uint32_t parameterIndex, T val)
+	{
+		m_perMaterialUniforms[bindingIndex]->SetParameter(chunkIndex, m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][bindingIndex].vars[parameterIndex].offset, val);
+	}
+
+	template <typename T>
+	T GetParameter(uint32_t chunkIndex, uint32_t bindingIndex, uint32_t parameterIndex)
+	{
+		return m_perMaterialUniforms[bindingIndex]->GetParameter<T>(chunkIndex, m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][bindingIndex].vars[parameterIndex].offset);
+	}
+
 protected:
 	bool Init
 	(
@@ -87,7 +99,7 @@ protected:
 		const std::vector<UniformVarList>& materialVariableLayout
 	);
 
-	static uint32_t GetByteSize(const std::vector<UniformVar>& UBOLayout);
+	static uint32_t GetByteSize(std::vector<UniformVar>& UBOLayout);
 
 protected:
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;

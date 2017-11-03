@@ -13,9 +13,25 @@ public:
 	UniformVarList PrepareUniformVarList() override { return UniformVarList(); }
 
 	template <typename T>
-	void SetParameter(uint32_t offset, T val)
+	void SetParameter(uint32_t parameterChunkIndex, uint32_t parameterOffset, T val)
 	{
-		memcpy_s(m_pData, m_numBytes, &val, sizeof(val));
+		// m_pData : GetFrameOffset()            GetFrameOffset()            GetFrameOffset()
+		//           =======================     =======================     =======================
+		//                                            |
+		//                              chunkIndex * m_perMaterialInstanceBytes
+		//                                               |
+		//                                              offset
+		memcpy_s(m_pData + GetFrameOffset() + parameterChunkIndex * m_perMaterialInstanceBytes + parameterOffset, GetFrameOffset() - parameterChunkIndex * m_perMaterialInstanceBytes - parameterOffset, &val, sizeof(val));
+		SetDirty();
+	}
+
+	template <typename T>
+	T GetParameter(uint32_t parameterChunkIndex, uint32_t parameterOffset)
+	{
+		//return m_pMaterial->GetParameter(bindingIndex, parameterIndex);
+		T ret;
+		memcpy_s(&ret, sizeof(ret), m_pData + GetFrameOffset() + parameterChunkIndex * m_perMaterialInstanceBytes + parameterOffset, sizeof(T));
+		return ret;
 	}
 
 protected:
@@ -25,4 +41,5 @@ protected:
 
 protected:
 	uint8_t*	m_pData;
+	uint32_t	m_perMaterialInstanceBytes;
 };

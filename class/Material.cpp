@@ -21,7 +21,6 @@
 #include "../component/MaterialInstance.h"
 #include "../vulkan/ShaderStorageBuffer.h"
 #include "../class/UniformData.h"
-#include "PerMaterialUniforms.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -262,8 +261,9 @@ bool Material::Init
 
 // This function follows rule of std430
 // Could be bugs in it
-uint32_t Material::GetByteSize(const std::vector<UniformVar>& UBOLayout)
+uint32_t Material::GetByteSize(std::vector<UniformVar>& UBOLayout)
 {
+	uint32_t offset = 0;
 	uint32_t unitCount = 0;
 	for (auto & var : UBOLayout)
 	{
@@ -296,6 +296,9 @@ uint32_t Material::GetByteSize(const std::vector<UniformVar>& UBOLayout)
 			ASSERTION(false);
 			break;
 		}
+
+		var.offset = offset;
+		offset = unitCount * 4;
 	}
 
 	return unitCount * 4;
@@ -315,11 +318,13 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 		pMaterialInstance->m_descriptorSets[UniformDataStorage::PerFrameVariable]->UpdateUniformBufferDynamic(0, std::dynamic_pointer_cast<UniformBuffer>(UniformData::GetInstance()->GetPerFrameUniforms()->GetBuffer()));
 
 		pMaterialInstance->m_descriptorSets[UniformDataStorage::PerObjectVariable]->UpdateShaderStorageBufferDynamic(0, std::dynamic_pointer_cast<ShaderStorageBuffer>(UniformData::GetInstance()->GetPerObjectUniforms()->GetBuffer()));
+		pMaterialInstance->m_materialBufferChunkIndex.resize(m_perMaterialUniforms.size());
 		for (uint32_t i = 0; i < m_perMaterialUniforms.size(); i++)
 		{
 			if (m_perMaterialUniforms[i] != nullptr)
 			{
 				pMaterialInstance->m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(i, std::dynamic_pointer_cast<ShaderStorageBuffer>(m_perMaterialUniforms[i]->GetBuffer()));
+				pMaterialInstance->m_materialBufferChunkIndex[i] = m_perMaterialUniforms[i]->AllocatePerObjectChunk();
 				m_frameOffsets.push_back(m_perMaterialUniforms[i]->GetFrameOffset());
 			}
 		}
