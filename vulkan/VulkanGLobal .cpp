@@ -777,14 +777,14 @@ void VulkanGlobal::InitMaterials()
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
-	m_pGunMaterialInstance->SetMaterialTexture(0, m_pAlbedo);
-	m_pGunMaterialInstance->SetMaterialTexture(1, m_pNormal);
-	m_pGunMaterialInstance->SetMaterialTexture(2, m_pRoughness);
-	m_pGunMaterialInstance->SetMaterialTexture(3, m_pMetalic);
-	m_pGunMaterialInstance->SetMaterialTexture(4, m_pAmbientOcclusion);
-	m_pGunMaterialInstance->SetMaterialTexture(5, m_pIrradianceTex);
-	m_pGunMaterialInstance->SetMaterialTexture(6, m_pPrefilterEnvTex);
-	m_pGunMaterialInstance->SetMaterialTexture(7, m_pBRDFLut);
+	m_pGunMaterialInstance->SetMaterialTexture(1, m_pAlbedo);
+	m_pGunMaterialInstance->SetMaterialTexture(2, m_pNormal);
+	m_pGunMaterialInstance->SetMaterialTexture(3, m_pRoughness);
+	m_pGunMaterialInstance->SetMaterialTexture(4, m_pMetalic);
+	m_pGunMaterialInstance->SetMaterialTexture(5, m_pAmbientOcclusion);
+	m_pGunMaterialInstance->SetMaterialTexture(6, m_pIrradianceTex);
+	m_pGunMaterialInstance->SetMaterialTexture(7, m_pPrefilterEnvTex);
+	m_pGunMaterialInstance->SetMaterialTexture(8, m_pBRDFLut);
 
 	// Skybox material
 	layout =
@@ -816,7 +816,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
 	//m_pSkyBoxMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
-	m_pSkyBoxMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
+	m_pSkyBoxMaterialInstance->SetMaterialTexture(1, m_pSkyBoxTex);
 
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" };
 	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
@@ -828,7 +828,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxIrradianceMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxIrradianceMaterialInstance = m_pSkyBoxIrradianceMaterial->CreateMaterialInstance();
 	m_pSkyBoxIrradianceMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::IrradianceGen);
-	m_pSkyBoxIrradianceMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
+	m_pSkyBoxIrradianceMaterialInstance->SetMaterialTexture(1, m_pSkyBoxTex);
 
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" };
 	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
@@ -840,7 +840,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxReflectionMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxReflectionMaterialInstance = m_pSkyBoxReflectionMaterial->CreateMaterialInstance();
 	m_pSkyBoxReflectionMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::ReflectionGen);
-	m_pSkyBoxReflectionMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
+	m_pSkyBoxReflectionMaterialInstance->SetMaterialTexture(1, m_pSkyBoxTex);
 
 	info.shaderPaths			= { L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" };
 	info.vertexBindingsInfo		= { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
@@ -852,7 +852,7 @@ void VulkanGlobal::InitMaterials()
 	m_pBRDFLutMaterial = Material::CreateDefaultMaterial(info);
 	m_pBRDFLutMaterialInstance = m_pBRDFLutMaterial->CreateMaterialInstance();
 	m_pBRDFLutMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::BrdfLutGen);
-	m_pBRDFLutMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
+	m_pBRDFLutMaterialInstance->SetMaterialTexture(1, m_pSkyBoxTex);
 
 	layout =
 	{
@@ -883,8 +883,8 @@ void VulkanGlobal::InitMaterials()
 	m_pTestMaterial = Material::CreateDefaultMaterial(info);
 	m_pTestMaterialInstance = m_pTestMaterial->CreateMaterialInstance();
 	m_pTestMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
-	m_pTestMaterialInstance->SetMaterialTexture(0, m_pPrefilterEnvTex);
-	m_pTestMaterialInstance->SetMaterialTexture(1, m_pBRDFLut);
+	m_pTestMaterialInstance->SetMaterialTexture(1, m_pPrefilterEnvTex);
+	m_pTestMaterialInstance->SetMaterialTexture(2, m_pBRDFLut);
 }
 
 void VulkanGlobal::InitEnviromentMap()

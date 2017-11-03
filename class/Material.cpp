@@ -318,7 +318,10 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 		for (uint32_t i = 0; i < m_perMaterialUniforms.size(); i++)
 		{
 			if (m_perMaterialUniforms[i] != nullptr)
+			{
 				pMaterialInstance->m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(i, std::dynamic_pointer_cast<ShaderStorageBuffer>(m_perMaterialUniforms[i]->GetBuffer()));
+				m_frameOffsets.push_back(m_perMaterialUniforms[i]->GetFrameOffset());
+			}
 		}
 
 		// Init texture vector
@@ -341,4 +344,12 @@ uint32_t Material::GetUniformBufferSize(uint32_t bindingIndex) const
 	if (m_perMaterialUniforms[bindingIndex] != nullptr)
 		return m_perMaterialUniforms[bindingIndex]->GetBuffer()->GetBufferInfo().size;
 	return 0;
+}
+
+std::vector<uint32_t> Material::GetFrameOffsets() const 
+{ 
+	std::vector<uint32_t> offsets = m_frameOffsets;
+	for (auto & var : offsets)
+		var *= FrameMgr()->FrameIndex();
+	return offsets;
 }

@@ -74,6 +74,7 @@ public:
 	std::vector<std::shared_ptr<DescriptorSetLayout>> GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
 	uint32_t GetUniformBufferSize(uint32_t bindingIndex) const;
+	std::vector<uint32_t> GetFrameOffsets() const;
 
 protected:
 	bool Init
@@ -96,5 +97,6 @@ protected:
 	uint32_t											m_maxMaterialInstance;
 	std::vector<std::vector<UniformVarList>>			m_materialVariableLayout;
 	std::vector<std::shared_ptr<PerMaterialUniforms>>	m_perMaterialUniforms;
+	std::vector<uint32_t>								m_frameOffsets;
 	friend class MaterialInstance;
 };
