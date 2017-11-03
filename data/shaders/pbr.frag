@@ -12,6 +12,17 @@ layout (set = 3, binding = 6) uniform samplerCube irradianceTex;
 layout (set = 3, binding = 7) uniform samplerCube prefilterEnvTex;
 layout (set = 3, binding = 8) uniform sampler2D BRDFLut;
 
+struct PerObjectMaterialData
+{
+	vec4 lightColor;
+	vec4 GEW;		//Gamma, exposure, white scale
+};
+
+layout (set = 3, binding = 0) buffer PerObjectMaterialBuffer
+{
+	PerObjectMaterialData perObjectMaterialData[];
+};
+
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inNormal;
 layout (location = 2) in vec3 inWorldPos;
@@ -22,13 +33,8 @@ layout (location = 6) in vec3 inBitangent;
 
 layout (location = 0) out vec4 outFragColor;
 
-const vec3 lightColor = vec3(1);
-const float roughness = 1;
-const float gamma = 1.0 / 2.2;
 const float PI = 3.14159265;
 vec3 F0 = vec3(0.04);
-const float exposure = 4.5;
-const float whiteScale = 11.2;
 
 float GGX_D(float NdotH, float roughness)
 {
@@ -152,11 +158,11 @@ void main()
 
 	vec3 dirLightSpecular = fresnel * GGX_V_Smith_HeightCorrelated(NdotV, NdotL, roughness) * GGX_D(NdotH, roughness);
 	vec3 dirLightDiffuse = albedo * kD / PI;
-	vec3 final = ao * ((dirLightSpecular + dirLightDiffuse) * NdotL * lightColor) + ambient;
+	vec3 final = ao * ((dirLightSpecular + dirLightDiffuse) * NdotL * perObjectMaterialData[0].lightColor.rgb) + ambient;
 
-	final = Uncharted2Tonemap(final * exposure);
-	final = final * (1.0 / Uncharted2Tonemap(vec3(whiteScale)));
-	final = pow(final, vec3(gamma));
+	final = Uncharted2Tonemap(final * perObjectMaterialData[0].GEW.y);
+	final = final * (1.0 / Uncharted2Tonemap(vec3(perObjectMaterialData[0].GEW.z)));
+	final = pow(final, vec3(perObjectMaterialData[0].GEW.x));
 
 	outFragColor = vec4(final, 1.0);
 }

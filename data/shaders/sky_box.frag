@@ -5,6 +5,16 @@
 
 layout (set = 3, binding = 1) uniform samplerCube envTex;
 
+struct PerObjectMaterialData
+{
+	vec4 GEW;		//Gamma, exposure, white scale
+};
+
+layout (set = 3, binding = 0) buffer PerObjectMaterialBuffer
+{
+	PerObjectMaterialData perObjectMaterialData[];
+};
+
 layout (location = 0) in vec3 inSampleDir;
 
 layout (location = 0) out vec4 outFragColor;
@@ -28,9 +38,9 @@ void main()
 {
 	vec3 final = texture(envTex, normalize(inSampleDir)).xyz;
 	
-	final = Uncharted2Tonemap(final * exposure);
-	final = final * (1.0 / Uncharted2Tonemap(vec3(whiteScale)));
-	final = pow(final, vec3(gamma));
+	final = Uncharted2Tonemap(final * perObjectMaterialData[0].GEW.y);
+	final = final * (1.0 / Uncharted2Tonemap(vec3(perObjectMaterialData[0].GEW.z)));
+	final = pow(final, vec3(perObjectMaterialData[0].GEW.x));
 
 	outFragColor = vec4(final, 1.0);
 }

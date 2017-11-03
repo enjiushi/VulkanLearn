@@ -16,17 +16,6 @@ layout (location = 4) out vec3 outViewDir;
 layout (location = 5) out vec3 outTangent;
 layout (location = 6) out vec3 outBitangent;
 
-//layout (set = 1, binding = 0) uniform UBO
-//{
-//	mat4 model;
-//	mat4 view;
-//	mat4 projection;
-//	mat4 vulkanNDC;
-//	mat4 mvp;
-//	vec3 camPos;
-//	float roughness;
-//}ubo;
-
 layout (set = 0, binding = 0) uniform GlobalUniforms
 {
 	mat4 projection;

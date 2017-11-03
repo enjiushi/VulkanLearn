@@ -746,13 +746,8 @@ void VulkanGlobal::InitMaterials()
 			DynamicUniformBuffer,
 			"MaterialVariables",
 			{
-				{ Mat4Unit, "ModelTransform" },
-				{ Mat4Unit, "ViewTransform" },
-				{ Mat4Unit, "ProjectionTransform" },
-				{ Mat4Unit, "vulkanNDCTransform" },
-				{ Mat4Unit, "MVP" },
-				{ Vec3Unit, "CameraPosition" },
-				{ OneUnit, "Roughness" }
+				{ Vec4Unit, "LightColor padding" },		// Should be put into global uniforms
+				{ Vec4Unit, "Gamma Exposure WhiteScale padding" }	// Should be put into global uniforms
 			}
 		},
 		{ CombinedSampler, "AlbedoMap" },
@@ -786,6 +781,9 @@ void VulkanGlobal::InitMaterials()
 	m_pGunMaterialInstance->SetMaterialTexture(7, m_pPrefilterEnvTex);
 	m_pGunMaterialInstance->SetMaterialTexture(8, m_pBRDFLut);
 
+	m_pGunMaterialInstance->SetParameter<Vector4f>(0, 0, { 1, 1, 1, 0 });
+	m_pGunMaterialInstance->SetParameter<Vector4f>(0, 1, { 1.0f / 2.2f, 4.5f, 11.2f, 0 });		// Gamma, Exposure and WhiteScale
+
 	// Skybox material
 	layout =
 	{
@@ -793,13 +791,7 @@ void VulkanGlobal::InitMaterials()
 			DynamicUniformBuffer,
 			"MaterialVariables",
 			{
-				{ Mat4Unit, "ModelTransform" },
-				{ Mat4Unit, "ViewTransform" },
-				{ Mat4Unit, "ProjectionTransform" },
-				{ Mat4Unit, "vulkanNDCTransform" },
-				{ Mat4Unit, "MVP" },
-				{ Vec3Unit, "CameraPosition" },
-				{ OneUnit, "Roughness" }
+				{ Vec4Unit, "Gamma Exposure WhiteScale padding" }
 			}
 		},
 		{ CombinedSampler, "SkyBoxTexture" },
@@ -815,8 +807,8 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
-	//m_pSkyBoxMaterialInstance->GetDescriptorSet(UniformDataStorage::PerFrameVariable)->UpdateUniformBufferDynamic(0, m_pPerFrameUniformBuffer);
 	m_pSkyBoxMaterialInstance->SetMaterialTexture(1, m_pSkyBoxTex);
+	m_pSkyBoxMaterialInstance->SetParameter<Vector4f>(0, 0, { 1.0f / 2.2f, 4.5f, 11.2f, 0 });		// Gamma, Exposure and WhiteScale
 
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" };
 	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
@@ -829,6 +821,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxIrradianceMaterialInstance = m_pSkyBoxIrradianceMaterial->CreateMaterialInstance();
 	m_pSkyBoxIrradianceMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::IrradianceGen);
 	m_pSkyBoxIrradianceMaterialInstance->SetMaterialTexture(1, m_pSkyBoxTex);
+	m_pSkyBoxIrradianceMaterialInstance->SetParameter<Vector4f>(0, 0, { 1.0f, 1.0f, 11.2f, 0 });		// Gamma, Exposure and WhiteScale
 
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" };
 	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
@@ -841,6 +834,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxReflectionMaterialInstance = m_pSkyBoxReflectionMaterial->CreateMaterialInstance();
 	m_pSkyBoxReflectionMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::ReflectionGen);
 	m_pSkyBoxReflectionMaterialInstance->SetMaterialTexture(1, m_pSkyBoxTex);
+	m_pSkyBoxReflectionMaterialInstance->SetParameter<Vector4f>(0, 0, { 1.0f, 1.0f, 11.2f, 0 });		// Gamma, Exposure and WhiteScale
 
 	info.shaderPaths			= { L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" };
 	info.vertexBindingsInfo		= { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
@@ -860,13 +854,7 @@ void VulkanGlobal::InitMaterials()
 			DynamicUniformBuffer,
 			"MaterialVariables",
 			{
-				{ Mat4Unit, "ModelTransform" },
-				{ Mat4Unit, "ViewTransform" },
-				{ Mat4Unit, "ProjectionTransform" },
-				{ Mat4Unit, "vulkanNDCTransform" },
-				{ Mat4Unit, "MVP" },
-				{ Vec3Unit, "CameraPosition" },
-				{ OneUnit, "Roughness" }
+				{ Vec4Unit, "TestColor" },
 			}
 		},
 		{ CombinedSampler, "tex0" },
@@ -988,6 +976,7 @@ void VulkanGlobal::Draw()
 	m_pRootObject->Update();
 	m_pRootObject->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();
+	m_pGunMaterial->SyncBufferData();
 	m_pRootObject->Draw();
 
 	GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);

@@ -88,6 +88,8 @@ public:
 		return m_perMaterialUniforms[bindingIndex]->GetParameter<T>(chunkIndex, m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][bindingIndex].vars[parameterIndex].offset);
 	}
 
+	void SyncBufferData();
+
 protected:
 	bool Init
 	(

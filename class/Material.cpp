@@ -358,3 +358,10 @@ std::vector<uint32_t> Material::GetFrameOffsets() const
 		var *= FrameMgr()->FrameIndex();
 	return offsets;
 }
+
+void Material::SyncBufferData()
+{
+	for (auto & var : m_perMaterialUniforms)
+		if (var != nullptr)
+			var->SyncBufferData();
+}
