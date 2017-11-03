@@ -21,7 +21,7 @@ public:
 		//                              chunkIndex * m_perMaterialInstanceBytes
 		//                                               |
 		//                                              offset
-		memcpy_s(m_pData + GetFrameOffset() + parameterChunkIndex * m_perMaterialInstanceBytes + parameterOffset, GetFrameOffset() - parameterChunkIndex * m_perMaterialInstanceBytes - parameterOffset, &val, sizeof(val));
+		memcpy_s(m_pData + parameterChunkIndex * m_perMaterialInstanceBytes + parameterOffset, sizeof(val), &val, sizeof(val));
 		SetDirty();
 	}
 
@@ -30,7 +30,7 @@ public:
 	{
 		//return m_pMaterial->GetParameter(bindingIndex, parameterIndex);
 		T ret;
-		memcpy_s(&ret, sizeof(ret), m_pData + GetFrameOffset() + parameterChunkIndex * m_perMaterialInstanceBytes + parameterOffset, sizeof(T));
+		memcpy_s(&ret, sizeof(ret), m_pData + parameterChunkIndex * m_perMaterialInstanceBytes + parameterOffset, sizeof(T));
 		return ret;
 	}
 
