@@ -30,7 +30,10 @@ protected:
 		return true;
 	}
 
-	void SetObject(const std::shared_ptr<BaseObject>& pObj) { m_pObject = pObj; }
+	void SetObject(const std::shared_ptr<BaseObject>& pObject) { m_pObject = pObject; }
+
+	// Will be called when it's been added to a base object
+	virtual void OnAddedToObject(const std::shared_ptr<BaseObject>& pObject) { SetObject(pObject); }
 
 protected:
 	bool m_isDirty = false;

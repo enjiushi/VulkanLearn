@@ -16,7 +16,7 @@ void BaseObject::AddComponent(const std::shared_ptr<BaseComponent>& pComp)
 		return;
 
 	m_components.push_back(pComp);
-	pComp->SetObject(GetSelfSharedPtr());
+	pComp->OnAddedToObject(GetSelfSharedPtr());
 }
 
 void BaseObject::DelComponent(uint32_t index)
