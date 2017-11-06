@@ -330,13 +330,7 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 		}
 
 		// Init texture vector
-		uint32_t textureCount = 0;
-		for (auto & var : m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable])
-		{
-			if (var.type == CombinedSampler)
-				textureCount++;
-		}
-		pMaterialInstance->m_textures.resize(textureCount);
+		pMaterialInstance->m_textures.resize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size());
 
 		return pMaterialInstance;
 	}

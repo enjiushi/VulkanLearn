@@ -3,23 +3,16 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (set = 3, binding = 1) uniform samplerCube envTex;
+layout (set = 3, binding = 0) uniform samplerCube envTex;
 
 layout (location = 0) in vec3 inSampleDir;
 
 layout (location = 0) out vec4 outFragColor;
 
-layout (set = 1, binding = 0) uniform PerFrameUniforms
-{
-	mat4 view;
-	mat4 VPN;
-	vec4 camPos;
-}perFrameUniforms;
+#include "uniform_layout.h"
 
 const vec3 up = {0.0, 1.0, 0.0};
 const float PI = 3.14159265;
-const float sampleDelta = 0.15;
-const float gamma = 1.0 / 2.2;
 const uint numSamples = 1024;
 
 // https://learnopengl.com/#!PBR/IBL/Specular-IBL
@@ -75,7 +68,7 @@ void main()
 	for (int samples = 0; samples < numSamples; samples++)
 	{
 		vec2 Xi = Hammersley(samples, numSamples);
-		vec3 L = ImportanceSampleGGX(Xi, N, perFrameUniforms.camPos.w);
+		vec3 L = ImportanceSampleGGX(Xi, N, perFrameData.camPos.w);
 
 		float NdotL = dot(N, L);
 		if (NdotL > 0)

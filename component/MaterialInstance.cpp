@@ -17,7 +17,7 @@ bool MaterialInstance::Init(const std::shared_ptr<MaterialInstance>& pMaterialIn
 
 void MaterialInstance::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture)
 {
-	m_textures[index - 1] = pTexture;
+	m_textures[index] = pTexture;
 
 	// index 0 is reserved for material uniform buffer FIXME: there should a enum or something to mark it
 	m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateImage(index, pTexture);

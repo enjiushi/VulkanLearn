@@ -51,6 +51,25 @@ void GlobalUniforms::SetDirty()
 	UniformDataStorage::SetDirty();
 }
 
+void GlobalUniforms::SetMainLightDir(const Vector3f& dir)
+{
+	m_globalVariables.mainLightDir = dir;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainLightColor(const Vector3f& color)
+{
+	m_globalVariables.mainLightColor = color;
+	UniformDataStorage::SetDirty();
+}
+
+
+void GlobalUniforms::SetRenderSettings(const Vector4f& setting)
+{
+	m_globalVariables.GEW = setting;
+	UniformDataStorage::SetDirty();
+}
+
 UniformVarList GlobalUniforms::PrepareUniformVarList()
 {
 	return 
@@ -65,7 +84,19 @@ UniformVarList GlobalUniforms::PrepareUniformVarList()
 			{
 				Mat4Unit,
 				"VulkanNDCMatrix"
-			}
+			},
+			{
+				Vec4Unit,
+				"MainLightDirection"
+			},
+			{
+				Vec4Unit,
+				"MainLightColor"
+			},
+			{
+				Vec4Unit,
+				"Settings: Gamma, Exposure, White Scale"
+			},
 		}
 	};
 }

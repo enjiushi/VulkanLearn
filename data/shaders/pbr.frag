@@ -3,25 +3,16 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (set = 3, binding = 1) uniform sampler2D albedoTex;
-layout (set = 3, binding = 2) uniform sampler2D bumpTex;
-layout (set = 3, binding = 3) uniform sampler2D roughnessTex;
-layout (set = 3, binding = 4) uniform sampler2D metalicTex;
-layout (set = 3, binding = 5) uniform sampler2D aoTex;
-layout (set = 3, binding = 6) uniform samplerCube irradianceTex;
-layout (set = 3, binding = 7) uniform samplerCube prefilterEnvTex;
-layout (set = 3, binding = 8) uniform sampler2D BRDFLut;
+layout (set = 3, binding = 0) uniform sampler2D albedoTex;
+layout (set = 3, binding = 1) uniform sampler2D bumpTex;
+layout (set = 3, binding = 2) uniform sampler2D roughnessTex;
+layout (set = 3, binding = 3) uniform sampler2D metalicTex;
+layout (set = 3, binding = 4) uniform sampler2D aoTex;
+layout (set = 3, binding = 5) uniform samplerCube irradianceTex;
+layout (set = 3, binding = 6) uniform samplerCube prefilterEnvTex;
+layout (set = 3, binding = 7) uniform sampler2D BRDFLut;
 
-struct PerObjectMaterialData
-{
-	vec4 lightColor;
-	vec4 GEW;		//Gamma, exposure, white scale
-};
-
-layout (set = 3, binding = 0) buffer PerObjectMaterialBuffer
-{
-	PerObjectMaterialData perObjectMaterialData[];
-};
+#include "uniform_layout.h"
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inNormal;
@@ -158,11 +149,11 @@ void main()
 
 	vec3 dirLightSpecular = fresnel * GGX_V_Smith_HeightCorrelated(NdotV, NdotL, roughness) * GGX_D(NdotH, roughness);
 	vec3 dirLightDiffuse = albedo * kD / PI;
-	vec3 final = ao * ((dirLightSpecular + dirLightDiffuse) * NdotL * perObjectMaterialData[0].lightColor.rgb) + ambient;
+	vec3 final = ao * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb) + ambient;
 
-	final = Uncharted2Tonemap(final * perObjectMaterialData[0].GEW.y);
-	final = final * (1.0 / Uncharted2Tonemap(vec3(perObjectMaterialData[0].GEW.z)));
-	final = pow(final, vec3(perObjectMaterialData[0].GEW.x));
+	final = Uncharted2Tonemap(final * globalData.GEW.y);
+	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
+	final = pow(final, vec3(globalData.GEW.x));
 
 	outFragColor = vec4(final, 1.0);
 }

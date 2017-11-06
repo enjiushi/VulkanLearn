@@ -3,17 +3,9 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (set = 3, binding = 1) uniform samplerCube envTex;
+layout (set = 3, binding = 0) uniform samplerCube envTex;
 
-struct PerObjectMaterialData
-{
-	vec4 GEW;		//Gamma, exposure, white scale
-};
-
-layout (set = 3, binding = 0) buffer PerObjectMaterialBuffer
-{
-	PerObjectMaterialData perObjectMaterialData[];
-};
+#include "uniform_layout.h"
 
 layout (location = 0) in vec3 inSampleDir;
 
@@ -38,9 +30,9 @@ void main()
 {
 	vec3 final = texture(envTex, normalize(inSampleDir)).xyz;
 	
-	final = Uncharted2Tonemap(final * perObjectMaterialData[0].GEW.y);
-	final = final * (1.0 / Uncharted2Tonemap(vec3(perObjectMaterialData[0].GEW.z)));
-	final = pow(final, vec3(perObjectMaterialData[0].GEW.x));
+	final = Uncharted2Tonemap(final * globalData.GEW.y);
+	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
+	final = pow(final, vec3(globalData.GEW.x));
 
 	outFragColor = vec4(final, 1.0);
 }
