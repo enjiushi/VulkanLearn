@@ -7,7 +7,7 @@ class Material;
 class Image;
 class CommandBuffer;
 
-class MaterialInstance : public BaseComponent
+class MaterialInstance : public SelfRefBase<MaterialInstance>
 {
 public:
 	std::vector<std::shared_ptr<DescriptorSet>> GetDescriptorSets() const { return m_descriptorSets; }
