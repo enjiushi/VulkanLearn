@@ -50,6 +50,8 @@ std::shared_ptr<MeshRenderer> MeshRenderer::Create()
 MeshRenderer::~MeshRenderer()
 {
 	UniformData::GetInstance()->GetPerObjectUniforms()->FreePreObjectChunk(m_perObjectBufferIndex);
+	for (auto & val : m_materialInstances)
+		val->DelMeshRenderer(std::dynamic_pointer_cast<MeshRenderer>(GetSelfSharedPtr()));
 }
 
 bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances)
