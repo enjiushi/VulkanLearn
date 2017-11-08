@@ -6,6 +6,7 @@ class DescriptorPool;
 class Material;
 class Image;
 class CommandBuffer;
+class MeshRenderer;
 
 class MaterialInstance : public SelfRefBase<MaterialInstance>
 {
@@ -18,6 +19,8 @@ public:
 	void SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture);
 	std::shared_ptr<Image> GetMaterialTexture(uint32_t index) { return m_textures[index]; }
 	void PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	void AddMeshRenderer(const std::shared_ptr<MeshRenderer>& pRenderer) { m_meshRenderers.push_back(pRenderer); }
+	void DelMeshRenderer(const std::shared_ptr<MeshRenderer>& pRenderer) { m_meshRenderers.erase(std::remove(m_meshRenderers.begin(), m_meshRenderers.end(), pRenderer), m_meshRenderers.end()); }
 
 	// FIXME: should add name based functions to ease of use
 	template <typename T>
@@ -44,6 +47,7 @@ protected:
 	std::vector<std::shared_ptr<Image>>			m_textures;
 	uint32_t									m_renderMask = 0xffffffff;
 	std::vector<uint32_t>						m_materialBufferChunkIndex;
+	std::vector<std::weak_ptr<MeshRenderer>>	m_meshRenderers;
 
 	friend class Material;
 };

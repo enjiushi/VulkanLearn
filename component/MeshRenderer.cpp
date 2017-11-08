@@ -60,6 +60,9 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 	m_pMesh = pMesh;
 	m_materialInstances = materialInstances;
 
+	for (auto & val : m_materialInstances)
+		val->AddMeshRenderer(std::dynamic_pointer_cast<MeshRenderer>(GetSelfSharedPtr()));
+
 	m_perObjectBufferIndex = UniformData::GetInstance()->GetPerObjectUniforms()->AllocatePerObjectChunk();
 	return true;
 }
