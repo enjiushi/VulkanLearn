@@ -86,5 +86,6 @@ protected:
 	std::vector<std::vector<UniformVarList>>			m_materialVariableLayout;
 	std::vector<std::shared_ptr<PerMaterialUniforms>>	m_perMaterialUniforms;
 	std::vector<uint32_t>								m_frameOffsets;
+	std::vector<std::weak_ptr<MaterialInstance>>		m_generatedInstances;
 	friend class MaterialInstance;
 };

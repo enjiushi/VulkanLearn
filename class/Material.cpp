@@ -332,6 +332,8 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 		// Init texture vector
 		pMaterialInstance->m_textures.resize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size());
 
+		m_generatedInstances.push_back(pMaterialInstance);
+
 		return pMaterialInstance;
 	}
 
