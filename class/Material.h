@@ -72,6 +72,8 @@ public:
 
 	void SyncBufferData();
 
+	void Draw();
+
 protected:
 	bool Init
 	(

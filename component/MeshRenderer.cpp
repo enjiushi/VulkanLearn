@@ -50,8 +50,10 @@ std::shared_ptr<MeshRenderer> MeshRenderer::Create()
 MeshRenderer::~MeshRenderer()
 {
 	UniformData::GetInstance()->GetPerObjectUniforms()->FreePreObjectChunk(m_perObjectBufferIndex);
+
+	// Remove mesh renderer references
 	for (auto & val : m_materialInstances)
-		val->DelMeshRenderer(std::dynamic_pointer_cast<MeshRenderer>(GetSelfSharedPtr()));
+		val.first->DelMeshRenderer(val.second);
 }
 
 bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances)
@@ -60,10 +62,12 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 		return false;
 
 	m_pMesh = pMesh;
-	m_materialInstances = materialInstances;
 
-	for (auto & val : m_materialInstances)
-		val->AddMeshRenderer(std::dynamic_pointer_cast<MeshRenderer>(GetSelfSharedPtr()));
+	for (auto & val : materialInstances)
+	{
+		uint32_t key = val->AddMeshRenderer(std::dynamic_pointer_cast<MeshRenderer>(GetSelfSharedPtr()));
+		m_materialInstances.push_back({ val, key });
+	}
 
 	m_perObjectBufferIndex = UniformData::GetInstance()->GetPerObjectUniforms()->AllocatePerObjectChunk();
 	return true;
@@ -84,7 +88,7 @@ void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 
 	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
 	{
-		if (((1 << GetGlobalVulkanStates()->GetRenderState()) & m_materialInstances[i]->GetRenderMask()) == 0)
+		if (((1 << GetGlobalVulkanStates()->GetRenderState()) & m_materialInstances[i].first->GetRenderMask()) == 0)
 			continue;
 
 		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocateSecondaryCommandBuffer();
@@ -118,7 +122,7 @@ void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 		pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 		pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
 
-		m_materialInstances[i]->PrepareMaterial(pDrawCmdBuffer);
+		m_materialInstances[i].first->PrepareMaterial(pDrawCmdBuffer);
 		m_pMesh->PrepareMeshData(pDrawCmdBuffer);
 
 		pDrawCmdBuffer->DrawIndexed(m_pMesh->GetIndexBuffer());

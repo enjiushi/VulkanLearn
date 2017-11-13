@@ -28,6 +28,9 @@ protected:
 
 protected:
 	std::shared_ptr<Mesh>							m_pMesh;
-	std::vector<std::shared_ptr<MaterialInstance>>	m_materialInstances;
 	uint32_t										m_perObjectBufferIndex;
+
+	// First: material instance
+	// Second: Key reference of material instance to this mesh renderer, used in destructor to remove weak reference in material instance
+	std::vector<std::pair<std::shared_ptr<MaterialInstance>, uint32_t>> m_materialInstances;
 };

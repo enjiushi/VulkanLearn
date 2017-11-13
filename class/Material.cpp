@@ -390,3 +390,17 @@ void Material::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& 
 {
 	GetDescriptorSet(UniformDataStorage::PerObjectMaterialVariable)->UpdateImage(index, pTexture);
 }
+
+void Material::Draw()
+{
+	for (auto it = m_generatedInstances.begin(); it != m_generatedInstances.end();)
+	{
+		if (it->expired())
+			it = m_generatedInstances.erase(it);
+		else
+		{
+			it->lock()->Draw();
+			it++;
+		}
+	}
+}

@@ -6,6 +6,11 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/SwapChain.h"
 #include "../class/UniformData.h"
+#include "MeshRenderer.h"
+
+MaterialInstance::~MaterialInstance()
+{
+}
 
 bool MaterialInstance::Init(const std::shared_ptr<MaterialInstance>& pMaterialInstance)
 {
@@ -35,4 +40,10 @@ void MaterialInstance::PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCm
 {
 	BindPipeline(pCmdBuffer);
 	BindDescriptorSet(pCmdBuffer);
+}
+
+void MaterialInstance::Draw()
+{
+	for (auto & pRenderer : m_meshRenderers)
+		FrameMgr()->AddJobToFrame(std::bind(&BaseComponent::Draw, pRenderer.lock().get(), std::placeholders::_1));
 }

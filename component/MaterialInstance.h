@@ -11,14 +11,15 @@ class MeshRenderer;
 class MaterialInstance : public SelfRefBase<MaterialInstance>
 {
 public:
+	~MaterialInstance();
+
 	std::shared_ptr<Material> GetMaterial() const { return m_pMaterial; }
 	uint32_t GetRenderMask() const { return m_renderMask; }
 	void SetRenderMask(uint32_t renderMask) { m_renderMask = renderMask; }
 	void SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture);
 	std::shared_ptr<Image> GetMaterialTexture(uint32_t index) { return m_textures[index]; }
 	void PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
-	void AddMeshRenderer(const std::shared_ptr<MeshRenderer>& pRenderer) { m_meshRenderers.push_back(pRenderer); }
-	void DelMeshRenderer(const std::shared_ptr<MeshRenderer>& pRenderer) { /*m_meshRenderers.erase(std::remove(m_meshRenderers.begin(), m_meshRenderers.end(), pRenderer), m_meshRenderers.end());*/ }
+	void Draw();
 
 	// FIXME: should add name based functions to ease of use
 	template <typename T>
@@ -37,6 +38,8 @@ protected:
 	bool Init(const std::shared_ptr<MaterialInstance>& pMaterialInstance);
 	void BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	uint32_t AddMeshRenderer(const std::shared_ptr<MeshRenderer>& pRenderer) { m_meshRenderers.push_back(pRenderer); return m_meshRenderers.size() - 1; }
+	void DelMeshRenderer(uint32_t index) { m_meshRenderers.erase(m_meshRenderers.begin() + index); }
 
 protected:
 	std::shared_ptr<Material>					m_pMaterial;
@@ -47,4 +50,5 @@ protected:
 	std::vector<std::weak_ptr<MeshRenderer>>	m_meshRenderers;
 
 	friend class Material;
+	friend class MeshRenderer;
 };
