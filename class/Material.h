@@ -15,6 +15,8 @@ class MaterialInstance;
 class DescriptorPool;
 class UniformBuffer;
 class ShaderStorageBuffer;
+class CommandBuffer;
+class Image;
 
 // More to add
 enum MaterialVariableType
@@ -50,6 +52,12 @@ public:
 	uint32_t GetUniformBufferSize(uint32_t bindingIndex) const;
 	std::vector<uint32_t> GetFrameOffsets() const;
 
+	std::vector<std::shared_ptr<DescriptorSet>> GetDescriptorSets() const { return m_descriptorSets; }
+	std::shared_ptr<DescriptorSet> GetDescriptorSet(uint32_t index) const { return m_descriptorSets[index]; }
+
+	void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	void SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture);
+
 	template <typename T>
 	void SetParameter(uint32_t chunkIndex, uint32_t bindingIndex, uint32_t parameterIndex, T val)
 	{
@@ -81,6 +89,7 @@ protected:
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
 	std::shared_ptr<GraphicPipeline>					m_pPipeline;
 	std::vector<std::shared_ptr<DescriptorSetLayout>>	m_descriptorSetLayouts;
+	std::vector<std::shared_ptr<DescriptorSet>>			m_descriptorSets;
 	std::shared_ptr<DescriptorPool>						m_pDescriptorPool;
 	uint32_t											m_maxMaterialInstance;
 	std::vector<std::vector<UniformVarList>>			m_materialVariableLayout;

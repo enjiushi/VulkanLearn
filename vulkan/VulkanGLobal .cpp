@@ -914,9 +914,10 @@ void VulkanGlobal::InitScene()
 	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, m_pBRDFLutMaterialInstance);
 	m_pQuadObject->AddComponent(m_pQuadRenderer);
 
+	/*
 	m_pTestObject = BaseObject::Create();
 	m_pTestRenderer = MeshRenderer::Create(m_pQuadMesh, m_pTestMaterialInstance);
-	m_pTestObject->AddComponent(m_pTestRenderer);
+	m_pTestObject->AddComponent(m_pTestRenderer);*/
 
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pGunObject);

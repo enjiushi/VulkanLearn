@@ -11,8 +11,6 @@ class MeshRenderer;
 class MaterialInstance : public SelfRefBase<MaterialInstance>
 {
 public:
-	std::vector<std::shared_ptr<DescriptorSet>> GetDescriptorSets() const { return m_descriptorSets; }
-	std::shared_ptr<DescriptorSet> GetDescriptorSet(uint32_t index) const { return m_descriptorSets[index]; }
 	std::shared_ptr<Material> GetMaterial() const { return m_pMaterial; }
 	uint32_t GetRenderMask() const { return m_renderMask; }
 	void SetRenderMask(uint32_t renderMask) { m_renderMask = renderMask; }
@@ -20,7 +18,7 @@ public:
 	std::shared_ptr<Image> GetMaterialTexture(uint32_t index) { return m_textures[index]; }
 	void PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	void AddMeshRenderer(const std::shared_ptr<MeshRenderer>& pRenderer) { m_meshRenderers.push_back(pRenderer); }
-	void DelMeshRenderer(const std::shared_ptr<MeshRenderer>& pRenderer) { m_meshRenderers.erase(std::remove(m_meshRenderers.begin(), m_meshRenderers.end(), pRenderer), m_meshRenderers.end()); }
+	void DelMeshRenderer(const std::shared_ptr<MeshRenderer>& pRenderer) { /*m_meshRenderers.erase(std::remove(m_meshRenderers.begin(), m_meshRenderers.end(), pRenderer), m_meshRenderers.end());*/ }
 
 	// FIXME: should add name based functions to ease of use
 	template <typename T>
@@ -41,7 +39,6 @@ protected:
 	void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 protected:
-	std::vector<std::shared_ptr<DescriptorSet>>	m_descriptorSets;
 	std::shared_ptr<Material>					m_pMaterial;
 	std::vector<uint32_t>						m_materialVariables;
 	std::vector<std::shared_ptr<Image>>			m_textures;

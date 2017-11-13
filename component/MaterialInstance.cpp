@@ -18,9 +18,7 @@ bool MaterialInstance::Init(const std::shared_ptr<MaterialInstance>& pMaterialIn
 void MaterialInstance::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture)
 {
 	m_textures[index] = pTexture;
-
-	// index 0 is reserved for material uniform buffer FIXME: there should a enum or something to mark it
-	m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateImage(index, pTexture);
+	m_pMaterial->SetMaterialTexture(index, pTexture);
 }
 
 void MaterialInstance::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
@@ -30,10 +28,7 @@ void MaterialInstance::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBu
 
 void MaterialInstance::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	std::vector<uint32_t> offsets = UniformData::GetInstance()->GetFrameOffsets();
-	std::vector<uint32_t> materialOffsets = m_pMaterial->GetFrameOffsets();
-	offsets.insert(offsets.end(), materialOffsets.begin(), materialOffsets.end());
-	pCmdBuffer->BindDescriptorSets(GetMaterial()->GetPipelineLayout(), GetDescriptorSets(), offsets);
+	m_pMaterial->BindDescriptorSet(pCmdBuffer);
 }
 
 void MaterialInstance::PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
