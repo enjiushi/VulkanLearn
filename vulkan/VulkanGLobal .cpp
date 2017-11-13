@@ -961,7 +961,9 @@ void VulkanGlobal::Draw()
 	m_pRootObject->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();
 	m_pGunMaterial->SyncBufferData();
-	m_pRootObject->Draw();
+
+	m_pGunMaterial->Draw();
+	m_pSkyBoxMaterial->Draw();
 
 	GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
