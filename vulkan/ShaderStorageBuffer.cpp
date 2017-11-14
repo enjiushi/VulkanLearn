@@ -6,7 +6,7 @@ bool ShaderStorageBuffer::Init(const std::shared_ptr<Device>& pDevice, const std
 {
 	m_info = {};
 	m_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	m_info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+	m_info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 
 	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
 	uint32_t alignedBytes = numBytes / minAlign * minAlign + (numBytes % minAlign > 0 ? minAlign : 0);
