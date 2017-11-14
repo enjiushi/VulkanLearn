@@ -31,6 +31,7 @@ bool GlobalDeviceObjects::InitObjects(const std::shared_ptr<Device>& pDevice)
 	m_pIndexBufferMgr = SharedBufferManager::Create(pDevice, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, INDEX_BUFFER_SIZE);
 	m_pUniformBufferMgr = SharedBufferManager::Create(pDevice, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, (VkMemoryPropertyFlagBits)(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT), UNIFORM_BUFFER_SIZE);
 	m_pShaderStorageBufferMgr = SharedBufferManager::Create(pDevice, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, (VkMemoryPropertyFlagBits)(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT), SHADER_STORAGE_BUFFER_SIZE);
+	m_pIndirectBufferMgr = SharedBufferManager::Create(pDevice, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, (VkMemoryPropertyFlagBits)(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT), INDIRECT_BUFFER_SIZE);
 
 	m_pSwapChain = SwapChain::Create(pDevice);
 
@@ -83,6 +84,7 @@ std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr() { return GlobalObje
 std::shared_ptr<SharedBufferManager> IndexBufferMgr() { return GlobalObjects()->GetIndexBufferMgr(); }
 std::shared_ptr<SharedBufferManager> UniformBufferMgr() { return GlobalObjects()->GetUniformBufferMgr(); }
 std::shared_ptr<SharedBufferManager> ShaderStorageBufferMgr() { return GlobalObjects()->GetShaderStorageBufferMgr(); }
+std::shared_ptr<SharedBufferManager> IndirectBufferMgr() { return GlobalObjects()->GetIndirectBufferMgr(); }
 std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue() { return GlobalObjects()->GetThreadTaskQueue(); }
 std::vector<std::shared_ptr<FrameBuffer>> DefaultFrameBuffers() { return GlobalObjects()->GetDefaultFrameBuffers(); }
 std::shared_ptr<RenderWorkManager> RenderWorkMgr() { return GlobalObjects()->GetRenderWorkMgr(); }
