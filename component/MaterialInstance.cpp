@@ -47,3 +47,8 @@ void MaterialInstance::Draw()
 	for (auto & pRenderer : m_meshRenderers)
 		FrameMgr()->AddJobToFrame(std::bind(&BaseComponent::Draw, pRenderer.lock().get(), std::placeholders::_1));
 }
+
+void MaterialInstance::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd)
+{
+	m_pMaterial->InsertIntoRenderQueue(cmd);
+}

@@ -411,3 +411,18 @@ void Material::Draw()
 		}
 	}
 }
+
+void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd)
+{
+	m_pIndirectBuffer->SetIndirectCmd(m_indirectIndex++, cmd);
+}
+
+void Material::OnFrameStart()
+{
+	m_indirectIndex = 0;
+}
+
+void Material::OnFrameEnd()
+{
+
+}

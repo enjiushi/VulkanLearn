@@ -53,4 +53,5 @@ protected:
 	uint32_t							m_vertexAttribFlag;
 	uint32_t							m_verticesCount;
 	uint32_t							m_vertexBytes;
+	uint32_t							m_indicesCount;
 };

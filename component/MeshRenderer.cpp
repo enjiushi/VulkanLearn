@@ -80,6 +80,16 @@ void MeshRenderer::Update()
 void MeshRenderer::LateUpdate()
 {
 	UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, GetBaseObject()->GetLocalTransform());
+
+	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
+	{
+		if (((1 << GetGlobalVulkanStates()->GetRenderState()) & m_materialInstances[i].first->GetRenderMask()) == 0)
+			continue;
+
+		VkDrawIndexedIndirectCommand cmd;
+		m_pMesh->PrepareIndirectCmd(cmd);
+		m_materialInstances[i].first->InsertIntoRenderQueue(cmd);
+	}
 }
 
 void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)

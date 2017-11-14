@@ -73,9 +73,10 @@ public:
 		return m_perMaterialUniforms[bindingIndex]->GetParameter<T>(chunkIndex, m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][bindingIndex].vars[parameterIndex].offset);
 	}
 
+	void OnFrameStart();
 	void SyncBufferData();
-
 	void Draw();
+	void OnFrameEnd();
 
 protected:
 	bool Init
@@ -89,6 +90,7 @@ protected:
 	);
 
 	static uint32_t GetByteSize(std::vector<UniformVar>& UBOLayout);
+	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd);
 
 protected:
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
@@ -102,5 +104,6 @@ protected:
 	std::vector<uint32_t>								m_frameOffsets;
 	std::vector<std::weak_ptr<MaterialInstance>>		m_generatedInstances;
 	std::shared_ptr<SharedIndirectBuffer>				m_pIndirectBuffer;
+	uint32_t											m_indirectIndex = 0;
 	friend class MaterialInstance;
 };

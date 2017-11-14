@@ -34,6 +34,8 @@ public:
 		return m_pMaterial->GetParameter<T>(m_materialBufferChunkIndex, bindingIndex, parameterIndex);
 	}
 
+	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd);
+
 protected:
 	bool Init(const std::shared_ptr<MaterialInstance>& pMaterialInstance);
 	void BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer);

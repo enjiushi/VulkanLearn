@@ -54,6 +54,7 @@ bool Mesh::Init
 	m_vertexBytes = GetVertexBytes(vertexAttribFlag);
 	m_vertexAttribFlag = vertexAttribFlag;
 	m_verticesCount = verticesCount;
+	m_indicesCount = indicesCount;
 
 	//Binding and attributes information
 	VkVertexInputBindingDescription bindingDesc = {};
@@ -254,10 +255,10 @@ void Mesh::PrepareMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 void Mesh::PrepareIndirectCmd(VkDrawIndexedIndirectCommand& cmd)
 {
 	// FIXME: No instanced rendering for now, hard coded
-	//cmd.firstInstance = 0;
-	//cmd.indexCount = 1;
+	cmd.firstInstance = 0;
+	cmd.indexCount = 1;
 
-	//cmd.vertexOffset = GetVertexBuffer()->GetBufferOffset();
-	//cmd.firstIndex = m_pMesh->GetIndexBuffer()->GetBufferOffset();
-	//cmd.indexCount = m_pMesh->GetVerticesCount
+	cmd.vertexOffset = GetVertexBuffer()->GetBufferOffset();
+	cmd.firstIndex = GetIndexBuffer()->GetBufferOffset() / GetIndexBytes(GetIndexBuffer()->GetType());
+	cmd.indexCount = m_indicesCount;
 }
