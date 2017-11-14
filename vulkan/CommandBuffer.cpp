@@ -14,6 +14,7 @@
 #include "IndexBuffer.h"
 #include "RenderWorkManager.h"
 #include "GlobalDeviceObjects.h"
+#include "IndirectBuffer.h"
 
 CommandBuffer::~CommandBuffer()
 {
@@ -721,7 +722,6 @@ void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<Buffer>>
 	std::vector<VkDeviceSize> offsets;
 	for (uint32_t i = 0; i < vertexBuffers.size(); i++)
 	{
-		ASSERTION(std::dynamic_pointer_cast<VertexBuffer>(vertexBuffers[i]) != nullptr);
 		rawVertexBuffers.push_back(vertexBuffers[i]->GetDeviceHandle());
 		offsets.push_back(vertexBuffers[i]->GetBufferOffset());
 		AddToReferenceTable(vertexBuffers[i]);
@@ -730,17 +730,21 @@ void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<Buffer>>
 	vkCmdBindVertexBuffers(GetDeviceHandle(), 0, rawVertexBuffers.size(), rawVertexBuffers.data(), offsets.data());
 }
 
-void CommandBuffer::BindIndexBuffer(const std::shared_ptr<Buffer>& pIndexBuffer)
+void CommandBuffer::BindIndexBuffer(const std::shared_ptr<Buffer>& pIndexBuffer, VkIndexType type)
 {
-	std::shared_ptr<IndexBuffer> _pIndexBuffer = std::dynamic_pointer_cast<IndexBuffer>(pIndexBuffer);
-	ASSERTION(_pIndexBuffer != nullptr);
-	vkCmdBindIndexBuffer(GetDeviceHandle(), _pIndexBuffer->GetDeviceHandle(), _pIndexBuffer->GetBufferOffset(), _pIndexBuffer->GetType());
-	AddToReferenceTable(_pIndexBuffer);
+	vkCmdBindIndexBuffer(GetDeviceHandle(), pIndexBuffer->GetDeviceHandle(), pIndexBuffer->GetBufferOffset(), type);
+	AddToReferenceTable(pIndexBuffer);
 }
 
 void CommandBuffer::DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer)
 {
 	vkCmdDrawIndexed(GetDeviceHandle(), pIndexBuffer->GetCount(), 1, 0, 0, 0);
+}
+
+void CommandBuffer::DrawIndexedIndirect(const std::shared_ptr<IndirectBuffer>& pIndirectBuffer, uint32_t offset, uint32_t count)
+{
+	vkCmdDrawIndexedIndirect(GetDeviceHandle(), pIndirectBuffer->GetDeviceHandle(), offset, count, sizeof(VkDrawIndexedIndirectCommand));
+	AddToReferenceTable(pIndirectBuffer);
 }
 
 void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::shared_ptr<RenderPass>& pRenderPass, const std::vector<VkClearValue>& clearValues, bool includeSecondary)

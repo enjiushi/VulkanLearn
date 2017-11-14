@@ -12,6 +12,7 @@ class FrameBuffer;
 class Buffer;
 class Image;
 class PipelineLayout;
+class IndirectBuffer;
 
 class CommandBuffer : public DeviceObjectBase<CommandBuffer>
 {
@@ -91,13 +92,14 @@ public:
 	void BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets);
 	void BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeline);
 	void BindVertexBuffers(const std::vector<std::shared_ptr<Buffer>>& vertexBuffers);
-	void BindIndexBuffer(const std::shared_ptr<Buffer>& pIndexBuffer);
+	void BindIndexBuffer(const std::shared_ptr<Buffer>& pIndexBuffer, VkIndexType type);
 
 	void BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::shared_ptr<RenderPass>& pRenderPass, const std::vector<VkClearValue>& clearValues, bool includeSecondary = false);
 	void BeginRenderPass(const std::vector<VkClearValue>& clearValues, bool includeSecondary = false);
 	void EndRenderPass();
 
 	void DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
+	void DrawIndexedIndirect(const std::shared_ptr<IndirectBuffer>& pIndirectBuffer, uint32_t offset, uint32_t count);
 
 protected:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);

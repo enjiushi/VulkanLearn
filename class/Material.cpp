@@ -412,7 +412,7 @@ void Material::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& 
 void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	pCmdBuffer->BindVertexBuffers({ VertexAttribBufferMgr(m_vertexFormat)->GetBuffer() });
-	pCmdBuffer->BindIndexBuffer(IndexBufferMgr()->GetBuffer());
+	pCmdBuffer->BindIndexBuffer(IndexBufferMgr()->GetBuffer(), VK_INDEX_TYPE_UINT32);
 }
 
 void Material::Draw()

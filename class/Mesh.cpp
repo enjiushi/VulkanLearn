@@ -253,7 +253,7 @@ uint32_t Mesh::GetVertexFormat() const
 void Mesh::PrepareMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	pCmdBuffer->BindVertexBuffers({ GetVertexBuffer() });
-	pCmdBuffer->BindIndexBuffer(GetIndexBuffer());
+	pCmdBuffer->BindIndexBuffer(GetIndexBuffer(), GetIndexBuffer()->GetType());
 }
 
 void Mesh::PrepareIndirectCmd(VkDrawIndexedIndirectCommand& cmd)
