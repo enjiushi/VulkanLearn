@@ -17,6 +17,7 @@ class UniformBuffer;
 class ShaderStorageBuffer;
 class CommandBuffer;
 class Image;
+class SharedIndirectBuffer;
 
 // More to add
 enum MaterialVariableType
@@ -41,6 +42,8 @@ typedef struct _SimpleMaterialCreateInfo
 
 class Material : public SelfRefBase<Material>
 {
+	static const uint32_t MAX_INDIRECT_COUNT = 2048;
+
 public:
 	static std::shared_ptr<Material> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo);
 
@@ -98,5 +101,6 @@ protected:
 	std::vector<std::shared_ptr<PerMaterialUniforms>>	m_perMaterialUniforms;
 	std::vector<uint32_t>								m_frameOffsets;
 	std::vector<std::weak_ptr<MaterialInstance>>		m_generatedInstances;
+	std::shared_ptr<SharedIndirectBuffer>				m_pIndirectBuffer;
 	friend class MaterialInstance;
 };

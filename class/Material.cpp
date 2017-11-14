@@ -23,6 +23,7 @@
 #include "../class/UniformData.h"
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/Image.h"
+#include "../vulkan/SharedIndirectBuffer.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -285,6 +286,8 @@ bool Material::Init
 		}
 	}
 
+	m_pIndirectBuffer = SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT);
+
 	return true;
 }
 
@@ -339,10 +342,14 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 
 	if (pMaterialInstance.get() && pMaterialInstance->Init(pMaterialInstance))
 	{
-		pMaterialInstance->m_materialBufferChunkIndex.resize(m_perMaterialUniforms.size());
 		for (uint32_t i = 0; i < m_perMaterialUniforms.size(); i++)
 			if (m_perMaterialUniforms[i] != nullptr)
-				pMaterialInstance->m_materialBufferChunkIndex[i] = m_perMaterialUniforms[i]->AllocatePerObjectChunk();
+			{
+				// Even if there could be more than one per material uniform buffer
+				// We still mark only one buffer chunk index, since their value should be exactly the same
+				pMaterialInstance->m_materialBufferChunkIndex = m_perMaterialUniforms[i]->AllocatePerObjectChunk();
+				break;
+			}
 
 		// Init texture vector
 		pMaterialInstance->m_textures.resize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size());

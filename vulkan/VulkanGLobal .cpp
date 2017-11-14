@@ -23,6 +23,8 @@
 #include <iostream>
 #include "GlobalVulkanStates.h"
 #include "../class/UniformData.h"
+#include "IndirectBuffer.h"
+#include "SharedIndirectBuffer.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -462,8 +464,6 @@ void VulkanGlobal::InitUniforms()
 
 	// FIXME: 2 channels should be enough, I don't intend to do it now as I have to create new render passes and frame buffers, leave it to later refactor
 	m_pBRDFLut = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
-
-
 }
 
 void VulkanGlobal::InitIrradianceMap()

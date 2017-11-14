@@ -25,13 +25,13 @@ public:
 	template <typename T>
 	void SetParameter(uint32_t bindingIndex, uint32_t parameterIndex, T val)
 	{
-		m_pMaterial->SetParameter(m_materialBufferChunkIndex[bindingIndex], bindingIndex, parameterIndex, val);
+		m_pMaterial->SetParameter(m_materialBufferChunkIndex, bindingIndex, parameterIndex, val);
 	}
 
 	template <typename T>
 	T GetParameter(uint32_t bindingIndex, uint32_t parameterIndex)
 	{
-		return m_pMaterial->GetParameter<T>(m_materialBufferChunkIndex[bindingIndex], bindingIndex, parameterIndex);
+		return m_pMaterial->GetParameter<T>(m_materialBufferChunkIndex, bindingIndex, parameterIndex);
 	}
 
 protected:
@@ -46,7 +46,7 @@ protected:
 	std::vector<uint32_t>						m_materialVariables;
 	std::vector<std::shared_ptr<Image>>			m_textures;
 	uint32_t									m_renderMask = 0xffffffff;
-	std::vector<uint32_t>						m_materialBufferChunkIndex;
+	uint32_t									m_materialBufferChunkIndex;
 	std::vector<std::weak_ptr<MeshRenderer>>	m_meshRenderers;
 
 	friend class Material;
