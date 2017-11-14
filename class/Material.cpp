@@ -26,6 +26,7 @@
 #include "../vulkan/SharedIndirectBuffer.h"
 #include "../vulkan/RenderWorkManager.h"
 #include "../vulkan/GlobalVulkanStates.h"
+#include "../vulkan/GlobalDeviceObjects.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -390,6 +391,11 @@ void Material::SyncBufferData()
 			var->SyncBufferData();
 }
 
+void Material::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	pCmdBuffer->BindPipeline(GetGraphicPipeline());
+}
+
 void Material::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	std::vector<uint32_t> offsets = UniformData::GetInstance()->GetFrameOffsets();
@@ -401,6 +407,12 @@ void Material::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffe
 void Material::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture)
 {
 	GetDescriptorSet(UniformDataStorage::PerObjectMaterialVariable)->UpdateImage(index, pTexture);
+}
+
+void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	pCmdBuffer->BindVertexBuffers({ VertexAttribBufferMgr(m_vertexFormat)->GetBuffer() });
+	pCmdBuffer->BindIndexBuffer(IndexBufferMgr()->GetBuffer());
 }
 
 void Material::Draw()
@@ -447,10 +459,9 @@ void Material::Draw()
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
 
-	m_materialInstances[i].first->PrepareMaterial(pDrawCmdBuffer);
-	m_pMesh->PrepareMeshData(pDrawCmdBuffer);
-
-	pDrawCmdBuffer->DrawIndexed(m_pMesh->GetIndexBuffer());
+	BindPipeline(pDrawCmdBuffer);
+	BindDescriptorSet(pDrawCmdBuffer);
+	BindMeshData(pDrawCmdBuffer);
 
 	pDrawCmdBuffer->EndSecondaryRecording();
 

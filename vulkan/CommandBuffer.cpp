@@ -715,12 +715,13 @@ void CommandBuffer::BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeli
 	AddToReferenceTable(pPipeline);
 }
 
-void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<VertexBuffer>>& vertexBuffers)
+void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<Buffer>>& vertexBuffers)
 {
 	std::vector<VkBuffer> rawVertexBuffers;
 	std::vector<VkDeviceSize> offsets;
 	for (uint32_t i = 0; i < vertexBuffers.size(); i++)
 	{
+		ASSERTION(std::dynamic_pointer_cast<VertexBuffer>(vertexBuffers[i]) != nullptr);
 		rawVertexBuffers.push_back(vertexBuffers[i]->GetDeviceHandle());
 		offsets.push_back(vertexBuffers[i]->GetBufferOffset());
 		AddToReferenceTable(vertexBuffers[i]);
@@ -729,10 +730,12 @@ void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<VertexBu
 	vkCmdBindVertexBuffers(GetDeviceHandle(), 0, rawVertexBuffers.size(), rawVertexBuffers.data(), offsets.data());
 }
 
-void CommandBuffer::BindIndexBuffer(const std::shared_ptr<IndexBuffer>& pIndexBuffer)
+void CommandBuffer::BindIndexBuffer(const std::shared_ptr<Buffer>& pIndexBuffer)
 {
-	vkCmdBindIndexBuffer(GetDeviceHandle(), pIndexBuffer->GetDeviceHandle(), pIndexBuffer->GetBufferOffset(), pIndexBuffer->GetType());
-	AddToReferenceTable(pIndexBuffer);
+	std::shared_ptr<IndexBuffer> _pIndexBuffer = std::dynamic_pointer_cast<IndexBuffer>(pIndexBuffer);
+	ASSERTION(_pIndexBuffer != nullptr);
+	vkCmdBindIndexBuffer(GetDeviceHandle(), _pIndexBuffer->GetDeviceHandle(), _pIndexBuffer->GetBufferOffset(), _pIndexBuffer->GetType());
+	AddToReferenceTable(_pIndexBuffer);
 }
 
 void CommandBuffer::DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer)

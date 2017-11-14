@@ -28,7 +28,7 @@ void MaterialInstance::SetMaterialTexture(uint32_t index, const std::shared_ptr<
 
 void MaterialInstance::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	pCmdBuffer->BindPipeline(GetMaterial()->GetGraphicPipeline());
+	GetMaterial()->BindPipeline(pCmdBuffer);
 }
 
 void MaterialInstance::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)

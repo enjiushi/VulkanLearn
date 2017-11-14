@@ -60,8 +60,10 @@ public:
 	std::vector<std::shared_ptr<DescriptorSet>> GetDescriptorSets() const { return m_descriptorSets; }
 	std::shared_ptr<DescriptorSet> GetDescriptorSet(uint32_t index) const { return m_descriptorSets[index]; }
 
+	void BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	void SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture);
+	void BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 	template <typename T>
 	void SetParameter(uint32_t chunkIndex, uint32_t bindingIndex, uint32_t parameterIndex, T val)

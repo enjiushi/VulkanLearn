@@ -90,8 +90,8 @@ public:
 
 	void BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets);
 	void BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeline);
-	void BindVertexBuffers(const std::vector<std::shared_ptr<VertexBuffer>>& vertexBuffers);
-	void BindIndexBuffer(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
+	void BindVertexBuffers(const std::vector<std::shared_ptr<Buffer>>& vertexBuffers);
+	void BindIndexBuffer(const std::shared_ptr<Buffer>& pIndexBuffer);
 
 	void BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::shared_ptr<RenderPass>& pRenderPass, const std::vector<VkClearValue>& clearValues, bool includeSecondary = false);
 	void BeginRenderPass(const std::vector<VkClearValue>& clearValues, bool includeSecondary = false);
