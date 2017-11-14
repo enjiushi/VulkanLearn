@@ -2,6 +2,7 @@
 
 #include "../common/Singleton.h"
 #include "Device.h"
+#include <map>
 
 class Queue;
 class CommandPool;
@@ -29,7 +30,7 @@ std::shared_ptr<SwapChain> GetSwapChain();
 std::shared_ptr<FrameManager> FrameMgr();
 std::shared_ptr<Device> GetDevice();
 std::shared_ptr<PhysicalDevice> GetPhysicalDevice();
-std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr();
+std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr(uint32_t vertexFormat);
 std::shared_ptr<SharedBufferManager> IndexBufferMgr();
 std::shared_ptr<SharedBufferManager> UniformBufferMgr();
 std::shared_ptr<SharedBufferManager> ShaderStorageBufferMgr();
@@ -54,7 +55,7 @@ public:
 	const std::shared_ptr<DeviceMemoryManager> GetDeviceMemMgr() const { return m_pDeviceMemMgr; }
 	const std::shared_ptr<StagingBufferManager> GetStagingBufferMgr() const { return m_pStaingBufferMgr; }
 	const std::shared_ptr<SwapChain> GetSwapChain() const { return m_pSwapChain; }
-	const std::shared_ptr<SharedBufferManager> GetVertexAttribBufferMgr() const { return m_pVertexAttribBufferMgr; }
+	const std::shared_ptr<SharedBufferManager> GetVertexAttribBufferMgr(uint32_t vertexFormat);
 	const std::shared_ptr<SharedBufferManager> GetIndexBufferMgr() const { return m_pIndexBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetUniformBufferMgr() const { return m_pUniformBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetShaderStorageBufferMgr() const { return m_pShaderStorageBufferMgr; }
@@ -74,13 +75,18 @@ protected:
 	std::shared_ptr<Queue>					m_pPresentQueue;
 	std::shared_ptr<CommandPool>			m_pMainThreadCmdPool;
 	std::shared_ptr<DeviceMemoryManager>	m_pDeviceMemMgr;
+
 	std::shared_ptr<StagingBufferManager>	m_pStaingBufferMgr;
+
 	std::shared_ptr<SwapChain>				m_pSwapChain;
-	std::shared_ptr<SharedBufferManager>	m_pVertexAttribBufferMgr;
+
 	std::shared_ptr<SharedBufferManager>	m_pIndexBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pUniformBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pShaderStorageBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pIndirectBufferMgr;
+	// Key: vertex format, value: vertex buffer manager
+	std::map<uint32_t, std::shared_ptr<SharedBufferManager>>	m_vertexAttribBufferMgrs;
+
 	std::shared_ptr<RenderWorkManager>		m_pRenderWorkMgr;
 	std::shared_ptr<GlobalVulkanStates>		m_pGlobalVulkanStates;
 
@@ -88,11 +94,11 @@ protected:
 
 	std::vector<std::shared_ptr<FrameBuffer>>m_framebuffers;
 
-	static const uint32_t ATTRIBUTE_BUFFER_SIZE = 1024 * 1024 * 256;
+	static const uint32_t ATTRIBUTE_BUFFER_SIZE = 1024 * 1024 * 64;
 	static const uint32_t INDEX_BUFFER_SIZE = 1024 * 1024 * 32;
 	static const uint32_t UNIFORM_BUFFER_SIZE = 1024 * 1024 * 8;
-	static const uint32_t SHADER_STORAGE_BUFFER_SIZE = 1024 * 1024 * 256;
-	static const uint32_t INDIRECT_BUFFER_SIZE = 1024 * 1024 * 32;
+	static const uint32_t SHADER_STORAGE_BUFFER_SIZE = 1024 * 1024 * 32;
+	static const uint32_t INDIRECT_BUFFER_SIZE = 1024 * 1024 * 4;
 
 	uint32_t								m_attributeBufferOffset = 0;
 };

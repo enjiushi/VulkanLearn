@@ -38,6 +38,7 @@ public:
 	uint32_t GetVertexBytes() const { return m_vertexBytes; }
 	uint32_t GetVerticesCount() const { return m_verticesCount; }
 	void PrepareMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	void PrepareIndirectCmd(VkDrawIndexedIndirectCommand& cmd);
 
 protected:
 	bool Init

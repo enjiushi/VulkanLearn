@@ -10,7 +10,8 @@ public:
 		const std::shared_ptr<SharedVertexBuffer>& pSelf,
 		uint32_t numBytes,
 		const VkVertexInputBindingDescription& bindingDesc,
-		const std::vector<VkVertexInputAttributeDescription>& attribDesc);
+		const std::vector<VkVertexInputAttributeDescription>& attribDesc,
+		uint32_t vertexFormat);
 
 public:
 	const VkVertexInputBindingDescription& GetBindingDesc() const { return m_bindingDesc; }
@@ -24,8 +25,10 @@ public:
 	static std::shared_ptr<SharedVertexBuffer> Create(const std::shared_ptr<Device>& pDevice,
 		uint32_t numBytes,
 		const VkVertexInputBindingDescription& bindingDesc,
-		const std::vector<VkVertexInputAttributeDescription>& attribDesc);
+		const std::vector<VkVertexInputAttributeDescription>& attribDesc,
+		uint32_t vertexFormat);
 
 protected:
-	std::shared_ptr<BufferKey> m_pBufferKey;
+	std::shared_ptr<BufferKey>	m_pBufferKey;
+	uint32_t					m_vertexFormat;
 };

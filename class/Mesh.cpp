@@ -116,7 +116,7 @@ bool Mesh::Init
 		attribDesc.push_back(attrib);
 	}
 
-	m_pVertexBuffer = SharedVertexBuffer::Create(GetDevice(), m_verticesCount * m_vertexBytes, bindingDesc, attribDesc);
+	m_pVertexBuffer = SharedVertexBuffer::Create(GetDevice(), m_verticesCount * m_vertexBytes, bindingDesc, attribDesc, vertexAttribFlag);
 	m_pVertexBuffer->UpdateByteStream(pVertices, 0, m_verticesCount * m_vertexBytes);
 	m_pIndexBuffer = SharedIndexBuffer::Create(GetDevice(), indicesCount * GetIndexBytes(indexType), indexType);
 	m_pIndexBuffer->UpdateByteStream(pIndices, 0, indicesCount * GetIndexBytes(indexType));
@@ -249,4 +249,15 @@ void Mesh::PrepareMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	pCmdBuffer->BindVertexBuffers({ GetVertexBuffer() });
 	pCmdBuffer->BindIndexBuffer(GetIndexBuffer());
+}
+
+void Mesh::PrepareIndirectCmd(VkDrawIndexedIndirectCommand& cmd)
+{
+	// FIXME: No instanced rendering for now, hard coded
+	//cmd.firstInstance = 0;
+	//cmd.indexCount = 1;
+
+	//cmd.vertexOffset = GetVertexBuffer()->GetBufferOffset();
+	//cmd.firstIndex = m_pMesh->GetIndexBuffer()->GetBufferOffset();
+	//cmd.indexCount = m_pMesh->GetVerticesCount
 }
