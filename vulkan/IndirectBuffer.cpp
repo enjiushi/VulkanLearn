@@ -22,7 +22,7 @@ std::shared_ptr<IndirectBuffer> IndirectBuffer::Create(const std::shared_ptr<Dev
 	return nullptr;
 }
 
-void IndirectBuffer::SetIndirectCmd(uint32_t index, const VkDrawIndirectCommand& cmd)
+void IndirectBuffer::SetIndirectCmd(uint32_t index, const VkDrawIndexedIndirectCommand& cmd)
 {
-	UpdateByteStream(&cmd, index * sizeof(VkDrawIndirectCommand), sizeof(VkDrawIndirectCommand));
+	UpdateByteStream(&cmd, index * sizeof(VkDrawIndexedIndirectCommand), sizeof(VkDrawIndexedIndirectCommand));
 }

@@ -11,8 +11,5 @@ public:
 	static std::shared_ptr<IndirectBuffer> Create(const std::shared_ptr<Device>& pDevice, uint32_t numBytes);
 
 public:
-	void SetIndirectCmd(uint32_t index, const VkDrawIndirectCommand& cmd);
-
-protected:
-	std::vector<VkDrawIndirectCommand>	m_commands;
+	void SetIndirectCmd(uint32_t index, const VkDrawIndexedIndirectCommand& cmd);
 };
