@@ -25,6 +25,7 @@
 #include "../class/UniformData.h"
 #include "IndirectBuffer.h"
 #include "SharedIndirectBuffer.h"
+#include "../class/Enums.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -426,7 +427,7 @@ void VulkanGlobal::InitVertices()
 
 	m_pCubeMesh = Mesh::Create
 	(
-		cubeVertices, 8, 1 << Mesh::VAFPosition,
+		cubeVertices, 8, 1 << VAFPosition,
 		cubeIndices, 36, VK_INDEX_TYPE_UINT32
 	);
 
@@ -444,7 +445,7 @@ void VulkanGlobal::InitVertices()
 
 	m_pQuadMesh = Mesh::Create
 	(
-		quadVertices, 4, (1 << Mesh::VAFPosition) | (1 << Mesh::VAFTexCoord), 
+		quadVertices, 4, (1 << VAFPosition) | (1 << VAFTexCoord), 
 		quadIndices, 6, VK_INDEX_TYPE_UINT32
 	);
 }
@@ -759,6 +760,7 @@ void VulkanGlobal::InitMaterials()
 	info.maxMaterialInstance	= 32;
 	info.materialVariableLayout = layout;
 	info.pRenderPass			= RenderWorkManager::GetDefaultRenderPass();
+	info.vertexFormat			= m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
 
 
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
@@ -785,6 +787,7 @@ void VulkanGlobal::InitMaterials()
 	info.maxMaterialInstance	= 1;
 	info.materialVariableLayout = layout;
 	info.pRenderPass			= RenderWorkManager::GetDefaultRenderPass();
+	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
 
 	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
@@ -797,6 +800,7 @@ void VulkanGlobal::InitMaterials()
 	info.maxMaterialInstance	= 1;
 	info.materialVariableLayout = layout;
 	info.pRenderPass			= RenderWorkManager::GetDefaultOffscreenRenderPass();
+	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
 
 	m_pSkyBoxIrradianceMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxIrradianceMaterialInstance = m_pSkyBoxIrradianceMaterial->CreateMaterialInstance();
@@ -809,6 +813,7 @@ void VulkanGlobal::InitMaterials()
 	info.maxMaterialInstance	= 1;
 	info.materialVariableLayout = layout;
 	info.pRenderPass			= RenderWorkManager::GetDefaultOffscreenRenderPass();
+	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
 
 	m_pSkyBoxReflectionMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxReflectionMaterialInstance = m_pSkyBoxReflectionMaterial->CreateMaterialInstance();
@@ -821,6 +826,7 @@ void VulkanGlobal::InitMaterials()
 	info.maxMaterialInstance	= 1;
 	info.materialVariableLayout = layout;
 	info.pRenderPass			= RenderWorkManager::GetDefaultOffscreenRenderPass();
+	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
 
 	m_pBRDFLutMaterial = Material::CreateDefaultMaterial(info);
 	m_pBRDFLutMaterialInstance = m_pBRDFLutMaterial->CreateMaterialInstance();

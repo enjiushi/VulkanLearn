@@ -52,7 +52,6 @@ bool Mesh::Init
 )
 {
 	m_vertexBytes = GetVertexBytes(vertexAttribFlag);
-	m_vertexAttribFlag = vertexAttribFlag;
 	m_verticesCount = verticesCount;
 	m_indicesCount = indicesCount;
 
@@ -246,6 +245,11 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
 	return nullptr;
 }
 
+uint32_t Mesh::GetVertexFormat() const
+{ 
+	return m_pVertexBuffer->GetVertexFormat();
+}
+
 void Mesh::PrepareMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	pCmdBuffer->BindVertexBuffers({ GetVertexBuffer() });
@@ -255,10 +259,10 @@ void Mesh::PrepareMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 void Mesh::PrepareIndirectCmd(VkDrawIndexedIndirectCommand& cmd)
 {
 	// FIXME: No instanced rendering for now, hard coded
-	cmd.firstInstance = 0;
+	/*cmd.firstInstance = 0;
 	cmd.indexCount = 1;
 
 	cmd.vertexOffset = GetVertexBuffer()->GetBufferOffset();
 	cmd.firstIndex = GetIndexBuffer()->GetBufferOffset() / GetIndexBytes(GetIndexBuffer()->GetType());
-	cmd.indexCount = m_indicesCount;
+	cmd.indexCount = m_indicesCount;*/
 }

@@ -4,6 +4,7 @@
 #include "../class/UniformData.h"
 #include "PerMaterialUniforms.h"
 #include <map>
+#include "Enums.h"
 
 class PipelineLayout;
 class GraphicPipeline;
@@ -35,6 +36,7 @@ typedef struct _SimpleMaterialCreateInfo
 	std::vector<VkVertexInputAttributeDescription>			vertexAttributesInfo;
 	uint32_t												maxMaterialInstance = 512;
 	std::vector<UniformVarList>								materialVariableLayout;
+	uint32_t												vertexFormat;
 	// FIXME: Render pass is wired thing, as it's used both for pipeline and frame buffer
 	// Need to think about where it belongs or belongs to itself
 	std::shared_ptr<RenderPass>						pRenderPass;
@@ -86,7 +88,8 @@ protected:
 		const std::shared_ptr<RenderPass>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 		uint32_t maxMaterialInstance,
-		const std::vector<UniformVarList>& materialVariableLayout
+		const std::vector<UniformVarList>& materialVariableLayout,
+		uint32_t vertexFormat
 	);
 
 	static uint32_t GetByteSize(std::vector<UniformVar>& UBOLayout);
@@ -105,5 +108,6 @@ protected:
 	std::vector<std::weak_ptr<MaterialInstance>>		m_generatedInstances;
 	std::shared_ptr<SharedIndirectBuffer>				m_pIndirectBuffer;
 	uint32_t											m_indirectIndex = 0;
+	uint32_t											m_vertexFormat;
 	friend class MaterialInstance;
 };

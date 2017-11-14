@@ -24,6 +24,8 @@
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/Image.h"
 #include "../vulkan/SharedIndirectBuffer.h"
+#include "../vulkan/RenderWorkManager.h"
+#include "../vulkan/GlobalVulkanStates.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -122,7 +124,7 @@ std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCr
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetDeviceHandle();
 
-	if (pMaterial.get() && pMaterial->Init(pMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.maxMaterialInstance, simpleMaterialInfo.materialVariableLayout))
+	if (pMaterial.get() && pMaterial->Init(pMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.maxMaterialInstance, simpleMaterialInfo.materialVariableLayout, simpleMaterialInfo.vertexFormat))
 		return pMaterial;
 	return nullptr;
 }
@@ -134,7 +136,8 @@ bool Material::Init
 	const std::shared_ptr<RenderPass>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	uint32_t maxMaterialInstance,
-	const std::vector<UniformVarList>& materialVariableLayout
+	const std::vector<UniformVarList>& materialVariableLayout,
+	uint32_t vertexFormat
 )
 {
 	if (!SelfRefBase<Material>::Init(pSelf))
@@ -288,6 +291,8 @@ bool Material::Init
 
 	m_pIndirectBuffer = SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT);
 
+	m_vertexFormat = vertexFormat;
+
 	return true;
 }
 
@@ -410,6 +415,46 @@ void Material::Draw()
 			it++;
 		}
 	}
+
+	/*std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
+
+	std::vector<VkClearValue> clearValues =
+	{
+		{ 0.2f, 0.2f, 0.2f, 0.2f },
+		{ 1.0f, 0 }
+	};
+
+	VkCommandBufferInheritanceInfo inheritanceInfo = {};
+	inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+	inheritanceInfo.renderPass = RenderWorkMgr()->GetCurrentRenderPass()->GetDeviceHandle();
+	inheritanceInfo.subpass = RenderWorkMgr()->GetCurrentRenderPass()->GetCurrentSubpass();
+	inheritanceInfo.framebuffer = RenderWorkMgr()->GetCurrentFrameBuffer()->GetDeviceHandle();
+	pDrawCmdBuffer->StartSecondaryRecording(inheritanceInfo);
+
+	VkViewport viewport =
+	{
+		0, 0,
+		RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+		0, 1
+	};
+
+	VkRect2D scissorRect =
+	{
+		0, 0,
+		RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+	};
+
+	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
+	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
+
+	m_materialInstances[i].first->PrepareMaterial(pDrawCmdBuffer);
+	m_pMesh->PrepareMeshData(pDrawCmdBuffer);
+
+	pDrawCmdBuffer->DrawIndexed(m_pMesh->GetIndexBuffer());
+
+	pDrawCmdBuffer->EndSecondaryRecording();
+
+	RenderWorkMgr()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);*/
 }
 
 void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd)

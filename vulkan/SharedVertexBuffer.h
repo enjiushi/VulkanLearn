@@ -30,5 +30,4 @@ public:
 
 protected:
 	std::shared_ptr<BufferKey>	m_pBufferKey;
-	uint32_t					m_vertexFormat;
 };
