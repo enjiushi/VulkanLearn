@@ -17,6 +17,7 @@ class FrameBuffer;
 class ThreadTaskQueue;
 class RenderWorkManager;
 class GlobalVulkanStates;
+class PerFrameResource;
 
 class GlobalDeviceObjects;
 
@@ -39,6 +40,7 @@ std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue();
 std::vector<std::shared_ptr<FrameBuffer>> DefaultFrameBuffers();
 std::shared_ptr<RenderWorkManager> RenderWorkMgr();
 std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates();
+std::shared_ptr<PerFrameResource> MainThreadPerFrameRes();
 
 class GlobalDeviceObjects : public Singleton<GlobalDeviceObjects>
 {
@@ -65,6 +67,7 @@ public:
 	const std::shared_ptr<ThreadTaskQueue> GetThreadTaskQueue() const { return m_pThreadTaskQueue; }
 	const std::shared_ptr<RenderWorkManager> GetRenderWorkMgr() const { return m_pRenderWorkMgr; }
 	const std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates() const { return m_pGlobalVulkanStates; }
+	const std::shared_ptr<PerFrameResource> GetMainThreadPerFrameRes() const;
 
 	//FIXME : remove me
 	bool RequestAttributeBuffer(uint32_t size, uint32_t& offset);
@@ -93,6 +96,8 @@ protected:
 	std::shared_ptr<ThreadTaskQueue>		m_pThreadTaskQueue;
 
 	std::vector<std::shared_ptr<FrameBuffer>>m_framebuffers;
+
+	std::vector<std::shared_ptr<PerFrameResource>> m_mainThreadPerFrameRes;
 
 	static const uint32_t ATTRIBUTE_BUFFER_SIZE = 1024 * 1024 * 64;
 	static const uint32_t INDEX_BUFFER_SIZE = 1024 * 1024 * 32;
