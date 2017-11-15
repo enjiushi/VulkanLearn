@@ -1,4 +1,4 @@
-#version 450
+#version 460
 
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
@@ -22,10 +22,10 @@ const vec3 lightPos = vec3(1000, 0, -1000);
 
 void main() 
 {
-	gl_Position = perObjectData[0].MVPN * vec4(inPos.xyz, 1.0);
+	gl_Position = perObjectData[gl_DrawID].MVPN * vec4(inPos.xyz, 1.0);
 
-	outNormal = normalize(vec3(perObjectData[0].model * vec4(inNormal, 0.0)));
-	outWorldPos = vec3(perObjectData[0].model * vec4(inPos, 1.0));
+	outNormal = normalize(vec3(perObjectData[gl_DrawID].model * vec4(inNormal, 0.0)));
+	outWorldPos = vec3(perObjectData[gl_DrawID].model * vec4(inPos, 1.0));
 
 	outUv = inUv;
 	outUv.t = 1.0 - inUv.t;
@@ -34,5 +34,5 @@ void main()
 	outViewDir = vec3(perFrameData.camPos.xyz - outWorldPos);
 
 	outTangent = inTangent;
-	outBitangent = normalize(cross(outNormal, normalize(vec3(perObjectData[0].model * vec4(inTangent, 0.0)))));
+	outBitangent = normalize(cross(outNormal, normalize(vec3(perObjectData[gl_DrawID].model * vec4(inTangent, 0.0)))));
 }
