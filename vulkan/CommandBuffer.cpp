@@ -15,6 +15,7 @@
 #include "RenderWorkManager.h"
 #include "GlobalDeviceObjects.h"
 #include "IndirectBuffer.h"
+#include "../class/Enums.h"
 
 CommandBuffer::~CommandBuffer()
 {
@@ -743,7 +744,8 @@ void CommandBuffer::DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer
 
 void CommandBuffer::DrawIndexedIndirect(const std::shared_ptr<IndirectBuffer>& pIndirectBuffer, uint32_t offset, uint32_t count)
 {
-	vkCmdDrawIndexedIndirect(GetDeviceHandle(), pIndirectBuffer->GetDeviceHandle(), offset, count, sizeof(VkDrawIndexedIndirectCommand));
+	// NOTE: offset of vkCmdDrawIndexedIndirect is mesured by bytes, not elements!
+	vkCmdDrawIndexedIndirect(GetDeviceHandle(), pIndirectBuffer->GetDeviceHandle(), pIndirectBuffer->GetBufferOffset() + offset * sizeof(VkDrawIndexedIndirectCommand), count, sizeof(VkDrawIndexedIndirectCommand));
 	AddToReferenceTable(pIndirectBuffer);
 }
 

@@ -8,50 +8,13 @@
 #include "postprocess.h"
 #include <string>
 
-uint32_t Mesh::GetVertexBytes(uint32_t vertexAttribFlag)
-{
-	uint32_t vertexByte = 0;
-	if (vertexAttribFlag & (1 << VAFPosition))
-	{
-		vertexByte += 3 * sizeof(float);
-	}
-	if (vertexAttribFlag & (1 << VAFNormal))
-	{
-		vertexByte += 3 * sizeof(float);
-	}
-	if (vertexAttribFlag & (1 << VAFColor))
-	{
-		vertexByte += 4 * sizeof(float);
-	}
-	if (vertexAttribFlag & (1 << VAFTexCoord))
-	{
-		vertexByte += 2 * sizeof(float);
-	}
-	if (vertexAttribFlag & (1 << VAFTangent))
-	{
-		vertexByte += 3 * sizeof(float);
-	}
-	return vertexByte;
-}
-
-uint32_t Mesh::GetIndexBytes(VkIndexType indexType)
-{
-	switch (indexType)
-	{
-	case VK_INDEX_TYPE_UINT16: return 2;
-	case VK_INDEX_TYPE_UINT32: return 4;
-	default: ASSERTION(false);
-	}
-	return 0;
-}
-
 bool Mesh::Init
 (
 	const void* pVertices, uint32_t verticesCount, uint32_t vertexAttribFlag,
 	const void* pIndices, uint32_t indicesCount, VkIndexType indexType
 )
 {
-	m_vertexBytes = GetVertexBytes(vertexAttribFlag);
+	m_vertexBytes = ::GetVertexBytes(vertexAttribFlag);
 	m_verticesCount = verticesCount;
 	m_indicesCount = indicesCount;
 
@@ -260,7 +223,7 @@ void Mesh::PrepareIndirectCmd(VkDrawIndexedIndirectCommand& cmd)
 {
 	// FIXME: No instanced rendering for now, hard coded
 	cmd.firstInstance = 0;
-	cmd.indexCount = 1;
+	cmd.instanceCount = 1;
 
 	cmd.vertexOffset = GetVertexBuffer()->GetBufferOffset();
 	cmd.firstIndex = GetIndexBuffer()->GetBufferOffset() / GetIndexBytes(GetIndexBuffer()->GetType());

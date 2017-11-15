@@ -417,18 +417,7 @@ void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 
 void Material::Draw()
 {
-	for (auto it = m_generatedInstances.begin(); it != m_generatedInstances.end();)
-	{
-		if (it->expired())
-			it = m_generatedInstances.erase(it);
-		else
-		{
-			it->lock()->Draw();
-			it++;
-		}
-	}
-
-	/*std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
 	std::vector<VkClearValue> clearValues =
 	{
@@ -463,9 +452,11 @@ void Material::Draw()
 	BindDescriptorSet(pDrawCmdBuffer);
 	BindMeshData(pDrawCmdBuffer);
 
+	pDrawCmdBuffer->DrawIndexedIndirect(m_pIndirectBuffer, 0, m_indirectIndex);
+
 	pDrawCmdBuffer->EndSecondaryRecording();
 
-	RenderWorkMgr()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);*/
+	RenderWorkMgr()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
 }
 
 void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd)

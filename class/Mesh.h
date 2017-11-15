@@ -19,9 +19,6 @@ public:
 		const void* pIndices, uint32_t indicesCount, VkIndexType indexType
 	);
 
-	static uint32_t GetVertexBytes(uint32_t vertexAttribFlag);
-	static uint32_t GetIndexBytes(VkIndexType indexType);
-
 public:
 	std::shared_ptr<SharedVertexBuffer> GetVertexBuffer() const { return m_pVertexBuffer; }
 	std::shared_ptr<SharedIndexBuffer> GetIndexBuffer() const { return m_pIndexBuffer; }
