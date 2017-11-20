@@ -1,15 +1,23 @@
-#include "DeviceObjectBase.h"
+#include "../common/Singleton.h"
+#include "../vulkan/RenderPass.h"
 
-class RenderPass;
 class FrameBuffer;
 
-class RenderWorkManager : DeviceObjectBase<RenderWorkManager>
+class RenderWorkManager : public Singleton<RenderWorkManager>
 {
 public:
-	static std::shared_ptr<RenderWorkManager> Create(const std::shared_ptr<Device>& pDevice);
+	enum RenderState
+	{
+		None,
+		IrradianceGen,
+		ReflectionGen,
+		BrdfLutGen,
+		Scene,
+		Count
+	};
 
-protected:
-	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<RenderWorkManager>& pSelf);
+public:
+	bool Init();
 
 public:
 	std::shared_ptr<RenderPass> GetCurrentRenderPass() const { return m_pCurrentRenderPass; }
@@ -29,18 +37,19 @@ public:
 
 	void SetDeferredRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer);
 
-protected:
-	std::shared_ptr<RenderPass>		m_pCurrentRenderPass;
-	std::shared_ptr<FrameBuffer>	m_pCurrentFrameBuffer;
+	void SetRenderState(RenderState renderState) { m_renderState = renderState; }
+	RenderState GetRenderState() const { return m_renderState; }
 
 public:
-	static std::shared_ptr<RenderPass> GetDefaultRenderPass();
-	static bool CreateDefaultRenderPass();
+	std::shared_ptr<RenderPass> GetDefaultRenderPass();
+	std::shared_ptr<RenderPass> GetDefaultOffscreenRenderPass();
 
-	static std::shared_ptr<RenderPass> GetDefaultOffscreenRenderPass();
-	static bool CreateDefaultOffscreenRenderPass();
+protected:
+	std::shared_ptr<RenderPass>			m_pDefaultRenderPass;
+	std::shared_ptr<RenderPass>			m_pDefaultOffScreenRenderPass;
 
+	std::shared_ptr<RenderPass>			m_pCurrentRenderPass;
+	std::shared_ptr<FrameBuffer>		m_pCurrentFrameBuffer;
 
-	static std::shared_ptr<RenderPass>	m_pDefaultRenderPass;
-	static std::shared_ptr<RenderPass>	m_pDefaultOffScreenRenderPass;
+	RenderState							m_renderState;
 };

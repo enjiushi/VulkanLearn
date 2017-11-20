@@ -10,7 +10,6 @@
 #include "DepthStencilBuffer.h"
 #include "RenderPass.h"
 #include "../thread/ThreadTaskQueue.hpp"
-#include "RenderWorkManager.h"
 #include "GlobalVulkanStates.h"
 #include "PhysicalDevice.h"
 #include "PerFrameResource.h"
@@ -35,11 +34,12 @@ bool GlobalDeviceObjects::InitObjects(const std::shared_ptr<Device>& pDevice)
 
 	m_pSwapChain = SwapChain::Create(pDevice);
 
-	m_pRenderWorkMgr = RenderWorkManager::Create(pDevice);
+	m_pDefaultRenderPass = RenderPass::CreateDefaultRenderPass();
 
 	m_framebuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
+
 	for (uint32_t i = 0; i < m_framebuffers.size(); i++)
-		m_framebuffers[i] = FrameBuffer::Create(m_pDevice, m_pSwapChain->GetSwapChainImage(i), DepthStencilBuffer::Create(m_pDevice), RenderWorkManager::GetDefaultRenderPass());
+		m_framebuffers[i] = FrameBuffer::Create(m_pDevice, m_pSwapChain->GetSwapChainImage(i), DepthStencilBuffer::Create(m_pDevice), m_pDefaultRenderPass);
 
 	m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(pDevice, FrameMgr()->MaxFrameCount(), FrameMgr());
 
@@ -102,7 +102,7 @@ std::shared_ptr<SharedBufferManager> UniformBufferMgr() { return GlobalObjects()
 std::shared_ptr<SharedBufferManager> ShaderStorageBufferMgr() { return GlobalObjects()->GetShaderStorageBufferMgr(); }
 std::shared_ptr<SharedBufferManager> IndirectBufferMgr() { return GlobalObjects()->GetIndirectBufferMgr(); }
 std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue() { return GlobalObjects()->GetThreadTaskQueue(); }
+std::shared_ptr<RenderPass> DefaultRenderPass() { return GlobalObjects()->GetDefaultRenderPass(); }
 std::vector<std::shared_ptr<FrameBuffer>> DefaultFrameBuffers() { return GlobalObjects()->GetDefaultFrameBuffers(); }
-std::shared_ptr<RenderWorkManager> RenderWorkMgr() { return GlobalObjects()->GetRenderWorkMgr(); }
 std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates() { return GlobalObjects()->GetGlobalVulkanStates(); }
 std::shared_ptr<PerFrameResource> MainThreadPerFrameRes() { return GlobalObjects()->GetMainThreadPerFrameRes(); }

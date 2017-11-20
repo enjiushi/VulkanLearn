@@ -5,15 +5,15 @@ template <typename T>
 class BaseSingleton : public SelfRefBase<T>
 {
 public:
-	static T* GetInstance()
+	static std::shared_ptr<T>& GetInstance()
 	{
-		static T* instance = nullptr;
-		if (instance)
-			return instance;
+		static std::shared_ptr<T> pInstance = nullptr;
+		if (pInstance != nullptr)
+			return pInstance;
 
-		instance = new T;
-		instance->Init();
-		return instance;
+		pInstance = std::make_shared<T>();
+		pInstance->Init(pInstance);
+		return pInstance;
 	}
 
 protected:

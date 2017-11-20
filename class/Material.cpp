@@ -18,13 +18,13 @@
 #include "../vulkan/ShaderModule.h"
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/DescriptorPool.h"
-#include "../component/MaterialInstance.h"
+#include "../class/MaterialInstance.h"
 #include "../vulkan/ShaderStorageBuffer.h"
 #include "../class/UniformData.h"
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/Image.h"
 #include "../vulkan/SharedIndirectBuffer.h"
-#include "../vulkan/RenderWorkManager.h"
+#include "RenderWorkManager.h"
 #include "../vulkan/GlobalVulkanStates.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 
@@ -427,22 +427,22 @@ void Material::Draw()
 
 	VkCommandBufferInheritanceInfo inheritanceInfo = {};
 	inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-	inheritanceInfo.renderPass = RenderWorkMgr()->GetCurrentRenderPass()->GetDeviceHandle();
-	inheritanceInfo.subpass = RenderWorkMgr()->GetCurrentRenderPass()->GetCurrentSubpass();
-	inheritanceInfo.framebuffer = RenderWorkMgr()->GetCurrentFrameBuffer()->GetDeviceHandle();
+	inheritanceInfo.renderPass = RenderWorkManager::GetInstance()->GetCurrentRenderPass()->GetDeviceHandle();
+	inheritanceInfo.subpass = RenderWorkManager::GetInstance()->GetCurrentRenderPass()->GetCurrentSubpass();
+	inheritanceInfo.framebuffer = RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetDeviceHandle();
 	pDrawCmdBuffer->StartSecondaryRecording(inheritanceInfo);
 
 	VkViewport viewport =
 	{
 		0, 0,
-		RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+		RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
 		0, 1
 	};
 
 	VkRect2D scissorRect =
 	{
 		0, 0,
-		RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+		RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
 	};
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
@@ -456,7 +456,7 @@ void Material::Draw()
 
 	pDrawCmdBuffer->EndSecondaryRecording();
 
-	RenderWorkMgr()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
+	RenderWorkManager::GetInstance()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
 }
 
 void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd)

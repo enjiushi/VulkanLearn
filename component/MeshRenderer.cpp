@@ -1,7 +1,7 @@
 #include "MeshRenderer.h"
 #include "../class/Mesh.h"
 #include "Material.h"
-#include "MaterialInstance.h"
+#include "../class/MaterialInstance.h"
 #include <mutex>
 #include "../Base/BaseObject.h"
 #include "../vulkan/CommandBuffer.h"
@@ -16,7 +16,7 @@
 #include "../vulkan/GraphicPipeline.h"
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/StagingBufferManager.h"
-#include "../vulkan/RenderWorkManager.h"
+#include "../class/RenderWorkManager.h"
 #include "../vulkan/GlobalVulkanStates.h"
 #include "../common/Singleton.h"
 #include "../vulkan/RenderPass.h"
@@ -83,7 +83,7 @@ void MeshRenderer::LateUpdate()
 
 	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
 	{
-		if (((1 << GetGlobalVulkanStates()->GetRenderState()) & m_materialInstances[i].first->GetRenderMask()) == 0)
+		if (((1 << RenderWorkManager::GetInstance()->GetRenderState()) & m_materialInstances[i].first->GetRenderMask()) == 0)
 			continue;
 
 		VkDrawIndexedIndirectCommand cmd;
@@ -98,7 +98,7 @@ void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 
 	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
 	{
-		if (((1 << GetGlobalVulkanStates()->GetRenderState()) & m_materialInstances[i].first->GetRenderMask()) == 0)
+		if (((1 << RenderWorkManager::GetInstance()->GetRenderState()) & m_materialInstances[i].first->GetRenderMask()) == 0)
 			continue;
 
 		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = pPerFrameRes->AllocateSecondaryCommandBuffer();
@@ -111,22 +111,22 @@ void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 
 		VkCommandBufferInheritanceInfo inheritanceInfo = {};
 		inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-		inheritanceInfo.renderPass = RenderWorkMgr()->GetCurrentRenderPass()->GetDeviceHandle();
-		inheritanceInfo.subpass = RenderWorkMgr()->GetCurrentRenderPass()->GetCurrentSubpass();
-		inheritanceInfo.framebuffer = RenderWorkMgr()->GetCurrentFrameBuffer()->GetDeviceHandle();
+		inheritanceInfo.renderPass = RenderWorkManager::GetInstance()->GetCurrentRenderPass()->GetDeviceHandle();
+		inheritanceInfo.subpass = RenderWorkManager::GetInstance()->GetCurrentRenderPass()->GetCurrentSubpass();
+		inheritanceInfo.framebuffer = RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetDeviceHandle();
 		pDrawCmdBuffer->StartSecondaryRecording(inheritanceInfo);
 
 		VkViewport viewport =
 		{
 			0, 0,
-			RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+			RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
 			0, 1
 		};
 
 		VkRect2D scissorRect =
 		{
 			0, 0,
-			RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkMgr()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+			RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
 		};
 
 		pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
@@ -139,6 +139,6 @@ void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 
 		pDrawCmdBuffer->EndSecondaryRecording();
 
-		RenderWorkMgr()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
+		RenderWorkManager::GetInstance()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
 	}
 }

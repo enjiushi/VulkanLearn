@@ -36,7 +36,7 @@
 #include "../class/Mesh.h"
 #include "../component/MeshRenderer.h"
 #include "../class/Material.h"
-#include "../component/MaterialInstance.h"
+#include "../class/MaterialInstance.h"
 #include "ShaderStorageBuffer.h"
 
 class VulkanGlobal : public Singleton<VulkanGlobal>

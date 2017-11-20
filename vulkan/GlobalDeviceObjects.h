@@ -15,9 +15,9 @@ class PhysicalDevice;
 class SharedBufferManager;
 class FrameBuffer;
 class ThreadTaskQueue;
-class RenderWorkManager;
 class GlobalVulkanStates;
 class PerFrameResource;
+class RenderPass;
 
 class GlobalDeviceObjects;
 
@@ -37,8 +37,8 @@ std::shared_ptr<SharedBufferManager> UniformBufferMgr();
 std::shared_ptr<SharedBufferManager> ShaderStorageBufferMgr();
 std::shared_ptr<SharedBufferManager> IndirectBufferMgr();
 std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue();
+std::shared_ptr<RenderPass> DefaultRenderPass();
 std::vector<std::shared_ptr<FrameBuffer>> DefaultFrameBuffers();
-std::shared_ptr<RenderWorkManager> RenderWorkMgr();
 std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates();
 std::shared_ptr<PerFrameResource> MainThreadPerFrameRes();
 
@@ -62,10 +62,10 @@ public:
 	const std::shared_ptr<SharedBufferManager> GetUniformBufferMgr() const { return m_pUniformBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetShaderStorageBufferMgr() const { return m_pShaderStorageBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetIndirectBufferMgr() const { return m_pIndirectBufferMgr; }
+	const std::shared_ptr<RenderPass> GetDefaultRenderPass() const { return m_pDefaultRenderPass; }
 	const std::shared_ptr<FrameBuffer> GetCurrentFrameBuffer() const;
 	const std::vector<std::shared_ptr<FrameBuffer>> GetDefaultFrameBuffers() const { return m_framebuffers; }
 	const std::shared_ptr<ThreadTaskQueue> GetThreadTaskQueue() const { return m_pThreadTaskQueue; }
-	const std::shared_ptr<RenderWorkManager> GetRenderWorkMgr() const { return m_pRenderWorkMgr; }
 	const std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates() const { return m_pGlobalVulkanStates; }
 	const std::shared_ptr<PerFrameResource> GetMainThreadPerFrameRes() const;
 
@@ -83,6 +83,8 @@ protected:
 
 	std::shared_ptr<SwapChain>				m_pSwapChain;
 
+	std::shared_ptr<RenderPass>				m_pDefaultRenderPass;
+
 	std::shared_ptr<SharedBufferManager>	m_pIndexBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pUniformBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pShaderStorageBufferMgr;
@@ -90,7 +92,6 @@ protected:
 	// Key: vertex format, value: vertex buffer manager
 	std::map<uint32_t, std::shared_ptr<SharedBufferManager>>	m_vertexAttribBufferMgrs;
 
-	std::shared_ptr<RenderWorkManager>		m_pRenderWorkMgr;
 	std::shared_ptr<GlobalVulkanStates>		m_pGlobalVulkanStates;
 
 	std::shared_ptr<ThreadTaskQueue>		m_pThreadTaskQueue;

@@ -12,6 +12,8 @@ public:
 
 public:
 	static std::shared_ptr<RenderPass> Create(const std::shared_ptr<Device>& pDevice, const VkRenderPassCreateInfo& renderPassInfo);
+	static std::shared_ptr<RenderPass> CreateDefaultRenderPass();
+	static std::shared_ptr<RenderPass> CreateDefaultOffscreenRenderPass();
 
 protected:
 	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<RenderPass>& pSelf, const VkRenderPassCreateInfo& renderPassInfo);

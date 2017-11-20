@@ -6,7 +6,7 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/SwapChain.h"
 #include "../class/UniformData.h"
-#include "MeshRenderer.h"
+#include "../component/MeshRenderer.h"
 
 MaterialInstance::~MaterialInstance()
 {
