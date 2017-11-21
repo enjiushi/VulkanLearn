@@ -26,6 +26,12 @@ struct PerObjectData
 	mat4 MVPN;
 };
 
+struct ObjectDataIndex
+{
+	int perObjectIndex;
+	int perMaterialIndex;
+};
+
 layout(set = 0, binding = 0) uniform GlobalUniforms
 {
 	GlobalData globalData;
@@ -39,4 +45,9 @@ layout(set = 1, binding = 0) uniform PerFrameUniforms
 layout(set = 2, binding = 0) buffer PerObjectUniforms
 {
 	PerObjectData perObjectData[];
+};
+
+layout(set = 3, binding = 0) uniform PerMaterialIndirectUniforms
+{
+	ObjectDataIndex objectDataIndex[];
 };
