@@ -528,10 +528,15 @@ void VulkanGlobal::InitIrradianceMap()
 		
 		pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
 
+		m_pSkyBoxIrradianceMaterial->OnFrameStart();
+
 		m_pRootObject->Update();
 		m_pRootObject->LateUpdate();
 		UniformData::GetInstance()->SyncDataBuffer();
 		m_pRootObject->Draw();
+
+		m_pSkyBoxIrradianceMaterial->OnFrameEnd();
+
 		RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
 		pDrawCmdBuffer->EndRenderPass();
@@ -611,16 +616,18 @@ void VulkanGlobal::InitPrefilterEnvMap()
 
 			pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
 
+			m_pSkyBoxReflectionMaterial->OnFrameStart();
+
 			m_pRootObject->Update();
 			m_pRootObject->LateUpdate();
 			UniformData::GetInstance()->SyncDataBuffer();
 			m_pRootObject->Draw();
 
+			m_pSkyBoxIrradianceMaterial->OnFrameEnd();
+
 			RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
-
 			pDrawCmdBuffer->EndRenderPass();
-
 
 			pDrawCmdBuffer->EndPrimaryRecording();
 
@@ -911,8 +918,9 @@ void VulkanGlobal::InitScene()
 	m_pGunObject = BaseObject::Create();
 	m_pGunObject1 = BaseObject::Create();
 	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
+	m_pGunMeshRenderer1 = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
 	m_pGunObject->AddComponent(m_pGunMeshRenderer);
-	m_pGunObject1->AddComponent(m_pGunMeshRenderer);
+	m_pGunObject1->AddComponent(m_pGunMeshRenderer1);
 	m_pGunObject1->SetPos({-100, 0, 0});
 
 	m_pSkyBoxObject = BaseObject::Create();

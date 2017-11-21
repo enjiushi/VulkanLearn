@@ -88,7 +88,7 @@ void MeshRenderer::LateUpdate()
 
 		VkDrawIndexedIndirectCommand cmd;
 		m_pMesh->PrepareIndirectCmd(cmd);
-		m_materialInstances[i].first->InsertIntoRenderQueue(cmd);
+		m_materialInstances[i].first->InsertIntoRenderQueue(cmd, m_perObjectBufferIndex);
 	}
 }
 

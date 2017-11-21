@@ -5,9 +5,6 @@
 
 class ChunkBasedUniforms : public UniformDataStorage
 {
-protected:
-	static const uint32_t MAXIMUM_OBJECTS = 1024;
-
 public:
 	uint32_t AllocatePerObjectChunk();
 	void FreePreObjectChunk(uint32_t index);

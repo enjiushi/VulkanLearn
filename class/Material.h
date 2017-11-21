@@ -19,6 +19,7 @@ class ShaderStorageBuffer;
 class CommandBuffer;
 class Image;
 class SharedIndirectBuffer;
+class PerMaterialIndirectUniforms;
 
 // More to add
 enum MaterialVariableType
@@ -77,6 +78,11 @@ public:
 		return m_perMaterialUniforms[bindingIndex]->GetParameter<T>(chunkIndex, m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][bindingIndex].vars[parameterIndex].offset);
 	}
 
+	void SetPerObjectIndex(uint32_t indirectIndex, uint32_t perObjectIndex);
+	uint32_t GetPerObjectIndex(uint32_t indirectIndex) const;
+	void SetPerMaterialIndex(uint32_t indirectIndex, uint32_t perMaterialIndex);
+	uint32_t GetPerMaterialIndex(uint32_t indirectIndex) const;
+
 	void OnFrameStart();
 	void SyncBufferData();
 	void Draw();
@@ -95,7 +101,7 @@ protected:
 	);
 
 	static uint32_t GetByteSize(std::vector<UniformVar>& UBOLayout);
-	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd);
+	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex);
 
 protected:
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
@@ -106,6 +112,7 @@ protected:
 	uint32_t											m_maxMaterialInstance;
 	std::vector<std::vector<UniformVarList>>			m_materialVariableLayout;
 	std::vector<std::shared_ptr<PerMaterialUniforms>>	m_perMaterialUniforms;
+	std::shared_ptr<PerMaterialIndirectUniforms>		m_pPerMaterialIndirectUniforms;
 	std::vector<uint32_t>								m_frameOffsets;
 	std::vector<std::weak_ptr<MaterialInstance>>		m_generatedInstances;
 	std::shared_ptr<SharedIndirectBuffer>				m_pIndirectBuffer;

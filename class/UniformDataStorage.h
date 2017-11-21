@@ -36,6 +36,9 @@ typedef struct _UniformVarList
 
 class UniformDataStorage : public SelfRefBase<UniformDataStorage>
 {
+protected:
+	static const uint32_t MAXIMUM_OBJECTS = 1024;
+
 public:
 	enum UniformType
 	{

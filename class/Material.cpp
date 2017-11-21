@@ -27,6 +27,7 @@
 #include "RenderWorkManager.h"
 #include "../vulkan/GlobalVulkanStates.h"
 #include "../vulkan/GlobalDeviceObjects.h"
+#include "../class/PerMaterialIndirectUniforms.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -148,6 +149,10 @@ bool Material::Init
 	_materialVariableLayout.resize(UniformDataStorage::UniformTypeCount);
 	_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable] = materialVariableLayout;
 
+	// Add per material indirect index uniform layout
+	m_pPerMaterialIndirectUniforms = PerMaterialIndirectUniforms::Create();
+	_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].push_back(m_pPerMaterialIndirectUniforms->PrepareUniformVarList()[0]);
+
 	// Force per object material variable to be shader storage buffer
 	for (auto& var : _materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable])
 	{
@@ -260,8 +265,8 @@ bool Material::Init
 
 	// Per material uniform container shares the same size as material variable layout
 	// However, not all of them is filled since some of them are textures or something other than uniforms
-	m_perMaterialUniforms.resize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size());
-	for (uint32_t i = 0; i < m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size(); i++)
+	m_perMaterialUniforms.resize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size() - 1);	// Last one is per material indirect uniform
+	for (uint32_t i = 0; i < m_perMaterialUniforms.size(); i++)
 	{
 		auto variable = m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i];
 		// Force DynamicUniformBuffer to DynamicShaderStorageBuffer
@@ -282,6 +287,7 @@ bool Material::Init
 	m_descriptorSets[UniformDataStorage::PerFrameVariable]->UpdateUniformBufferDynamic(0, std::dynamic_pointer_cast<UniformBuffer>(UniformData::GetInstance()->GetPerFrameUniforms()->GetBuffer()));
 	m_descriptorSets[UniformDataStorage::PerObjectVariable]->UpdateShaderStorageBufferDynamic(0, std::dynamic_pointer_cast<ShaderStorageBuffer>(UniformData::GetInstance()->GetPerObjectUniforms()->GetBuffer()));
 
+	// Bind per material variable buffer
 	for (uint32_t i = 0; i < m_perMaterialUniforms.size(); i++)
 	{
 		if (m_perMaterialUniforms[i] != nullptr)
@@ -290,6 +296,9 @@ bool Material::Init
 			m_frameOffsets.push_back(m_perMaterialUniforms[i]->GetFrameOffset());
 		}
 	}
+
+	// Bind per material indirect uniform
+	m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(m_perMaterialUniforms.size(), std::dynamic_pointer_cast<ShaderStorageBuffer>(m_pPerMaterialIndirectUniforms->GetBuffer()));
 
 	m_pIndirectBuffer = SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT);
 
@@ -390,6 +399,8 @@ void Material::SyncBufferData()
 	for (auto & var : m_perMaterialUniforms)
 		if (var != nullptr)
 			var->SyncBufferData();
+
+	m_pPerMaterialIndirectUniforms->SyncBufferData();
 }
 
 void Material::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
@@ -402,6 +413,7 @@ void Material::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffe
 	std::vector<uint32_t> offsets = UniformData::GetInstance()->GetFrameOffsets();
 	std::vector<uint32_t> materialOffsets = GetFrameOffsets();
 	offsets.insert(offsets.end(), materialOffsets.begin(), materialOffsets.end());
+	offsets.push_back(m_pPerMaterialIndirectUniforms->GetFrameOffset() * FrameMgr()->FrameIndex());
 	pCmdBuffer->BindDescriptorSets(GetPipelineLayout(), GetDescriptorSets(), offsets);
 }
 
@@ -460,9 +472,12 @@ void Material::Draw()
 	RenderWorkManager::GetInstance()->GetCurrentRenderPass()->CacheSecondaryCommandBuffer(pDrawCmdBuffer);
 }
 
-void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd)
+void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex)
 {
-	m_pIndirectBuffer->SetIndirectCmd(m_indirectIndex++, cmd);
+	m_pIndirectBuffer->SetIndirectCmd(m_indirectIndex, cmd);
+	m_pPerMaterialIndirectUniforms->SetPerObjectIndex(m_indirectIndex, perObjectIndex);
+	m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(m_indirectIndex, perMaterialIndex);
+	m_indirectIndex += 1;
 }
 
 void Material::OnFrameStart()
@@ -473,4 +488,24 @@ void Material::OnFrameStart()
 void Material::OnFrameEnd()
 {
 
+}
+
+void Material::SetPerObjectIndex(uint32_t indirectIndex, uint32_t perObjectIndex)
+{
+	m_pPerMaterialIndirectUniforms->SetPerObjectIndex(indirectIndex, perObjectIndex);
+}
+
+uint32_t Material::GetPerObjectIndex(uint32_t indirectIndex) const
+{
+	return m_pPerMaterialIndirectUniforms->GetPerObjectIndex(indirectIndex);
+}
+
+void Material::SetPerMaterialIndex(uint32_t indirectIndex, uint32_t perMaterialIndex)
+{
+	m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(indirectIndex, perMaterialIndex);
+}
+
+uint32_t Material::GetPerMaterialIndex(uint32_t indirectIndex) const
+{
+	return m_pPerMaterialIndirectUniforms->GetPerMaterialIndex(indirectIndex);
 }

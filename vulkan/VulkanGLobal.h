@@ -141,6 +141,7 @@ public:
 	std::shared_ptr<BaseObject>			m_pGunObject;
 	std::shared_ptr<BaseObject>			m_pGunObject1;
 	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer;
+	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer1;
 	std::shared_ptr<Material>			m_pGunMaterial;
 	std::shared_ptr<MaterialInstance>	m_pGunMaterialInstance;
 
