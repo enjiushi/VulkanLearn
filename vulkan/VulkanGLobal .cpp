@@ -909,8 +909,11 @@ void VulkanGlobal::InitScene()
 	m_pCameraObj->Update();
 
 	m_pGunObject = BaseObject::Create();
+	m_pGunObject1 = BaseObject::Create();
 	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
 	m_pGunObject->AddComponent(m_pGunMeshRenderer);
+	m_pGunObject1->AddComponent(m_pGunMeshRenderer);
+	m_pGunObject1->SetPos({-100, 0, 0});
 
 	m_pSkyBoxObject = BaseObject::Create();
 	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, { m_pSkyBoxMaterialInstance, m_pSkyBoxIrradianceMaterialInstance, m_pSkyBoxReflectionMaterialInstance });
@@ -927,6 +930,7 @@ void VulkanGlobal::InitScene()
 
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pGunObject);
+	m_pRootObject->AddChild(m_pGunObject1);
 	//m_pRootObject->AddChild(m_pTestObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pQuadObject);
