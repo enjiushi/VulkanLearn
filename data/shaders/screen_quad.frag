@@ -3,8 +3,8 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (set = 3, binding = 0) uniform samplerCube tex0;
-layout (set = 3, binding = 1) uniform sampler2D tex1;
+layout (set = 3, binding = 1) uniform samplerCube tex0;
+layout (set = 3, binding = 2) uniform sampler2D tex1;
 
 layout (location = 0) in vec2 inUv;
 

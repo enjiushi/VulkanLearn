@@ -147,11 +147,14 @@ bool Material::Init
 
 	std::vector<std::vector<UniformVarList>> _materialVariableLayout;
 	_materialVariableLayout.resize(UniformDataStorage::UniformTypeCount);
-	_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable] = materialVariableLayout;
 
 	// Add per material indirect index uniform layout
 	m_pPerMaterialIndirectUniforms = PerMaterialIndirectUniforms::Create();
 	_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].push_back(m_pPerMaterialIndirectUniforms->PrepareUniformVarList()[0]);
+
+	// Add material variable layout
+	_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].insert(_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].end(),
+		materialVariableLayout.begin(), materialVariableLayout.end());
 
 	// Force per object material variable to be shader storage buffer
 	for (auto& var : _materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable])
@@ -268,12 +271,12 @@ bool Material::Init
 	m_perMaterialUniforms.resize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size() - 1);	// Last one is per material indirect uniform
 	for (uint32_t i = 0; i < m_perMaterialUniforms.size(); i++)
 	{
-		auto variable = m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i];
+		auto variable = m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i + 1];
 		// Force DynamicUniformBuffer to DynamicShaderStorageBuffer
 		// Since for per object material variable, uniform buffer isn't big enough
 		if (variable.type == DynamicUniformBuffer || variable.type == DynamicShaderStorageBuffer)
 		{
-			uint32_t size = GetByteSize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i].vars);
+			uint32_t size = GetByteSize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i + 1].vars);
 			m_perMaterialUniforms[i] = PerMaterialUniforms::Create(size);
 		}
 	}
@@ -292,13 +295,13 @@ bool Material::Init
 	{
 		if (m_perMaterialUniforms[i] != nullptr)
 		{
-			m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(i, std::dynamic_pointer_cast<ShaderStorageBuffer>(m_perMaterialUniforms[i]->GetBuffer()));
+			m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(i + 1, std::dynamic_pointer_cast<ShaderStorageBuffer>(m_perMaterialUniforms[i]->GetBuffer()));
 			m_frameOffsets.push_back(m_perMaterialUniforms[i]->GetFrameOffset());
 		}
 	}
 
 	// Bind per material indirect uniform
-	m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(m_perMaterialUniforms.size(), std::dynamic_pointer_cast<ShaderStorageBuffer>(m_pPerMaterialIndirectUniforms->GetBuffer()));
+	m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(0, std::dynamic_pointer_cast<ShaderStorageBuffer>(m_pPerMaterialIndirectUniforms->GetBuffer()));
 
 	m_pIndirectBuffer = SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT);
 
@@ -411,15 +414,20 @@ void Material::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 void Material::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	std::vector<uint32_t> offsets = UniformData::GetInstance()->GetFrameOffsets();
+
+	// Insert per material indirect uniform frame offset
+	offsets.push_back(m_pPerMaterialIndirectUniforms->GetFrameOffset() * FrameMgr()->FrameIndex());
+
+	// Insert material offsets
 	std::vector<uint32_t> materialOffsets = GetFrameOffsets();
 	offsets.insert(offsets.end(), materialOffsets.begin(), materialOffsets.end());
-	offsets.push_back(m_pPerMaterialIndirectUniforms->GetFrameOffset() * FrameMgr()->FrameIndex());
+
 	pCmdBuffer->BindDescriptorSets(GetPipelineLayout(), GetDescriptorSets(), offsets);
 }
 
 void Material::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture)
 {
-	GetDescriptorSet(UniformDataStorage::PerObjectMaterialVariable)->UpdateImage(index, pTexture);
+	GetDescriptorSet(UniformDataStorage::PerObjectMaterialVariable)->UpdateImage(index + 1, pTexture);
 }
 
 void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)

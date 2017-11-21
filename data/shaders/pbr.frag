@@ -3,14 +3,14 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (set = 3, binding = 0) uniform sampler2D albedoTex;
-layout (set = 3, binding = 1) uniform sampler2D bumpTex;
-layout (set = 3, binding = 2) uniform sampler2D roughnessTex;
-layout (set = 3, binding = 3) uniform sampler2D metalicTex;
-layout (set = 3, binding = 4) uniform sampler2D aoTex;
-layout (set = 3, binding = 5) uniform samplerCube irradianceTex;
-layout (set = 3, binding = 6) uniform samplerCube prefilterEnvTex;
-layout (set = 3, binding = 7) uniform sampler2D BRDFLut;
+layout (set = 3, binding = 1) uniform sampler2D albedoTex;
+layout (set = 3, binding = 2) uniform sampler2D bumpTex;
+layout (set = 3, binding = 3) uniform sampler2D roughnessTex;
+layout (set = 3, binding = 4) uniform sampler2D metalicTex;
+layout (set = 3, binding = 5) uniform sampler2D aoTex;
+layout (set = 3, binding = 6) uniform samplerCube irradianceTex;
+layout (set = 3, binding = 7) uniform samplerCube prefilterEnvTex;
+layout (set = 3, binding = 8) uniform sampler2D BRDFLut;
 
 #include "uniform_layout.h"
 
