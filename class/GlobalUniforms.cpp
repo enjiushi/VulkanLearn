@@ -70,33 +70,35 @@ void GlobalUniforms::SetRenderSettings(const Vector4f& setting)
 	UniformDataStorage::SetDirty();
 }
 
-UniformVarList GlobalUniforms::PrepareUniformVarList()
+std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList()
 {
 	return 
 	{
-		DynamicUniformBuffer,
-		"GlobalUniforms",
 		{
+			DynamicUniformBuffer,
+			"GlobalUniforms",
 			{
-				Mat4Unit,
-				"ProjectionMatrix"
-			},
-			{
-				Mat4Unit,
-				"VulkanNDCMatrix"
-			},
-			{
-				Vec4Unit,
-				"MainLightDirection"
-			},
-			{
-				Vec4Unit,
-				"MainLightColor"
-			},
-			{
-				Vec4Unit,
-				"Settings: Gamma, Exposure, White Scale"
-			},
+				{
+					Mat4Unit,
+					"ProjectionMatrix"
+				},
+				{
+					Mat4Unit,
+					"VulkanNDCMatrix"
+				},
+				{
+					Vec4Unit,
+					"MainLightDirection"
+				},
+				{
+					Vec4Unit,
+					"MainLightColor"
+				},
+				{
+					Vec4Unit,
+					"Settings: Gamma, Exposure, White Scale"
+				}
+			}
 		}
 	};
 }

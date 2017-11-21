@@ -44,16 +44,18 @@ void PerFrameUniforms::SetDirty()
 	UniformDataStorage::SetDirty();
 }
 
-UniformVarList PerFrameUniforms::PrepareUniformVarList()
+std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList()
 {
 	return
 	{
-		DynamicUniformBuffer,
-		"PerFrameUniforms",
 		{
-			{ Mat4Unit, "ViewMatrix" },
-			{ Mat4Unit, "ViewProjMatrix" },
-			{ Vec3Unit, "CameraPosition" }
+			DynamicUniformBuffer,
+			"PerFrameUniforms",
+			{
+				{ Mat4Unit, "ViewMatrix" },
+				{ Mat4Unit, "ViewProjMatrix" },
+				{ Vec3Unit, "CameraPosition" }
+			}
 		}
 	};
 }

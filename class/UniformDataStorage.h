@@ -53,7 +53,7 @@ public:
 	uint32_t GetFrameOffset() const { return m_frameOffset; }
 	void SyncBufferData();
 	std::shared_ptr<Buffer> GetBuffer();
-	virtual UniformVarList PrepareUniformVarList() = 0;
+	virtual std::vector<UniformVarList> PrepareUniformVarList() = 0;
 
 protected:
 	virtual void SyncBufferDataInternal() = 0;

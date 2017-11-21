@@ -16,7 +16,7 @@ public:
 	std::shared_ptr<PerFrameUniforms> GetPerFrameUniforms() const { return std::dynamic_pointer_cast<PerFrameUniforms>(m_uniforms[UniformDataStorage::PerFrameVariable]); }
 	std::shared_ptr<PerObjectUniforms> GetPerObjectUniforms() const { return std::dynamic_pointer_cast<PerObjectUniforms>(m_uniforms[UniformDataStorage::PerObjectVariable]); }
 	void SyncDataBuffer();
-	std::vector<UniformVarList> GenerateUniformVarLayout() const;
+	std::vector<std::vector<UniformVarList>> GenerateUniformVarLayout() const;
 	std::vector<uint32_t> GetFrameOffsets() const;
 
 protected:

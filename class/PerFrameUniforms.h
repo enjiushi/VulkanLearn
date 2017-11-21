@@ -28,7 +28,7 @@ public:
 	void SetPadding(float val) { m_perFrameVariables.padding = val; }
 	float GetPadding() const { return m_perFrameVariables.padding; }
 
-	UniformVarList PrepareUniformVarList() override;
+	std::vector<UniformVarList> PrepareUniformVarList() override;
 
 protected:
 	void SyncBufferDataInternal() override;

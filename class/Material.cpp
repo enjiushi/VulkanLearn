@@ -145,22 +145,23 @@ bool Material::Init
 		return false;
 
 	std::vector<std::vector<UniformVarList>> _materialVariableLayout;
-	_materialVariableLayout.push_back(materialVariableLayout);
+	_materialVariableLayout.resize(UniformDataStorage::UniformTypeCount);
+	_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable] = materialVariableLayout;
 
 	// Force per object material variable to be shader storage buffer
-	for (auto& var : _materialVariableLayout[0])
+	for (auto& var : _materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable])
 	{
 		if (var.type == DynamicUniformBuffer)
 			var.type = DynamicShaderStorageBuffer;
 	}
 
 	// Obtain predefined uniform layout from global uniforms, perframe uniforms and perobject uniforms
-	std::vector<UniformVarList> predefinedUniformLayout = UniformData::GetInstance()->GenerateUniformVarLayout();
+	std::vector<std::vector<UniformVarList>> predefinedUniformLayout = UniformData::GetInstance()->GenerateUniformVarLayout();
 
 	// And insert them into beginning of material variable layout
 	for (uint32_t i = 0; i < UniformDataStorage::PerObjectMaterialVariable; i++)
 	{
-		_materialVariableLayout.insert(_materialVariableLayout.begin() + i, { predefinedUniformLayout[i] });
+		_materialVariableLayout[i] = predefinedUniformLayout[i];
 	}
 
 	m_materialVariableLayout = _materialVariableLayout;

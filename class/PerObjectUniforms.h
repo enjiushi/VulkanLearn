@@ -21,7 +21,7 @@ public:
 	Matrix4f GetModelMatrix(uint32_t index) const { return m_perObjectVariables[index].modelMatrix; }
 	Matrix4f GetMVPN(uint32_t index) const { return m_perObjectVariables[index].MVPN; }
 
-	UniformVarList PrepareUniformVarList() override;
+	std::vector<UniformVarList> PrepareUniformVarList() override;
 
 protected:
 	void SyncBufferDataInternal() override;

@@ -32,9 +32,9 @@ void UniformData::SyncDataBuffer()
 		var->SyncBufferData();
 }
 
-std::vector<UniformVarList> UniformData::GenerateUniformVarLayout() const
+std::vector<std::vector<UniformVarList>> UniformData::GenerateUniformVarLayout() const
 {
-	std::vector<UniformVarList> layout;
+	std::vector<std::vector<UniformVarList>> layout;
 	for (uint32_t i = 0; i < UniformDataStorage::PerObjectMaterialVariable; i++)
 		layout.push_back(m_uniforms[i]->PrepareUniformVarList());
 	return layout;

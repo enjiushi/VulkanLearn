@@ -10,7 +10,7 @@ public:
 	~PerMaterialUniforms();
 
 public:
-	UniformVarList PrepareUniformVarList() override { return UniformVarList(); }
+	std::vector<UniformVarList> PrepareUniformVarList() override { return {}; }
 
 	template <typename T>
 	void SetParameter(uint32_t parameterChunkIndex, uint32_t parameterOffset, T val)

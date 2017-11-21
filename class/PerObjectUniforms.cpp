@@ -40,15 +40,17 @@ void PerObjectUniforms::SetDirty(uint32_t index)
 	UniformDataStorage::SetDirty();
 }
 
-UniformVarList PerObjectUniforms::PrepareUniformVarList()
+std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList()
 {
 	return
 	{
-		DynamicShaderStorageBuffer,
-		"PerFrameUniforms",
 		{
-			{ Mat4Unit, "modelMatrix" },
-			{ Mat4Unit, "MVP" },
+			DynamicShaderStorageBuffer,
+			"PerFrameUniforms",
+			{
+				{ Mat4Unit, "modelMatrix" },
+				{ Mat4Unit, "MVP" },
+			}
 		}
 	};
 }

@@ -38,7 +38,7 @@ public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);
 	static std::shared_ptr<GlobalUniforms> Create();
 
-	UniformVarList PrepareUniformVarList() override;
+	std::vector<UniformVarList> PrepareUniformVarList() override;
 
 protected:
 	void SyncBufferDataInternal() override;
