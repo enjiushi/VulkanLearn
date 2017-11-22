@@ -367,7 +367,6 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 				// Even if there could be more than one per material uniform buffer
 				// We still mark only one buffer chunk index, since their value should be exactly the same
 				pMaterialInstance->m_materialBufferChunkIndex = m_perMaterialUniforms[i]->AllocatePerObjectChunk();
-				break;
 			}
 
 		// Init texture vector
