@@ -150,6 +150,7 @@ void main()
 	vec3 dirLightSpecular = fresnel * GGX_V_Smith_HeightCorrelated(NdotV, NdotL, roughness) * GGX_D(NdotH, roughness);
 	vec3 dirLightDiffuse = albedo * kD / PI;
 	vec3 final = ao * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb) + ambient;
+	//vec3 final =  ambient;
 
 	final = Uncharted2Tonemap(final * globalData.GEW.y);
 	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
