@@ -24,51 +24,6 @@ layout (location = 6) in vec3 inBitangent;
 
 layout (location = 0) out vec4 outFragColor;
 
-const float PI = 3.14159265;
-vec3 F0 = vec3(0.04);
-
-float GGX_D(float NdotH, float roughness)
-{
-	float m2 = roughness * roughness;
-	float m4 = m2 * m2;
-	float f = NdotH * NdotH * (m4 - 1) + 1;
-	return m4 / (f * f * PI);
-}
-
-float GGX_V_Smith_HeightCorrelated(float NdotV, float NdotL, float roughness)
-{
-	float alpha2 = roughness * roughness;
-	float lambdaV = NdotL * sqrt((-NdotV * alpha2 + NdotV) * NdotV + alpha2);
-	float lambdaL = NdotV * sqrt((-NdotL * alpha2 + NdotL) * NdotL + alpha2);
-	return 0.5f / (lambdaV + lambdaL) * 4.0f * NdotV * NdotL;
-}
-
-float GeometrySchlickGGX(float NdotV, float k)
-{
-    float nom   = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-	
-    return nom / denom;
-}
-
-float GeometrySmith(float NdotV, float NdotL, float k)
-{
-    float ggx1 = GeometrySchlickGGX(NdotV, k);
-    float ggx2 = GeometrySchlickGGX(NdotL, k);
-	
-    return ggx1 * ggx2;
-}
-
-vec3 Fresnel_Schlick_Roughness(vec3 F0, float LdotH, float roughness)
-{
-	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0f - LdotH, 5.0f);
-}
-
-vec3 Fresnel_Schlick(vec3 F0, float LdotH)
-{
-	return F0 + (1.0 - F0) * pow(1.0 - LdotH, 5.0);
-}
-
 vec3 perturbNormal()
 {
 	vec3 tangentNormal = texture(bumpTex, inUv.st).xyz * 2.0 - 1.0;
@@ -84,17 +39,6 @@ vec3 perturbNormal()
 	mat3 TBN = mat3(T, B, N);
 
 	return normalize(TBN * tangentNormal);
-}
-
-vec3 Uncharted2Tonemap(vec3 x)
-{
-	float A = 0.15;
-	float B = 0.50;
-	float C = 0.10;
-	float D = 0.20;
-	float E = 0.02;
-	float F = 0.30;
-	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
 
 void main() 

@@ -9,10 +9,9 @@ layout (location = 0) in vec3 inSampleDir;
 
 layout (location = 0) out vec4 outFragColor;
 
-const vec3 up = {0.0, 1.0, 0.0};
-const float PI = 3.14159265;
+#include "uniform_layout.h"
+
 const float sampleDelta = 0.15;
-const float gamma = 1.0 / 2.2;
 
 void main() 
 {
