@@ -101,10 +101,10 @@ protected:
 	std::vector<std::shared_ptr<PerFrameResource>> m_mainThreadPerFrameRes;
 
 	static const uint32_t ATTRIBUTE_BUFFER_SIZE = 1024 * 1024 * 64;
-	static const uint32_t INDEX_BUFFER_SIZE = 1024 * 1024 * 32;
-	static const uint32_t UNIFORM_BUFFER_SIZE = 1024 * 1024 * 8;
-	static const uint32_t SHADER_STORAGE_BUFFER_SIZE = 1024 * 1024 * 32;
-	static const uint32_t INDIRECT_BUFFER_SIZE = 1024 * 1024 * 4;
+	static const uint32_t INDEX_BUFFER_SIZE = 1024 * 1024 * 4;
+	static const uint32_t UNIFORM_BUFFER_SIZE = 1024 * 512;
+	static const uint32_t SHADER_STORAGE_BUFFER_SIZE = 1024 * 1024 * 2;
+	static const uint32_t INDIRECT_BUFFER_SIZE = 1024 * 1024;
 
 	uint32_t								m_attributeBufferOffset = 0;
 };
