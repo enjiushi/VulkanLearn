@@ -38,6 +38,7 @@
 #include "../class/Material.h"
 #include "../class/MaterialInstance.h"
 #include "ShaderStorageBuffer.h"
+#include "Texture2DArray.h"
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
@@ -127,10 +128,8 @@ public:
 	std::shared_ptr<Character>			m_pCharacter;
 	uint32_t							m_moveFlag = 0;
 
-	std::shared_ptr<Texture2D>			m_pAlbedo;
-	std::shared_ptr<Texture2D>			m_pRoughness;
-	std::shared_ptr<Texture2D>			m_pNormal;
-	std::shared_ptr<Texture2D>			m_pAmbientOcclusion;
+	std::shared_ptr<Texture2D>			m_pAlbedoRoughness;
+	std::shared_ptr<Texture2D>			m_pNormalAO;
 	std::shared_ptr<Texture2D>			m_pMetalic;
 	std::shared_ptr<TextureCube>		m_pSkyBoxTex;
 	std::shared_ptr<Texture2D>			m_pSimpleTex;
@@ -166,6 +165,8 @@ public:
 	std::shared_ptr<MeshRenderer>		m_pTestRenderer;
 	std::shared_ptr<Material>			m_pTestMaterial;
 	std::shared_ptr<MaterialInstance>	m_pTestMaterialInstance;
+
+	std::shared_ptr<Texture2DArray>		m_pTestTexArray;
 
 	std::shared_ptr<BaseObject>			m_pRootObject;
 

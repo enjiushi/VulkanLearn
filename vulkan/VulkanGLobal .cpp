@@ -450,13 +450,39 @@ void VulkanGlobal::InitVertices()
 	);
 }
 
+// Replace rgbTex's alpha channel with rTex's red channel
+// This utility function is used only here to achieve texture packing as a preparation for later texture array implementation
+void CombineRGBA8_R8_RGBA8(gli::texture2d& rgbaTex, gli::texture2d rTex)
+{
+
+	ASSERTION(rgbaTex.extent().x == rTex.extent().x && rgbaTex.extent().y == rTex.extent().y);
+	ASSERTION(rgbaTex.layers() == rTex.layers() && rgbaTex.levels() == rTex.levels());
+
+	std::vector<uint8_t> buffer;
+	buffer.resize(rgbaTex.size());
+
+	uint8_t* rgbaTexData = (uint8_t*)rgbaTex.data();
+	uint8_t* rTexData = (uint8_t*)rTex.data();
+
+	for (uint32_t i = 0; i < rTex.size(); i++)
+	{
+		rgbaTexData[i * 4 + 3] = rTexData[i];
+	}
+}
+
 void VulkanGlobal::InitUniforms()
 {
-	m_pAlbedo = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
-	m_pAmbientOcclusion = Texture2D::Create(m_pDevice, "../data/textures/cerberus/ao.ktx", VK_FORMAT_R8_UNORM);
+	gli::texture2d gliAlbedoTex(gli::load("../data/textures/cerberus/albedo.ktx"));
+	gli::texture2d gliRoughnessTex(gli::load("../data/textures/cerberus/roughness.ktx"));
+	CombineRGBA8_R8_RGBA8(gliAlbedoTex, gliRoughnessTex);
+
+	gli::texture2d gliNormalTex(gli::load("../data/textures/cerberus/normal.ktx"));
+	gli::texture2d gliAOTex(gli::load("../data/textures/cerberus/ao.ktx"));
+	CombineRGBA8_R8_RGBA8(gliNormalTex, gliAOTex);
+
+	m_pAlbedoRoughness = Texture2D::Create(m_pDevice, gliAlbedoTex, VK_FORMAT_R8G8B8A8_UNORM);
 	m_pMetalic = Texture2D::Create(m_pDevice, "../data/textures/cerberus/metallic.ktx", VK_FORMAT_R8_UNORM);
-	m_pNormal = Texture2D::Create(m_pDevice, "../data/textures/cerberus/normal.ktx", VK_FORMAT_R8G8B8A8_UNORM);
-	m_pRoughness = Texture2D::Create(m_pDevice, "../data/textures/cerberus/roughness.ktx", VK_FORMAT_R8_UNORM);
+	m_pNormalAO = Texture2D::Create(m_pDevice, gliNormalTex, VK_FORMAT_R8G8B8A8_UNORM);
 	m_pSkyBoxTex = TextureCube::Create(m_pDevice, "../data/textures/hdr/gcanyon_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT);
 	//m_pSimpleTex = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	m_pSimpleTex = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
@@ -465,6 +491,8 @@ void VulkanGlobal::InitUniforms()
 
 	// FIXME: 2 channels should be enough, I don't intend to do it now as I have to create new render passes and frame buffers, leave it to later refactor
 	m_pBRDFLut = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
+
+	m_pTestTexArray = Texture2DArray::CreateEmptyTexture2DArray(m_pDevice, 1024, 1024, 64, VK_FORMAT_R16G16B16A16_SFLOAT);
 }
 
 void VulkanGlobal::InitIrradianceMap()
@@ -750,11 +778,9 @@ void VulkanGlobal::InitMaterials()
 	// Gun material
 	std::vector<UniformVarList> layout =
 	{ 
-		{ CombinedSampler, "AlbedoMap" },
-		{ CombinedSampler, "Normalmap" },
-		{ CombinedSampler, "RoughnessMap" },
+		{ CombinedSampler, "AlbedoRGB8_RoughnessA8" },
+		{ CombinedSampler, "NormalRGB8_AOA8" },
 		{ CombinedSampler, "MetalicMap" },
-		{ CombinedSampler, "AmbientOcclusionMap" },
 		{ CombinedSampler, "EnviromentIrradiance" },
 		{ CombinedSampler, "PrefilterEnviromentReflection" },
 		{ CombinedSampler, "BRDFLut" }
@@ -773,14 +799,12 @@ void VulkanGlobal::InitMaterials()
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pGunMaterialInstance->SetMaterialTexture(0, m_pAlbedo);
-	m_pGunMaterialInstance->SetMaterialTexture(1, m_pNormal);
-	m_pGunMaterialInstance->SetMaterialTexture(2, m_pRoughness);
-	m_pGunMaterialInstance->SetMaterialTexture(3, m_pMetalic);
-	m_pGunMaterialInstance->SetMaterialTexture(4, m_pAmbientOcclusion);
-	m_pGunMaterialInstance->SetMaterialTexture(5, m_pIrradianceTex);
-	m_pGunMaterialInstance->SetMaterialTexture(6, m_pPrefilterEnvTex);
-	m_pGunMaterialInstance->SetMaterialTexture(7, m_pBRDFLut);
+	m_pGunMaterialInstance->SetMaterialTexture(0, m_pAlbedoRoughness);
+	m_pGunMaterialInstance->SetMaterialTexture(1, m_pNormalAO);
+	m_pGunMaterialInstance->SetMaterialTexture(2, m_pMetalic);
+	m_pGunMaterialInstance->SetMaterialTexture(3, m_pIrradianceTex);
+	m_pGunMaterialInstance->SetMaterialTexture(4, m_pPrefilterEnvTex);
+	m_pGunMaterialInstance->SetMaterialTexture(5, m_pBRDFLut);
 
 	// Skybox material
 	layout =

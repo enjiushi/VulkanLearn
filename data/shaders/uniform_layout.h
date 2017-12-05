@@ -72,9 +72,9 @@ float GGX_V_Smith_HeightCorrelated(float NdotV, float NdotL, float roughness)
 	return 0.5f / (lambdaV + lambdaL) * 4.0f * NdotV * NdotL;
 }
 
-vec3 Fresnel_Schlick_Roughness(vec3 F0, float LdotH, float roughness)
+vec3 Fresnel_Schlick_Roughness(vec3 F0, float NdotV, float roughness)
 {
-	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0f - LdotH, 5.0f);
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0f - NdotV, 5.0f);
 }
 
 vec3 Fresnel_Schlick(vec3 F0, float LdotH)
