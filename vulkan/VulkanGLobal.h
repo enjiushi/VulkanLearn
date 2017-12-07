@@ -136,6 +136,7 @@ public:
 	std::shared_ptr<TextureCube>		m_pIrradianceTex;
 	std::shared_ptr<TextureCube>		m_pPrefilterEnvTex;
 	std::shared_ptr<Texture2D>			m_pBRDFLut;
+	std::shared_ptr<Texture2DArray>		m_pTex1024Array;
 
 	std::shared_ptr<BaseObject>			m_pGunObject;
 	std::shared_ptr<BaseObject>			m_pGunObject1;

@@ -8,6 +8,11 @@ class MemoryKey;
 class CommandBuffer;
 class StagingBuffer;
 
+typedef struct _GliImageWrapper
+{
+	std::vector<gli::texture>	textures;
+}GliImageWrapper;
+
 class Image : public DeviceObjectBase<Image>
 {
 public:
@@ -32,14 +37,14 @@ protected:
 
 	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, VkImage img);
 	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag);
-	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, const gli::texture& gliTex, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, const GliImageWrapper& gliTex, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag);
 
 	virtual void CreateImageView();
 	virtual void CreateSampler();
 
-	void UpdateByteStream(const gli::texture& gliTex);
-	virtual std::shared_ptr<StagingBuffer> PrepareStagingBuffer(const gli::texture& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer);
-	virtual void ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	void UpdateByteStream(const GliImageWrapper& gliTex);
+	virtual std::shared_ptr<StagingBuffer> PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer) = 0;
+	virtual void ExecuteCopy(const GliImageWrapper& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer) = 0;
 
 protected:
 	VkImage						m_image;

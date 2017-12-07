@@ -5,21 +5,21 @@
 #include "CommandBuffer.h"
 #include "StagingBuffer.h"
 
-bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<TextureCube>& pSelf, const gli::texture_cube& gliTexCube, VkFormat format)
+bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<TextureCube>& pSelf, const GliImageWrapper& gliTexCube, VkFormat format)
 {
 	m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
 
-	uint32_t width = gliTexCube.extent().x;
-	uint32_t height = gliTexCube.extent().y;
-	uint32_t mipLevels = gliTexCube.levels();
+	uint32_t width = gliTexCube.textures[0].extent().x;
+	uint32_t height = gliTexCube.textures[0].extent().y;
+	uint32_t mipLevels = gliTexCube.textures[0].levels();
 
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	textureCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 	textureCreateInfo.format = format;
 	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	textureCreateInfo.arrayLayers = gliTexCube.faces();
+	textureCreateInfo.arrayLayers = gliTexCube.textures[0].faces();
 	textureCreateInfo.extent.depth = 1;
 	textureCreateInfo.extent.width = width;
 	textureCreateInfo.extent.height = height;
@@ -66,8 +66,9 @@ bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 std::shared_ptr<TextureCube> TextureCube::Create(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
 {
 	gli::texture_cube gliTexCube(gli::load(path.c_str()));
+	GliImageWrapper wrapper = { {gliTexCube} };
 	std::shared_ptr<TextureCube> pTexture = std::make_shared<TextureCube>();
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, gliTexCube, format))
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, wrapper, format))
 		return pTexture;
 	return nullptr;
 }
@@ -88,9 +89,17 @@ std::shared_ptr<TextureCube> TextureCube::CreateEmptyTextureCube(const std::shar
 	return nullptr;
 }
 
-void TextureCube::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+std::shared_ptr<StagingBuffer> TextureCube::PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	gli::texture_cube gliTexCube = (gli::texture_cube)gliTex;
+	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, gliTex.textures[0].size());
+	pStagingBuffer->UpdateByteStream(gliTex.textures[0].data(), 0, gliTex.textures[0].size());
+
+	return pStagingBuffer;
+}
+
+void TextureCube::ExecuteCopy(const GliImageWrapper& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	gli::texture_cube gliTexCube = (gli::texture_cube)gliTex.textures[0];
 
 	// Prepare copy info
 	std::vector<VkBufferImageCopy> bufferCopyRegions;
@@ -98,7 +107,7 @@ void TextureCube::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<
 
 	for (uint32_t face = 0; face < 6; face++)
 	{
-		for (uint32_t i = 0; i < gliTex.levels(); i++)
+		for (uint32_t i = 0; i < gliTexCube.levels(); i++)
 		{
 			VkBufferImageCopy bufferCopyRegion = {};
 			bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

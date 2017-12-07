@@ -5,15 +5,15 @@
 #include "CommandBuffer.h"
 #include "StagingBuffer.h"
 
-bool Texture2DArray::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Texture2DArray>& pSelf, const gli::texture2d_array& gliTextureArray, VkFormat format)
+bool Texture2DArray::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Texture2DArray>& pSelf, const GliImageWrapper& gliTextureArray, VkFormat format)
 {
 	m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
 
-	uint32_t width = gliTextureArray.extent().x;
-	uint32_t height = gliTextureArray.extent().y;
-	uint32_t mipLevels = gliTextureArray.levels();
-	uint32_t layers = gliTextureArray.layers();
+	uint32_t width = gliTextureArray.textures[0].extent().x;
+	uint32_t height = gliTextureArray.textures[0].extent().y;
+	uint32_t mipLevels = gliTextureArray.textures[0].levels();
+	uint32_t layers = gliTextureArray.textures[0].layers();
 
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -68,7 +68,7 @@ std::shared_ptr<Texture2DArray> Texture2DArray::Create(const std::shared_ptr<Dev
 {
 	gli::texture2d_array gliTextureArray(gli::load(path.c_str()));
 	std::shared_ptr<Texture2DArray> pTexture = std::make_shared<Texture2DArray>();
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, gliTextureArray, format))
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, { {gliTextureArray} }, format))
 		return pTexture;
 	return nullptr;
 }
@@ -89,35 +89,57 @@ std::shared_ptr<Texture2DArray> Texture2DArray::CreateEmptyTexture2DArray(const 
 	return nullptr;
 }
 
-void Texture2DArray::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+std::shared_ptr<StagingBuffer> Texture2DArray::PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	gli::texture2d_array gliTexArray = (gli::texture2d_array)gliTex;
+	// Get total bytes of texture vector
+	uint32_t total_bytes = 0;
+	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
+		total_bytes += gliTex.textures[i].size();
 
-	// Prepare copy info
-	std::vector<VkBufferImageCopy> bufferCopyRegions;
+	// Copy all bytes of texture vector into a buffer
 	uint32_t offset = 0;
-
-	for (uint32_t layer = 0; layer < gliTexArray.layers(); layer++)
+	uint8_t* buf = new uint8_t[total_bytes];
+	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
 	{
-		for (uint32_t level = 0; level < gliTexArray.levels(); level++)
+		memcpy_s(buf, total_bytes - offset, gliTex.textures[i].data(), gliTex.textures[i].size());
+		offset += gliTex.textures[i].size();
+		buf += gliTex.textures[i].size();
+	}
+
+	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, total_bytes);
+	pStagingBuffer->UpdateByteStream(buf, 0, total_bytes);
+
+	return pStagingBuffer;
+}
+
+
+void Texture2DArray::ExecuteCopy(const GliImageWrapper& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
+	{
+		// Prepare copy info
+		std::vector<VkBufferImageCopy> bufferCopyRegions;
+		uint32_t offset = 0;
+
+		for (uint32_t level = 0; level < gliTex.textures[i].levels(); level++)
 		{
+			gli::texture2d tex2d = (gli::texture2d)gliTex.textures[i];
 			VkBufferImageCopy bufferCopyRegion = {};
 			bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			bufferCopyRegion.imageSubresource.mipLevel = level;
-			bufferCopyRegion.imageSubresource.baseArrayLayer = layer;
+			bufferCopyRegion.imageSubresource.baseArrayLayer = i;
 			bufferCopyRegion.imageSubresource.layerCount = 1;
-			bufferCopyRegion.imageExtent.width = gliTexArray[layer][level].extent().x;
-			bufferCopyRegion.imageExtent.height = gliTexArray[layer][level].extent().y;
+			bufferCopyRegion.imageExtent.width = tex2d[level].extent().x;
+			bufferCopyRegion.imageExtent.height = tex2d[level].extent().y;
 			bufferCopyRegion.imageExtent.depth = 1;
 			bufferCopyRegion.bufferOffset = offset;
 
 			bufferCopyRegions.push_back(bufferCopyRegion);
 
-			offset += static_cast<uint32_t>(gliTexArray[layer][level].size());
+			offset += static_cast<uint32_t>(tex2d[level].size());
 		}
+		pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
 	}
-
-	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
 }
 
 void Texture2DArray::CreateImageView()

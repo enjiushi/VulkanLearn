@@ -12,5 +12,7 @@ public:
 	static std::shared_ptr<DepthStencilBuffer> Create(const std::shared_ptr<Device>& pDevice);
 
 protected:
+	std::shared_ptr<StagingBuffer> PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer) override { return nullptr; };
+	void ExecuteCopy(const GliImageWrapper& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer) override {};
 	void CreateImageView() override;
 };

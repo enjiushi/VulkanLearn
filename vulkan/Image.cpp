@@ -50,7 +50,7 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 	return true;
 }
 
-bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, const gli::texture& gliTex, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag)
+bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, const GliImageWrapper& gliTex, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag)
 {
 	if (!Image::Init(pDevice, pSelf, info, memoryPropertyFlag))
 		return false;
@@ -128,43 +128,7 @@ void Image::EnsureImageLayout()
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }
 
-std::shared_ptr<StagingBuffer> Image::PrepareStagingBuffer(const gli::texture& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
-{
-	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, gliTex.size());
-	pStagingBuffer->UpdateByteStream(gliTex.data(), 0, gliTex.size());
-
-	return pStagingBuffer;
-}
-
-void Image::ExecuteCopy(const gli::texture& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
-{
-	gli::texture2d gliTex2D = (gli::texture2d)gliTex;
-
-	// Prepare copy info
-	std::vector<VkBufferImageCopy> bufferCopyRegions;
-	uint32_t offset = 0;
-
-	for (uint32_t i = 0; i < gliTex.levels(); i++)
-	{
-		VkBufferImageCopy bufferCopyRegion = {};
-		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		bufferCopyRegion.imageSubresource.mipLevel = i;
-		bufferCopyRegion.imageSubresource.baseArrayLayer = 0;
-		bufferCopyRegion.imageSubresource.layerCount = 1;
-		bufferCopyRegion.imageExtent.width = gliTex2D[i].extent().x;
-		bufferCopyRegion.imageExtent.height = gliTex2D[i].extent().y;
-		bufferCopyRegion.imageExtent.depth = gliTex2D[i].extent().z;
-		bufferCopyRegion.bufferOffset = offset;
-
-		bufferCopyRegions.push_back(bufferCopyRegion);
-
-		offset += static_cast<uint32_t>(gliTex2D[i].size());
-	}
-
-	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
-}
-
-void Image::UpdateByteStream(const gli::texture& gliTex)
+void Image::UpdateByteStream(const GliImageWrapper& gliTex)
 {
 	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 	pCmdBuffer->StartPrimaryRecording();
