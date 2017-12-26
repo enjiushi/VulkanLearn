@@ -39,15 +39,10 @@ public:
 	void InsertTexture(InGameTextureType type, const TextureDesc& desc, const gli::texture2d& gliTexture2d);
 	std::shared_ptr<Texture2DArray>	GetTextureArray(InGameTextureType type) { return m_textureDiction[type].pTextureArray; }
 
-	// FIXME: This function should be relocated somewhere in an interface, so that something can call it after initialization
-	void OnInitializationPhaseDone();
-
 protected:
 	bool Init(const std::shared_ptr<GlobalTextures>& pSelf);
 	void InitTextureDiction();
 
 protected:
 	std::vector<TextureArrayDesc>	m_textureDiction;
-	uint32_t						m_textureTypePixelFormatMapping[InGameTextureTypeCount];
-	uint32_t						m_textureTypeArraySize[InGameTextureTypeCount];
 };
