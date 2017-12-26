@@ -1,6 +1,7 @@
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/Buffer.h"
+#include "GlobalTextures.h"
 #include "GlobalUniforms.h"
 #include "Material.h"
 
@@ -14,6 +15,8 @@ bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 
 	// NDC space z ranges from 0 to 1 in Vulkan compared to OpenGL's -1 to 1
 	m_globalVariables.vulkanNDC.c[2].z = m_globalVariables.vulkanNDC.c[3].z = 0.5f;
+
+	m_pGlobalTextures = GlobalTextures::Create();
 
 	SetDirty();
 
@@ -72,7 +75,7 @@ void GlobalUniforms::SetRenderSettings(const Vector4f& setting)
 
 std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList()
 {
-	return 
+	std::vector<UniformVarList> list = 
 	{
 		{
 			DynamicUniformBuffer,
@@ -101,5 +104,10 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList()
 			}
 		}
 	};
+
+	std::vector<UniformVarList> textureUniList = m_pGlobalTextures->PrepareUniformVarList();
+	list.insert(list.end(), textureUniList.begin(), textureUniList.end());
+
+	return list;
 }
 

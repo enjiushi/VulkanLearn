@@ -26,6 +26,7 @@
 #include "IndirectBuffer.h"
 #include "SharedIndirectBuffer.h"
 #include "../class/Enums.h"
+#include "../class/GlobalTextures.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -480,9 +481,16 @@ void VulkanGlobal::InitUniforms()
 	gli::texture2d gliAOTex(gli::load("../data/textures/cerberus/ao_1024.ktx"));
 	CombineRGBA8_R8_RGBA8(gliNormalTex, gliAOTex);
 
+	gli::texture2d gliMetalic(gli::load("../data/textures/cerberus/metallic_1024.ktx"));
+
 	m_pAlbedoRoughness = Texture2D::Create(m_pDevice, { {gliAlbedoTex} }, VK_FORMAT_R8G8B8A8_UNORM);
-	m_pMetalic = Texture2D::Create(m_pDevice, "../data/textures/cerberus/metallic_1024.ktx", VK_FORMAT_R8_UNORM);
+	m_pMetalic = Texture2D::Create(m_pDevice, { {gliMetalic} }, VK_FORMAT_R8_UNORM);
 	m_pNormalAO = Texture2D::Create(m_pDevice, { {gliNormalTex} }, VK_FORMAT_R8G8B8A8_UNORM);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunAlbedoRoughness", "", "RGB:Albedo, A:Roughness" }, gliAlbedoTex);
+	UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunNormalAO", "", "RGB:Normal, A:AO" }, gliNormalTex);
+	UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "GunMetallic", "", "R:Metalic" }, gliMetalic);
+
 	m_pSkyBoxTex = TextureCube::Create(m_pDevice, "../data/textures/hdr/gcanyon_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT);
 	//m_pSimpleTex = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	m_pSimpleTex = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
@@ -980,7 +988,7 @@ void VulkanGlobal::EndSetup()
 void VulkanGlobal::Draw()
 {
 	GetSwapChain()->AcquireNextImage();
-
+	
 	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::Scene);
 	GetGlobalVulkanStates()->RestoreViewport();
 	GetGlobalVulkanStates()->RestoreScissor();
@@ -991,7 +999,7 @@ void VulkanGlobal::Draw()
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
 	pDrawCmdBuffer->StartPrimaryRecording();
-
+	
 	std::vector<VkClearValue> clearValues =
 	{
 		{ 0.2f, 0.2f, 0.2f, 0.2f },
@@ -1019,7 +1027,7 @@ void VulkanGlobal::Draw()
 
 	pDrawCmdBuffer->EndPrimaryRecording();
 	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, {}, false);
-
+	
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 }
 

@@ -2,6 +2,8 @@
 
 #include "UniformDataStorage.h"
 
+class GlobalTextures;
+
 typedef struct _GlobalVariables
 {
 	// Camera settings
@@ -34,6 +36,8 @@ public:
 	void SetRenderSettings(const Vector4f& setting);
 	Vector4f GetRenderSettings() const { return m_globalVariables.GEW; }
 
+	std::shared_ptr<GlobalTextures> GetGlobalTextures() const { return m_pGlobalTextures; }
+
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);
 	static std::shared_ptr<GlobalUniforms> Create();
@@ -46,4 +50,5 @@ protected:
 
 protected:
 	GlobalVariables					m_globalVariables;
+	std::shared_ptr<GlobalTextures>	m_pGlobalTextures;
 };

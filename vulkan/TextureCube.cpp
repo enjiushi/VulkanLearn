@@ -128,6 +128,36 @@ void TextureCube::ExecuteCopy(const GliImageWrapper& gliTex, const std::shared_p
 	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
 }
 
+void TextureCube::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	ASSERTION(gliTex.textures.size() == 1);
+
+	gli::texture2d gliTex2d = (gli::texture2d)gliTex.textures[0];
+
+	// Prepare copy info
+	std::vector<VkBufferImageCopy> bufferCopyRegions;
+	uint32_t offset = 0;
+
+	for (uint32_t i = 0; i < gliTex2d.levels(); i++)
+	{
+		VkBufferImageCopy bufferCopyRegion = {};
+		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		bufferCopyRegion.imageSubresource.mipLevel = i;
+		bufferCopyRegion.imageSubresource.baseArrayLayer = layer;
+		bufferCopyRegion.imageSubresource.layerCount = 1;
+		bufferCopyRegion.imageExtent.width = gliTex2d[i].extent().x;
+		bufferCopyRegion.imageExtent.height = gliTex2d[i].extent().y;
+		bufferCopyRegion.imageExtent.depth = 1;
+		bufferCopyRegion.bufferOffset = offset;
+
+		bufferCopyRegions.push_back(bufferCopyRegion);
+
+		offset += static_cast<uint32_t>(gliTex2d[i].size());
+	}
+
+	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
+}
+
 void TextureCube::CreateImageView()
 {
 	m_viewInfo = {};

@@ -142,6 +142,20 @@ void Image::UpdateByteStream(const GliImageWrapper& gliTex)
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }
 
+void Image::UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer)
+{
+	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+	pCmdBuffer->StartPrimaryRecording();
+
+	std::shared_ptr<StagingBuffer> pStagingBuffer = PrepareStagingBuffer(gliTex, pCmdBuffer);
+
+	ExecuteCopy(gliTex, layer, pStagingBuffer, pCmdBuffer);
+
+	pCmdBuffer->EndPrimaryRecording();
+
+	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
+}
+
 void Image::CreateSampler()
 {
 	VkSamplerCreateInfo samplerCreateInfo = {};

@@ -154,3 +154,9 @@ void Texture2D::ExecuteCopy(const GliImageWrapper& gliTex, const std::shared_ptr
 
 	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
 }
+
+void Texture2D::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	ASSERTION(gliTex.textures.size() == 1);
+	ExecuteCopy(gliTex, pStagingBuffer, pCmdBuffer);
+}

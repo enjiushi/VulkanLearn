@@ -28,6 +28,10 @@
 #include "../vulkan/GlobalVulkanStates.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../class/PerMaterialIndirectUniforms.h"
+#include "../vulkan/Image.h"
+#include "GlobalTextures.h"
+#include "../vulkan/Image.h"
+#include "../vulkan/Texture2DArray.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -287,6 +291,14 @@ bool Material::Init
 
 	// Bind both global, perframe and perobject uniform buffer to specific descriptor set
 	m_descriptorSets[UniformDataStorage::GlobalVariable]->UpdateUniformBufferDynamic(0, std::dynamic_pointer_cast<UniformBuffer>(UniformData::GetInstance()->GetGlobalUniforms()->GetBuffer()));
+	
+	// Bind global texture array
+	for (uint32_t i = 0; i < InGameTextureTypeCount; i++)
+	{
+		std::shared_ptr<Texture2DArray> pTexArray = UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->GetTextureArray((InGameTextureType)i);
+		m_descriptorSets[UniformDataStorage::GlobalVariable]->UpdateImage(i + 1, std::static_pointer_cast<Image>(pTexArray));
+	}
+
 	m_descriptorSets[UniformDataStorage::PerFrameVariable]->UpdateUniformBufferDynamic(0, std::dynamic_pointer_cast<UniformBuffer>(UniformData::GetInstance()->GetPerFrameUniforms()->GetBuffer()));
 	m_descriptorSets[UniformDataStorage::PerObjectVariable]->UpdateShaderStorageBufferDynamic(0, std::dynamic_pointer_cast<ShaderStorageBuffer>(UniformData::GetInstance()->GetPerObjectUniforms()->GetBuffer()));
 
