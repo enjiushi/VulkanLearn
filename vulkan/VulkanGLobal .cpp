@@ -492,7 +492,8 @@ void VulkanGlobal::InitUniforms()
 	UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "GunMetallic", "", "R:Metalic" }, gliMetalic);
 
 	gli::texture_cube gliSkyBox(gli::load("../data/textures/hdr/gcanyon_cube.ktx"));
-	UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->GetIBLTextureCube(IBLTextureType::RGBA16_1024_SkyBox)->UpdateByteStream({ { gliSkyBox } });
+	UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->InitIBLTextures(gliSkyBox);
+	//UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->GetIBLTextureCube(IBLTextureType::RGBA16_1024_SkyBox)->UpdateByteStream({ { gliSkyBox } });
 	
 	
 	m_pSkyBoxTex = TextureCube::Create(m_pDevice, "../data/textures/hdr/gcanyon_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT);

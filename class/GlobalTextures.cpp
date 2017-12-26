@@ -2,6 +2,18 @@
 #include "../vulkan/Texture2D.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/TextureCube.h"
+#include "../vulkan/CommandPool.h"
+#include "../vulkan/CommandBuffer.h"
+#include "../vulkan/GlobalVulkanStates.h"
+#include "../vulkan/Queue.h"
+#include "../vulkan/StagingBufferManager.h"
+#include "../vulkan/Framebuffer.h"
+#include "../class/RenderWorkManager.h"
+#include "../class/Mesh.h"
+#include "../component/MeshRenderer.h"
+#include "../component/Camera.h"
+#include "../Base/BaseObject.h"
+#include "../scene/SceneGenerator.h"
 #include "GlobalTextures.h"
 #include "Material.h"
 
@@ -43,6 +55,257 @@ void GlobalTextures::InitIBLTextures()
 
 	m_IBL2DTextures.resize(IBL2DTextureTypeCount);
 	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateOffscreenTexture(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, VK_FORMAT_R16G16B16A16_SFLOAT);
+}
+
+void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
+{
+	m_IBLCubeTextures[RGBA16_1024_SkyBox]->UpdateByteStream({ {skyBoxTex} });
+	InitIrradianceTexture();
+	InitPrefilterEnvTexture();
+	InitBRDFLUTTexture();
+}
+
+void GlobalTextures::InitIrradianceTexture()
+{
+	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass());
+	RenderWorkManager::GetInstance()->SetDefaultOffscreenRenderPass(pEnvFrameBuffer);
+
+	StagingBufferMgr()->FlushDataMainThread();
+
+	SceneGenerator::GetInstance()->GenerateIrradianceGenScene();
+
+	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::IrradianceGen);
+
+	Vector3f up = { 0, 1, 0 };
+	Vector3f look = { 0, 0, -1 };
+	look.Normalize();
+	Vector3f xaxis = up ^ look.Negativate();
+	xaxis.Normalize();
+	Vector3f yaxis = look ^ xaxis;
+	yaxis.Normalize();
+
+	Matrix3f rotation;
+	rotation.c[0] = xaxis;
+	rotation.c[1] = yaxis;
+	rotation.c[2] = look;
+
+	Matrix3f cameraRotations[] =
+	{
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Positive X, i.e right
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Negative X, i.e left
+		Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Positive Y, i.e top
+		Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * rotation,	// Positive Z, i.e back
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(0, 0, 1)) * rotation,	// Negative Z, i.e front
+	};
+
+	for (uint32_t i = 0; i < 6; i++)
+	{
+		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+
+		std::vector<VkClearValue> clearValues =
+		{
+			{ 0.2f, 0.2f, 0.2f, 0.2f },
+			{ 1.0f, 0 }
+		};
+
+		VkViewport viewport =
+		{
+			0, 0,
+			OFFSCREEN_SIZE, OFFSCREEN_SIZE,
+			0, 1
+		};
+
+		VkRect2D scissorRect =
+		{
+			0, 0,
+			OFFSCREEN_SIZE, OFFSCREEN_SIZE,
+		};
+
+		GetGlobalVulkanStates()->SetViewport(viewport);
+		GetGlobalVulkanStates()->SetScissorRect(scissorRect);
+
+		SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
+
+		pDrawCmdBuffer->StartPrimaryRecording();
+
+		uint32_t offset = 0;
+
+		pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
+
+		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameStart();
+
+		SceneGenerator::GetInstance()->GetRootObject()->Update();
+		SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
+		UniformData::GetInstance()->SyncDataBuffer();
+		SceneGenerator::GetInstance()->GetRootObject()->Draw();
+
+		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
+
+		RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
+
+		pDrawCmdBuffer->EndRenderPass();
+
+
+		pDrawCmdBuffer->EndPrimaryRecording();
+
+		GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
+
+		pEnvFrameBuffer->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance], 0, 1, i, 1);
+	}
+}
+
+void GlobalTextures::InitPrefilterEnvTexture()
+{
+	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass());
+	RenderWorkManager::GetInstance()->SetDefaultOffscreenRenderPass(pEnvFrameBuffer);
+
+	StagingBufferMgr()->FlushDataMainThread();
+
+	SceneGenerator::GetInstance()->GeneratePrefilterEnvGenScene();
+
+	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::ReflectionGen);
+
+	Vector3f up = { 0, 1, 0 };
+	Vector3f look = { 0, 0, -1 };
+	look.Normalize();
+	Vector3f xaxis = up ^ look.Negativate();
+	xaxis.Normalize();
+	Vector3f yaxis = look ^ xaxis;
+	yaxis.Normalize();
+
+	Matrix3f rotation;
+	rotation.c[0] = xaxis;
+	rotation.c[1] = yaxis;
+	rotation.c[2] = look;
+
+	Matrix3f cameraRotations[] =
+	{
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Positive X, i.e right
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Negative X, i.e left
+		Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Positive Y, i.e top
+		Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * rotation,	// Positive Z, i.e back
+		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(0, 0, 1)) * rotation,	// Negative Z, i.e front
+	};
+
+	uint32_t mipLevels = std::log2(OFFSCREEN_SIZE);
+	for (uint32_t mipLevel = 0; mipLevel < mipLevels + 1; mipLevel++)
+	{
+		UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding(mipLevel / (float)mipLevels);
+		uint32_t size = std::pow(2, mipLevels - mipLevel);
+		for (uint32_t i = 0; i < 6; i++)
+		{
+			std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+
+			std::vector<VkClearValue> clearValues =
+			{
+				{ 0.2f, 0.2f, 0.2f, 0.2f },
+				{ 1.0f, 0 }
+			};
+
+			VkViewport viewport =
+			{
+				0, 0,
+				size, size,
+				0, 1
+			};
+
+			VkRect2D scissorRect =
+			{
+				0, 0,
+				size, size,
+			};
+
+			GetGlobalVulkanStates()->SetViewport(viewport);
+			GetGlobalVulkanStates()->SetScissorRect(scissorRect);
+
+			SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
+
+			pDrawCmdBuffer->StartPrimaryRecording();
+
+			uint32_t offset = 0;
+
+			pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
+
+			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameStart();
+
+			SceneGenerator::GetInstance()->GetRootObject()->Update();
+			SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
+			UniformData::GetInstance()->SyncDataBuffer();
+			SceneGenerator::GetInstance()->GetRootObject()->Draw();
+
+			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
+
+			RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
+
+			pDrawCmdBuffer->EndRenderPass();
+
+			pDrawCmdBuffer->EndPrimaryRecording();
+
+			GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
+
+			pEnvFrameBuffer->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv], mipLevel, 1, i, 1, size, size);
+		}
+	}
+}
+
+void GlobalTextures::InitBRDFLUTTexture()
+{
+	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass());
+	RenderWorkManager::GetInstance()->SetDefaultOffscreenRenderPass(pEnvFrameBuffer);
+
+	StagingBufferMgr()->FlushDataMainThread();
+
+	SceneGenerator::GetInstance()->GenerateBRDFLUTGenScene();
+
+	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::BrdfLutGen);
+
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+
+	std::vector<VkClearValue> clearValues =
+	{
+		{ 0.2f, 0.2f, 0.2f, 0.2f },
+		{ 1.0f, 0 }
+	};
+
+	VkViewport viewport =
+	{
+		0, 0,
+		OFFSCREEN_SIZE, OFFSCREEN_SIZE,
+		0, 1
+	};
+
+	VkRect2D scissorRect =
+	{
+		0, 0,
+		OFFSCREEN_SIZE, OFFSCREEN_SIZE,
+	};
+
+	pDrawCmdBuffer->StartPrimaryRecording();
+
+	GetGlobalVulkanStates()->SetViewport(viewport);
+	GetGlobalVulkanStates()->SetScissorRect(scissorRect);
+
+	uint32_t offset = 0;
+
+	pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
+
+	SceneGenerator::GetInstance()->GetRootObject()->Update();
+	SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
+	UniformData::GetInstance()->SyncDataBuffer();
+	SceneGenerator::GetInstance()->GetRootObject()->Draw();
+
+	RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
+
+	pDrawCmdBuffer->EndRenderPass();
+
+
+	pDrawCmdBuffer->EndPrimaryRecording();
+
+	GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
+
+	pEnvFrameBuffer->ExtractContent(m_IBL2DTextures[RGBA16_512_BRDFLut]);
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()

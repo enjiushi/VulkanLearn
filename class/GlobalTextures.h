@@ -56,11 +56,15 @@ public:
 	std::shared_ptr<Texture2DArray>	GetTextureArray(InGameTextureType type) const { return m_textureDiction[type].pTextureArray; }
 	std::shared_ptr<TextureCube> GetIBLTextureCube(IBLTextureType type) const { return m_IBLCubeTextures[type]; }
 	std::shared_ptr<Texture2D> GetIBLTexture2D(IBLTextureType type) const { return m_IBL2DTextures[type]; }
+	void InitIBLTextures(const gli::texture_cube& skyBoxTex);
 
 protected:
 	bool Init(const std::shared_ptr<GlobalTextures>& pSelf);
 	void InitTextureDiction();
 	void InitIBLTextures();
+	void InitIrradianceTexture();
+	void InitPrefilterEnvTexture();
+	void InitBRDFLUTTexture();
 
 protected:
 	std::vector<TextureArrayDesc>				m_textureDiction;
