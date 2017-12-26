@@ -32,7 +32,7 @@ void main()
 		for (float theta = 0.0; theta < 0.5 * PI; theta += sampleDelta) {
 			vec3 sampleDir = vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
 			sampleDir = normalize(tangentSpace * sampleDir);
-			irradiance += texture(envTex, sampleDir).rgb * cos(theta) * sin(theta);
+			irradiance += texture(RGBA16_1024_MIP_CUBE_SKYBOX, sampleDir).rgb * cos(theta) * sin(theta);
 			numSamples++;
 		}
 	}

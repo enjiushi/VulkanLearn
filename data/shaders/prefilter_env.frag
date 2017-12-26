@@ -30,7 +30,7 @@ void main()
 		float NdotL = dot(N, L);
 		if (NdotL > 0)
 		{
-			color += texture(envTex, L).rgb;
+			color += texture(RGBA16_1024_MIP_CUBE_SKYBOX, L).rgb;
 			weight += NdotL;
 		}
 	}
