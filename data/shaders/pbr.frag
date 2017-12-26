@@ -41,7 +41,7 @@ vec3 perturbNormal()
 
 void main() 
 {
-	vec4 normal_ao = texture(RGBA8_1024_MIP_ARRAY, vec3(inUv.st, 1), 0.0);
+	vec4 normal_ao = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, 1), 0.0);
 	vec3 pertNormal = normal_ao.xyz * 2.0 - vec3(1.0);
 
 	mat3 TBN = mat3(inTangent, inBitangent, inNormal);
@@ -58,10 +58,10 @@ void main()
 	float NdotV = max(0.0f, dot(n, v));
 	float LdotH = max(0.0f, dot(l, h));
 
-	vec4 albedo_roughness = texture(RGBA8_1024_MIP_ARRAY, vec3(inUv.st, 0), 0.0);
+	vec4 albedo_roughness = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, 0), 0.0);
 	albedo_roughness.rgb = pow(albedo_roughness.rgb, vec3(2.2));
 
-	float metalic = texture(R8_1024_MIP_ARRAY, vec3(inUv.st, 0), 0.0).r;
+	float metalic = texture(R8_1024_MIP_2DARRAY, vec3(inUv.st, 0), 0.0).r;
 	F0 = mix(F0, albedo_roughness.rgb, metalic);
 
 	vec3 fresnel = Fresnel_Schlick(F0, LdotH);

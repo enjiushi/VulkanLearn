@@ -166,8 +166,6 @@ public:
 	std::shared_ptr<Material>			m_pTestMaterial;
 	std::shared_ptr<MaterialInstance>	m_pTestMaterialInstance;
 
-	std::shared_ptr<Texture2DArray>		m_pTestTexArray;
-
 	std::shared_ptr<BaseObject>			m_pRootObject;
 
 #if defined(_WIN32)

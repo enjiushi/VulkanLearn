@@ -32,6 +32,9 @@ public:
 	VkAccessFlags GetAccessFlags() const { return m_accessFlags; }
 	uint32_t GetBytesPerPixel() const { return m_bytesPerPixel; }
 
+	void UpdateByteStream(const GliImageWrapper& gliTex);
+	void UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer);
+
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;
 
@@ -42,8 +45,6 @@ protected:
 	virtual void CreateImageView();
 	virtual void CreateSampler();
 
-	void UpdateByteStream(const GliImageWrapper& gliTex);
-	void UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer);
 	virtual std::shared_ptr<StagingBuffer> PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer) = 0;
 	virtual void ExecuteCopy(const GliImageWrapper& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer) = 0;
 	virtual void ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer) = 0;

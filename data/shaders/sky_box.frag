@@ -13,7 +13,7 @@ layout (location = 0) out vec4 outFragColor;
 
 void main() 
 {
-	vec3 final = texture(envTex, normalize(inSampleDir)).xyz;
+	vec3 final = texture(RGBA16_1024_MIP_CUBE_SKYBOX, normalize(inSampleDir)).xyz;
 	
 	final = Uncharted2Tonemap(final * globalData.GEW.y);
 	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
