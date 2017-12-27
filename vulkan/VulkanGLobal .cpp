@@ -379,11 +379,6 @@ void VulkanGlobal::InitRenderpass()
 
 void VulkanGlobal::InitFrameBuffer()
 {
-	m_pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, OffScreenSize, OffScreenSize, RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass());
-
-	m_offscreenFrameBuffers.resize(GlobalDeviceObjects::GetInstance()->GetSwapChain()->GetSwapChainImageCount());
-	for (uint32_t i = 0; i < m_offscreenFrameBuffers.size(); i++)
-		m_offscreenFrameBuffers[i] = FrameBuffer::CreateOffScreenFrameBuffer(m_pDevice, GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetPhysicalDevice()->GetSurfaceCap().currentExtent.height, RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass());
 }
 
 void VulkanGlobal::InitVertices()
@@ -616,45 +611,6 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pSkyBoxMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
-	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" };
-	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo	= m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
-	info.maxMaterialInstance	= 1;
-	info.materialVariableLayout = layout;
-	info.pRenderPass			= RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass();
-	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
-
-	m_pSkyBoxIrradianceMaterial = Material::CreateDefaultMaterial(info);
-	m_pSkyBoxIrradianceMaterialInstance = m_pSkyBoxIrradianceMaterial->CreateMaterialInstance();
-	m_pSkyBoxIrradianceMaterialInstance->SetRenderMask(1 << RenderWorkManager::IrradianceGen);
-	m_pSkyBoxIrradianceMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
-
-	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" };
-	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo	= m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
-	info.maxMaterialInstance	= 1;
-	info.materialVariableLayout = layout;
-	info.pRenderPass			= RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass();
-	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
-
-	m_pSkyBoxReflectionMaterial = Material::CreateDefaultMaterial(info);
-	m_pSkyBoxReflectionMaterialInstance = m_pSkyBoxReflectionMaterial->CreateMaterialInstance();
-	m_pSkyBoxReflectionMaterialInstance->SetRenderMask(1 << RenderWorkManager::ReflectionGen);
-	m_pSkyBoxReflectionMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
-
-	info.shaderPaths			= { L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" };
-	info.vertexBindingsInfo		= { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo	= m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
-	info.maxMaterialInstance	= 1;
-	info.materialVariableLayout = layout;
-	info.pRenderPass			= RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass();
-	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
-
-	m_pBRDFLutMaterial = Material::CreateDefaultMaterial(info);
-	m_pBRDFLutMaterialInstance = m_pBRDFLutMaterial->CreateMaterialInstance();
-	m_pBRDFLutMaterialInstance->SetRenderMask(1 << RenderWorkManager::BrdfLutGen);
-	m_pBRDFLutMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
-
 	/*layout =
 	{
 		{
@@ -702,9 +658,6 @@ void VulkanGlobal::InitScene()
 		1.0f,
 		2000.0f,
 	};
-	m_pOffScreenCamObj = BaseObject::Create();
-	m_pOffScreenCamComp = Camera::Create(camInfo);
-	m_pOffScreenCamObj->AddComponent(m_pOffScreenCamComp);
 
 	m_pCharacter = Character::Create({ 100.0f }, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
@@ -721,12 +674,8 @@ void VulkanGlobal::InitScene()
 	m_pGunObject1->SetPos({-100, 0, 0});
 
 	m_pSkyBoxObject = BaseObject::Create();
-	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, { m_pSkyBoxMaterialInstance, m_pSkyBoxIrradianceMaterialInstance, m_pSkyBoxReflectionMaterialInstance });
+	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, { m_pSkyBoxMaterialInstance });
 	m_pSkyBoxObject->AddComponent(m_pSkyBoxMeshRenderer);
-
-	m_pQuadObject = BaseObject::Create();
-	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, m_pBRDFLutMaterialInstance);
-	m_pQuadObject->AddComponent(m_pQuadRenderer);
 
 	/*
 	m_pTestObject = BaseObject::Create();
@@ -738,7 +687,6 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pGunObject1);
 	//m_pRootObject->AddChild(m_pTestObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
-	m_pRootObject->AddChild(m_pQuadObject);
 
 	m_pRootObject->AddChild(m_pCameraObj);
 

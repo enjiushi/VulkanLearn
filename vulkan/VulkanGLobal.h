@@ -99,9 +99,6 @@ public:
 
 	std::shared_ptr<DepthStencilBuffer>	m_pDSBuffer;
 
-	std::shared_ptr<FrameBuffer>		m_pEnvFrameBuffer;
-	std::vector<std::shared_ptr<FrameBuffer>>m_offscreenFrameBuffers;
-
 
 	std::shared_ptr<Mesh>				m_pGunMesh;
 	std::shared_ptr<Mesh>				m_pCubeMesh;
@@ -119,8 +116,6 @@ public:
 
 	std::shared_ptr<BaseObject>			m_pCameraObj;
 	std::shared_ptr<Camera>				m_pCameraComp;
-	std::shared_ptr<BaseObject>			m_pOffScreenCamObj;
-	std::shared_ptr<Camera>				m_pOffScreenCamComp;
 	std::shared_ptr<Character>			m_pCharacter;
 	uint32_t							m_moveFlag = 0;
 
@@ -145,17 +140,7 @@ public:
 	std::shared_ptr<Material>			m_pSkyBoxMaterial;
 	std::shared_ptr<MaterialInstance>	m_pSkyBoxMaterialInstance;
 
-	std::shared_ptr<Material>			m_pSkyBoxIrradianceMaterial;
-	std::shared_ptr<MaterialInstance>	m_pSkyBoxIrradianceMaterialInstance;
-
-	std::shared_ptr<Material>			m_pSkyBoxReflectionMaterial;
-	std::shared_ptr<MaterialInstance>	m_pSkyBoxReflectionMaterialInstance;
-
-	std::shared_ptr<Material>			m_pBRDFLutMaterial;
-	std::shared_ptr<MaterialInstance>	m_pBRDFLutMaterialInstance;
-
 	std::shared_ptr<BaseObject>			m_pQuadObject;
-	std::shared_ptr<MeshRenderer>		m_pQuadRenderer;
 
 	std::shared_ptr<BaseObject>			m_pTestObject;
 	std::shared_ptr<MeshRenderer>		m_pTestRenderer;
