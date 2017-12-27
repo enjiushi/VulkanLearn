@@ -225,7 +225,7 @@ void Mesh::PrepareIndirectCmd(VkDrawIndexedIndirectCommand& cmd)
 	cmd.firstInstance = 0;
 	cmd.instanceCount = 1;
 
-	cmd.vertexOffset = GetVertexBuffer()->GetBufferOffset();
+	cmd.vertexOffset = GetVertexBuffer()->GetBufferOffset() / m_vertexBytes;
 	cmd.firstIndex = GetIndexBuffer()->GetBufferOffset() / GetIndexBytes(GetIndexBuffer()->GetType());
 	cmd.indexCount = m_indicesCount;
 }
