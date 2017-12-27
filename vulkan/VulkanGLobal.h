@@ -68,9 +68,6 @@ public:
 	void InitFrameBuffer();
 	void InitVertices();
 	void InitUniforms();
-	void InitIrradianceMap();
-	void InitPrefilterEnvMap();
-	void InitBRDFlutMap();
 	void InitDescriptorSetLayout();
 	void InitPipelineCache();
 	void InitPipeline();
@@ -80,7 +77,6 @@ public:
 	void InitSemaphore();
 	void InitMaterials();
 	void InitScene();
-	void InitEnviromentMap();
 	void EndSetup();
 
 	void Draw();

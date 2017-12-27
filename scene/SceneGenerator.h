@@ -24,6 +24,8 @@ public:
 	std::shared_ptr<BaseObject> GetCameraObject() const { return m_pCameraObj; }
 	std::shared_ptr<Material> GetMaterial0() const { return m_pMaterial0; }
 	std::shared_ptr<MaterialInstance> GetMaterialInstance0() const { return m_pMaterialInstance0; }
+	std::shared_ptr<Mesh> GetMesh0() const { return m_pMesh0; }
+	std::shared_ptr<MeshRenderer> GetMeshRenderer0() const { return m_pMeshRenderer0; }
 
 public:
 	static std::shared_ptr<Mesh> GenerateBoxMesh();

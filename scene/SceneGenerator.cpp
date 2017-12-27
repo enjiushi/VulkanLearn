@@ -1,4 +1,5 @@
 #include "../vulkan/SharedVertexBuffer.h"
+#include "../vulkan/StagingBufferManager.h"
 #include "../class/RenderWorkManager.h"
 #include "../class/Mesh.h"
 #include "../class/Material.h"
@@ -38,6 +39,8 @@ void SceneGenerator::GenerateIrradianceGenScene()
 	std::shared_ptr<BaseObject> pSkyBox = BaseObject::Create();
 	pSkyBox->AddComponent(m_pMeshRenderer0);
 	m_pRootObj->AddChild(pSkyBox);
+
+	StagingBufferMgr()->FlushDataMainThread();
 }
 
 void SceneGenerator::GeneratePrefilterEnvGenScene()
@@ -58,6 +61,8 @@ void SceneGenerator::GeneratePrefilterEnvGenScene()
 	std::shared_ptr<BaseObject> pSkyBox = BaseObject::Create();
 	pSkyBox->AddComponent(m_pMeshRenderer0);
 	m_pRootObj->AddChild(pSkyBox);
+
+	StagingBufferMgr()->FlushDataMainThread();
 }
 
 void SceneGenerator::GenerateBRDFLUTGenScene()
@@ -78,6 +83,8 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 	std::shared_ptr<BaseObject> pQuadObj = BaseObject::Create();
 	pQuadObj->AddComponent(m_pMeshRenderer0);
 	m_pRootObj->AddChild(pQuadObj);
+
+	StagingBufferMgr()->FlushDataMainThread();
 }
 
 std::shared_ptr<Mesh> SceneGenerator::GenerateBoxMesh()

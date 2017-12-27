@@ -54,7 +54,7 @@ void GlobalTextures::InitIBLTextures()
 	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = TextureCube::CreateEmptyTextureCube(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, std::log2(512) + 1, VK_FORMAT_R16G16B16A16_SFLOAT);
 
 	m_IBL2DTextures.resize(IBL2DTextureTypeCount);
-	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateOffscreenTexture(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateEmptyTexture(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, VK_FORMAT_R16G16B16A16_SFLOAT);
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
@@ -69,8 +69,6 @@ void GlobalTextures::InitIrradianceTexture()
 {
 	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass());
 	RenderWorkManager::GetInstance()->SetDefaultOffscreenRenderPass(pEnvFrameBuffer);
-
-	StagingBufferMgr()->FlushDataMainThread();
 
 	SceneGenerator::GetInstance()->GenerateIrradianceGenScene();
 
@@ -105,7 +103,7 @@ void GlobalTextures::InitIrradianceTexture()
 
 		std::vector<VkClearValue> clearValues =
 		{
-			{ 0.2f, 0.2f, 0.2f, 0.2f },
+			{ 0.0f, 0.0f, 0.0f, 0.0f },
 			{ 1.0f, 0 }
 		};
 
@@ -129,8 +127,6 @@ void GlobalTextures::InitIrradianceTexture()
 
 		pDrawCmdBuffer->StartPrimaryRecording();
 
-		uint32_t offset = 0;
-
 		pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
 
 		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameStart();
@@ -138,7 +134,7 @@ void GlobalTextures::InitIrradianceTexture()
 		SceneGenerator::GetInstance()->GetRootObject()->Update();
 		SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 		UniformData::GetInstance()->SyncDataBuffer();
-		SceneGenerator::GetInstance()->GetRootObject()->Draw();
+		SceneGenerator::GetInstance()->GetMaterial0()->Draw();
 
 		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
 
@@ -159,8 +155,6 @@ void GlobalTextures::InitPrefilterEnvTexture()
 {
 	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass());
 	RenderWorkManager::GetInstance()->SetDefaultOffscreenRenderPass(pEnvFrameBuffer);
-
-	StagingBufferMgr()->FlushDataMainThread();
 
 	SceneGenerator::GetInstance()->GeneratePrefilterEnvGenScene();
 
@@ -200,7 +194,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 
 			std::vector<VkClearValue> clearValues =
 			{
-				{ 0.2f, 0.2f, 0.2f, 0.2f },
+				{ 0.0f, 0.0f, 0.0f, 0.0f },
 				{ 1.0f, 0 }
 			};
 
@@ -224,8 +218,6 @@ void GlobalTextures::InitPrefilterEnvTexture()
 
 			pDrawCmdBuffer->StartPrimaryRecording();
 
-			uint32_t offset = 0;
-
 			pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
 
 			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameStart();
@@ -233,7 +225,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 			SceneGenerator::GetInstance()->GetRootObject()->Update();
 			SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 			UniformData::GetInstance()->SyncDataBuffer();
-			SceneGenerator::GetInstance()->GetRootObject()->Draw();
+			SceneGenerator::GetInstance()->GetMaterial0()->Draw();
 
 			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
 
@@ -255,8 +247,6 @@ void GlobalTextures::InitBRDFLUTTexture()
 	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass());
 	RenderWorkManager::GetInstance()->SetDefaultOffscreenRenderPass(pEnvFrameBuffer);
 
-	StagingBufferMgr()->FlushDataMainThread();
-
 	SceneGenerator::GetInstance()->GenerateBRDFLUTGenScene();
 
 	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::BrdfLutGen);
@@ -265,7 +255,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 	std::vector<VkClearValue> clearValues =
 	{
-		{ 0.2f, 0.2f, 0.2f, 0.2f },
+		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 1.0f, 0 }
 	};
 
@@ -287,14 +277,12 @@ void GlobalTextures::InitBRDFLUTTexture()
 	GetGlobalVulkanStates()->SetViewport(viewport);
 	GetGlobalVulkanStates()->SetScissorRect(scissorRect);
 
-	uint32_t offset = 0;
-
 	pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
 
 	SceneGenerator::GetInstance()->GetRootObject()->Update();
 	SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();
-	SceneGenerator::GetInstance()->GetRootObject()->Draw();
+	SceneGenerator::GetInstance()->GetMaterial0()->Draw();
 
 	RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 

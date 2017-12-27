@@ -71,7 +71,7 @@ void main()
 	vec3 fresnel_roughness = Fresnel_Schlick_Roughness(F0, NdotV, albedo_roughness.a);
 	vec3 kD_roughness = (1.0 - metalic) * (vec3(1.0) - fresnel_roughness);
 
-	vec3 irradiance = texture(irradianceTex, vec3(n.x, -n.y, n.z)).rgb * albedo_roughness.rgb / PI;
+	vec3 irradiance = texture(RGBA16_512_CUBE_IRRADIANCE, vec3(n.x, -n.y, n.z)).rgb * albedo_roughness.rgb / PI;
 
 	//vec3 reflectSampleDir = NdotV * n * 2.0 - v;
 	//reflectSampleDir.y *= -1.0;
@@ -80,8 +80,8 @@ void main()
 
 	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
 	float lod = albedo_roughness.a * MAX_REFLECTION_LOD;
-	vec3 reflect = textureLod(prefilterEnvTex, reflectSampleDir, lod).rgb;
-	vec2 brdf_lut = texture(BRDFLut, vec2(NdotV, albedo_roughness.a)).rg;
+	vec3 reflect = textureLod(RGBA16_512_CUBE_PREFILTERENV, reflectSampleDir, lod).rgb;
+	vec2 brdf_lut = texture(RGBA16_512_2D_BRDFLUT, vec2(NdotV, albedo_roughness.a)).rg;
 
 	// Here we use NdotV rather than LdotH, since L's direction is based on punctual light, and here ambient reflection calculation
 	// requires reflection vector dot with N, which is RdotN, equals NdotV

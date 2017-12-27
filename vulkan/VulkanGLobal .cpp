@@ -27,6 +27,7 @@
 #include "SharedIndirectBuffer.h"
 #include "../class/Enums.h"
 #include "../class/GlobalTextures.h"
+#include "../scene/SceneGenerator.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -507,228 +508,6 @@ void VulkanGlobal::InitUniforms()
 	m_pBRDFLut = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
 }
 
-void VulkanGlobal::InitIrradianceMap()
-{
-	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::IrradianceGen);
-
-	Vector3f up = { 0, 1, 0 };
-	Vector3f look = { 0, 0, -1 };
-	look.Normalize();
-	Vector3f xaxis = up ^ look.Negativate();
-	xaxis.Normalize();
-	Vector3f yaxis = look ^ xaxis;
-	yaxis.Normalize();
-
-	Matrix3f rotation;
-	rotation.c[0] = xaxis;
-	rotation.c[1] = yaxis;
-	rotation.c[2] = look;
-
-	Matrix3f cameraRotations[] =
-	{
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Positive X, i.e right
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Negative X, i.e left
-		Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Positive Y, i.e top
-		Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * rotation,	// Positive Z, i.e back
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(0, 0, 1)) * rotation,	// Negative Z, i.e front
-	};
-
-	for (uint32_t i = 0; i < 6; i++)
-	{
-		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
-
-		std::vector<VkClearValue> clearValues =
-		{
-			{ 0.2f, 0.2f, 0.2f, 0.2f },
-			{ 1.0f, 0 }
-		};
-
-		VkViewport viewport =
-		{
-			0, 0,
-			OffScreenSize, OffScreenSize,
-			0, 1
-		};
-
-		VkRect2D scissorRect =
-		{
-			0, 0,
-			OffScreenSize, OffScreenSize,
-		};
-
-		GetGlobalVulkanStates()->SetViewport(viewport);
-		GetGlobalVulkanStates()->SetScissorRect(scissorRect);
-
-		m_pOffScreenCamObj->SetRotation(cameraRotations[i]);
-
-		pDrawCmdBuffer->StartPrimaryRecording();
-
-		uint32_t offset = 0;
-		
-		pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
-
-		m_pSkyBoxIrradianceMaterial->OnFrameStart();
-
-		m_pRootObject->Update();
-		m_pRootObject->LateUpdate();
-		UniformData::GetInstance()->SyncDataBuffer();
-		m_pRootObject->Draw();
-
-		m_pSkyBoxIrradianceMaterial->OnFrameEnd();
-
-		RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
-
-		pDrawCmdBuffer->EndRenderPass();
-
-
-		pDrawCmdBuffer->EndPrimaryRecording();
-
-		GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
-
-		m_pEnvFrameBuffer->ExtractContent(m_pIrradianceTex, 0, 1, i, 1);
-	}
-}
-
-void VulkanGlobal::InitPrefilterEnvMap()
-{
-	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::ReflectionGen);
-
-	Vector3f up = { 0, 1, 0 };
-	Vector3f look = { 0, 0, -1 };
-	look.Normalize();
-	Vector3f xaxis = up ^ look.Negativate();
-	xaxis.Normalize();
-	Vector3f yaxis = look ^ xaxis;
-	yaxis.Normalize();
-
-	Matrix3f rotation;
-	rotation.c[0] = xaxis;
-	rotation.c[1] = yaxis;
-	rotation.c[2] = look;
-
-	Matrix3f cameraRotations[] =
-	{
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Positive X, i.e right
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Negative X, i.e left
-		Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Positive Y, i.e top
-		Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * rotation,	// Positive Z, i.e back
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(0, 0, 1)) * rotation,	// Negative Z, i.e front
-	};
-
-	uint32_t mipLevels = std::log2(OffScreenSize);
-	for (uint32_t mipLevel = 0; mipLevel < mipLevels + 1; mipLevel++)
-	{
-		UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding(mipLevel / (float)mipLevels);
-		uint32_t size = std::pow(2, mipLevels - mipLevel);
-		for (uint32_t i = 0; i < 6; i++)
-		{
-			std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
-
-			std::vector<VkClearValue> clearValues =
-			{
-				{ 0.2f, 0.2f, 0.2f, 0.2f },
-				{ 1.0f, 0 }
-			};
-
-			VkViewport viewport =
-			{
-				0, 0,
-				size, size,
-				0, 1
-			};
-
-			VkRect2D scissorRect =
-			{
-				0, 0,
-				size, size,
-			};
-
-			GetGlobalVulkanStates()->SetViewport(viewport);
-			GetGlobalVulkanStates()->SetScissorRect(scissorRect);
-
-			m_pOffScreenCamObj->SetRotation(cameraRotations[i]);
-
-			pDrawCmdBuffer->StartPrimaryRecording();
-
-			uint32_t offset = 0;
-
-			pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
-
-			m_pSkyBoxReflectionMaterial->OnFrameStart();
-
-			m_pRootObject->Update();
-			m_pRootObject->LateUpdate();
-			UniformData::GetInstance()->SyncDataBuffer();
-			m_pRootObject->Draw();
-
-			m_pSkyBoxIrradianceMaterial->OnFrameEnd();
-
-			RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
-
-			pDrawCmdBuffer->EndRenderPass();
-
-			pDrawCmdBuffer->EndPrimaryRecording();
-
-			GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
-
-			m_pEnvFrameBuffer->ExtractContent(m_pPrefilterEnvTex, mipLevel, 1, i, 1, size, size);
-		}
-	}
-}
-
-void VulkanGlobal::InitBRDFlutMap()
-{
-	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::BrdfLutGen);
-
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
-
-	std::vector<VkClearValue> clearValues =
-	{
-		{ 0.2f, 0.2f, 0.2f, 0.2f },
-		{ 1.0f, 0 }
-	};
-
-	VkViewport viewport =
-	{
-		0, 0,
-		OffScreenSize, OffScreenSize,
-		0, 1
-	};
-
-	VkRect2D scissorRect =
-	{
-		0, 0,
-		OffScreenSize, OffScreenSize,
-	};
-
-	pDrawCmdBuffer->StartPrimaryRecording();
-
-	GetGlobalVulkanStates()->SetViewport(viewport);
-	GetGlobalVulkanStates()->SetScissorRect(scissorRect);
-
-	uint32_t offset = 0;
-
-	pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
-
-	m_pRootObject->Update();
-	m_pRootObject->LateUpdate();
-	UniformData::GetInstance()->SyncDataBuffer();
-	m_pRootObject->Draw();
-
-	RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
-
-	pDrawCmdBuffer->EndRenderPass();
-
-
-	pDrawCmdBuffer->EndPrimaryRecording();
-
-	GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
-
-	m_pEnvFrameBuffer->ExtractContent(m_pBRDFLut);
-}
-
 void VulkanGlobal::InitDescriptorSetLayout()
 {
 }
@@ -903,24 +682,6 @@ void VulkanGlobal::InitMaterials()
 	m_pTestMaterialInstance->SetMaterialTexture(2, m_pBRDFLut);*/
 }
 
-void VulkanGlobal::InitEnviromentMap()
-{
-	RenderWorkManager::GetInstance()->SetDefaultOffscreenRenderPass(m_pEnvFrameBuffer);
-
-	StagingBufferMgr()->FlushDataMainThread();
-
-	// FIXME: Temp 
-	m_pRootObject->AddChild(m_pOffScreenCamObj);
-
-	InitIrradianceMap();
-	InitPrefilterEnvMap();
-	InitBRDFlutMap();
-
-	// FIXME: Temp 
-	m_pRootObject->DelChild(3);
-	m_pRootObject->AddChild(m_pCameraObj);
-}
-
 void VulkanGlobal::InitScene()
 {
 	CameraInfo camInfo =
@@ -978,6 +739,8 @@ void VulkanGlobal::InitScene()
 	//m_pRootObject->AddChild(m_pTestObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pQuadObject);
+
+	m_pRootObject->AddChild(m_pCameraObj);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor({ 1, 1, 1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ -1, -1, 1 });
@@ -1065,6 +828,5 @@ void VulkanGlobal::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)
 	InitSemaphore();
 	InitMaterials();
 	InitScene();
-	InitEnviromentMap();
 	EndSetup();
 }
