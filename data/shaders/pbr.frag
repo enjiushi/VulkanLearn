@@ -3,12 +3,17 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (set = 3, binding = 1) uniform sampler2D albedoTex;
-layout (set = 3, binding = 2) uniform sampler2D bumpTex;
-layout (set = 3, binding = 3) uniform sampler2D metalicTex;
-layout (set = 3, binding = 4) uniform samplerCube irradianceTex;
-layout (set = 3, binding = 5) uniform samplerCube prefilterEnvTex;
-layout (set = 3, binding = 6) uniform sampler2D BRDFLut;
+struct PBRTextures
+{
+	float albedoRoughnessIndex;
+	float normalAOIndex;
+	float metallicIndex;
+};
+
+layout(set = 3, binding = 1) buffer MaterialUniforms
+{
+	PBRTextures textures[];
+};
 
 #include "uniform_layout.h"
 
@@ -19,29 +24,13 @@ layout (location = 3) in vec3 inLightDir;
 layout (location = 4) in vec3 inViewDir;
 layout (location = 5) in vec3 inTangent;
 layout (location = 6) in vec3 inBitangent;
+layout (location = 7) flat in int perMaterialIndex;
 
 layout (location = 0) out vec4 outFragColor;
 
-vec3 perturbNormal()
-{
-	vec3 tangentNormal = texture(bumpTex, inUv.st).xyz * 2.0 - 1.0;
-
-	vec3 q1 = dFdx(inWorldPos);
-	vec3 q2 = dFdy(inWorldPos);
-	vec2 st1 = dFdx(inUv.st);
-	vec2 st2 = dFdy(inUv.st);
-
-	vec3 N = normalize(inNormal);
-	vec3 T = normalize(q1 * st2.t - q2 * st1.t);
-	vec3 B = normalize(cross(N, T));
-	mat3 TBN = mat3(T, B, N);
-
-	return normalize(TBN * tangentNormal);
-}
-
 void main() 
 {
-	vec4 normal_ao = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, 1), 0.0);
+	vec4 normal_ao = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].normalAOIndex), 0.0);
 	vec3 pertNormal = normal_ao.xyz * 2.0 - vec3(1.0);
 
 	mat3 TBN = mat3(inTangent, inBitangent, inNormal);
@@ -58,10 +47,10 @@ void main()
 	float NdotV = max(0.0f, dot(n, v));
 	float LdotH = max(0.0f, dot(l, h));
 
-	vec4 albedo_roughness = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, 0), 0.0);
+	vec4 albedo_roughness = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].albedoRoughnessIndex), 0.0);
 	albedo_roughness.rgb = pow(albedo_roughness.rgb, vec3(2.2));
 
-	float metalic = texture(R8_1024_MIP_2DARRAY, vec3(inUv.st, 0), 0.0).r;
+	float metalic = texture(R8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].metallicIndex), 0.0).r;
 	F0 = mix(F0, albedo_roughness.rgb, metalic);
 
 	vec3 fresnel = Fresnel_Schlick(F0, LdotH);

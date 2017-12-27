@@ -69,13 +69,13 @@ public:
 	template <typename T>
 	void SetParameter(uint32_t chunkIndex, uint32_t bindingIndex, uint32_t parameterIndex, T val)
 	{
-		m_perMaterialUniforms[bindingIndex]->SetParameter(chunkIndex, m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][bindingIndex].vars[parameterIndex].offset, val);
+		m_perMaterialUniforms[bindingIndex]->SetParameter(chunkIndex, m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][bindingIndex + 1].vars[parameterIndex].offset, val);
 	}
 
 	template <typename T>
 	T GetParameter(uint32_t chunkIndex, uint32_t bindingIndex, uint32_t parameterIndex)
 	{
-		return m_perMaterialUniforms[bindingIndex]->GetParameter<T>(chunkIndex, m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][bindingIndex].vars[parameterIndex].offset);
+		return m_perMaterialUniforms[bindingIndex]->GetParameter<T>(chunkIndex, m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][bindingIndex + 1].vars[parameterIndex].offset);
 	}
 
 	void SetPerObjectIndex(uint32_t indirectIndex, uint32_t perObjectIndex);

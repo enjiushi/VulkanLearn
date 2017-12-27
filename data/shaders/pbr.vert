@@ -15,6 +15,7 @@ layout (location = 3) out vec3 outLightDir;
 layout (location = 4) out vec3 outViewDir;
 layout (location = 5) out vec3 outTangent;
 layout (location = 6) out vec3 outBitangent;
+layout (location = 7) flat out int perMaterialIndex;
 
 #include "uniform_layout.h"
 
@@ -37,4 +38,6 @@ void main()
 
 	outTangent = inTangent;
 	outBitangent = normalize(cross(outNormal, normalize(vec3(perObjectData[perObjectIndex].model * vec4(inTangent, 0.0)))));
+
+	perMaterialIndex = objectDataIndex[gl_DrawID].perMaterialIndex;
 }

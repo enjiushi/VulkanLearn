@@ -564,12 +564,24 @@ void VulkanGlobal::InitMaterials()
 	// Gun material
 	std::vector<UniformVarList> layout =
 	{ 
-		{ CombinedSampler, "AlbedoRGB8_RoughnessA8" },
-		{ CombinedSampler, "NormalRGB8_AOA8" },
-		{ CombinedSampler, "MetalicMap" },
-		{ CombinedSampler, "EnviromentIrradiance" },
-		{ CombinedSampler, "PrefilterEnviromentReflection" },
-		{ CombinedSampler, "BRDFLut" }
+		{
+			DynamicUniformBuffer,
+			"PBR Material Textures Indices",
+			{
+				{
+					OneUnit,
+					"Albedo Roughness Texture Index"
+				},
+				{
+					OneUnit,
+					"Normal AO Texture Index"
+				},
+				{
+					OneUnit,
+					"Metallic Texture Index"
+				}
+			}
+		}
 	};
 
 	SimpleMaterialCreateInfo info = {};
@@ -585,12 +597,9 @@ void VulkanGlobal::InitMaterials()
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pGunMaterialInstance->SetMaterialTexture(0, m_pAlbedoRoughness);
-	m_pGunMaterialInstance->SetMaterialTexture(1, m_pNormalAO);
-	m_pGunMaterialInstance->SetMaterialTexture(2, m_pMetalic);
-	m_pGunMaterialInstance->SetMaterialTexture(3, m_pIrradianceTex);
-	m_pGunMaterialInstance->SetMaterialTexture(4, m_pPrefilterEnvTex);
-	m_pGunMaterialInstance->SetMaterialTexture(5, m_pBRDFLut);
+	m_pGunMaterialInstance->SetParameter<float>(0, 0, 0);
+	m_pGunMaterialInstance->SetParameter<float>(0, 1, 1);
+	m_pGunMaterialInstance->SetParameter<float>(0, 2, 0);
 
 	// Skybox material
 	layout =
