@@ -340,6 +340,7 @@ void GlobalTextures::InsertTexture(InGameTextureType type, const TextureDesc& de
 	uint32_t emptySlot = m_textureDiction[type].currentEmptySlot;
 	m_textureDiction[type].textureDescriptions[emptySlot] = desc;
 	m_textureDiction[type].pTextureArray->InsertTexture(gliTexture2d, emptySlot);
+	m_textureDiction[type].lookupTable[desc.textureName] = emptySlot;	// Record lookup table
 
 	// Find if there's an available slot within the pool
 	bool found = false;
@@ -359,5 +360,15 @@ void GlobalTextures::InsertTexture(InGameTextureType type, const TextureDesc& de
 		m_textureDiction[type].currentEmptySlot = m_textureDiction[type].maxSlotIndex + 1;
 		m_textureDiction[type].maxSlotIndex = m_textureDiction[type].currentEmptySlot;
 	}
+}
+
+bool GlobalTextures::GetTextureIndex(InGameTextureType type, const std::string& textureName, uint32_t& textureIndex)
+{
+	auto it = m_textureDiction[type].lookupTable.find(textureName);
+	if (it == m_textureDiction[type].lookupTable.end())
+		return false;
+
+	textureIndex = it->second;
+	return true;
 }
 

@@ -40,6 +40,7 @@ typedef struct _TextureArrayDesc
 	uint32_t						maxSlotIndex;
 	uint32_t						currentEmptySlot;		// Empty slot is available for new texture, and is updated everytime when textureDescriptions changed
 	std::shared_ptr<Texture2DArray> pTextureArray;
+	std::map<std::string, uint32_t> lookupTable;
 }TextureArrayDesc;
 
 class GlobalTextures : public SelfRefBase<GlobalTextures>
@@ -57,6 +58,7 @@ public:
 	std::shared_ptr<TextureCube> GetIBLTextureCube(IBLTextureType type) const { return m_IBLCubeTextures[type]; }
 	std::shared_ptr<Texture2D> GetIBLTexture2D(IBLTextureType type) const { return m_IBL2DTextures[type]; }
 	void InitIBLTextures(const gli::texture_cube& skyBoxTex);
+	bool GetTextureIndex(InGameTextureType type, const std::string& textureName, uint32_t& textureIndex);
 
 protected:
 	bool Init(const std::shared_ptr<GlobalTextures>& pSelf);
