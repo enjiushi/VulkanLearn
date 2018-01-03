@@ -399,8 +399,6 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 				pMaterialInstance->m_materialBufferChunkIndex = m_perMaterialUniforms[i]->AllocatePerObjectChunk();
 			}
 
-		// Init texture vector
-		pMaterialInstance->m_textures.resize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size());
 		pMaterialInstance->m_pMaterial = GetSelfSharedPtr();
 
 		m_generatedInstances.push_back(pMaterialInstance);

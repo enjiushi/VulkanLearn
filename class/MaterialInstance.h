@@ -1,5 +1,6 @@
 #pragma once
 #include "../Base/BaseComponent.h"
+#include "GlobalTextures.h"
 
 class DescriptorSet;
 class DescriptorPool;
@@ -16,8 +17,7 @@ public:
 	std::shared_ptr<Material> GetMaterial() const { return m_pMaterial; }
 	uint32_t GetRenderMask() const { return m_renderMask; }
 	void SetRenderMask(uint32_t renderMask) { m_renderMask = renderMask; }
-	void SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture);
-	std::shared_ptr<Image> GetMaterialTexture(uint32_t index) { return m_textures[index]; }
+	void SetMaterialTexture(uint32_t bindingIndex, uint32_t parameterIndex, InGameTextureType type, const std::string& textureName);
 	void PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	void Draw();
 
@@ -46,7 +46,6 @@ protected:
 protected:
 	std::shared_ptr<Material>					m_pMaterial;
 	std::vector<uint32_t>						m_materialVariables;
-	std::vector<std::shared_ptr<Image>>			m_textures;
 	uint32_t									m_renderMask = 0xffffffff;
 	uint32_t									m_materialBufferChunkIndex;
 	std::vector<std::weak_ptr<MeshRenderer>>	m_meshRenderers;

@@ -597,15 +597,12 @@ void VulkanGlobal::InitMaterials()
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pGunMaterialInstance->SetParameter<float>(0, 0, 0);
-	m_pGunMaterialInstance->SetParameter<float>(0, 1, 1);
-	m_pGunMaterialInstance->SetParameter<float>(0, 2, 0);
+	m_pGunMaterialInstance->SetMaterialTexture(0, 0, RGBA8_1024, "GunAlbedoRoughness");
+	m_pGunMaterialInstance->SetMaterialTexture(0, 1, RGBA8_1024, "GunNormalAO");
+	m_pGunMaterialInstance->SetMaterialTexture(0, 2, R8_1024, "GunMetallic");
 
 	// Skybox material
-	layout =
-	{
-		{ CombinedSampler, "SkyBoxTexture" },
-	};
+	layout = {};
 
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" };
 	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
@@ -618,7 +615,6 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pSkyBoxMaterialInstance->SetMaterialTexture(0, m_pSkyBoxTex);
 
 	/*layout =
 	{
