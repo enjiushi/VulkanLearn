@@ -2,6 +2,7 @@
 
 #include "UniformDataStorage.h"
 #include <gli\gli.hpp>
+#include <map>
 
 class Texture2D;
 class TextureCube;
