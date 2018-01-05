@@ -346,32 +346,45 @@ uint32_t Material::GetByteSize(std::vector<UniformVar>& UBOLayout)
 {
 	uint32_t offset = 0;
 	uint32_t unitCount = 0;
+	uint32_t maxAlignUnit = 1;		// Result of max align size, obtained by iterate over the whole layout
 	for (auto & var : UBOLayout)
 	{
 		switch (var.type)
 		{
 		case OneUnit:
 			unitCount += 1;
+			if (maxAlignUnit < 1)
+				maxAlignUnit = 1;
 			break;
 		case Vec2Unit:
 			unitCount = (unitCount + 1) / 2 * 2;
 			unitCount += 2;
+			if (maxAlignUnit < 2)
+				maxAlignUnit = 2;
 			break;
 		case Vec3Unit:
 			unitCount = (unitCount + 3) / 4 * 4;
 			unitCount += 3;
+			if (maxAlignUnit < 4)
+				maxAlignUnit = 4;
 			break;
 		case Vec4Unit:
 			unitCount = (unitCount + 3) / 4 * 4;
 			unitCount += 4;
+			if (maxAlignUnit < 4)
+				maxAlignUnit = 4;
 			break;
 		case Mat3Unit:
 			unitCount = (unitCount + 3) / 4 * 4;
 			unitCount += 4 * 3;
+			if (maxAlignUnit < 4)
+				maxAlignUnit = 4;
 			break;
 		case Mat4Unit:
 			unitCount = (unitCount + 3) / 4 * 4;
 			unitCount += 4 * 4;
+			if (maxAlignUnit < 4)
+				maxAlignUnit = 4;
 			break;
 		default:
 			ASSERTION(false);
@@ -381,6 +394,20 @@ uint32_t Material::GetByteSize(std::vector<UniformVar>& UBOLayout)
 		var.offset = offset;
 		offset = unitCount * 4;
 	}
+
+	// I need to comment here, as I've encountered a wired bug that I just cannot simple get per material uniform data right if object count exceeds over 1
+	// After some investigation, I've located this problem:
+	// I take alignment into consideration between material variables, however, I didn't take it into consideration between 2 material objects
+	// Let's take an example, say a material layout is : vec4, vec2, float, float, float
+	// After running this function, offset is: 0-vec4, 4-vec2, 6-float, 7-float, 8-float
+	// Things seem okay, but when I have 2 objects with same material, problem occurs:
+	// 2 sets of material variable data is not aligned! Since the whole size of a set is 9 unit, and biggest variable is 4 unit!
+	// So I have to add padding space to the end of each material variable set, by 3 unit
+	// Then, each material variable set is 12 unit big, and is perfectly aligned with each other
+	// After doing this, material data of the second object turns back to okay
+	uint32_t tailUnitCount = unitCount % maxAlignUnit;
+	if (tailUnitCount > 0)
+		unitCount = (unitCount / maxAlignUnit + 1) * maxAlignUnit;
 
 	return unitCount * 4;
 }
