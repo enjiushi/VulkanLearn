@@ -384,6 +384,7 @@ void VulkanGlobal::InitFrameBuffer()
 void VulkanGlobal::InitVertices()
 {
 	m_pGunMesh = Mesh::Create("../data/textures/cerberus/cerberus.fbx");
+	m_pSphereMesh = Mesh::Create("../data/models/sphere.obj");
 
 	VkVertexInputBindingDescription bindingDesc = {};
 	std::vector<VkVertexInputAttributeDescription> attribDesc;
@@ -569,6 +570,14 @@ void VulkanGlobal::InitMaterials()
 			"PBR Material Textures Indices",
 			{
 				{
+					Vec4Unit,
+					"Albedo Roughness"
+				},
+				{
+					Vec2Unit,
+					"AO Metalic"
+				},
+				{
 					OneUnit,
 					"Albedo Roughness Texture Index"
 				},
@@ -597,9 +606,19 @@ void VulkanGlobal::InitMaterials()
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pGunMaterialInstance->SetMaterialTexture(0, 0, RGBA8_1024, "GunAlbedoRoughness");
-	m_pGunMaterialInstance->SetMaterialTexture(0, 1, RGBA8_1024, "GunNormalAO");
-	m_pGunMaterialInstance->SetMaterialTexture(0, 2, R8_1024, "GunMetallic");
+	m_pGunMaterialInstance->SetParameter(0, 0, Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	m_pGunMaterialInstance->SetParameter(0, 1, Vector2f(1.0f, 1.0f));
+	m_pGunMaterialInstance->SetMaterialTexture(0, 2, RGBA8_1024, "GunAlbedoRoughness");
+	m_pGunMaterialInstance->SetMaterialTexture(0, 3, RGBA8_1024, "GunNormalAO");
+	m_pGunMaterialInstance->SetMaterialTexture(0, 4, R8_1024, "GunMetallic");
+
+	m_pSphereMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
+	m_pSphereMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pSphereMaterialInstance->SetParameter(0, 0, Vector4f(1.0f, 1.0f, 1.0f, 0.0f));
+	m_pSphereMaterialInstance->SetParameter(0, 1, Vector2f(1.0f, 0.0f));
+	m_pSphereMaterialInstance->SetMaterialTexture(0, 2, RGBA8_1024, ":)");
+	m_pSphereMaterialInstance->SetMaterialTexture(0, 3, RGBA8_1024, ":)");
+	m_pSphereMaterialInstance->SetMaterialTexture(0, 4, R8_1024, ":)");
 
 	// Skybox material
 	layout = {};
@@ -672,11 +691,18 @@ void VulkanGlobal::InitScene()
 
 	m_pGunObject = BaseObject::Create();
 	m_pGunObject1 = BaseObject::Create();
+	m_pSphere = BaseObject::Create();
 	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
+	m_pGunMeshRenderer->SetDescription(L"GunMeshRenderer0");
 	m_pGunMeshRenderer1 = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
+	m_pGunMeshRenderer1->SetDescription(L"GunMeshRenderer1");
+	m_pSphereRenderer = MeshRenderer::Create(m_pSphereMesh, m_pSphereMaterialInstance);
+	m_pSphereRenderer->SetDescription(L"SphereRenderer");
 	m_pGunObject->AddComponent(m_pGunMeshRenderer);
 	m_pGunObject1->AddComponent(m_pGunMeshRenderer1);
 	m_pGunObject1->SetPos({-100, 0, 0});
+	m_pSphere->AddComponent(m_pSphereRenderer);
+	m_pSphere->SetPos(0, 100, 0);
 
 	m_pSkyBoxObject = BaseObject::Create();
 	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, { m_pSkyBoxMaterialInstance });
@@ -690,6 +716,7 @@ void VulkanGlobal::InitScene()
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pGunObject);
 	m_pRootObject->AddChild(m_pGunObject1);
+	m_pGunObject->AddChild(m_pSphere);
 	//m_pRootObject->AddChild(m_pTestObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 

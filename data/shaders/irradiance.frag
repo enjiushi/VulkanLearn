@@ -37,6 +37,6 @@ void main()
 		}
 	}
 
-	vec3 final = irradiance / numSamples * PI;
+	vec3 final = (irradiance / numSamples) * PI;
 	outFragColor = vec4(final, 1.0);
 }

@@ -101,6 +101,7 @@ public:
 
 
 	std::shared_ptr<Mesh>				m_pGunMesh;
+	std::shared_ptr<Mesh>				m_pSphereMesh;
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
 
@@ -130,10 +131,13 @@ public:
 
 	std::shared_ptr<BaseObject>			m_pGunObject;
 	std::shared_ptr<BaseObject>			m_pGunObject1;
+	std::shared_ptr<BaseObject>			m_pSphere;
 	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer;
 	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer1;
+	std::shared_ptr<MeshRenderer>		m_pSphereRenderer;
 	std::shared_ptr<Material>			m_pGunMaterial;
 	std::shared_ptr<MaterialInstance>	m_pGunMaterialInstance;
+	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance;
 
 	std::shared_ptr<BaseObject>			m_pSkyBoxObject;
 	std::shared_ptr<MeshRenderer>		m_pSkyBoxMeshRenderer;

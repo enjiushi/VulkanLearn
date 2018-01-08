@@ -24,9 +24,9 @@ void MaterialInstance::SetMaterialTexture(uint32_t bindingIndex, uint32_t parame
 {
 	uint32_t textureIndex;
 	if (!UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->GetTextureIndex(type, textureName, textureIndex))
-		return;
-	
-	SetParameter(bindingIndex, parameterIndex, (float)textureIndex);
+		SetParameter(bindingIndex, parameterIndex, (float)-1);
+	else
+		SetParameter(bindingIndex, parameterIndex, (float)textureIndex);
 }
 
 void MaterialInstance::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)

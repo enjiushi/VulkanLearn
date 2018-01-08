@@ -5,6 +5,9 @@
 
 struct PBRTextures
 {
+	vec4 albedoRougness;
+	vec2 AOMetalic;
+
 	float albedoRoughnessIndex;
 	float normalAOIndex;
 	float metallicIndex;
@@ -30,13 +33,22 @@ layout (location = 0) out vec4 outFragColor;
 
 void main() 
 {
-	vec4 normal_ao = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].normalAOIndex), 0.0);
-	vec3 pertNormal = normal_ao.xyz * 2.0 - vec3(1.0);
+	vec4 normal_ao;
+	vec3 pertNormal;
+	if (textures[perMaterialIndex].normalAOIndex < 0)
+	{
+		normal_ao = vec4(normalize(inNormal), textures[perMaterialIndex].AOMetalic.r);
+		pertNormal = normal_ao.xyz;
+	}
+	else
+	{
+		normal_ao = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].normalAOIndex), 0.0);
+		pertNormal = normal_ao.xyz * 2.0 - vec3(1.0);
+		mat3 TBN = mat3(inTangent, inBitangent, normalize(inNormal));
+		pertNormal = TBN * pertNormal;
+	}
 
-	mat3 TBN = mat3(inTangent, inBitangent, inNormal);
-	pertNormal = TBN * pertNormal;
-
-	vec3 n = normalize(pertNormal);
+	vec3 n = pertNormal;
 	//vec3 n = normalize(inNormal);
 	vec3 v = normalize(inViewDir);
 	vec3 l = normalize(inLightDir);
@@ -47,10 +59,23 @@ void main()
 	float NdotV = max(0.0f, dot(n, v));
 	float LdotH = max(0.0f, dot(l, h));
 
-	vec4 albedo_roughness = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].albedoRoughnessIndex), 0.0);
+	vec4 albedo_roughness;
+	if (textures[perMaterialIndex].albedoRoughnessIndex < 0)
+		albedo_roughness = vec4(vec3(1.0), 1.0);
+	else
+		albedo_roughness = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].albedoRoughnessIndex), 0.0);
+
+	albedo_roughness *= textures[perMaterialIndex].albedoRougness;
 	albedo_roughness.rgb = pow(albedo_roughness.rgb, vec3(2.2));
 
-	float metalic = texture(R8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].metallicIndex), 0.0).r;
+	float metalic;
+	if (textures[perMaterialIndex].metallicIndex < 0)
+		metalic = 1.0;
+	else
+		metalic = texture(R8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].metallicIndex), 0.0).r;
+
+	metalic *= textures[perMaterialIndex].AOMetalic.g;
+
 	F0 = mix(F0, albedo_roughness.rgb, metalic);
 
 	vec3 fresnel = Fresnel_Schlick(F0, LdotH);
