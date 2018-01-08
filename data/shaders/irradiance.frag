@@ -11,7 +11,7 @@ layout (location = 0) out vec4 outFragColor;
 
 #include "uniform_layout.h"
 
-const float sampleDelta = 0.15;
+const float sampleDelta = 0.03;
 
 void main() 
 {
