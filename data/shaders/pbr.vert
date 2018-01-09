@@ -36,8 +36,8 @@ void main()
 	outLightDir = vec3(lightPos - outWorldPos);
 	outViewDir = vec3(perFrameData.camPos.xyz - outWorldPos);
 
-	outTangent = inTangent;
-	outBitangent = normalize(cross(outNormal, normalize(vec3(perObjectData[perObjectIndex].model * vec4(inTangent, 0.0)))));
+	outTangent = normalize(vec3(perObjectData[perObjectIndex].model * vec4(inTangent, 0.0)));
+	outBitangent = normalize(cross(outNormal, outTangent));
 
 	perMaterialIndex = objectDataIndex[gl_DrawID].perMaterialIndex;
 }
