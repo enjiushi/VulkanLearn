@@ -31,6 +31,23 @@ layout (location = 7) flat in int perMaterialIndex;
 
 layout (location = 0) out vec4 outFragColor;
 
+vec3 perturbNormal(vec3 texNormal)
+{
+	vec3 tangentNormal = texNormal * 2.0 - 1.0;
+
+	vec3 q1 = dFdx(inWorldPos);
+	vec3 q2 = dFdy(inWorldPos);
+	vec2 st1 = dFdx(inUv);
+	vec2 st2 = dFdy(inUv);
+
+	vec3 N = normalize(inNormal);
+	vec3 T = normalize(q1 * st2.t - q2 * st1.t);
+	vec3 B = normalize(cross(N, T));
+	mat3 TBN = mat3(T, B, N);
+
+	return normalize(TBN * tangentNormal);
+}
+
 void main() 
 {
 	vec4 normal_ao;
@@ -43,9 +60,12 @@ void main()
 	else
 	{
 		normal_ao = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].normalAOIndex), 0.0);
-		pertNormal = normal_ao.xyz * 2.0 - vec3(1.0);
-		mat3 TBN = mat3(inTangent, inBitangent, normalize(inNormal));
-		pertNormal = TBN * pertNormal;
+		pertNormal = perturbNormal(normal_ao.xyz);
+
+		//pertNormal = normal_ao.xyz * 2.0 - 1.0;
+		//mat3 TBN = mat3(normalize(inTangent), normalize(inBitangent), normalize(inNormal));
+		//pertNormal = TBN * pertNormal;
+		//pertNormal = normalize(inNormal);
 	}
 
 	vec3 n = pertNormal;
@@ -87,8 +107,6 @@ void main()
 
 	vec3 irradiance = texture(RGBA16_512_CUBE_IRRADIANCE, vec3(n.x, -n.y, n.z)).rgb * albedo_roughness.rgb / PI;
 
-	//vec3 reflectSampleDir = NdotV * n * 2.0 - v;
-	//reflectSampleDir.y *= -1.0;
 	vec3 reflectSampleDir = reflect(-v, n);
 	reflectSampleDir.y *= -1.0;
 
