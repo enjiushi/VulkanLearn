@@ -614,8 +614,8 @@ void VulkanGlobal::InitMaterials()
 
 	m_pSphereMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pSphereMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pSphereMaterialInstance->SetParameter(0, 0, Vector4f(1.0f, 1.0f, 1.0f, 0.0f));
-	m_pSphereMaterialInstance->SetParameter(0, 1, Vector2f(1.0f, 0.0f));
+	m_pSphereMaterialInstance->SetParameter(0, 0, Vector4f(1.0f, 0.0f, 0.0f, 0.1f));
+	m_pSphereMaterialInstance->SetParameter(0, 1, Vector2f(1.0f, 0.1f));
 	m_pSphereMaterialInstance->SetMaterialTexture(0, 2, RGBA8_1024, ":)");
 	m_pSphereMaterialInstance->SetMaterialTexture(0, 3, RGBA8_1024, ":)");
 	m_pSphereMaterialInstance->SetMaterialTexture(0, 4, R8_1024, ":)");
