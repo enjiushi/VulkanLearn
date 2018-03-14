@@ -114,7 +114,7 @@ void Image::EnsureImageLayout()
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imgBarrier.srcAccessMask = 0;
 	imgBarrier.newLayout = m_info.initialLayout;
-	imgBarrier.dstAccessMask |= VulkanUtil::GetAccessFlagByLayout(m_info.initialLayout);
+	imgBarrier.dstAccessMask = 0;
 
 	pCmdBuffer->AttachBarriers
 	(

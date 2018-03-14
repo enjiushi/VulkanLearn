@@ -17,19 +17,21 @@ FrameBuffer::~FrameBuffer()
 bool FrameBuffer::Init(
 	const std::shared_ptr<Device>& pDevice,
 	const std::shared_ptr<FrameBuffer>& pSelf,
-	const std::shared_ptr<Image>& pImage,
+	const std::vector<std::shared_ptr<Image>>& images,
 	const std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer,
 	const std::shared_ptr<RenderPass>& pRenderPass)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	m_pImage = pImage;
+	m_images = images;
 	m_pDepthStencilBuffer = pDepthStencilBuffer;
 	m_pRenderPass = pRenderPass;
 
-	ASSERTION(m_pImage != nullptr);
-	m_imageViews.push_back(m_pImage->GetViewDeviceHandle());
+	ASSERTION(images.size() != 0);
+
+	for (auto& pImg : m_images)
+		m_imageViews.push_back(pImg->GetViewDeviceHandle());
 	if (m_pDepthStencilBuffer != nullptr)
 		m_imageViews.push_back(m_pDepthStencilBuffer->GetViewDeviceHandle());
 
@@ -38,8 +40,8 @@ bool FrameBuffer::Init(
 	m_info.attachmentCount = m_imageViews.size();
 	m_info.pAttachments = m_imageViews.data();
 	m_info.layers = 1;
-	m_info.width = m_pImage->GetImageInfo().extent.width;
-	m_info.height = m_pImage->GetImageInfo().extent.height;
+	m_info.width = m_images[0]->GetImageInfo().extent.width;
+	m_info.height = m_images[0]->GetImageInfo().extent.height;
 	m_info.renderPass = m_pRenderPass->GetDeviceHandle();
 
 	RETURN_FALSE_VK_RESULT(vkCreateFramebuffer(GetDevice()->GetDeviceHandle(), &m_info, nullptr, &m_framebuffer));
@@ -54,7 +56,19 @@ std::shared_ptr<FrameBuffer> FrameBuffer::Create(
 	const std::shared_ptr<RenderPass>& pRenderPass)
 {
 	std::shared_ptr<FrameBuffer> pFramebuffer = std::make_shared<FrameBuffer>();
-	if (pFramebuffer.get() && pFramebuffer->Init(pDevice, pFramebuffer, pImage, pDepthStencilBuffer, pRenderPass))
+	if (pFramebuffer.get() && pFramebuffer->Init(pDevice, pFramebuffer, { pImage }, pDepthStencilBuffer, pRenderPass))
+		return pFramebuffer;
+	return nullptr;
+}
+
+std::shared_ptr<FrameBuffer> FrameBuffer::Create(
+	const std::shared_ptr<Device>& pDevice,
+	const std::vector<std::shared_ptr<Image>>& images,
+	const std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer,
+	const std::shared_ptr<RenderPass>& pRenderPass)
+{
+	std::shared_ptr<FrameBuffer> pFramebuffer = std::make_shared<FrameBuffer>();
+	if (pFramebuffer.get() && pFramebuffer->Init(pDevice, pFramebuffer, images, pDepthStencilBuffer, pRenderPass))
 		return pFramebuffer;
 	return nullptr;
 }
@@ -68,22 +82,22 @@ std::shared_ptr<FrameBuffer> FrameBuffer::CreateOffScreenFrameBuffer(
 	std::shared_ptr<DepthStencilBuffer> pDSBuffer = DepthStencilBuffer::Create(pDevice, VK_FORMAT_D32_SFLOAT_S8_UINT, width, height);
 
 	std::shared_ptr<FrameBuffer> pFramebuffer = std::make_shared<FrameBuffer>();
-	if (pFramebuffer.get() && pFramebuffer->Init(pDevice, pFramebuffer, pOffScreenTex, pDSBuffer, pRenderPass))
+	if (pFramebuffer.get() && pFramebuffer->Init(pDevice, pFramebuffer, { pOffScreenTex }, pDSBuffer, pRenderPass))
 		return pFramebuffer;
 	return nullptr;
 }
 
-void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage)
+void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t index)
 {
-	ExtractContent(pImage, 0, 1, 0, 1);
+	ExtractContent(pImage, 0, 1, 0, 1, index);
 }
 
-void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers)
+void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers, uint32_t index)
 {
-	ExtractContent(pImage, baseMipLevel, numMipLevels, baseLayer, numLayers, m_pImage->GetImageInfo().extent.width, m_pImage->GetImageInfo().extent.height);
+	ExtractContent(pImage, baseMipLevel, numMipLevels, baseLayer, numLayers, m_images[index]->GetImageInfo().extent.width, m_images[index]->GetImageInfo().extent.height, index);
 }
 
-void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers, uint32_t width, uint32_t height)
+void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers, uint32_t width, uint32_t height, uint32_t index)
 {
 	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 	pCmdBuffer->StartPrimaryRecording();
@@ -109,7 +123,7 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t 
 	copy.dstSubresource.mipLevel = baseMipLevel;
 	copy.dstOffset = { 0, 0, 0 };
 
-	pCmdBuffer->CopyImage(m_pImage, pImage, { copy } );
+	pCmdBuffer->CopyImage(m_images[index], pImage, { copy } );
 
 	pCmdBuffer->EndPrimaryRecording();
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);

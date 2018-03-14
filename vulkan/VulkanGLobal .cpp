@@ -28,6 +28,7 @@
 #include "../class/Enums.h"
 #include "../class/GlobalTextures.h"
 #include "../scene/SceneGenerator.h"
+#include "../class/RenderPassDiction.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -599,7 +600,7 @@ void VulkanGlobal::InitMaterials()
 	info.vertexAttributesInfo	= m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
 	info.maxMaterialInstance	= 32;
 	info.materialVariableLayout = layout;
-	info.pRenderPass			= RenderWorkManager::GetInstance()->GetDefaultRenderPass();
+	info.pRenderPass			= RenderPassDiction::GetInstance()->GetDefaultRenderPass();
 	info.vertexFormat			= m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
 
 
@@ -628,7 +629,7 @@ void VulkanGlobal::InitMaterials()
 	info.vertexAttributesInfo	= m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
 	info.maxMaterialInstance	= 1;
 	info.materialVariableLayout = layout;
-	info.pRenderPass			= RenderWorkManager::GetInstance()->GetDefaultRenderPass();
+	info.pRenderPass			= RenderPassDiction::GetInstance()->GetDefaultRenderPass();
 	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
 
 	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
@@ -742,7 +743,7 @@ void VulkanGlobal::Draw()
 
 	m_pCharacter->Move(m_moveFlag, 0.001f);
 
-	RenderWorkManager::GetInstance()->SetDefaultRenderPass(GlobalObjects()->GetCurrentFrameBuffer());
+	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(RenderWorkManager::Forward);
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
 	pDrawCmdBuffer->StartPrimaryRecording();
@@ -768,7 +769,7 @@ void VulkanGlobal::Draw()
 	m_pSkyBoxMaterial->OnFrameEnd();
 	m_pGunMaterial->OnFrameEnd();
 
-	GlobalObjects()->GetCurrentFrameBuffer()->GetRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
+	RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
 	pDrawCmdBuffer->EndRenderPass();
 

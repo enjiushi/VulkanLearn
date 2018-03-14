@@ -14,6 +14,7 @@
 #include "../component/Camera.h"
 #include "../Base/BaseObject.h"
 #include "../scene/SceneGenerator.h"
+#include "../class/RenderPassDiction.h"
 #include "GlobalTextures.h"
 #include "Material.h"
 
@@ -67,8 +68,8 @@ void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
 
 void GlobalTextures::InitIrradianceTexture()
 {
-	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass());
-	RenderWorkManager::GetInstance()->SetDefaultOffscreenRenderPass(pEnvFrameBuffer);
+	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass());
+	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(pEnvFrameBuffer);
 
 	SceneGenerator::GetInstance()->GenerateIrradianceGenScene();
 
@@ -153,8 +154,8 @@ void GlobalTextures::InitIrradianceTexture()
 
 void GlobalTextures::InitPrefilterEnvTexture()
 {
-	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass());
-	RenderWorkManager::GetInstance()->SetDefaultOffscreenRenderPass(pEnvFrameBuffer);
+	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass());
+	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(pEnvFrameBuffer);
 
 	SceneGenerator::GetInstance()->GeneratePrefilterEnvGenScene();
 
@@ -244,8 +245,8 @@ void GlobalTextures::InitPrefilterEnvTexture()
 
 void GlobalTextures::InitBRDFLUTTexture()
 {
-	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass());
-	RenderWorkManager::GetInstance()->SetDefaultOffscreenRenderPass(pEnvFrameBuffer);
+	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass());
+	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(pEnvFrameBuffer);
 
 	SceneGenerator::GetInstance()->GenerateBRDFLUTGenScene();
 

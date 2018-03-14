@@ -7,6 +7,7 @@
 #include "../class/GlobalTextures.h"
 #include "../component/MeshRenderer.h"
 #include "../component/Camera.h"
+#include "../class/RenderPassDiction.h"
 #include "SceneGenerator.h"
 
 void SceneGenerator::PurgeExcistSceneData()
@@ -162,7 +163,7 @@ std::shared_ptr<Material> SceneGenerator::GenerateIrradianceGenMaterial(const st
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
 	info.maxMaterialInstance = 1;
 	info.materialVariableLayout = {};
-	info.pRenderPass = RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass();
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
 	return Material::CreateDefaultMaterial(info);
@@ -176,7 +177,7 @@ std::shared_ptr<Material> SceneGenerator::GeneratePrefilterEnvGenMaterial(const 
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
 	info.maxMaterialInstance = 1;
 	info.materialVariableLayout = {};
-	info.pRenderPass = RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass();
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
 	return Material::CreateDefaultMaterial(info);
@@ -190,7 +191,7 @@ std::shared_ptr<Material> SceneGenerator::GenerateBRDFLUTGenMaterial(const std::
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
 	info.maxMaterialInstance = 1;
 	info.materialVariableLayout = {};
-	info.pRenderPass = RenderWorkManager::GetInstance()->GetDefaultOffscreenRenderPass();
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
 	return Material::CreateDefaultMaterial(info);

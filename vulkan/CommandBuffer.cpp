@@ -269,8 +269,8 @@ void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc,
 
 	AttachBarriers
 	(
-		VK_PIPELINE_STAGE_TRANSFER_BIT,
 		pDst->GetAccessStages(),
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
 		{},
 		{},
 		imgBarriers
