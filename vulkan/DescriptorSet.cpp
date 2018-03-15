@@ -115,6 +115,23 @@ void DescriptorSet::UpdateImages(uint32_t binding, const std::vector<std::shared
 	m_resourceTable[binding].insert(m_resourceTable[binding].begin(), images.begin(), images.end());
 }
 
+void DescriptorSet::UpdateInputImage(uint32_t binding, const std::shared_ptr<Image>& pImage)
+{
+	std::vector<VkWriteDescriptorSet> writeData = { {} };
+	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;;
+	writeData[0].dstBinding = binding;
+	writeData[0].descriptorCount = 1;
+	writeData[0].dstSet = GetDeviceHandle();
+
+	VkDescriptorImageInfo info = pImage->GetDescriptorInfo();
+	writeData[0].pImageInfo = &info;
+
+	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+
+	m_resourceTable[binding].push_back(pImage);
+}
+
 void DescriptorSet::UpdateTexBuffer(uint32_t binding, const VkBufferView& texBufferView)
 {
 	std::vector<VkWriteDescriptorSet> writeData = { {} };

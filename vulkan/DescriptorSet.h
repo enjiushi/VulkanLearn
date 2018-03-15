@@ -30,6 +30,7 @@ public:
 	void UpdateShaderStorageBuffer(uint32_t binding, const std::shared_ptr<ShaderStorageBuffer>& pBuffer);
 	void UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage);
 	void UpdateImages(uint32_t binding, const std::vector<std::shared_ptr<Image>>& images);
+	void UpdateInputImage(uint32_t binding, const std::shared_ptr<Image>& pImage);
 
 	// FIXME: Refactor this when I create texture buffer object class
 	void UpdateTexBuffer(uint32_t binding, const VkBufferView& texBufferView);
