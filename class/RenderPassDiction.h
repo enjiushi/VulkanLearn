@@ -7,13 +7,6 @@ class RenderPassDiction : public Singleton<RenderPassDiction>
 public:
 	typedef std::pair<uint32_t, uint32_t> RenderPassDependency;
 
-	typedef struct _GBufferLayout
-	{
-		VkFormat	format;
-		bool		isComposeFrameBuffer;
-
-	}GBufferLayout;
-
 public:
 	bool Init() override;
 

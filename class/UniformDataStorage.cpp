@@ -6,7 +6,7 @@
 
 bool UniformDataStorage::Init(const std::shared_ptr<UniformDataStorage>& pSelf, uint32_t numBytes, bool perObject)
 {
-	if (!SelfRefBase<UniformDataStorage>::Init(pSelf))
+	if (!UniformBase::Init(pSelf))
 		return false;
 
 	m_pendingSyncCount = 0;

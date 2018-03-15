@@ -46,6 +46,8 @@ public:
 	void SetRenderState(RenderState renderState) { m_renderState = renderState; }
 	RenderState GetRenderState() const { return m_renderState; }
 
+	std::vector<std::shared_ptr<Texture2D>> GetGBuffers() const { std::vector<std::shared_ptr<Texture2D>> vec(m_gbuffers, m_gbuffers + GBuffer::GBufferCount); return vec; }
+
 protected:
 	std::shared_ptr<RenderPass>		m_pCurrentRenderPass;
 	std::shared_ptr<FrameBuffer>	m_pCurrentFrameBuffer;
