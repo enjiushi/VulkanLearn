@@ -46,6 +46,7 @@ public:
 		PerFrameVariable,
 		PerObjectVariable,
 		PerObjectMaterialVariable,
+		GBufferAttachments,
 		UniformTypeCount
 	};
 

@@ -27,6 +27,7 @@ enum MaterialVariableType
 	DynamicUniformBuffer,
 	DynamicShaderStorageBuffer,
 	CombinedSampler,
+	InputAttachment,
 	MaterialVariableTypeCount
 };
 
@@ -38,6 +39,7 @@ typedef struct _SimpleMaterialCreateInfo
 	uint32_t												maxMaterialInstance = 512;
 	std::vector<UniformVarList>								materialVariableLayout;
 	uint32_t												vertexFormat;
+	bool													isDeferredShadingMaterial = false;
 	// FIXME: Render pass is wired thing, as it's used both for pipeline and frame buffer
 	// Need to think about where it belongs or belongs to itself
 	std::shared_ptr<RenderPass>						pRenderPass;

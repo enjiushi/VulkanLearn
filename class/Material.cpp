@@ -221,6 +221,16 @@ bool Material::Init
 					nullptr
 				});
 				break;
+			case InputAttachment:
+				bindings.push_back
+				({
+					(uint32_t)bindings.size(),
+					VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+					1,
+					VK_SHADER_STAGE_FRAGMENT_BIT,
+					nullptr
+					});
+				break;
 			default:
 				ASSERTION(false);
 				break;

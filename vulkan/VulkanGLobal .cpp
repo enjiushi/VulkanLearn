@@ -602,6 +602,7 @@ void VulkanGlobal::InitMaterials()
 	info.materialVariableLayout = layout;
 	info.pRenderPass			= RenderPassDiction::GetInstance()->GetDefaultRenderPass();
 	info.vertexFormat			= m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
+	info.isDeferredShadingMaterial = false;
 
 
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
