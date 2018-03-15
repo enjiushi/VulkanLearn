@@ -3,6 +3,7 @@
 #include "../Maths/Matrix.h"
 #include "../Base/Base.h"
 
+class DescriptorSet;
 class Buffer;
 class UniformBuffer;
 class ShaderStorageBuffer;
@@ -56,8 +57,9 @@ public:
 public:
 	uint32_t GetFrameOffset() const { return m_frameOffset; }
 	void SyncBufferData();
-	std::shared_ptr<Buffer> GetBuffer();
+	std::shared_ptr<Buffer> GetBuffer() const;
 	virtual std::vector<UniformVarList> PrepareUniformVarList() = 0;
+	virtual void SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex = 0) const = 0;
 
 protected:
 	virtual void SyncBufferDataInternal() = 0;

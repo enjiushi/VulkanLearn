@@ -3,6 +3,8 @@
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/Buffer.h"
+#include "../vulkan/DescriptorSet.h"
+#include "../vulkan/ShaderStorageBuffer.h"
 #include "UniformData.h"
 #include "Material.h"
 
@@ -54,5 +56,11 @@ std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList()
 		}
 	};
 }
+
+void PerObjectUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex) const
+{
+	pDescriptorSet->UpdateShaderStorageBufferDynamic(0, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
+}
+
 
 

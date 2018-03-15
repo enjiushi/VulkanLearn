@@ -3,6 +3,8 @@
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/Buffer.h"
+#include "../vulkan/DescriptorSet.h"
+#include "../vulkan/UniformBuffer.h"
 #include "UniformData.h"
 #include "Material.h"
 
@@ -60,4 +62,8 @@ std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList()
 	};
 }
 
+void PerFrameUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex) const
+{
+	pDescriptorSet->UpdateUniformBufferDynamic(0, std::dynamic_pointer_cast<UniformBuffer>(GetBuffer()));
+}
 

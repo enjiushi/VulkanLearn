@@ -47,3 +47,8 @@ std::vector<uint32_t> UniformData::GetFrameOffsets() const
 		offsets.push_back(m_uniforms[i]->GetFrameOffset() * FrameMgr()->FrameIndex());
 	return offsets;
 }
+
+void UniformData::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, UniformDataStorage::UniformType uniformType, uint32_t reservedIndex) const
+{
+	m_uniforms[uniformType]->SetupDescriptorSet(pDescriptorSet, reservedIndex);
+}

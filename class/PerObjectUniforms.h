@@ -3,6 +3,8 @@
 #include "../Maths/Matrix.h"
 #include "ChunkBasedUniforms.h"
 
+class DescriptorSet;
+
 typedef struct _PerObjectVariables
 {
 	Matrix4f modelMatrix;
@@ -22,6 +24,7 @@ public:
 	Matrix4f GetMVPN(uint32_t index) const { return m_perObjectVariables[index].MVPN; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() override;
+	void SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex = 0) const override;
 
 protected:
 	void SyncBufferDataInternal() override;

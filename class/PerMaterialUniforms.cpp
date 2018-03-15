@@ -4,6 +4,9 @@
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/Buffer.h"
+#include "../vulkan/DescriptorSet.h"
+#include "../vulkan/UniformBuffer.h"
+#include "../vulkan/ShaderStorageBuffer.h"
 #include "UniformData.h"
 #include "Material.h"
 
@@ -35,4 +38,9 @@ std::shared_ptr<PerMaterialUniforms> PerMaterialUniforms::Create(uint32_t numByt
 void PerMaterialUniforms::SyncBufferDataInternal()
 {
 	GetBuffer()->UpdateByteStream(m_pData, FrameMgr()->FrameIndex() * GetFrameOffset(), GetFrameOffset());
+}
+
+void PerMaterialUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex) const
+{
+	pDescriptorSet->UpdateShaderStorageBufferDynamic(reservedIndex, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
 }

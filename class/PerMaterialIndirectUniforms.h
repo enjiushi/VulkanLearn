@@ -3,6 +3,8 @@
 #include "../Maths/Matrix.h"
 #include "ChunkBasedUniforms.h"
 
+class DescriptorSet;
+
 typedef struct _PerMaterialIndirectVariables
 {
 	uint32_t perObjectIndex = 0;
@@ -23,6 +25,7 @@ public:
 	uint32_t GetPerMaterialIndex(uint32_t indirectIndex) const { return m_perMaterialIndirectIndex[indirectIndex].perMaterialIndex; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() override;
+	void SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex = 0) const override;
 
 protected:
 	void SyncBufferDataInternal() override;

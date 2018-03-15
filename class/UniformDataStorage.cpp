@@ -38,10 +38,13 @@ void UniformDataStorage::SetDirty()
 	m_pendingSyncCount = GetSwapChain()->GetSwapChainImageCount();
 }
 
-std::shared_ptr<Buffer> UniformDataStorage::GetBuffer() 
+std::shared_ptr<Buffer> UniformDataStorage::GetBuffer() const
 {
 	if (m_pUniformBuffer)
 		return m_pUniformBuffer;
 	if (m_pShaderStorageBuffer)
 		return m_pShaderStorageBuffer;
+
+	ASSERTION(false);
+	return nullptr;
 }

@@ -34,6 +34,7 @@
 #include "../vulkan/Texture2DArray.h"
 #include "../vulkan/TextureCube.h"
 #include "../vulkan/Texture2D.h"
+#include "../class/PerMaterialUniforms.h"
 
 std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -295,53 +296,30 @@ bool Material::Init
 			uint32_t size = GetByteSize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i + 1].vars);
 			m_perMaterialUniforms[i] = PerMaterialUniforms::Create(size);
 		}
+		else
+			ASSERTION(false);	// Not support self-defined texture here, all textures go through global texture array
 	}
 
 	// Allocate descriptor sets according to layouts
 	for (auto & layout : m_descriptorSetLayouts)
 		m_descriptorSets.push_back(m_pDescriptorPool->AllocateDescriptorSet(layout));
 
-	// Bind both global, perframe and perobject uniform buffer to specific descriptor set
-
-	uint32_t globalBindingSlot = 0;
-	m_descriptorSets[UniformDataStorage::GlobalVariable]->UpdateUniformBufferDynamic(globalBindingSlot++, std::dynamic_pointer_cast<UniformBuffer>(UniformData::GetInstance()->GetGlobalUniforms()->GetBuffer()));
-	
-	// Bind global texture array
-	for (uint32_t i = 0; i < InGameTextureTypeCount; i++)
-	{
-		std::shared_ptr<Texture2DArray> pTexArray = UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->GetTextureArray((InGameTextureType)i);
-		m_descriptorSets[UniformDataStorage::GlobalVariable]->UpdateImage(globalBindingSlot++, std::static_pointer_cast<Image>(pTexArray));
-	}
-
-	// Binding global IBL texture cube
-	for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
-	{
-		std::shared_ptr<TextureCube> pTextureCube = UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->GetIBLTextureCube((IBLTextureType)i);
-		m_descriptorSets[UniformDataStorage::GlobalVariable]->UpdateImage(globalBindingSlot++, std::static_pointer_cast<Image>(pTextureCube));
-	}
-
-	// Binding global IBL texture2d
-	for (uint32_t i = 0; i < IBL2DTextureTypeCount; i++)
-	{
-		std::shared_ptr<Texture2D> pTexture2D = UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->GetIBLTexture2D((IBLTextureType)i);
-		m_descriptorSets[UniformDataStorage::GlobalVariable]->UpdateImage(globalBindingSlot++, std::static_pointer_cast<Image>(pTexture2D));
-	}
-
-	m_descriptorSets[UniformDataStorage::PerFrameVariable]->UpdateUniformBufferDynamic(0, std::dynamic_pointer_cast<UniformBuffer>(UniformData::GetInstance()->GetPerFrameUniforms()->GetBuffer()));
-	m_descriptorSets[UniformDataStorage::PerObjectVariable]->UpdateShaderStorageBufferDynamic(0, std::dynamic_pointer_cast<ShaderStorageBuffer>(UniformData::GetInstance()->GetPerObjectUniforms()->GetBuffer()));
+	UniformData::GetInstance()->SetupDescriptorSet(m_descriptorSets[UniformDataStorage::GlobalVariable], UniformDataStorage::GlobalVariable);
+	UniformData::GetInstance()->SetupDescriptorSet(m_descriptorSets[UniformDataStorage::PerFrameVariable], UniformDataStorage::PerFrameVariable);
+	UniformData::GetInstance()->SetupDescriptorSet(m_descriptorSets[UniformDataStorage::PerObjectVariable], UniformDataStorage::PerObjectVariable);
 
 	// Bind per material variable buffer
 	for (uint32_t i = 0; i < m_perMaterialUniforms.size(); i++)
 	{
 		if (m_perMaterialUniforms[i] != nullptr)
 		{
-			m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(i + 1, std::dynamic_pointer_cast<ShaderStorageBuffer>(m_perMaterialUniforms[i]->GetBuffer()));
+			m_perMaterialUniforms[i]->SetupDescriptorSet(m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable], i + 1);
 			m_frameOffsets.push_back(m_perMaterialUniforms[i]->GetFrameOffset());
 		}
 	}
 
 	// Bind per material indirect uniform
-	m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]->UpdateShaderStorageBufferDynamic(0, std::dynamic_pointer_cast<ShaderStorageBuffer>(m_pPerMaterialIndirectUniforms->GetBuffer()));
+	m_pPerMaterialIndirectUniforms->SetupDescriptorSet(m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]);
 
 	m_pIndirectBuffer = SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT);
 

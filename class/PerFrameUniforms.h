@@ -3,6 +3,8 @@
 #include "../Maths/Matrix.h"
 #include "UniformDataStorage.h"
 
+class DescriptorSet;
+
 typedef struct _PerFrameVariables
 {
 	Matrix4f	viewMatrix;
@@ -29,6 +31,7 @@ public:
 	float GetPadding() const { return m_perFrameVariables.padding; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() override;
+	void SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex = 0) const override;
 
 protected:
 	void SyncBufferDataInternal() override;

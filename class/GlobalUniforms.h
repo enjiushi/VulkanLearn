@@ -2,6 +2,7 @@
 
 #include "UniformDataStorage.h"
 
+class DescriptorSet;
 class GlobalTextures;
 
 typedef struct _GlobalVariables
@@ -43,6 +44,7 @@ public:
 	static std::shared_ptr<GlobalUniforms> Create();
 
 	std::vector<UniformVarList> PrepareUniformVarList() override;
+	void SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex = 0) const override;
 
 protected:
 	void SyncBufferDataInternal() override;
