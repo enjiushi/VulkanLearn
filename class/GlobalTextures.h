@@ -1,12 +1,13 @@
 #pragma once
 
-#include "UniformDataStorage.h"
+#include "UniformBase.h"
 #include <gli\gli.hpp>
 #include <map>
 
 class Texture2D;
 class TextureCube;
 class Texture2DArray;
+class DescriptorSet;
 
 enum InGameTextureType
 {
@@ -44,7 +45,7 @@ typedef struct _TextureArrayDesc
 	std::map<std::string, uint32_t> lookupTable;
 }TextureArrayDesc;
 
-class GlobalTextures : public SelfRefBase<GlobalTextures>
+class GlobalTextures : public UniformBase
 {
 public:
 	const static uint32_t OFFSCREEN_SIZE = 512;
@@ -53,13 +54,15 @@ public:
 	static std::shared_ptr<GlobalTextures> Create();
 
 public:
-	std::vector<UniformVarList> PrepareUniformVarList();
 	void InsertTexture(InGameTextureType type, const TextureDesc& desc, const gli::texture2d& gliTexture2d);
 	std::shared_ptr<Texture2DArray>	GetTextureArray(InGameTextureType type) const { return m_textureDiction[type].pTextureArray; }
 	std::shared_ptr<TextureCube> GetIBLTextureCube(IBLTextureType type) const { return m_IBLCubeTextures[type]; }
 	std::shared_ptr<Texture2D> GetIBLTexture2D(IBLTextureType type) const { return m_IBL2DTextures[type]; }
 	void InitIBLTextures(const gli::texture_cube& skyBoxTex);
 	bool GetTextureIndex(InGameTextureType type, const std::string& textureName, uint32_t& textureIndex);
+
+	virtual std::vector<UniformVarList> PrepareUniformVarList() const override;
+	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
 	bool Init(const std::shared_ptr<GlobalTextures>& pSelf);

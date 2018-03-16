@@ -22,8 +22,6 @@ bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 	// NDC space z ranges from 0 to 1 in Vulkan compared to OpenGL's -1 to 1
 	m_globalVariables.vulkanNDC.c[2].z = m_globalVariables.vulkanNDC.c[3].z = 0.5f;
 
-	m_pGlobalTextures = GlobalTextures::Create();
-
 	SetDirty();
 
 	return true;
@@ -79,7 +77,7 @@ void GlobalUniforms::SetRenderSettings(const Vector4f& setting)
 	UniformDataStorage::SetDirty();
 }
 
-std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList()
+std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 {
 	std::vector<UniformVarList> list = 
 	{
@@ -111,37 +109,13 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList()
 		}
 	};
 
-	std::vector<UniformVarList> textureUniList = m_pGlobalTextures->PrepareUniformVarList();
-	list.insert(list.end(), textureUniList.begin(), textureUniList.end());
-
 	return list;
 }
 
-void GlobalUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex) const
+uint32_t GlobalUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
 {
-	uint32_t globalBindingSlot = 0;
+	pDescriptorSet->UpdateUniformBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<UniformBuffer>(GetBuffer()));
 
-	pDescriptorSet->UpdateUniformBufferDynamic(globalBindingSlot++, std::dynamic_pointer_cast<UniformBuffer>(GetBuffer()));
-
-	// Bind global texture array
-	for (uint32_t i = 0; i < InGameTextureTypeCount; i++)
-	{
-		std::shared_ptr<Texture2DArray> pTexArray = m_pGlobalTextures->GetTextureArray((InGameTextureType)i);
-		pDescriptorSet->UpdateImage(globalBindingSlot++, std::static_pointer_cast<Image>(pTexArray));
-	}
-
-	// Binding global IBL texture cube
-	for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
-	{
-		std::shared_ptr<TextureCube> pTextureCube = m_pGlobalTextures->GetIBLTextureCube((IBLTextureType)i);
-		pDescriptorSet->UpdateImage(globalBindingSlot++, std::static_pointer_cast<Image>(pTextureCube));
-	}
-
-	// Binding global IBL texture2d
-	for (uint32_t i = 0; i < IBL2DTextureTypeCount; i++)
-	{
-		std::shared_ptr<Texture2D> pTexture2D = m_pGlobalTextures->GetIBLTexture2D((IBLTextureType)i);
-		pDescriptorSet->UpdateImage(globalBindingSlot++, std::static_pointer_cast<Image>(pTexture2D));
-	}
+	return bindingIndex;
 }
 

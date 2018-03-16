@@ -12,8 +12,8 @@ public:
 	~PerMaterialUniforms();
 
 public:
-	std::vector<UniformVarList> PrepareUniformVarList() override { return {}; }
-	void SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex = 0) const override;
+	std::vector<UniformVarList> PrepareUniformVarList() const override { return {}; }
+	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 	template <typename T>
 	void SetParameter(uint32_t parameterChunkIndex, uint32_t parameterOffset, T val)

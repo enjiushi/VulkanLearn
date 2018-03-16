@@ -2,29 +2,72 @@
 #include "GlobalUniforms.h"
 #include "PerFrameUniforms.h"
 #include "PerObjectUniforms.h"
+#include "GBufferInputUniforms.h"
+#include "GlobalTextures.h"
 #include "../common/Singleton.h"
 #include "../Maths/Matrix.h"
 #include "../Base/Base.h"
 
+class DescriptorPool;
+class DescriptorSetLayout;
 class DescriptorSet;
 
 class UniformData : public Singleton<UniformData>
 {
 public:
+	enum UniformDataLayoutLocation
+	{
+		GlobalUniformsLocation,
+		PerFrameUniformsLocation,
+		PerObjectUniformsLocation,
+		PerObjectMaterialVariableBufferLocation,
+		UniformDataLayoutLocationCount
+	};
+
+	enum UniformStorageType
+	{
+		GlobalVariableBuffer,
+		PerFrameVariableBuffer,
+		PerObjectVariableBuffer,
+		PerObjectMaterialVariableBuffer,
+		UniformStorageTypeCount
+	};
+
+	enum UniformTextureType
+	{
+		GlobalUniformTextures,
+		GlobalGBufferInputUniforms,
+		UniformTextureTypeCount
+	};
+
+public:
 	bool Init() override;
 
 public:
-	std::shared_ptr<GlobalUniforms> GetGlobalUniforms() const { return std::dynamic_pointer_cast<GlobalUniforms>(m_uniforms[UniformDataStorage::GlobalVariable]); }
-	std::shared_ptr<PerFrameUniforms> GetPerFrameUniforms() const { return std::dynamic_pointer_cast<PerFrameUniforms>(m_uniforms[UniformDataStorage::PerFrameVariable]); }
-	std::shared_ptr<PerObjectUniforms> GetPerObjectUniforms() const { return std::dynamic_pointer_cast<PerObjectUniforms>(m_uniforms[UniformDataStorage::PerObjectVariable]); }
-	std::shared_ptr<UniformDataStorage> GetUniformStorage(UniformDataStorage::UniformType uniformType) const { return m_uniforms[uniformType]; }
+	std::shared_ptr<GlobalUniforms> GetGlobalUniforms() const { return std::dynamic_pointer_cast<GlobalUniforms>(m_uniformStorageBuffers[UniformStorageType::GlobalVariableBuffer]); }
+	std::shared_ptr<PerFrameUniforms> GetPerFrameUniforms() const { return std::dynamic_pointer_cast<PerFrameUniforms>(m_uniformStorageBuffers[UniformStorageType::PerFrameVariableBuffer]); }
+	std::shared_ptr<PerObjectUniforms> GetPerObjectUniforms() const { return std::dynamic_pointer_cast<PerObjectUniforms>(m_uniformStorageBuffers[UniformStorageType::PerObjectVariableBuffer]); }
+	std::shared_ptr<UniformDataStorage> GetUniformStorage(UniformStorageType uniformStorageType) const { return m_uniformStorageBuffers[uniformStorageType]; }
 	
+	std::shared_ptr<GlobalTextures> GetGlobalTextures() const { return std::dynamic_pointer_cast<GlobalTextures>(m_uniformTextures[UniformTextureType::GlobalUniformTextures]); }
+	std::shared_ptr<GBufferInputUniforms> GetGBufferInputUniforms() const { return std::dynamic_pointer_cast<GBufferInputUniforms>(m_uniformTextures[UniformTextureType::GlobalGBufferInputUniforms]); }
+	std::shared_ptr<UniformBase> GetUniformTextures(UniformTextureType uniformTextureType) const { return m_uniformTextures[uniformTextureType]; }
+
 	void SyncDataBuffer();
 	std::vector<std::vector<UniformVarList>> GenerateUniformVarLayout() const;
 	std::vector<uint32_t> GetFrameOffsets() const;
 
-	void SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, UniformDataStorage::UniformType uniformType, uint32_t reservedIndex = 0) const;
+	std::vector<std::shared_ptr<DescriptorSetLayout>> GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
+	std::vector<std::shared_ptr<DescriptorSet>> GetDescriptorSets() const { return m_descriptorSets; }
 
 protected:
-	std::vector<std::shared_ptr<UniformDataStorage>>	m_uniforms;
+	void BuildDescriptorSets();
+
+protected:
+	std::vector<std::shared_ptr<UniformDataStorage>>	m_uniformStorageBuffers;
+	std::vector<std::shared_ptr<UniformBase>>			m_uniformTextures;
+
+	std::shared_ptr<DescriptorPool>						m_pDescriptorPool;
+	std::vector<std::shared_ptr<DescriptorSetLayout>>	m_descriptorSetLayouts;
+	std::vector<std::shared_ptr<DescriptorSet>>			m_descriptorSets;
 };

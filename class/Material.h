@@ -36,8 +36,7 @@ typedef struct _SimpleMaterialCreateInfo
 	std::vector<std::wstring>								shaderPaths;
 	std::vector<VkVertexInputBindingDescription>			vertexBindingsInfo;
 	std::vector<VkVertexInputAttributeDescription>			vertexAttributesInfo;
-	uint32_t												maxMaterialInstance = 512;
-	std::vector<UniformVarList>								materialVariableLayout;
+	std::vector<UniformVar>									materialUniformVars;
 	uint32_t												vertexFormat;
 	bool													isDeferredShadingMaterial = false;
 	// FIXME: Render pass is wired thing, as it's used both for pipeline and frame buffer
@@ -50,18 +49,24 @@ class Material : public SelfRefBase<Material>
 	static const uint32_t MAX_INDIRECT_COUNT = 2048;
 
 public:
+	enum MaterialUniformStorageType
+	{
+		PerMaterialIndirectVariableBuffer,
+		PerMaterialVariableBuffer,
+		MaterialUniformStorageTypeCount
+	};
+
+public:
 	static std::shared_ptr<Material> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo);
 
 public:
 	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
 	std::shared_ptr<GraphicPipeline> GetGraphicPipeline() const { return m_pPipeline; }
-	std::vector<std::shared_ptr<DescriptorSetLayout>> GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
-	uint32_t GetUniformBufferSize(uint32_t bindingIndex) const;
+	uint32_t GetUniformBufferSize() const;
 	std::vector<uint32_t> GetFrameOffsets() const;
 
-	std::vector<std::shared_ptr<DescriptorSet>> GetDescriptorSets() const { return m_descriptorSets; }
-	std::shared_ptr<DescriptorSet> GetDescriptorSet(uint32_t index) const { return m_descriptorSets[index]; }
+	std::shared_ptr<DescriptorSet> GetDescriptorSet() const { return m_pDescriptorSet; }
 
 	void BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
@@ -69,15 +74,15 @@ public:
 	void BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 	template <typename T>
-	void SetParameter(uint32_t chunkIndex, uint32_t bindingIndex, uint32_t parameterIndex, T val)
+	void SetParameter(uint32_t chunkIndex, uint32_t parameterIndex, T val)
 	{
-		m_perMaterialUniforms[bindingIndex]->SetParameter(chunkIndex, m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][bindingIndex + 1].vars[parameterIndex].offset, val);
+		m_pPerMaterialUniforms->SetParameter(chunkIndex, m_materialVariableLayout[PerMaterialVariableBuffer].vars[parameterIndex].offset, val);
 	}
 
 	template <typename T>
-	T GetParameter(uint32_t chunkIndex, uint32_t bindingIndex, uint32_t parameterIndex)
+	T GetParameter(uint32_t chunkIndex, uint32_t parameterIndex)
 	{
-		return m_perMaterialUniforms[bindingIndex]->GetParameter<T>(chunkIndex, m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][bindingIndex + 1].vars[parameterIndex].offset);
+		return m_pPerMaterialUniforms->GetParameter<T>(chunkIndex, m_materialVariableLayout[PerMaterialVariableBuffer].vars[parameterIndex].offset);
 	}
 
 	void SetPerObjectIndex(uint32_t indirectIndex, uint32_t perObjectIndex);
@@ -97,8 +102,7 @@ protected:
 		const std::vector<std::wstring>	shaderPaths,
 		const std::shared_ptr<RenderPass>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
-		uint32_t maxMaterialInstance,
-		const std::vector<UniformVarList>& materialVariableLayout,
+		const std::vector<UniformVar>& materialUniformVars,
 		uint32_t vertexFormat
 	);
 
@@ -108,14 +112,20 @@ protected:
 protected:
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
 	std::shared_ptr<GraphicPipeline>					m_pPipeline;
-	std::vector<std::shared_ptr<DescriptorSetLayout>>	m_descriptorSetLayouts;
-	std::vector<std::shared_ptr<DescriptorSet>>			m_descriptorSets;
+
+	std::shared_ptr<DescriptorSetLayout>				m_pDescriptorSetLayout;
+	std::shared_ptr<DescriptorSet>						m_pDescriptorSet;
 	std::shared_ptr<DescriptorPool>						m_pDescriptorPool;
-	uint32_t											m_maxMaterialInstance;
-	std::vector<std::vector<UniformVarList>>			m_materialVariableLayout;
-	std::vector<std::shared_ptr<PerMaterialUniforms>>	m_perMaterialUniforms;
-	std::shared_ptr<PerMaterialIndirectUniforms>		m_pPerMaterialIndirectUniforms;
+	std::vector<std::shared_ptr<DescriptorSet>>			m_descriptorSets;	// Including descriptor sets from uniform data, and "m_pDescriptorSet" of this class
+
+	std::vector<UniformVarList>							m_materialVariableLayout;
+
+	std::vector<std::shared_ptr<UniformDataStorage>>	m_materialUniforms;
 	std::vector<uint32_t>								m_frameOffsets;
+
+	std::shared_ptr<PerMaterialIndirectUniforms>		m_pPerMaterialIndirectUniforms;
+	std::shared_ptr<PerMaterialUniforms>				m_pPerMaterialUniforms;
+
 	std::vector<std::weak_ptr<MaterialInstance>>		m_generatedInstances;
 	std::shared_ptr<SharedIndirectBuffer>				m_pIndirectBuffer;
 	uint32_t											m_indirectIndex = 0;

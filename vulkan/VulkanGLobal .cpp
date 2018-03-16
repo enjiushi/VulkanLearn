@@ -485,12 +485,12 @@ void VulkanGlobal::InitUniforms()
 	m_pMetalic = Texture2D::Create(m_pDevice, { {gliMetalic} }, VK_FORMAT_R8_UNORM);
 	m_pNormalAO = Texture2D::Create(m_pDevice, { {gliNormalTex} }, VK_FORMAT_R8G8B8A8_UNORM);
 
-	UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunAlbedoRoughness", "", "RGB:Albedo, A:Roughness" }, gliAlbedoTex);
-	UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunNormalAO", "", "RGB:Normal, A:AO" }, gliNormalTex);
-	UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "GunMetallic", "", "R:Metalic" }, gliMetalic);
+	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunAlbedoRoughness", "", "RGB:Albedo, A:Roughness" }, gliAlbedoTex);
+	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunNormalAO", "", "RGB:Normal, A:AO" }, gliNormalTex);
+	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "GunMetallic", "", "R:Metalic" }, gliMetalic);
 
 	gli::texture_cube gliSkyBox(gli::load("../data/textures/hdr/gcanyon_cube.ktx"));
-	UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->InitIBLTextures(gliSkyBox);
+	UniformData::GetInstance()->GetGlobalTextures()->InitIBLTextures(gliSkyBox);
 	//UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->GetIBLTextureCube(IBLTextureType::RGBA16_1024_SkyBox)->UpdateByteStream({ { gliSkyBox } });
 	
 	
@@ -564,32 +564,28 @@ void VulkanGlobal::InitSemaphore()
 void VulkanGlobal::InitMaterials()
 {
 	// Gun material
-	std::vector<UniformVarList> layout =
+	std::vector<UniformVar> vars =
 	{ 
 		{
-			DynamicUniformBuffer,
-			"PBR Material Textures Indices",
 			{
-				{
-					Vec4Unit,
-					"Albedo Roughness"
-				},
-				{
-					Vec2Unit,
-					"AO Metalic"
-				},
-				{
-					OneUnit,
-					"Albedo Roughness Texture Index"
-				},
-				{
-					OneUnit,
-					"Normal AO Texture Index"
-				},
-				{
-					OneUnit,
-					"Metallic Texture Index"
-				}
+				Vec4Unit,
+				"Albedo Roughness"
+			},
+			{
+				Vec2Unit,
+				"AO Metalic"
+			},
+			{
+				OneUnit,
+				"Albedo Roughness Texture Index"
+			},
+			{
+				OneUnit,
+				"Normal AO Texture Index"
+			},
+			{
+				OneUnit,
+				"Metallic Texture Index"
 			}
 		}
 	};
@@ -598,8 +594,7 @@ void VulkanGlobal::InitMaterials()
 	info.shaderPaths			= { L"../data/shaders/pbr.vert.spv", L"", L"", L"", L"../data/shaders/pbr.frag.spv", L"" };
 	info.vertexBindingsInfo		= { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo	= m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
-	info.maxMaterialInstance	= 32;
-	info.materialVariableLayout = layout;
+	info.materialUniformVars	= vars;
 	info.pRenderPass			= RenderPassDiction::GetInstance()->GetDefaultRenderPass();
 	info.vertexFormat			= m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
 	info.isDeferredShadingMaterial = false;
@@ -608,28 +603,27 @@ void VulkanGlobal::InitMaterials()
 	m_pGunMaterial = Material::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pGunMaterialInstance->SetParameter(0, 0, Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-	m_pGunMaterialInstance->SetParameter(0, 1, Vector2f(1.0f, 1.0f));
-	m_pGunMaterialInstance->SetMaterialTexture(0, 2, RGBA8_1024, "GunAlbedoRoughness");
-	m_pGunMaterialInstance->SetMaterialTexture(0, 3, RGBA8_1024, "GunNormalAO");
-	m_pGunMaterialInstance->SetMaterialTexture(0, 4, R8_1024, "GunMetallic");
+	m_pGunMaterialInstance->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	m_pGunMaterialInstance->SetParameter(1, Vector2f(1.0f, 1.0f));
+	m_pGunMaterialInstance->SetMaterialTexture(2, RGBA8_1024, "GunAlbedoRoughness");
+	m_pGunMaterialInstance->SetMaterialTexture(3, RGBA8_1024, "GunNormalAO");
+	m_pGunMaterialInstance->SetMaterialTexture(4, R8_1024, "GunMetallic");
 
 	m_pSphereMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pSphereMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pSphereMaterialInstance->SetParameter(0, 0, Vector4f(1.0f, 0.0f, 0.0f, 0.1f));
-	m_pSphereMaterialInstance->SetParameter(0, 1, Vector2f(1.0f, 0.1f));
-	m_pSphereMaterialInstance->SetMaterialTexture(0, 2, RGBA8_1024, ":)");
-	m_pSphereMaterialInstance->SetMaterialTexture(0, 3, RGBA8_1024, ":)");
-	m_pSphereMaterialInstance->SetMaterialTexture(0, 4, R8_1024, ":)");
+	m_pSphereMaterialInstance->SetParameter(0, Vector4f(1.0f, 0.0f, 0.0f, 0.1f));
+	m_pSphereMaterialInstance->SetParameter(1, Vector2f(1.0f, 0.1f));
+	m_pSphereMaterialInstance->SetMaterialTexture(2, RGBA8_1024, ":)");
+	m_pSphereMaterialInstance->SetMaterialTexture(3, RGBA8_1024, ":)");
+	m_pSphereMaterialInstance->SetMaterialTexture(4, R8_1024, ":)");
 
 	// Skybox material
-	layout = {};
+	vars = {};
 
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" };
 	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo	= m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
-	info.maxMaterialInstance	= 1;
-	info.materialVariableLayout = layout;
+	info.materialUniformVars	= vars;
 	info.pRenderPass			= RenderPassDiction::GetInstance()->GetDefaultRenderPass();
 	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
 

@@ -17,21 +17,21 @@ public:
 	std::shared_ptr<Material> GetMaterial() const { return m_pMaterial; }
 	uint32_t GetRenderMask() const { return m_renderMask; }
 	void SetRenderMask(uint32_t renderMask) { m_renderMask = renderMask; }
-	void SetMaterialTexture(uint32_t bindingIndex, uint32_t parameterIndex, InGameTextureType type, const std::string& textureName);
+	void SetMaterialTexture(uint32_t parameterIndex, InGameTextureType type, const std::string& textureName);
 	void PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	void Draw();
 
 	// FIXME: should add name based functions to ease of use
 	template <typename T>
-	void SetParameter(uint32_t bindingIndex, uint32_t parameterIndex, T val)
+	void SetParameter(uint32_t parameterIndex, T val)
 	{
-		m_pMaterial->SetParameter(m_materialBufferChunkIndex, bindingIndex, parameterIndex, val);
+		m_pMaterial->SetParameter(m_materialBufferChunkIndex, parameterIndex, val);
 	}
 
 	template <typename T>
-	T GetParameter(uint32_t bindingIndex, uint32_t parameterIndex)
+	T GetParameter(uint32_t parameterIndex)
 	{
-		return m_pMaterial->GetParameter<T>(m_materialBufferChunkIndex, bindingIndex, parameterIndex);
+		return m_pMaterial->GetParameter<T>(m_materialBufferChunkIndex, parameterIndex);
 	}
 
 	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex);

@@ -20,13 +20,13 @@ bool MaterialInstance::Init(const std::shared_ptr<MaterialInstance>& pMaterialIn
 	return true;
 }
 
-void MaterialInstance::SetMaterialTexture(uint32_t bindingIndex, uint32_t parameterIndex, InGameTextureType type, const std::string& textureName)
+void MaterialInstance::SetMaterialTexture(uint32_t parameterIndex, InGameTextureType type, const std::string& textureName)
 {
 	uint32_t textureIndex;
-	if (!UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->GetTextureIndex(type, textureName, textureIndex))
-		SetParameter(bindingIndex, parameterIndex, (float)-1);
+	if (!UniformData::GetInstance()->GetGlobalTextures()->GetTextureIndex(type, textureName, textureIndex))
+		SetParameter(parameterIndex, (float)-1);
 	else
-		SetParameter(bindingIndex, parameterIndex, (float)textureIndex);
+		SetParameter(parameterIndex, (float)textureIndex);
 }
 
 void MaterialInstance::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)

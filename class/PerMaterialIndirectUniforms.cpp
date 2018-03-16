@@ -29,7 +29,7 @@ void PerMaterialIndirectUniforms::SyncBufferDataInternal()
 	GetBuffer()->UpdateByteStream(m_perMaterialIndirectIndex, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perMaterialIndirectIndex));
 }
 
-std::vector<UniformVarList> PerMaterialIndirectUniforms::PrepareUniformVarList()
+std::vector<UniformVarList> PerMaterialIndirectUniforms::PrepareUniformVarList() const
 {
 	return
 	{
@@ -44,9 +44,11 @@ std::vector<UniformVarList> PerMaterialIndirectUniforms::PrepareUniformVarList()
 	};
 }
 
-void PerMaterialIndirectUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex) const
+uint32_t PerMaterialIndirectUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
 {
-	pDescriptorSet->UpdateShaderStorageBufferDynamic(reservedIndex, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
+	pDescriptorSet->UpdateShaderStorageBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
+
+	return bindingIndex;
 }
 
 

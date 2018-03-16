@@ -42,7 +42,7 @@ void PerObjectUniforms::SetDirty(uint32_t index)
 	UniformDataStorage::SetDirty();
 }
 
-std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList()
+std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList() const
 {
 	return
 	{
@@ -57,9 +57,11 @@ std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList()
 	};
 }
 
-void PerObjectUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex) const
+uint32_t PerObjectUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
 {
-	pDescriptorSet->UpdateShaderStorageBufferDynamic(0, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
+	pDescriptorSet->UpdateShaderStorageBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
+
+	return bindingIndex;
 }
 
 

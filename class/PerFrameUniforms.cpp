@@ -46,7 +46,7 @@ void PerFrameUniforms::SetDirty()
 	UniformDataStorage::SetDirty();
 }
 
-std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList()
+std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList() const
 {
 	return
 	{
@@ -62,8 +62,10 @@ std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList()
 	};
 }
 
-void PerFrameUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex) const
+uint32_t PerFrameUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
 {
-	pDescriptorSet->UpdateUniformBufferDynamic(0, std::dynamic_pointer_cast<UniformBuffer>(GetBuffer()));
+	pDescriptorSet->UpdateUniformBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<UniformBuffer>(GetBuffer()));
+
+	return bindingIndex;
 }
 

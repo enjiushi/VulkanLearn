@@ -10,7 +10,7 @@ bool ShaderStorageBuffer::Init(const std::shared_ptr<Device>& pDevice, const std
 
 	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minStorageBufferOffsetAlignment;
 	uint32_t alignedBytes = numBytes / minAlign * minAlign + (numBytes % minAlign > 0 ? minAlign : 0);
-	uint32_t totalUniformBytes = alignedBytes * GetSwapChain()->GetSwapChainImageCount();
+	uint32_t totalUniformBytes = alignedBytes;
 
 	m_info.size = totalUniformBytes;
 

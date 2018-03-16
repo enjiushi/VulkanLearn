@@ -161,8 +161,7 @@ std::shared_ptr<Material> SceneGenerator::GenerateIrradianceGenMaterial(const st
 	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" };
 	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
-	info.maxMaterialInstance = 1;
-	info.materialVariableLayout = {};
+	info.materialUniformVars = {};
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
@@ -175,8 +174,7 @@ std::shared_ptr<Material> SceneGenerator::GeneratePrefilterEnvGenMaterial(const 
 	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" };
 	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
-	info.maxMaterialInstance = 1;
-	info.materialVariableLayout = {};
+	info.materialUniformVars = {};
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
@@ -189,8 +187,7 @@ std::shared_ptr<Material> SceneGenerator::GenerateBRDFLUTGenMaterial(const std::
 	info.shaderPaths = { L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" };
 	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
-	info.maxMaterialInstance = 1;
-	info.materialVariableLayout = {};
+	info.materialUniformVars = {};
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 

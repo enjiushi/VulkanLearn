@@ -2,6 +2,7 @@
 
 #include "UniformDataStorage.h"
 
+class DescriptorSetLayout;
 class DescriptorSet;
 class GlobalTextures;
 
@@ -37,20 +38,17 @@ public:
 	void SetRenderSettings(const Vector4f& setting);
 	Vector4f GetRenderSettings() const { return m_globalVariables.GEW; }
 
-	std::shared_ptr<GlobalTextures> GetGlobalTextures() const { return m_pGlobalTextures; }
-
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);
 	static std::shared_ptr<GlobalUniforms> Create();
 
-	std::vector<UniformVarList> PrepareUniformVarList() override;
-	void SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex = 0) const override;
+	std::vector<UniformVarList> PrepareUniformVarList() const override;
+	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
 	void SyncBufferDataInternal() override;
 	void SetDirty() override;
 
 protected:
-	GlobalVariables					m_globalVariables;
-	std::shared_ptr<GlobalTextures>	m_pGlobalTextures;
+	GlobalVariables							m_globalVariables;
 };

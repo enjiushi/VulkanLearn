@@ -24,8 +24,8 @@ public:
 	void SetPerMaterialIndex(uint32_t indirectIndex, uint32_t perMaterialIndex) { m_perMaterialIndirectIndex[indirectIndex].perMaterialIndex = perMaterialIndex; SetDirty(); }
 	uint32_t GetPerMaterialIndex(uint32_t indirectIndex) const { return m_perMaterialIndirectIndex[indirectIndex].perMaterialIndex; }
 
-	std::vector<UniformVarList> PrepareUniformVarList() override;
-	void SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex = 0) const override;
+	std::vector<UniformVarList> PrepareUniformVarList() const override;
+	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
 	void SyncBufferDataInternal() override;

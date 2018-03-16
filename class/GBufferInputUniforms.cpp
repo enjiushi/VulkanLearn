@@ -23,7 +23,7 @@ std::shared_ptr<GBufferInputUniforms> GBufferInputUniforms::Create()
 	return nullptr;
 }
 
-std::vector<UniformVarList> GBufferInputUniforms::PrepareUniformVarList()
+std::vector<UniformVarList> GBufferInputUniforms::PrepareUniformVarList() const
 {
 	return
 	{
@@ -42,13 +42,15 @@ std::vector<UniformVarList> GBufferInputUniforms::PrepareUniformVarList()
 	};
 }
 
-void GBufferInputUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex) const
+uint32_t GBufferInputUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
 {
 	std::vector<std::shared_ptr<Texture2D>> gbuffers = RenderWorkManager::GetInstance()->GetGBuffers();
 
 	for (uint32_t i = 0; i < gbuffers.size(); i++)
 	{
-		pDescriptorSet->UpdateInputImage(reservedIndex++, std::static_pointer_cast<Image>(gbuffers[i]));
+		pDescriptorSet->UpdateInputImage(bindingIndex++, std::static_pointer_cast<Image>(gbuffers[i]));
 	}
+
+	return bindingIndex;
 }
 

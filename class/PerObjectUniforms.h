@@ -23,8 +23,8 @@ public:
 	Matrix4f GetModelMatrix(uint32_t index) const { return m_perObjectVariables[index].modelMatrix; }
 	Matrix4f GetMVPN(uint32_t index) const { return m_perObjectVariables[index].MVPN; }
 
-	std::vector<UniformVarList> PrepareUniformVarList() override;
-	void SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex = 0) const override;
+	std::vector<UniformVarList> PrepareUniformVarList() const override;
+	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
 	void SyncBufferDataInternal() override;

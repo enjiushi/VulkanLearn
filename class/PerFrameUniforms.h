@@ -30,8 +30,8 @@ public:
 	void SetPadding(float val) { m_perFrameVariables.padding = val; }
 	float GetPadding() const { return m_perFrameVariables.padding; }
 
-	std::vector<UniformVarList> PrepareUniformVarList() override;
-	void SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t reservedIndex = 0) const override;
+	std::vector<UniformVarList> PrepareUniformVarList() const override;
+	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
 	void SyncBufferDataInternal() override;

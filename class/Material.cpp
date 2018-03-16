@@ -133,7 +133,7 @@ std::shared_ptr<Material> Material::CreateDefaultMaterial(const SimpleMaterialCr
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetDeviceHandle();
 
-	if (pMaterial.get() && pMaterial->Init(pMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.maxMaterialInstance, simpleMaterialInfo.materialVariableLayout, simpleMaterialInfo.vertexFormat))
+	if (pMaterial.get() && pMaterial->Init(pMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pMaterial;
 	return nullptr;
 }
@@ -144,105 +144,115 @@ bool Material::Init
 	const std::vector<std::wstring>	shaderPaths,
 	const std::shared_ptr<RenderPass>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
-	uint32_t maxMaterialInstance,
-	const std::vector<UniformVarList>& materialVariableLayout,
+	const std::vector<UniformVar>& materialUniformVars,
 	uint32_t vertexFormat
 )
 {
 	if (!SelfRefBase<Material>::Init(pSelf))
 		return false;
 
-	std::vector<std::vector<UniformVarList>> _materialVariableLayout;
-	_materialVariableLayout.resize(UniformDataStorage::UniformTypeCount);
+	m_materialVariableLayout.resize(MaterialUniformStorageTypeCount);
+	m_materialUniforms.resize(MaterialUniformStorageTypeCount);
+
+
+	std::vector<UniformVarList> _materialVariableLayout;
 
 	// Add per material indirect index uniform layout
-	m_pPerMaterialIndirectUniforms = PerMaterialIndirectUniforms::Create();
-	_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].push_back(m_pPerMaterialIndirectUniforms->PrepareUniformVarList()[0]);
+	m_materialUniforms[PerMaterialIndirectVariableBuffer] = PerMaterialIndirectUniforms::Create();
+	m_materialVariableLayout[PerMaterialIndirectVariableBuffer] = m_materialUniforms[PerMaterialIndirectVariableBuffer]->PrepareUniformVarList()[0];
+	m_pPerMaterialIndirectUniforms = std::dynamic_pointer_cast<PerMaterialIndirectUniforms>(m_materialUniforms[PerMaterialIndirectVariableBuffer]);
 
 	// Add material variable layout
-	_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].insert(_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].end(),
-		materialVariableLayout.begin(), materialVariableLayout.end());
+	m_materialVariableLayout[PerMaterialVariableBuffer] =
+	{
+		DynamicUniformBuffer,
+		"PBR Material Textures Indices",
+		{}
+	};
+
+	m_materialVariableLayout[PerMaterialVariableBuffer].vars = materialUniformVars;
+
+	// If there's no per material variable, I just simply add a dummy variable, for the sake of simplicity
+	if (m_materialVariableLayout[PerMaterialVariableBuffer].vars.size() == 0)
+	{
+		m_materialVariableLayout[PerMaterialVariableBuffer].vars = 
+		{
+			{
+				OneUnit,
+				"Dummy"
+			}
+		};
+	}
+	m_materialUniforms[PerMaterialVariableBuffer] = PerMaterialUniforms::Create(GetByteSize(m_materialVariableLayout[PerMaterialVariableBuffer].vars));
+	m_pPerMaterialUniforms = std::dynamic_pointer_cast<PerMaterialUniforms>(m_materialUniforms[PerMaterialVariableBuffer]);
 
 	// Force per object material variable to be shader storage buffer
-	for (auto& var : _materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable])
+	for (auto& var : m_materialVariableLayout)
 	{
 		if (var.type == DynamicUniformBuffer)
 			var.type = DynamicShaderStorageBuffer;
 	}
 
-	// Obtain predefined uniform layout from global uniforms, perframe uniforms and perobject uniforms
-	std::vector<std::vector<UniformVarList>> predefinedUniformLayout = UniformData::GetInstance()->GenerateUniformVarLayout();
-
-	// And insert them into beginning of material variable layout
-	for (uint32_t i = 0; i < UniformDataStorage::PerObjectMaterialVariable; i++)
-	{
-		_materialVariableLayout[i] = predefinedUniformLayout[i];
-	}
-
-	m_materialVariableLayout = _materialVariableLayout;
-
 	// Build vulkan layout bindings
-	std::vector<std::vector<VkDescriptorSetLayoutBinding>> layoutBindings;
-	for (auto & variables : _materialVariableLayout)
-	{
-		std::vector<VkDescriptorSetLayoutBinding> bindings;
-		for (auto & var : variables)
-		{ 
-			switch (var.type)
-			{
-			case DynamicUniformBuffer:
-				bindings.push_back
-				({
-					(uint32_t)bindings.size(),
-					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-					1,
-					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-					nullptr
-				});
+	std::vector<VkDescriptorSetLayoutBinding> bindings;
+	for (auto & var : m_materialVariableLayout)
+	{ 
+		switch (var.type)
+		{
+		case DynamicUniformBuffer:
+			bindings.push_back
+			({
+				(uint32_t)bindings.size(),
+				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+				1,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				nullptr
+			});
 
-				break;
-			case DynamicShaderStorageBuffer:
-				bindings.push_back
-				({
-					(uint32_t)bindings.size(),
-					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
-					1,
-					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-					nullptr
-				});
+			break;
+		case DynamicShaderStorageBuffer:
+			bindings.push_back
+			({
+				(uint32_t)bindings.size(),
+				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
+				1,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				nullptr
+			});
 
-				break;
-			case CombinedSampler:
-				bindings.push_back
-				({
-					(uint32_t)bindings.size(),
-					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-					1,
-					VK_SHADER_STAGE_FRAGMENT_BIT,
-					nullptr
+			break;
+		case CombinedSampler:
+			bindings.push_back
+			({
+				(uint32_t)bindings.size(),
+				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+				1,
+				VK_SHADER_STAGE_FRAGMENT_BIT,
+				nullptr
+			});
+			break;
+		case InputAttachment:
+			bindings.push_back
+			({
+				(uint32_t)bindings.size(),
+				VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+				1,
+				VK_SHADER_STAGE_FRAGMENT_BIT,
+				nullptr
 				});
-				break;
-			case InputAttachment:
-				bindings.push_back
-				({
-					(uint32_t)bindings.size(),
-					VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-					1,
-					VK_SHADER_STAGE_FRAGMENT_BIT,
-					nullptr
-					});
-				break;
-			default:
-				ASSERTION(false);
-				break;
-			}
+			break;
+		default:
+			ASSERTION(false);
+			break;
 		}
-		m_descriptorSetLayouts.push_back(DescriptorSetLayout::Create(GetDevice(), bindings));
-		layoutBindings.push_back(bindings);
 	}
+	m_pDescriptorSetLayout = DescriptorSetLayout::Create(GetDevice(), bindings);
+
+	std::vector<std::shared_ptr<DescriptorSetLayout>> descriptorSetLayouts = UniformData::GetInstance()->GetDescriptorSetLayouts();
+	descriptorSetLayouts.push_back(m_pDescriptorSetLayout);
 
 	// Create pipeline layout
-	m_pPipelineLayout = PipelineLayout::Create(GetDevice(), m_descriptorSetLayouts);
+	m_pPipelineLayout = PipelineLayout::Create(GetDevice(), descriptorSetLayouts);
 
 	// Init shaders
 	std::vector<std::shared_ptr<ShaderModule>> shaders;
@@ -258,68 +268,42 @@ bool Material::Init
 
 	// Prepare descriptor pool size according to resources used by this material
 	std::vector<uint32_t> counts(VK_DESCRIPTOR_TYPE_RANGE_SIZE);
-	for (auto & bindings : layoutBindings)
+	for (auto & binding : bindings)
 	{
-		for (auto & binding : bindings)
-		{
-			counts[binding.descriptorType]++;
-		}
+		counts[binding.descriptorType]++;
 	}
 
 	std::vector<VkDescriptorPoolSize> descPoolSize;
 	for (uint32_t i = 0; i < counts.size(); i++)
 	{
 		if (counts[i] != 0)
-			descPoolSize.push_back({ (VkDescriptorType)i, maxMaterialInstance * counts[i] });
+			descPoolSize.push_back({ (VkDescriptorType)i, counts[i] });
 	}
 
 	VkDescriptorPoolCreateInfo descPoolInfo = {};
 	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descPoolInfo.pPoolSizes = descPoolSize.data();
 	descPoolInfo.poolSizeCount = descPoolSize.size();
-	descPoolInfo.maxSets = maxMaterialInstance * UniformDataStorage::UniformTypeCount;
+	descPoolInfo.maxSets = 1;
 
 	m_pDescriptorPool = DescriptorPool::Create(GetDevice(), descPoolInfo);
+	m_pDescriptorSet = m_pDescriptorPool->AllocateDescriptorSet(m_pDescriptorSetLayout);
 
-	m_maxMaterialInstance = maxMaterialInstance;
+	m_descriptorSets = UniformData::GetInstance()->GetDescriptorSets();
+	m_descriptorSets.push_back(m_pDescriptorSet);
 
-	// Per material uniform container shares the same size as material variable layout
-	// However, not all of them is filled since some of them are textures or something other than uniforms
-	m_perMaterialUniforms.resize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable].size() - 1);	// Last one is per material indirect uniform
-	for (uint32_t i = 0; i < m_perMaterialUniforms.size(); i++)
+	// Setup descriptor set
+	uint32_t bindingIndex = 0;
+	for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
 	{
-		auto variable = m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i + 1];
-		// Force DynamicUniformBuffer to DynamicShaderStorageBuffer
-		// Since for per object material variable, uniform buffer isn't big enough
-		if (variable.type == DynamicUniformBuffer || variable.type == DynamicShaderStorageBuffer)
-		{
-			uint32_t size = GetByteSize(m_materialVariableLayout[UniformDataStorage::PerObjectMaterialVariable][i + 1].vars);
-			m_perMaterialUniforms[i] = PerMaterialUniforms::Create(size);
-		}
-		else
-			ASSERTION(false);	// Not support self-defined texture here, all textures go through global texture array
+		bindingIndex = m_materialUniforms[i]->SetupDescriptorSet(m_pDescriptorSet, bindingIndex);
 	}
 
-	// Allocate descriptor sets according to layouts
-	for (auto & layout : m_descriptorSetLayouts)
-		m_descriptorSets.push_back(m_pDescriptorPool->AllocateDescriptorSet(layout));
-
-	UniformData::GetInstance()->SetupDescriptorSet(m_descriptorSets[UniformDataStorage::GlobalVariable], UniformDataStorage::GlobalVariable);
-	UniformData::GetInstance()->SetupDescriptorSet(m_descriptorSets[UniformDataStorage::PerFrameVariable], UniformDataStorage::PerFrameVariable);
-	UniformData::GetInstance()->SetupDescriptorSet(m_descriptorSets[UniformDataStorage::PerObjectVariable], UniformDataStorage::PerObjectVariable);
-
-	// Bind per material variable buffer
-	for (uint32_t i = 0; i < m_perMaterialUniforms.size(); i++)
+	// Setup frame offsets
+	for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
 	{
-		if (m_perMaterialUniforms[i] != nullptr)
-		{
-			m_perMaterialUniforms[i]->SetupDescriptorSet(m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable], i + 1);
-			m_frameOffsets.push_back(m_perMaterialUniforms[i]->GetFrameOffset());
-		}
+		m_frameOffsets.push_back(m_materialUniforms[i]->GetFrameOffset());
 	}
-
-	// Bind per material indirect uniform
-	m_pPerMaterialIndirectUniforms->SetupDescriptorSet(m_descriptorSets[UniformDataStorage::PerObjectMaterialVariable]);
 
 	m_pIndirectBuffer = SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT);
 
@@ -406,14 +390,8 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 
 	if (pMaterialInstance.get() && pMaterialInstance->Init(pMaterialInstance))
 	{
-		for (uint32_t i = 0; i < m_perMaterialUniforms.size(); i++)
-			if (m_perMaterialUniforms[i] != nullptr)
-			{
-				// Even if there could be more than one per material uniform buffer
-				// We still mark only one buffer chunk index, since their value should be exactly the same
-				pMaterialInstance->m_materialBufferChunkIndex = m_perMaterialUniforms[i]->AllocatePerObjectChunk();
-			}
-
+		std::shared_ptr<PerMaterialUniforms> pPerMaterialUniforms = std::dynamic_pointer_cast<PerMaterialUniforms>(m_materialUniforms[PerMaterialVariableBuffer]);
+		pMaterialInstance->m_materialBufferChunkIndex = pPerMaterialUniforms->AllocatePerObjectChunk();
 		pMaterialInstance->m_pMaterial = GetSelfSharedPtr();
 
 		m_generatedInstances.push_back(pMaterialInstance);
@@ -424,11 +402,9 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 	return nullptr;
 }
 
-uint32_t Material::GetUniformBufferSize(uint32_t bindingIndex) const
+uint32_t Material::GetUniformBufferSize() const
 {
-	if (m_perMaterialUniforms[bindingIndex] != nullptr)
-		return m_perMaterialUniforms[bindingIndex]->GetBuffer()->GetBufferInfo().size;
-	return 0;
+	return m_materialUniforms[PerMaterialVariableBuffer]->GetBuffer()->GetBufferInfo().size;
 }
 
 std::vector<uint32_t> Material::GetFrameOffsets() const 
@@ -441,11 +417,9 @@ std::vector<uint32_t> Material::GetFrameOffsets() const
 
 void Material::SyncBufferData()
 {
-	for (auto & var : m_perMaterialUniforms)
+	for (auto & var : m_materialUniforms)
 		if (var != nullptr)
 			var->SyncBufferData();
-
-	m_pPerMaterialIndirectUniforms->SyncBufferData();
 }
 
 void Material::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
@@ -455,21 +429,17 @@ void Material::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 
 void Material::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
+	// Prepare offsets
 	std::vector<uint32_t> offsets = UniformData::GetInstance()->GetFrameOffsets();
-
-	// Insert per material indirect uniform frame offset
-	offsets.push_back(m_pPerMaterialIndirectUniforms->GetFrameOffset() * FrameMgr()->FrameIndex());
-
-	// Insert material offsets
 	std::vector<uint32_t> materialOffsets = GetFrameOffsets();
 	offsets.insert(offsets.end(), materialOffsets.begin(), materialOffsets.end());
 
-	pCmdBuffer->BindDescriptorSets(GetPipelineLayout(), GetDescriptorSets(), offsets);
+	pCmdBuffer->BindDescriptorSets(GetPipelineLayout(), m_descriptorSets, offsets);
 }
 
 void Material::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture)
 {
-	GetDescriptorSet(UniformDataStorage::PerObjectMaterialVariable)->UpdateImage(index + 1, pTexture);
+	GetDescriptorSet()->UpdateImage(index, pTexture);
 }
 
 void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
@@ -525,6 +495,7 @@ void Material::Draw()
 void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex)
 {
 	m_pIndirectBuffer->SetIndirectCmd(m_indirectIndex, cmd);
+
 	m_pPerMaterialIndirectUniforms->SetPerObjectIndex(m_indirectIndex, perObjectIndex);
 	m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(m_indirectIndex, perMaterialIndex);
 	m_indirectIndex += 1;

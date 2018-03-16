@@ -15,12 +15,13 @@
 #include "../Base/BaseObject.h"
 #include "../scene/SceneGenerator.h"
 #include "../class/RenderPassDiction.h"
+#include "../vulkan/DescriptorSet.h"
 #include "GlobalTextures.h"
 #include "Material.h"
 
 bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 {
-	if (!SelfRefBase<GlobalTextures>::Init(pSelf))
+	if (!UniformBase::Init(pSelf))
 		return false;
 
 	InitTextureDiction();
@@ -305,7 +306,7 @@ std::shared_ptr<GlobalTextures> GlobalTextures::Create()
 	return nullptr;
 }
 
-std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList()
+std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 {
 	return 
 	{
@@ -371,5 +372,31 @@ bool GlobalTextures::GetTextureIndex(InGameTextureType type, const std::string& 
 
 	textureIndex = it->second;
 	return true;
+}
+
+uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
+{
+	// Bind global texture array
+	for (uint32_t i = 0; i < InGameTextureTypeCount; i++)
+	{
+		std::shared_ptr<Texture2DArray> pTexArray = GetTextureArray((InGameTextureType)i);
+		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTexArray));
+	}
+
+	// Binding global IBL texture cube
+	for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
+	{
+		std::shared_ptr<TextureCube> pTextureCube = GetIBLTextureCube((IBLTextureType)i);
+		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTextureCube));
+	}
+
+	// Binding global IBL texture2d
+	for (uint32_t i = 0; i < IBL2DTextureTypeCount; i++)
+	{
+		std::shared_ptr<Texture2D> pTexture2D = GetIBLTexture2D((IBLTextureType)i);
+		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTexture2D));
+	}
+
+	return bindingIndex;
 }
 
