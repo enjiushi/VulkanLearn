@@ -64,7 +64,7 @@ public:
 	std::shared_ptr<GraphicPipeline> GetGraphicPipeline() const { return m_pPipeline; }
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
 	uint32_t GetUniformBufferSize() const;
-	std::vector<uint32_t> GetFrameOffsets() const;
+	std::vector<std::vector<uint32_t>> Material::GetCachedFrameOffsets() const { return m_cachedFrameOffsets; }
 
 	std::shared_ptr<DescriptorSet> GetDescriptorSet() const { return m_pDescriptorSet; }
 
@@ -121,7 +121,7 @@ protected:
 	std::vector<UniformVarList>							m_materialVariableLayout;
 
 	std::vector<std::shared_ptr<UniformDataStorage>>	m_materialUniforms;
-	std::vector<uint32_t>								m_frameOffsets;
+	std::vector<std::vector<uint32_t>>					m_cachedFrameOffsets;
 
 	std::shared_ptr<PerMaterialIndirectUniforms>		m_pPerMaterialIndirectUniforms;
 	std::shared_ptr<PerMaterialUniforms>				m_pPerMaterialUniforms;

@@ -55,7 +55,7 @@ public:
 
 	void SyncDataBuffer();
 	std::vector<std::vector<UniformVarList>> GenerateUniformVarLayout() const;
-	std::vector<uint32_t> GetFrameOffsets() const;
+	std::vector<std::vector<uint32_t>> GetCachedFrameOffsets() const;
 
 	std::vector<std::shared_ptr<DescriptorSetLayout>> GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
 	std::vector<std::shared_ptr<DescriptorSet>> GetDescriptorSets() const { return m_descriptorSets; }
@@ -70,4 +70,6 @@ protected:
 	std::shared_ptr<DescriptorPool>						m_pDescriptorPool;
 	std::vector<std::shared_ptr<DescriptorSetLayout>>	m_descriptorSetLayouts;
 	std::vector<std::shared_ptr<DescriptorSet>>			m_descriptorSets;
+
+	std::vector<std::vector<uint32_t>>					m_cachedFrameOffsets;
 };

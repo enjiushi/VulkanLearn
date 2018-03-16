@@ -299,10 +299,16 @@ bool Material::Init
 		bindingIndex = m_materialUniforms[i]->SetupDescriptorSet(m_pDescriptorSet, bindingIndex);
 	}
 
-	// Setup frame offsets
-	for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
+	// Setup cached frame offsets
+	m_cachedFrameOffsets = UniformData::GetInstance()->GetCachedFrameOffsets();
+
+	for (uint32_t frameIndex = 0; frameIndex < GetSwapChain()->GetSwapChainImageCount(); frameIndex++)
 	{
-		m_frameOffsets.push_back(m_materialUniforms[i]->GetFrameOffset());
+		std::vector<uint32_t> offsets;
+		for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
+		{
+			m_cachedFrameOffsets[frameIndex].push_back(m_materialUniforms[i]->GetFrameOffset() * frameIndex);
+		}
 	}
 
 	m_pIndirectBuffer = SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT);
@@ -407,14 +413,6 @@ uint32_t Material::GetUniformBufferSize() const
 	return m_materialUniforms[PerMaterialVariableBuffer]->GetBuffer()->GetBufferInfo().size;
 }
 
-std::vector<uint32_t> Material::GetFrameOffsets() const 
-{ 
-	std::vector<uint32_t> offsets = m_frameOffsets;
-	for (auto & var : offsets)
-		var *= FrameMgr()->FrameIndex();
-	return offsets;
-}
-
 void Material::SyncBufferData()
 {
 	for (auto & var : m_materialUniforms)
@@ -429,12 +427,7 @@ void Material::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 
 void Material::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	// Prepare offsets
-	std::vector<uint32_t> offsets = UniformData::GetInstance()->GetFrameOffsets();
-	std::vector<uint32_t> materialOffsets = GetFrameOffsets();
-	offsets.insert(offsets.end(), materialOffsets.begin(), materialOffsets.end());
-
-	pCmdBuffer->BindDescriptorSets(GetPipelineLayout(), m_descriptorSets, offsets);
+	pCmdBuffer->BindDescriptorSets(GetPipelineLayout(), m_descriptorSets, m_cachedFrameOffsets[FrameMgr()->FrameIndex()]);
 }
 
 void Material::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture)

@@ -6,6 +6,7 @@
 #include "../vulkan/DescriptorSetLayout.h"
 #include "../vulkan/DescriptorSet.h"
 #include "../vulkan/DescriptorPool.h"
+#include "../vulkan/SwapChain.h"
 #include "GlobalTextures.h"
 #include "GBufferInputUniforms.h"
 
@@ -42,6 +43,15 @@ bool UniformData::Init()
 
 	BuildDescriptorSets();
 
+	for (uint32_t frameIndex = 0; frameIndex < GetSwapChain()->GetSwapChainImageCount(); frameIndex++)
+	{
+		std::vector<uint32_t> offsets;
+		for (uint32_t i = 0; i < UniformStorageType::PerObjectMaterialVariableBuffer; i++)
+			offsets.push_back(m_uniformStorageBuffers[i]->GetFrameOffset() * frameIndex);
+
+		m_cachedFrameOffsets.push_back(offsets);
+	}
+
 	return true;
 }
 
@@ -59,12 +69,9 @@ std::vector<std::vector<UniformVarList>> UniformData::GenerateUniformVarLayout()
 	return layout;
 }
 
-std::vector<uint32_t> UniformData::GetFrameOffsets() const
+std::vector<std::vector<uint32_t>> UniformData::GetCachedFrameOffsets() const
 {
-	std::vector<uint32_t> offsets;
-	for (uint32_t i = 0; i < UniformStorageType::PerObjectMaterialVariableBuffer; i++)
-		offsets.push_back(m_uniformStorageBuffers[i]->GetFrameOffset() * FrameMgr()->FrameIndex());
-	return offsets;
+	return m_cachedFrameOffsets;
 }
 
 void UniformData::BuildDescriptorSets()
