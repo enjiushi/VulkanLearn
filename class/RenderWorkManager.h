@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../common/Singleton.h"
 #include "../vulkan/RenderPass.h"
 

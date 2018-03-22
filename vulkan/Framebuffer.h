@@ -10,11 +10,6 @@ class Texture2D;
 class FrameBuffer : public DeviceObjectBase<FrameBuffer>
 {
 public:
-	static const VkFormat OFFSCREEN_COLOR_FORMAT = VK_FORMAT_R8G8B8A8_UNORM;
-	static const VkFormat OFFSCREEN_HDR_COLOR_FORMAT = VK_FORMAT_R16G16B16A16_SFLOAT;
-	static const VkFormat OFFSCREEN_DEPTH_STENCIL_FORMAT = VK_FORMAT_D32_SFLOAT_S8_UINT;
-
-public:
 	~FrameBuffer();
 
 protected:

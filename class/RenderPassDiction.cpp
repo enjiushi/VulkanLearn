@@ -101,7 +101,7 @@ std::shared_ptr<RenderPass> RenderPassDiction::CreateDefaultOffScreenRenderPass(
 	std::vector<VkAttachmentDescription> attachmentDescs(2);
 	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	attachmentDescs[0].format = FrameBuffer::OFFSCREEN_HDR_COLOR_FORMAT;
+	attachmentDescs[0].format = OFFSCREEN_HDR_COLOR_FORMAT;
 	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -110,7 +110,7 @@ std::shared_ptr<RenderPass> RenderPassDiction::CreateDefaultOffScreenRenderPass(
 
 	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachmentDescs[1].format = FrameBuffer::OFFSCREEN_DEPTH_STENCIL_FORMAT;
+	attachmentDescs[1].format = OFFSCREEN_DEPTH_STENCIL_FORMAT;
 	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -167,7 +167,7 @@ std::shared_ptr<RenderPass> RenderPassDiction::CreateRGBA8x3_D24S8DeferredRender
 
 	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	attachmentDescs[1].format = FrameBuffer::OFFSCREEN_COLOR_FORMAT;
+	attachmentDescs[1].format = GBUFFER0_COLOR_FORMAT;
 	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -176,7 +176,7 @@ std::shared_ptr<RenderPass> RenderPassDiction::CreateRGBA8x3_D24S8DeferredRender
 
 	attachmentDescs[2].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[2].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	attachmentDescs[2].format = FrameBuffer::OFFSCREEN_COLOR_FORMAT;
+	attachmentDescs[2].format = OFFSCREEN_COLOR_FORMAT;
 	attachmentDescs[2].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[2].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[2].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -185,7 +185,7 @@ std::shared_ptr<RenderPass> RenderPassDiction::CreateRGBA8x3_D24S8DeferredRender
 
 	attachmentDescs[3].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[3].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	attachmentDescs[3].format = FrameBuffer::OFFSCREEN_COLOR_FORMAT;
+	attachmentDescs[3].format = OFFSCREEN_COLOR_FORMAT;
 	attachmentDescs[3].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[3].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[3].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -194,7 +194,7 @@ std::shared_ptr<RenderPass> RenderPassDiction::CreateRGBA8x3_D24S8DeferredRender
 
 	attachmentDescs[4].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[4].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	attachmentDescs[4].format = FrameBuffer::OFFSCREEN_DEPTH_STENCIL_FORMAT;
+	attachmentDescs[4].format = OFFSCREEN_DEPTH_STENCIL_FORMAT;
 	attachmentDescs[4].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[4].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[4].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;

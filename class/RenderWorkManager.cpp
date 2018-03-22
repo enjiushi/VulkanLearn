@@ -20,9 +20,8 @@ bool RenderWorkManager::Init()
 	}
 
 	m_gbuffers[GBuffer0] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_A2R10G10B10_UNORM_PACK32);
-	m_gbuffers[GBuffer0] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R8G8B8A8_UNORM);
-	m_gbuffers[GBuffer0] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R8G8B8A8_UNORM);
-	m_gbuffers[GBuffer0] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R8G8B8A8_UNORM);
+	m_gbuffers[GBuffer1] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R8G8B8A8_UNORM);
+	m_gbuffers[GBuffer2] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R8G8B8A8_UNORM);
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{

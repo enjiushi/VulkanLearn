@@ -18,11 +18,12 @@ uint32_t VulkanUtil::GetBytesFromFormat(VkFormat format)
 {
 	switch (format)
 	{
-	case VK_FORMAT_R8G8B8A8_UNORM: return 4;
-	case VK_FORMAT_R8_UNORM: return 1;
-	case VK_FORMAT_R16G16B16A16_SFLOAT: return 8;
-	case VK_FORMAT_D24_UNORM_S8_UINT: return 4;
-	case VK_FORMAT_D32_SFLOAT_S8_UINT: return 6;
+	case VK_FORMAT_R8G8B8A8_UNORM:				return 4;
+	case VK_FORMAT_R8_UNORM:					return 1;
+	case VK_FORMAT_R16G16B16A16_SFLOAT:			return 8;
+	case VK_FORMAT_D24_UNORM_S8_UINT:			return 4;
+	case VK_FORMAT_D32_SFLOAT_S8_UINT:			return 6;
+	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:	return 4;
 	default: ASSERTION(false);	// New one used, add it here
 	}
 	return 0;
