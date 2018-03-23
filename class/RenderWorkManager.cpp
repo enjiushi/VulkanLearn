@@ -32,7 +32,7 @@ bool RenderWorkManager::Init()
 		std::vector<std::shared_ptr<Image>> temp_vec;
 		temp_vec.insert(temp_vec.end(), GetSwapChain()->GetSwapChainImage(i));
 		temp_vec.insert(temp_vec.end(), m_gbuffers, m_gbuffers + GBuffer::GBufferCount);
-		m_frameBuffers[RenderMode::Deferred][i] = FrameBuffer::Create(GetDevice(), temp_vec, DepthStencilBuffer::Create(GetDevice()), RenderPassDiction::GetInstance()->GetDeferredRenderPass()->GetRenderPass());
+		m_frameBuffers[RenderMode::Deferred][i] = FrameBuffer::Create(GetDevice(), temp_vec, DepthStencilBuffer::CreateInputAttachment(GetDevice()), RenderPassDiction::GetInstance()->GetDeferredRenderPass()->GetRenderPass());
 	}
 
 	return true;
