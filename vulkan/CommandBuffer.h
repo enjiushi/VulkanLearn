@@ -98,6 +98,7 @@ public:
 	void EndRenderPass();
 
 	void DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
+	void DrawIndexed(uint32_t count);
 	void DrawIndexedIndirect(const std::shared_ptr<IndirectBuffer>& pIndirectBuffer, uint32_t offset, uint32_t count);
 
 	void NextSubpass();

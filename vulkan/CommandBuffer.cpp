@@ -742,6 +742,12 @@ void CommandBuffer::DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer
 	vkCmdDrawIndexed(GetDeviceHandle(), pIndexBuffer->GetCount(), 1, 0, 0, 0);
 }
 
+void CommandBuffer::DrawIndexed(uint32_t count)
+{
+	vkCmdDrawIndexed(GetDeviceHandle(), count, 1, 0, 0, 0);
+}
+
+
 void CommandBuffer::DrawIndexedIndirect(const std::shared_ptr<IndirectBuffer>& pIndirectBuffer, uint32_t offset, uint32_t count)
 {
 	// NOTE: offset of vkCmdDrawIndexedIndirect is mesured by bytes, not elements!
