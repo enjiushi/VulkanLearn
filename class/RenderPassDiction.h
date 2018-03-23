@@ -14,30 +14,15 @@ public:
 	static const VkFormat GBUFFER0_COLOR_FORMAT = VK_FORMAT_A2R10G10B10_UNORM_PACK32;
 
 public:
-	typedef std::pair<uint32_t, uint32_t> RenderPassDependency;
-
-public:
 	bool Init() override;
 
 public:
-	std::shared_ptr<RenderPass> GetDefaultRenderPass();
-	std::shared_ptr<RenderPass> GetDefaultOffScreenRenderPass();
-	std::shared_ptr<RenderPass> GetRGBA8x4_D24S8DeferredRenderPass();	// 0: screen frame buffer
 
 	std::shared_ptr<ForwardRenderPass> GetForwardRenderPass() const { return m_pForwardRenderPass; }
 	std::shared_ptr<ForwardRenderPass> GetForwardRenderPassOffScreen() const { return m_pForwardRenderPassOffScreen; }
 	std::shared_ptr<DeferredRenderPass> GetDeferredRenderPass() const { return m_pDeferredRenderPass; }
 
 protected:
-	static std::shared_ptr<RenderPass> CreateDefaultRenderPass();
-	static std::shared_ptr<RenderPass> CreateDefaultOffScreenRenderPass();
-	static std::shared_ptr<RenderPass> CreateRGBA8x3_D24S8DeferredRenderPass();
-
-protected:
-	std::shared_ptr<RenderPass>			m_pDefaultRenderPass;
-	std::shared_ptr<RenderPass>			m_pDefaultOffScreenRenderPass;
-	std::shared_ptr<RenderPass>			m_pRGBA8x3_D24S8RenderPass;
-
 	std::shared_ptr<ForwardRenderPass>	m_pForwardRenderPass;
 	std::shared_ptr<ForwardRenderPass>	m_pForwardRenderPassOffScreen;
 	std::shared_ptr<DeferredRenderPass>	m_pDeferredRenderPass;

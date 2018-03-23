@@ -9,6 +9,7 @@
 #include "../component/Camera.h"
 #include "../class/RenderPassDiction.h"
 #include "SceneGenerator.h"
+#include "../class/ForwardRenderPass.h"
 
 void SceneGenerator::PurgeExcistSceneData()
 {
@@ -162,7 +163,7 @@ std::shared_ptr<Material> SceneGenerator::GenerateIrradianceGenMaterial(const st
 	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars = {};
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass();
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
 	return Material::CreateDefaultMaterial(info);
@@ -175,7 +176,7 @@ std::shared_ptr<Material> SceneGenerator::GeneratePrefilterEnvGenMaterial(const 
 	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars = {};
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass();
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
 	return Material::CreateDefaultMaterial(info);
@@ -188,7 +189,7 @@ std::shared_ptr<Material> SceneGenerator::GenerateBRDFLUTGenMaterial(const std::
 	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars = {};
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass();
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
 	return Material::CreateDefaultMaterial(info);

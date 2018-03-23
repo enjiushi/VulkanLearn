@@ -19,6 +19,8 @@ protected:
 	bool Init(const std::shared_ptr<RenderPassBase>& pSelf, const VkRenderPassCreateInfo& info);
 
 public:
+	std::shared_ptr<RenderPass> GetRenderPass() const { return m_pRenderPass; }
+
 	virtual void BeginRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer);
 	virtual void EndRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer);
 	virtual std::vector<VkClearValue> GetClearValue() = 0;

@@ -70,7 +70,7 @@ void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
 
 void GlobalTextures::InitIrradianceTexture()
 {
-	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass());
+	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass());
 	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(pEnvFrameBuffer);
 
 	SceneGenerator::GetInstance()->GenerateIrradianceGenScene();
@@ -155,7 +155,7 @@ void GlobalTextures::InitIrradianceTexture()
 
 void GlobalTextures::InitPrefilterEnvTexture()
 {
-	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass());
+	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass());
 	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(pEnvFrameBuffer);
 
 	SceneGenerator::GetInstance()->GeneratePrefilterEnvGenScene();
@@ -244,7 +244,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 
 void GlobalTextures::InitBRDFLUTTexture()
 {
-	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetDefaultOffScreenRenderPass());
+	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass());
 	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(pEnvFrameBuffer);
 
 	SceneGenerator::GetInstance()->GenerateBRDFLUTGenScene();

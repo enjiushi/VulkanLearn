@@ -597,7 +597,7 @@ void VulkanGlobal::InitMaterials()
 	info.vertexBindingsInfo		= { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo	= m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars	= vars;
-	info.pRenderPass			= RenderPassDiction::GetInstance()->GetDefaultRenderPass();
+	info.pRenderPass			= RenderPassDiction::GetInstance()->GetForwardRenderPass()->GetRenderPass();
 	info.vertexFormat			= m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
 	info.isDeferredShadingMaterial = false;
 
@@ -626,7 +626,7 @@ void VulkanGlobal::InitMaterials()
 	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo	= m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars	= vars;
-	info.pRenderPass			= RenderPassDiction::GetInstance()->GetDefaultRenderPass();
+	info.pRenderPass			= RenderPassDiction::GetInstance()->GetForwardRenderPass()->GetRenderPass();
 	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
 
 	m_pSkyBoxMaterial = Material::CreateDefaultMaterial(info);
