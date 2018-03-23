@@ -100,6 +100,10 @@ public:
 	void DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
 	void DrawIndexedIndirect(const std::shared_ptr<IndirectBuffer>& pIndirectBuffer, uint32_t offset, uint32_t count);
 
+	void NextSubpass();
+
+	void Execute(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers);
+
 protected:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);
 

@@ -19,6 +19,7 @@
 #include "ForwardRenderPass.h"
 #include "GlobalTextures.h"
 #include "Material.h"
+#include "ForwardMaterial.h"
 
 bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 {
@@ -137,10 +138,10 @@ void GlobalTextures::InitIrradianceTexture()
 		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 		SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
-		SceneGenerator::GetInstance()->GetMaterial0()->Draw();
+		SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
 		SceneGenerator::GetInstance()->GetMaterial0()->OnPassEnd();
 
-		RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
+		//RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
 		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
@@ -226,10 +227,10 @@ void GlobalTextures::InitPrefilterEnvTexture()
 			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 			SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
-			SceneGenerator::GetInstance()->GetMaterial0()->Draw();
+			SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
 			SceneGenerator::GetInstance()->GetMaterial0()->OnPassEnd();
 
-			RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
+			//RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
 			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
@@ -284,10 +285,10 @@ void GlobalTextures::InitBRDFLUTTexture()
 	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 	SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
-	SceneGenerator::GetInstance()->GetMaterial0()->Draw();
+	SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
 	SceneGenerator::GetInstance()->GetMaterial0()->OnPassEnd();
 
-	RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
+	//RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
 	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 

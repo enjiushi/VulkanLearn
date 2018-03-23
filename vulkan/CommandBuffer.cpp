@@ -749,6 +749,23 @@ void CommandBuffer::DrawIndexedIndirect(const std::shared_ptr<IndirectBuffer>& p
 	AddToReferenceTable(pIndirectBuffer);
 }
 
+void CommandBuffer::NextSubpass()
+{
+	vkCmdNextSubpass(GetDeviceHandle(), VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+}
+
+void CommandBuffer::Execute(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers)
+{
+	std::vector<VkCommandBuffer> cmds;
+	for (auto& cmd : cmdBuffers)
+	{
+		cmds.push_back(cmd->GetDeviceHandle());
+		AddToReferenceTable(cmd);
+	}
+
+	vkCmdExecuteCommands(GetDeviceHandle(), cmds.size(), cmds.data());
+}
+
 void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::shared_ptr<RenderPass>& pRenderPass, const std::vector<VkClearValue>& clearValues, bool includeSecondary)
 {
 	VkRenderPassBeginInfo renderPassBeginInfo = {};

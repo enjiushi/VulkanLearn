@@ -8,6 +8,7 @@ class Mesh;
 class MeshRenderer;
 class Material;
 class MaterialInstance;
+class ForwardMaterial;
 
 class SceneGenerator : public Singleton<SceneGenerator>
 {
@@ -22,7 +23,7 @@ public:
 public:
 	std::shared_ptr<BaseObject> GetRootObject() const { return m_pRootObj; }
 	std::shared_ptr<BaseObject> GetCameraObject() const { return m_pCameraObj; }
-	std::shared_ptr<Material> GetMaterial0() const { return m_pMaterial0; }
+	std::shared_ptr<ForwardMaterial> GetMaterial0() const { return m_pMaterial0; }
 	std::shared_ptr<MaterialInstance> GetMaterialInstance0() const { return m_pMaterialInstance0; }
 	std::shared_ptr<Mesh> GetMesh0() const { return m_pMesh0; }
 	std::shared_ptr<MeshRenderer> GetMeshRenderer0() const { return m_pMeshRenderer0; }
@@ -30,9 +31,9 @@ public:
 public:
 	static std::shared_ptr<Mesh> GenerateBoxMesh();
 	static std::shared_ptr<Mesh> GenerateQuadMesh();
-	static std::shared_ptr<Material> GenerateIrradianceGenMaterial(const std::shared_ptr<Mesh>& pMesh);
-	static std::shared_ptr<Material> GeneratePrefilterEnvGenMaterial(const std::shared_ptr<Mesh>& pMesh);
-	static std::shared_ptr<Material> GenerateBRDFLUTGenMaterial(const std::shared_ptr<Mesh>& pMesh);
+	static std::shared_ptr<ForwardMaterial> GenerateIrradianceGenMaterial(const std::shared_ptr<Mesh>& pMesh);
+	static std::shared_ptr<ForwardMaterial> GeneratePrefilterEnvGenMaterial(const std::shared_ptr<Mesh>& pMesh);
+	static std::shared_ptr<ForwardMaterial> GenerateBRDFLUTGenMaterial(const std::shared_ptr<Mesh>& pMesh);
 	static std::shared_ptr<BaseObject> GenerateIBLGenOffScreenCamera(uint32_t screenSize);
 
 protected:
@@ -43,5 +44,5 @@ protected:
 	std::shared_ptr<MeshRenderer>		m_pMeshRenderer0;
 
 	std::shared_ptr<MaterialInstance>	m_pMaterialInstance0;
-	std::shared_ptr<Material>			m_pMaterial0;
+	std::shared_ptr<ForwardMaterial>	m_pMaterial0;
 };

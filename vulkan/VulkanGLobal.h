@@ -39,6 +39,8 @@
 #include "../class/MaterialInstance.h"
 #include "ShaderStorageBuffer.h"
 #include "Texture2DArray.h"
+#include "../class/ForwardMaterial.h"
+#include "../class/DeferredMaterial.h"
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
@@ -135,13 +137,13 @@ public:
 	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer;
 	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer1;
 	std::shared_ptr<MeshRenderer>		m_pSphereRenderer;
-	std::shared_ptr<Material>			m_pGunMaterial;
+	std::shared_ptr<ForwardMaterial>	m_pGunMaterial;
 	std::shared_ptr<MaterialInstance>	m_pGunMaterialInstance;
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance;
 
 	std::shared_ptr<BaseObject>			m_pSkyBoxObject;
 	std::shared_ptr<MeshRenderer>		m_pSkyBoxMeshRenderer;
-	std::shared_ptr<Material>			m_pSkyBoxMaterial;
+	std::shared_ptr<ForwardMaterial>	m_pSkyBoxMaterial;
 	std::shared_ptr<MaterialInstance>	m_pSkyBoxMaterialInstance;
 
 	std::shared_ptr<BaseObject>			m_pQuadObject;

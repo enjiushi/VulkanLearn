@@ -10,6 +10,7 @@
 #include "../class/RenderPassDiction.h"
 #include "SceneGenerator.h"
 #include "../class/ForwardRenderPass.h"
+#include "../class/ForwardMaterial.h"
 
 void SceneGenerator::PurgeExcistSceneData()
 {
@@ -156,7 +157,7 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateQuadMesh()
 	);
 }
 
-std::shared_ptr<Material> SceneGenerator::GenerateIrradianceGenMaterial(const std::shared_ptr<Mesh>& pMesh)
+std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateIrradianceGenMaterial(const std::shared_ptr<Mesh>& pMesh)
 {
 	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" };
@@ -166,10 +167,10 @@ std::shared_ptr<Material> SceneGenerator::GenerateIrradianceGenMaterial(const st
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
-	return Material::CreateDefaultMaterial(info);
+	return ForwardMaterial::CreateDefaultMaterial(info);
 }
 
-std::shared_ptr<Material> SceneGenerator::GeneratePrefilterEnvGenMaterial(const std::shared_ptr<Mesh>& pMesh)
+std::shared_ptr<ForwardMaterial> SceneGenerator::GeneratePrefilterEnvGenMaterial(const std::shared_ptr<Mesh>& pMesh)
 {
 	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" };
@@ -179,10 +180,10 @@ std::shared_ptr<Material> SceneGenerator::GeneratePrefilterEnvGenMaterial(const 
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
-	return Material::CreateDefaultMaterial(info);
+	return ForwardMaterial::CreateDefaultMaterial(info);
 }
 
-std::shared_ptr<Material> SceneGenerator::GenerateBRDFLUTGenMaterial(const std::shared_ptr<Mesh>& pMesh)
+std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateBRDFLUTGenMaterial(const std::shared_ptr<Mesh>& pMesh)
 {
 	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths = { L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" };
@@ -192,7 +193,7 @@ std::shared_ptr<Material> SceneGenerator::GenerateBRDFLUTGenMaterial(const std::
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
-	return Material::CreateDefaultMaterial(info);
+	return ForwardMaterial::CreateDefaultMaterial(info);
 }
 
 std::shared_ptr<BaseObject> SceneGenerator::GenerateIBLGenOffScreenCamera(uint32_t screenSize)
