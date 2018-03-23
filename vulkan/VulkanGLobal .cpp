@@ -757,7 +757,6 @@ void VulkanGlobal::Draw()
 	};
 
 	RenderPassDiction::GetInstance()->GetForwardRenderPass()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
-	//pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
 
 	m_pGunMaterial->OnPassStart();
 	m_pGunMaterial->Draw();

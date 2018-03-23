@@ -91,10 +91,11 @@ public:
 	void SetPerMaterialIndex(uint32_t indirectIndex, uint32_t perMaterialIndex);
 	uint32_t GetPerMaterialIndex(uint32_t indirectIndex) const;
 
-	void OnPassStart();
-	void SyncBufferData();
-	void Draw();
-	void OnPassEnd();
+	virtual void SyncBufferData();
+
+	virtual void OnPassStart();
+	virtual void Draw();
+	virtual void OnPassEnd();
 
 protected:
 	bool Init
