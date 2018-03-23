@@ -40,7 +40,11 @@ bool RenderPass::Init(const std::shared_ptr<Device>& pDevice, const std::shared_
 		
 		for (uint32_t i = 0; i < subpassDesc.colorAttachmentCount; i++)
 			subpass.m_colorAttachmentRefs.push_back(subpassDesc.pColorAttachments[i]);
-		subpass.m_depthStencilAttachmentRef = *subpassDesc.pDepthStencilAttachment;
+
+		if (subpassDesc.pDepthStencilAttachment)
+			subpass.m_depthStencilAttachmentRef = *subpassDesc.pDepthStencilAttachment;
+		else
+			subpass.m_depthStencilAttachmentRef = {};
 
 		for (uint32_t i = 0; i < subpassDesc.inputAttachmentCount; i++)
 			subpass.m_inputAttachmentRefs.push_back(subpassDesc.pInputAttachments[i]);
@@ -61,10 +65,11 @@ bool RenderPass::Init(const std::shared_ptr<Device>& pDevice, const std::shared_
 		VkSubpassDescription subpassDesc = m_renderPassInfo.pSubpasses[i];
 
 		subpassDesc.pColorAttachments = m_subpasses[i].m_colorAttachmentRefs.data();
-		subpassDesc.pDepthStencilAttachment = &m_subpasses[i].m_depthStencilAttachmentRef;
 		subpassDesc.pInputAttachments = m_subpasses[i].m_inputAttachmentRefs.data();
 		subpassDesc.pPreserveAttachments = m_subpasses[i].m_preservAttachmentRefs.data();
 		subpassDesc.pResolveAttachments = m_subpasses[i].m_resolveAttachmentRefs.data();
+		if (subpassDesc.pDepthStencilAttachment)
+			subpassDesc.pDepthStencilAttachment = &m_subpasses[i].m_depthStencilAttachmentRef;
 		m_subpassDescList.push_back(subpassDesc);
 	}
 
