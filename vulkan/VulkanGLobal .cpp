@@ -759,13 +759,13 @@ void VulkanGlobal::Draw()
 	RenderPassDiction::GetInstance()->GetForwardRenderPass()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 	//pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
 
-	m_pGunMaterial->OnFrameStart(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	m_pGunMaterial->OnPassStart();
 	m_pGunMaterial->Draw();
-	m_pGunMaterial->OnFrameEnd(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	m_pGunMaterial->OnPassEnd();
 
-	m_pSkyBoxMaterial->OnFrameStart(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	m_pSkyBoxMaterial->OnPassStart();
 	m_pSkyBoxMaterial->Draw();
-	m_pSkyBoxMaterial->OnFrameEnd(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	m_pSkyBoxMaterial->OnPassEnd();
 
 	RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 

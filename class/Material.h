@@ -91,10 +91,10 @@ public:
 	void SetPerMaterialIndex(uint32_t indirectIndex, uint32_t perMaterialIndex);
 	uint32_t GetPerMaterialIndex(uint32_t indirectIndex) const;
 
-	void OnFrameStart(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer);
+	void OnPassStart();
 	void SyncBufferData();
 	void Draw();
-	void OnFrameEnd(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer);
+	void OnPassEnd();
 
 protected:
 	bool Init
