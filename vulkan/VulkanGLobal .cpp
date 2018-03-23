@@ -29,6 +29,8 @@
 #include "../class/GlobalTextures.h"
 #include "../scene/SceneGenerator.h"
 #include "../class/RenderPassDiction.h"
+#include "../class/ForwardRenderPass.h"
+#include "../class/DeferredRenderPass.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -731,6 +733,11 @@ void VulkanGlobal::EndSetup()
 void VulkanGlobal::Draw()
 {
 	GetSwapChain()->AcquireNextImage();
+
+	m_pRootObject->Update();
+	m_pRootObject->LateUpdate();
+	UniformData::GetInstance()->SyncDataBuffer();
+	m_pGunMaterial->SyncBufferData();
 	
 	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::Scene);
 	GetGlobalVulkanStates()->RestoreViewport();
@@ -748,25 +755,21 @@ void VulkanGlobal::Draw()
 		{ 0.2f, 0.2f, 0.2f, 0.2f },
 		{ 1.0f, 0 }
 	};
-	pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
 
-	m_pGunMaterial->OnFrameStart();
-	m_pSkyBoxMaterial->OnFrameStart();
+	RenderPassDiction::GetInstance()->GetForwardRenderPass()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	//pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
 
-	m_pRootObject->Update();
-	m_pRootObject->LateUpdate();
-	UniformData::GetInstance()->SyncDataBuffer();
-	m_pGunMaterial->SyncBufferData();
-
+	m_pGunMaterial->OnFrameStart(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 	m_pGunMaterial->Draw();
+	m_pGunMaterial->OnFrameEnd(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+
+	m_pSkyBoxMaterial->OnFrameStart(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 	m_pSkyBoxMaterial->Draw();
-	
-	m_pSkyBoxMaterial->OnFrameEnd();
-	m_pGunMaterial->OnFrameEnd();
+	m_pSkyBoxMaterial->OnFrameEnd(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 	RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
-	pDrawCmdBuffer->EndRenderPass();
+	RenderPassDiction::GetInstance()->GetForwardRenderPass()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 	pDrawCmdBuffer->EndPrimaryRecording();
 	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, {}, false);

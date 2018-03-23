@@ -1,4 +1,3 @@
-#pragma once
 #include "PerFrameUniforms.h"
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/GlobalDeviceObjects.h"

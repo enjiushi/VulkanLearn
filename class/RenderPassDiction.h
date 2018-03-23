@@ -2,6 +2,9 @@
 #include "../vulkan/RenderPass.h"
 #include <map>
 
+class ForwardRenderPass;
+class DeferredRenderPass;
+
 class RenderPassDiction : public Singleton<RenderPassDiction>
 {
 public:
@@ -21,6 +24,10 @@ public:
 	std::shared_ptr<RenderPass> GetDefaultOffScreenRenderPass();
 	std::shared_ptr<RenderPass> GetRGBA8x4_D24S8DeferredRenderPass();	// 0: screen frame buffer
 
+	std::shared_ptr<ForwardRenderPass> GetForwardRenderPass() const { return m_pForwardRenderPass; }
+	std::shared_ptr<ForwardRenderPass> GetForwardRenderPassOffScreen() const { return m_pForwardRenderPassOffScreen; }
+	std::shared_ptr<DeferredRenderPass> GetDeferredRenderPass() const { return m_pDeferredRenderPass; }
+
 protected:
 	static std::shared_ptr<RenderPass> CreateDefaultRenderPass();
 	static std::shared_ptr<RenderPass> CreateDefaultOffScreenRenderPass();
@@ -30,4 +37,8 @@ protected:
 	std::shared_ptr<RenderPass>			m_pDefaultRenderPass;
 	std::shared_ptr<RenderPass>			m_pDefaultOffScreenRenderPass;
 	std::shared_ptr<RenderPass>			m_pRGBA8x3_D24S8RenderPass;
+
+	std::shared_ptr<ForwardRenderPass>	m_pForwardRenderPass;
+	std::shared_ptr<ForwardRenderPass>	m_pForwardRenderPassOffScreen;
+	std::shared_ptr<DeferredRenderPass>	m_pDeferredRenderPass;
 };

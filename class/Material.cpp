@@ -494,14 +494,13 @@ void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, ui
 	m_indirectIndex += 1;
 }
 
-void Material::OnFrameStart()
+void Material::OnFrameStart(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
-	m_indirectIndex = 0;
 }
 
-void Material::OnFrameEnd()
+void Material::OnFrameEnd(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
-
+	m_indirectIndex = 0;
 }
 
 void Material::SetPerObjectIndex(uint32_t indirectIndex, uint32_t perObjectIndex)

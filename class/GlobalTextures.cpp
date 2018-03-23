@@ -16,6 +16,7 @@
 #include "../scene/SceneGenerator.h"
 #include "../class/RenderPassDiction.h"
 #include "../vulkan/DescriptorSet.h"
+#include "ForwardRenderPass.h"
 #include "GlobalTextures.h"
 #include "Material.h"
 
@@ -127,22 +128,21 @@ void GlobalTextures::InitIrradianceTexture()
 
 		SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
 
-		pDrawCmdBuffer->StartPrimaryRecording();
-
-		pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
-
-		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameStart();
-
 		SceneGenerator::GetInstance()->GetRootObject()->Update();
 		SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 		UniformData::GetInstance()->SyncDataBuffer();
-		SceneGenerator::GetInstance()->GetMaterial0()->Draw();
 
-		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
+		pDrawCmdBuffer->StartPrimaryRecording();
+
+		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+
+		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameStart(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+		SceneGenerator::GetInstance()->GetMaterial0()->Draw();
+		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 		RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
-		pDrawCmdBuffer->EndRenderPass();
+		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 
 		pDrawCmdBuffer->EndPrimaryRecording();
@@ -217,23 +217,21 @@ void GlobalTextures::InitPrefilterEnvTexture()
 			GetGlobalVulkanStates()->SetScissorRect(scissorRect);
 
 			SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
-
-			pDrawCmdBuffer->StartPrimaryRecording();
-
-			pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
-
-			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameStart();
-
 			SceneGenerator::GetInstance()->GetRootObject()->Update();
 			SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 			UniformData::GetInstance()->SyncDataBuffer();
-			SceneGenerator::GetInstance()->GetMaterial0()->Draw();
 
-			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
+			pDrawCmdBuffer->StartPrimaryRecording();
+
+			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+
+			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameStart(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+			SceneGenerator::GetInstance()->GetMaterial0()->Draw();
+			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 			RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
-			pDrawCmdBuffer->EndRenderPass();
+			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 			pDrawCmdBuffer->EndPrimaryRecording();
 
@@ -279,16 +277,19 @@ void GlobalTextures::InitBRDFLUTTexture()
 	GetGlobalVulkanStates()->SetViewport(viewport);
 	GetGlobalVulkanStates()->SetScissorRect(scissorRect);
 
-	pDrawCmdBuffer->BeginRenderPass(RenderWorkManager::GetInstance()->GetCurrentFrameBuffer(), RenderWorkManager::GetInstance()->GetCurrentRenderPass(), clearValues, true);
-
 	SceneGenerator::GetInstance()->GetRootObject()->Update();
 	SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();
+
+	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+
+	SceneGenerator::GetInstance()->GetMaterial0()->OnFrameStart(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 	SceneGenerator::GetInstance()->GetMaterial0()->Draw();
+	SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 	RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
-	pDrawCmdBuffer->EndRenderPass();
+	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 
 	pDrawCmdBuffer->EndPrimaryRecording();

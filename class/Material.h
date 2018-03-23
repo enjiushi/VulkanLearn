@@ -20,6 +20,7 @@ class CommandBuffer;
 class Image;
 class SharedIndirectBuffer;
 class PerMaterialIndirectUniforms;
+class FrameBuffer;
 
 // More to add
 enum MaterialVariableType
@@ -90,10 +91,10 @@ public:
 	void SetPerMaterialIndex(uint32_t indirectIndex, uint32_t perMaterialIndex);
 	uint32_t GetPerMaterialIndex(uint32_t indirectIndex) const;
 
-	void OnFrameStart();
+	void OnFrameStart(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer);
 	void SyncBufferData();
 	void Draw();
-	void OnFrameEnd();
+	void OnFrameEnd(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer);
 
 protected:
 	bool Init
