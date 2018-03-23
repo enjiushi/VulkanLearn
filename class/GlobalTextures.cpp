@@ -141,8 +141,6 @@ void GlobalTextures::InitIrradianceTexture()
 		SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
 		SceneGenerator::GetInstance()->GetMaterial0()->OnPassEnd();
 
-		//RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
-
 		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 
@@ -230,8 +228,6 @@ void GlobalTextures::InitPrefilterEnvTexture()
 			SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
 			SceneGenerator::GetInstance()->GetMaterial0()->OnPassEnd();
 
-			//RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
-
 			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 			pDrawCmdBuffer->EndPrimaryRecording();
@@ -287,8 +283,6 @@ void GlobalTextures::InitBRDFLUTTexture()
 	SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
 	SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
 	SceneGenerator::GetInstance()->GetMaterial0()->OnPassEnd();
-
-	//RenderWorkManager::GetInstance()->GetCurrentRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
 
 	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 

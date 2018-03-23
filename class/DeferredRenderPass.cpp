@@ -1,5 +1,6 @@
 #include "DeferredRenderPass.h"
 #include "../vulkan/GlobalDeviceObjects.h"
+#include "../vulkan/CommandBuffer.h"
 
 bool DeferredRenderPass::Init(const std::shared_ptr<DeferredRenderPass>& pSelf, VkFormat format, VkImageLayout layout)
 {
@@ -50,13 +51,15 @@ bool DeferredRenderPass::Init(const std::shared_ptr<DeferredRenderPass>& pSelf, 
 	attachmentDescs[4].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachmentDescs[4].samples = VK_SAMPLE_COUNT_1_BIT;
 
-	std::vector<VkAttachmentReference> GBufferPassColorAttach(3);
-	GBufferPassColorAttach[0].attachment = 1;
+	std::vector<VkAttachmentReference> GBufferPassColorAttach(4);
+	GBufferPassColorAttach[0].attachment = 0;
 	GBufferPassColorAttach[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	GBufferPassColorAttach[1].attachment = 2;
+	GBufferPassColorAttach[1].attachment = 1;
 	GBufferPassColorAttach[1].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	GBufferPassColorAttach[2].attachment = 3;
+	GBufferPassColorAttach[2].attachment = 2;
 	GBufferPassColorAttach[2].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	GBufferPassColorAttach[3].attachment = 3;
+	GBufferPassColorAttach[3].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentReference shadingPassColorAttach = {};
 	shadingPassColorAttach.attachment = 0;
@@ -165,32 +168,32 @@ std::vector<VkClearValue> DeferredRenderPass::GetClearValue()
 	};
 }
 
-void DeferredRenderPass::BeginGeometryPass()
+void DeferredRenderPass::BeginGeometryPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 
 }
 
-void DeferredRenderPass::EndGeometryPass()
+void DeferredRenderPass::EndGeometryPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 
 }
 
-void DeferredRenderPass::BeginShadingPass()
+void DeferredRenderPass::BeginShadingPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+{
+	pCmdBuf->NextSubpass();
+}
+
+void DeferredRenderPass::EndShadingPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 
 }
 
-void DeferredRenderPass::EndShadingPass()
+void DeferredRenderPass::BeginTransparentPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
-
+	pCmdBuf->NextSubpass();
 }
 
-void DeferredRenderPass::BeginTransparentPass()
-{
-
-}
-
-void DeferredRenderPass::EndTransparentPass()
+void DeferredRenderPass::EndTransparentPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 
 }

@@ -592,7 +592,7 @@ void VulkanGlobal::InitMaterials()
 		}
 	};
 
-	SimpleMaterialCreateInfo info = {};
+	/*SimpleMaterialCreateInfo info = {};
 	info.shaderPaths			= { L"../data/shaders/pbr.vert.spv", L"", L"", L"", L"../data/shaders/pbr.frag.spv", L"" };
 	info.vertexBindingsInfo		= { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo	= m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
@@ -603,6 +603,25 @@ void VulkanGlobal::InitMaterials()
 
 
 	m_pGunMaterial = ForwardMaterial::CreateDefaultMaterial(info);
+	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
+	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pGunMaterialInstance->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	m_pGunMaterialInstance->SetParameter(1, Vector2f(1.0f, 1.0f));
+	m_pGunMaterialInstance->SetMaterialTexture(2, RGBA8_1024, "GunAlbedoRoughness");
+	m_pGunMaterialInstance->SetMaterialTexture(3, RGBA8_1024, "GunNormalAO");
+	m_pGunMaterialInstance->SetMaterialTexture(4, R8_1024, "GunMetallic");*/
+
+	SimpleMaterialCreateInfo info = {};
+	info.shaderPaths = { L"../data/shaders/pbr_gbuffer_gen.vert.spv", L"", L"", L"", L"../data/shaders/pbr_gbuffer_gen.frag.spv", L"" };
+	info.vertexBindingsInfo = { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
+	info.materialUniformVars = vars;
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetDeferredRenderPass()->GetRenderPass();
+	info.vertexFormat = m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
+	info.isDeferredShadingMaterial = false;
+
+
+	m_pGunMaterial = DeferredMaterial::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pGunMaterialInstance->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
@@ -745,7 +764,7 @@ void VulkanGlobal::Draw()
 
 	m_pCharacter->Move(m_moveFlag, 0.001f);
 
-	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(RenderWorkManager::Forward);
+	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(RenderWorkManager::Deferred);
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
 	pDrawCmdBuffer->StartPrimaryRecording();
@@ -756,19 +775,27 @@ void VulkanGlobal::Draw()
 		{ 1.0f, 0 }
 	};
 
-	RenderPassDiction::GetInstance()->GetForwardRenderPass()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+
+	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginGeometryPass(pDrawCmdBuffer);
 
 	m_pGunMaterial->OnPassStart();
 	m_pGunMaterial->Draw(pDrawCmdBuffer);
 	m_pGunMaterial->OnPassEnd();
 
-	m_pSkyBoxMaterial->OnPassStart();
-	m_pSkyBoxMaterial->Draw(pDrawCmdBuffer);
+	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->EndGeometryPass(pDrawCmdBuffer);
+
+	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginShadingPass(pDrawCmdBuffer);
+	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->EndShadingPass(pDrawCmdBuffer);
+
+	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginTransparentPass(pDrawCmdBuffer);
+	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->EndTransparentPass(pDrawCmdBuffer);
+
+	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+
+	//m_pSkyBoxMaterial->OnPassStart();
+	//m_pSkyBoxMaterial->Draw(pDrawCmdBuffer);
 	m_pSkyBoxMaterial->OnPassEnd();
-
-	//RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetRenderPass()->ExecuteCachedSecondaryCommandBuffers(pDrawCmdBuffer);
-
-	RenderPassDiction::GetInstance()->GetForwardRenderPass()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 	pDrawCmdBuffer->EndPrimaryRecording();
 	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, {}, false);

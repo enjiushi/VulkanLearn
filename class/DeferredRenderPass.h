@@ -2,6 +2,8 @@
 
 #include "RenderPassBase.h"
 
+class CommandBuffer;
+
 class DeferredRenderPass : public RenderPassBase
 {
 protected:
@@ -13,12 +15,12 @@ public:
 public:
 	std::vector<VkClearValue> GetClearValue() override;
 
-	void BeginGeometryPass();
-	void EndGeometryPass();
+	void BeginGeometryPass(const std::shared_ptr<CommandBuffer>& pCmdBuf);
+	void EndGeometryPass(const std::shared_ptr<CommandBuffer>& pCmdBuf);
 
-	void BeginShadingPass();
-	void EndShadingPass();
+	void BeginShadingPass(const std::shared_ptr<CommandBuffer>& pCmdBuf);
+	void EndShadingPass(const std::shared_ptr<CommandBuffer>& pCmdBuf);
 
-	void BeginTransparentPass();
-	void EndTransparentPass();
+	void BeginTransparentPass(const std::shared_ptr<CommandBuffer>& pCmdBuf);
+	void EndTransparentPass(const std::shared_ptr<CommandBuffer>& pCmdBuf);
 };
