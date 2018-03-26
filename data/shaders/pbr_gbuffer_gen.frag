@@ -38,7 +38,7 @@ void main()
 	vec4 normal_ao = vec4(vec3(0), 1);
 	if (textures[perMaterialIndex].normalAOIndex < 0)
 	{
-		normal_ao.xyz = normalize(inTangent);
+		normal_ao.xyz = normalize(inNormal);
 		normal_ao.w = textures[perMaterialIndex].AOMetalic.x;
 	}
 	else
@@ -52,12 +52,16 @@ void main()
 		normal_ao.xy = pertNormal.xy;
 	}
 
-	outColor.xyz = normal_ao.xyz;
+	vec4 albedo_roughness = textures[perMaterialIndex].albedoRougness;
+	if (textures[perMaterialIndex].albedoRoughnessIndex >= 0)
+		albedo_roughness = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].albedoRoughnessIndex), 0.0);
+
+	outColor.xyz = albedo_roughness.rgb;
 
 	outGBuffer0.xy = normal_ao.xy;
-	outGBuffer0.z = normal_ao.w;
+	outGBuffer0.z = albedo_roughness.w;
 	outGBuffer0.w = 0;
 
-	outGBuffer1 = vec4(0);
-	outGBuffer2 = vec4(0);
+	outGBuffer1 = vec4(albedo_roughness.rgb, 0);
+	outGBuffer2 = vec4(vec3(0), normal_ao.a);
 }

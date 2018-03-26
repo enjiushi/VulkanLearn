@@ -376,21 +376,21 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	for (uint32_t i = 0; i < InGameTextureTypeCount; i++)
 	{
 		std::shared_ptr<Texture2DArray> pTexArray = GetTextureArray((InGameTextureType)i);
-		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTexArray));
+		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTexArray), pTexArray->CreateLinearRepeatSampler(), pTexArray->CreateDefaultImageView());
 	}
 
 	// Binding global IBL texture cube
 	for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
 	{
 		std::shared_ptr<TextureCube> pTextureCube = GetIBLTextureCube((IBLTextureType)i);
-		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTextureCube));
+		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTextureCube), pTextureCube->CreateLinearRepeatSampler(), pTextureCube->CreateDefaultImageView());
 	}
 
 	// Binding global IBL texture2d
 	for (uint32_t i = 0; i < IBL2DTextureTypeCount; i++)
 	{
 		std::shared_ptr<Texture2D> pTexture2D = GetIBLTexture2D((IBLTextureType)i);
-		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTexture2D));
+		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTexture2D), pTexture2D->CreateLinearClampToEdgeSampler(), pTexture2D->CreateDefaultImageView());
 	}
 
 	return bindingIndex;

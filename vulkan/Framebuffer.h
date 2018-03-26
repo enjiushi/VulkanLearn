@@ -6,6 +6,7 @@ class Image;
 class DepthStencilBuffer;
 class RenderPass;
 class Texture2D;
+class ImageView;
 
 class FrameBuffer : public DeviceObjectBase<FrameBuffer>
 {
@@ -47,11 +48,11 @@ public:
 		const std::shared_ptr<RenderPass>& pRenderPass);
 
 protected:
-	VkFramebuffer						m_framebuffer;
-	VkFramebufferCreateInfo				m_info;
+	VkFramebuffer								m_framebuffer;
+	VkFramebufferCreateInfo						m_info;
 
-	std::vector<VkImageView>			m_imageViews;
-	std::vector<std::shared_ptr<Image>>	m_images;
-	std::shared_ptr<DepthStencilBuffer>	m_pDepthStencilBuffer;
-	std::shared_ptr<RenderPass>			m_pRenderPass;
+	std::vector<std::shared_ptr<ImageView>>		m_imageViews;
+	std::vector<std::shared_ptr<Image>>			m_images;
+	std::shared_ptr<DepthStencilBuffer>			m_pDepthStencilBuffer;
+	std::shared_ptr<RenderPass>					m_pRenderPass;
 };

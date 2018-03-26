@@ -58,9 +58,6 @@ public:
 	};
 
 public:
-	static std::shared_ptr<Material> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo);
-
-public:
 	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
 	std::shared_ptr<GraphicPipeline> GetGraphicPipeline() const { return m_pPipeline; }
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
@@ -94,7 +91,7 @@ public:
 	virtual void SyncBufferData();
 
 	virtual void OnPassStart();
-	virtual void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf);
+	virtual void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf) = 0;
 	virtual void OnPassEnd();
 
 protected:
@@ -107,6 +104,8 @@ protected:
 		const std::vector<UniformVar>& materialUniformVars,
 		uint32_t vertexFormat
 	);
+
+	virtual void CustomizeLayout() {}
 
 	static uint32_t GetByteSize(std::vector<UniformVar>& UBOLayout);
 	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex);

@@ -75,18 +75,20 @@ bool DeferredRenderPass::Init(const std::shared_ptr<DeferredRenderPass>& pSelf, 
 	GBufferSubPass.pDepthStencilAttachment = &GBufferPassDSAttach;
 	GBufferSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
-	std::vector<VkAttachmentReference> shadingPassGBufferInput(3);
+	std::vector<VkAttachmentReference> shadingPassGBufferInput(4);
 	shadingPassGBufferInput[0].attachment = 1;
 	shadingPassGBufferInput[0].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	shadingPassGBufferInput[1].attachment = 2;
 	shadingPassGBufferInput[1].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	shadingPassGBufferInput[2].attachment = 3;
 	shadingPassGBufferInput[2].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	shadingPassGBufferInput[3].attachment = 4;
+	shadingPassGBufferInput[3].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 	VkSubpassDescription shadingSubPass = {};
 	shadingSubPass.colorAttachmentCount = 1;
 	shadingSubPass.pColorAttachments = &shadingPassColorAttach;
-	shadingSubPass.pDepthStencilAttachment = &GBufferPassDSAttach;
+	shadingSubPass.pDepthStencilAttachment = nullptr;
 	shadingSubPass.inputAttachmentCount = shadingPassGBufferInput.size();
 	shadingSubPass.pInputAttachments = shadingPassGBufferInput.data();
 	shadingSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;

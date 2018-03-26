@@ -5,6 +5,7 @@
 
 class FrameBuffer;
 class Texture2D;
+class DepthStencilBuffer;
 
 class RenderWorkManager : public Singleton<RenderWorkManager>
 {
@@ -49,6 +50,9 @@ public:
 	RenderState GetRenderState() const { return m_renderState; }
 
 	std::vector<std::shared_ptr<Texture2D>> GetGBuffers() const { std::vector<std::shared_ptr<Texture2D>> vec(m_gbuffers, m_gbuffers + GBuffer::GBufferCount); return vec; }
+	std::shared_ptr<Texture2D> GetGBuffer(uint32_t index) const { return m_gbuffers[index]; }
+
+	std::shared_ptr<DepthStencilBuffer> GetDeferredDepthStencilBuffer() const { return m_pDepthStencilBuffer; }
 
 protected:
 	std::shared_ptr<RenderPass>		m_pCurrentRenderPass;
@@ -56,7 +60,8 @@ protected:
 
 	FrameBuffers					m_frameBuffers[RenderMode::RenderModeCount];
 
-	std::shared_ptr<Texture2D>		m_gbuffers[GBuffer::GBufferCount];
+	std::shared_ptr<Texture2D>			m_gbuffers[GBuffer::GBufferCount];
+	std::shared_ptr<DepthStencilBuffer>	m_pDepthStencilBuffer;
 
 	RenderState						m_renderState;
 	RenderMode						m_renderMode;

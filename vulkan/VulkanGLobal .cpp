@@ -621,7 +621,7 @@ void VulkanGlobal::InitMaterials()
 	info.isDeferredShadingMaterial = false;
 
 
-	m_pGunMaterial = DeferredMaterial::CreateDefaultMaterial(info);
+	m_pGunMaterial = DeferredGeometryMaterial::CreateDefaultMaterial(info);
 	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pGunMaterialInstance->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
@@ -677,6 +677,14 @@ void VulkanGlobal::InitMaterials()
 	m_pTestMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
 	m_pTestMaterialInstance->SetMaterialTexture(1, m_pPrefilterEnvTex);
 	m_pTestMaterialInstance->SetMaterialTexture(2, m_pBRDFLut);*/
+
+	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/pbr_deferred_shading.frag.spv", L"" };
+	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
+	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetDeferredRenderPass()->GetRenderPass();
+
+	m_pShadingMaterial = DeferredShadingMaterial::CreateDefaultMaterial(info);
 }
 
 void VulkanGlobal::InitScene()
@@ -778,14 +786,15 @@ void VulkanGlobal::Draw()
 	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginGeometryPass(pDrawCmdBuffer);
-
 	m_pGunMaterial->OnPassStart();
 	m_pGunMaterial->Draw(pDrawCmdBuffer);
 	m_pGunMaterial->OnPassEnd();
-
 	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->EndGeometryPass(pDrawCmdBuffer);
 
 	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginShadingPass(pDrawCmdBuffer);
+	m_pShadingMaterial->OnPassStart();
+	m_pShadingMaterial->Draw(pDrawCmdBuffer);
+	m_pShadingMaterial->OnPassEnd();
 	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->EndShadingPass(pDrawCmdBuffer);
 
 	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginTransparentPass(pDrawCmdBuffer);

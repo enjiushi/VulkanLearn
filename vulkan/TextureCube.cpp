@@ -4,6 +4,7 @@
 #include "Queue.h"
 #include "CommandBuffer.h"
 #include "StagingBuffer.h"
+#include "ImageView.h"
 
 bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<TextureCube>& pSelf, const GliImageWrapper& gliTexCube, VkFormat format)
 {
@@ -158,19 +159,19 @@ void TextureCube::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, con
 	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
 }
 
-void TextureCube::CreateImageView()
+std::shared_ptr<ImageView> TextureCube::CreateDefaultImageView() const
 {
-	m_viewInfo = {};
-	m_viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	m_viewInfo.image = m_image;
-	m_viewInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-	m_viewInfo.format = m_info.format;
-	m_viewInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
-	m_viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	m_viewInfo.subresourceRange.baseArrayLayer = 0;
-	m_viewInfo.subresourceRange.layerCount = m_info.arrayLayers;
-	m_viewInfo.subresourceRange.baseMipLevel = 0;
-	m_viewInfo.subresourceRange.levelCount = m_info.mipLevels;
+	VkImageViewCreateInfo imgViewCreateInfo = {};
+	imgViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	imgViewCreateInfo.image = m_image;
+	imgViewCreateInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+	imgViewCreateInfo.format = m_info.format;
+	imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+	imgViewCreateInfo.subresourceRange.layerCount = m_info.arrayLayers;
+	imgViewCreateInfo.subresourceRange.baseMipLevel = 0;
+	imgViewCreateInfo.subresourceRange.levelCount = m_info.mipLevels;
 
-	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &m_viewInfo, nullptr, &m_view));
+	return ImageView::Create(GetDevice(), imgViewCreateInfo);
 }

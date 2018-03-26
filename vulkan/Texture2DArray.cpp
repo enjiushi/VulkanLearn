@@ -4,6 +4,7 @@
 #include "Queue.h"
 #include "CommandBuffer.h"
 #include "StagingBuffer.h"
+#include "ImageView.h"
 
 bool Texture2DArray::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Texture2DArray>& pSelf, const GliImageWrapper& gliTextureArray, VkFormat format)
 {
@@ -184,19 +185,19 @@ void Texture2DArray::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, 
 	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
 }
 
-void Texture2DArray::CreateImageView()
+std::shared_ptr<ImageView> Texture2DArray::CreateDefaultImageView() const
 {
-	m_viewInfo = {};
-	m_viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	m_viewInfo.image = m_image;
-	m_viewInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-	m_viewInfo.format = m_info.format;
-	m_viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-	m_viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	m_viewInfo.subresourceRange.baseArrayLayer = 0;
-	m_viewInfo.subresourceRange.layerCount = m_info.arrayLayers;
-	m_viewInfo.subresourceRange.baseMipLevel = 0;
-	m_viewInfo.subresourceRange.levelCount = m_info.mipLevels;
+	VkImageViewCreateInfo imgViewCreateInfo = {};
+	imgViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	imgViewCreateInfo.image = m_image;
+	imgViewCreateInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+	imgViewCreateInfo.format = m_info.format;
+	imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+	imgViewCreateInfo.subresourceRange.layerCount = m_info.arrayLayers;
+	imgViewCreateInfo.subresourceRange.baseMipLevel = 0;
+	imgViewCreateInfo.subresourceRange.levelCount = m_info.mipLevels;
 
-	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &m_viewInfo, nullptr, &m_view));
+	return ImageView::Create(GetDevice(), imgViewCreateInfo);
 }

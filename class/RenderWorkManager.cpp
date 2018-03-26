@@ -25,14 +25,16 @@ bool RenderWorkManager::Init()
 	m_gbuffers[GBuffer1] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R8G8B8A8_UNORM);
 	m_gbuffers[GBuffer2] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R8G8B8A8_UNORM);
 
+	m_pDepthStencilBuffer = DepthStencilBuffer::CreateInputAttachment(GetDevice());
+
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		m_frameBuffers[RenderMode::Forward][i] = FrameBuffer::Create(GetDevice(), GetSwapChain()->GetSwapChainImage(i), DepthStencilBuffer::Create(GetDevice()), RenderPassDiction::GetInstance()->GetForwardRenderPass()->GetRenderPass());
+		m_frameBuffers[RenderMode::Forward][i] = FrameBuffer::Create(GetDevice(), GetSwapChain()->GetSwapChainImage(i), m_pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetForwardRenderPass()->GetRenderPass());
 		
 		std::vector<std::shared_ptr<Image>> temp_vec;
 		temp_vec.insert(temp_vec.end(), GetSwapChain()->GetSwapChainImage(i));
 		temp_vec.insert(temp_vec.end(), m_gbuffers, m_gbuffers + GBuffer::GBufferCount);
-		m_frameBuffers[RenderMode::Deferred][i] = FrameBuffer::Create(GetDevice(), temp_vec, DepthStencilBuffer::CreateInputAttachment(GetDevice()), RenderPassDiction::GetInstance()->GetDeferredRenderPass()->GetRenderPass());
+		m_frameBuffers[RenderMode::Deferred][i] = FrameBuffer::Create(GetDevice(), temp_vec, m_pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetDeferredRenderPass()->GetRenderPass());
 	}
 
 	return true;

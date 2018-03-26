@@ -18,7 +18,6 @@ protected:
 
 public:
 	VkRenderPass GetDeviceHandle() const { return m_renderPass; }
-	uint32_t GetCurrentSubpass() const { return m_subpassIndex; }
 	void CacheSecondaryCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	void ExecuteCachedSecondaryCommandBuffers(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
@@ -40,8 +39,6 @@ protected:
 	std::vector<SubpassDef>					m_subpasses;
 	std::vector<VkSubpassDescription>		m_subpassDescList;
 	std::vector<VkSubpassDependency>		m_subpassDependencyList;
-
-	uint32_t								m_subpassIndex = 0;
 
 	std::vector<std::shared_ptr<CommandBuffer>> m_secondaryCommandBuffers;
 	std::mutex									m_secBufferMutex;

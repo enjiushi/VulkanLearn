@@ -21,4 +21,11 @@ void RenderPassBase::BeginRenderPass(const std::shared_ptr<CommandBuffer>& pCmdB
 void RenderPassBase::EndRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
 	pCmdBuf->EndRenderPass();
+	m_currentSubpassIndex = 0;
+}
+
+void RenderPassBase::NextSubpass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+{
+	pCmdBuf->NextSubpass();
+	m_currentSubpassIndex++;
 }

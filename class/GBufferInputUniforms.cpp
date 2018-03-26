@@ -5,6 +5,7 @@
 #include "../vulkan/DescriptorSet.h"
 #include "../vulkan/Image.h"
 #include "../vulkan/Texture2D.h"
+#include "../vulkan/DepthStencilBuffer.h"
 #include "RenderWorkManager.h"
 
 bool GBufferInputUniforms::Init(const std::shared_ptr<GBufferInputUniforms>& pSelf)
@@ -45,11 +46,19 @@ std::vector<UniformVarList> GBufferInputUniforms::PrepareUniformVarList() const
 uint32_t GBufferInputUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
 {
 	std::vector<std::shared_ptr<Texture2D>> gbuffers = RenderWorkManager::GetInstance()->GetGBuffers();
+	std::shared_ptr<DepthStencilBuffer> pDSBuffer = RenderWorkManager::GetInstance()->GetDeferredDepthStencilBuffer();
 
 	for (uint32_t i = 0; i < gbuffers.size(); i++)
 	{
-		pDescriptorSet->UpdateInputImage(bindingIndex++, std::static_pointer_cast<Image>(gbuffers[i]));
+		pDescriptorSet->UpdateInputImage(bindingIndex++, 
+			std::static_pointer_cast<Image>(gbuffers[i]), 
+			gbuffers[i]->CreateLinearClampToEdgeSampler(), 
+			gbuffers[i]->CreateDefaultImageView());
 	}
+
+	pDescriptorSet->UpdateInputImage(bindingIndex++, std::static_pointer_cast<Image>(pDSBuffer), 
+		pDSBuffer->CreateLinearClampToEdgeSampler(), 
+		pDSBuffer->CreateDepthSampleImageView());
 
 	return bindingIndex;
 }

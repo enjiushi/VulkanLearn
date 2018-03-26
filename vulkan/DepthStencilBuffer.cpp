@@ -3,6 +3,7 @@
 #include "CommandPool.h"
 #include "Queue.h"
 #include "CommandBuffer.h"
+#include "ImageView.h"
 
 bool DepthStencilBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<DepthStencilBuffer>& pSelf, const VkImageCreateInfo& info)
 {
@@ -94,19 +95,35 @@ std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::CreateInputAttachment(co
 	return nullptr;
 }
 
-void DepthStencilBuffer::CreateImageView()
+std::shared_ptr<ImageView> DepthStencilBuffer::CreateDefaultImageView() const
 {
 	//Create depth stencil image view
-	m_viewInfo = {};
-	m_viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	m_viewInfo.image = m_image;
-	m_viewInfo.format = m_info.format;
-	m_viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	m_viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-	m_viewInfo.subresourceRange.baseArrayLayer = 0;
-	m_viewInfo.subresourceRange.layerCount = 1;
-	m_viewInfo.subresourceRange.baseMipLevel = 0;
-	m_viewInfo.subresourceRange.levelCount = 1;
+	VkImageViewCreateInfo imgViewCreateInfo = {};
+	imgViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	imgViewCreateInfo.image = m_image;
+	imgViewCreateInfo.format = m_info.format;
+	imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+	imgViewCreateInfo.subresourceRange.layerCount = 1;
+	imgViewCreateInfo.subresourceRange.baseMipLevel = 0;
+	imgViewCreateInfo.subresourceRange.levelCount = 1;
 
-	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &m_viewInfo, nullptr, &m_view));
+	return ImageView::Create(GetDevice(), imgViewCreateInfo);
+}
+
+std::shared_ptr<ImageView> DepthStencilBuffer::CreateDepthSampleImageView() const
+{
+	VkImageViewCreateInfo imgViewCreateInfo = {};
+	imgViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	imgViewCreateInfo.image = m_image;
+	imgViewCreateInfo.format = m_info.format;
+	imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+	imgViewCreateInfo.subresourceRange.layerCount = 1;
+	imgViewCreateInfo.subresourceRange.baseMipLevel = 0;
+	imgViewCreateInfo.subresourceRange.levelCount = 1;
+
+	return ImageView::Create(GetDevice(), imgViewCreateInfo);
 }

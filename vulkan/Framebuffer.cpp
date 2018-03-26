@@ -8,6 +8,7 @@
 #include "CommandBuffer.h"
 #include "Queue.h"
 #include "VulkanUtil.h"
+#include "ImageView.h"
 
 FrameBuffer::~FrameBuffer()
 {
@@ -31,14 +32,18 @@ bool FrameBuffer::Init(
 	ASSERTION(images.size() != 0);
 
 	for (auto& pImg : m_images)
-		m_imageViews.push_back(pImg->GetViewDeviceHandle());
+		m_imageViews.push_back(pImg->CreateDefaultImageView());
 	if (m_pDepthStencilBuffer != nullptr)
-		m_imageViews.push_back(m_pDepthStencilBuffer->GetViewDeviceHandle());
+		m_imageViews.push_back(m_pDepthStencilBuffer->CreateDefaultImageView());
+
+	std::vector<VkImageView> rawViews;
+	for (auto& pImgView : m_imageViews)
+		rawViews.push_back(pImgView->GetDeviceHandle());
 
 	m_info = {};
 	m_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	m_info.attachmentCount = m_imageViews.size();
-	m_info.pAttachments = m_imageViews.data();
+	m_info.attachmentCount = rawViews.size();
+	m_info.pAttachments = rawViews.data();
 	m_info.layers = 1;
 	m_info.width = m_images[0]->GetImageInfo().extent.width;
 	m_info.height = m_images[0]->GetImageInfo().extent.height;

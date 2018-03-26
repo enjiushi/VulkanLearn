@@ -8,6 +8,8 @@ class DescriptorSetLayout;
 class UniformBuffer;
 class ShaderStorageBuffer;
 class Image;
+class Sampler;
+class ImageView;
 
 class DescriptorSet : public DeviceObjectBase<DescriptorSet>
 {
@@ -28,9 +30,8 @@ public:
 	void UpdateUniformBuffer(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer);
 	void UpdateShaderStorageBufferDynamic(uint32_t binding, const std::shared_ptr<ShaderStorageBuffer>& pBuffer);
 	void UpdateShaderStorageBuffer(uint32_t binding, const std::shared_ptr<ShaderStorageBuffer>& pBuffer);
-	void UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage);
-	void UpdateImages(uint32_t binding, const std::vector<std::shared_ptr<Image>>& images);
-	void UpdateInputImage(uint32_t binding, const std::shared_ptr<Image>& pImage);
+	void UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage, const std::shared_ptr<Sampler> pSampler, const std::shared_ptr<ImageView> pImageView);
+	void UpdateInputImage(uint32_t binding, const std::shared_ptr<Image>& pImage, const std::shared_ptr<Sampler> pSampler, const std::shared_ptr<ImageView> pImageView);
 
 	// FIXME: Refactor this when I create texture buffer object class
 	void UpdateTexBuffer(uint32_t binding, const VkBufferView& texBufferView);
@@ -44,5 +45,5 @@ protected:
 	VkDescriptorSet									m_descriptorSet;
 	std::shared_ptr<DescriptorPool>					m_pDescriptorPool;
 	std::shared_ptr<DescriptorSetLayout>			m_pDescriptorSetLayout;
-	std::map<uint32_t, std::vector<std::shared_ptr<Base>>> m_resourceTable;
+	std::map<uint32_t, std::shared_ptr<Base>>		m_resourceTable;
 };

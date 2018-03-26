@@ -195,7 +195,6 @@ void UniformData::BuildDescriptorSets()
 	uint32_t bindingSlot = 0;
 	bindingSlot = m_uniformStorageBuffers[GlobalVariableBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 	bindingSlot = m_uniformTextures[GlobalUniformTextures]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
-	m_uniformTextures[GlobalGBufferInputUniforms]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 
 	// 2. Per frame descriptor set
 	m_uniformStorageBuffers[PerFrameVariableBuffer]->SetupDescriptorSet(m_descriptorSets[PerFrameUniformsLocation], 0);

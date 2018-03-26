@@ -7,11 +7,11 @@
 #include "CommandBuffer.h"
 #include "Queue.h"
 #include "VulkanUtil.h"
+#include "ImageView.h"
+#include "Sampler.h"
 
 Image::~Image()
 {
-	vkDestroyImageView(GetDevice()->GetDeviceHandle(), m_view, nullptr);
-	vkDestroySampler(GetDevice()->GetDeviceHandle(), m_sampler, nullptr);
 	if (m_shouldDestoryRawImage)
 		vkDestroyImage(GetDevice()->GetDeviceHandle(), m_image, nullptr);
 }
@@ -39,11 +39,7 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 	m_info.initialLayout = layout;
 	m_memProperty = memoryPropertyFlag;
 
-	CreateImageView();
-	CreateSampler();
 	EnsureImageLayout();
-
-	m_descriptorImgInfo = { m_sampler, m_view, m_info.initialLayout };
 
 	m_bytesPerPixel = VulkanUtil::GetBytesFromFormat(m_info.format);
 
@@ -65,8 +61,6 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 		return false;
 
 	m_image = img;
-
-	CreateImageView();
 
 	//m_bytesPerPixel = VulkanUtil::GetBytesFromFormat(m_info.format);
 
@@ -156,7 +150,7 @@ void Image::UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer)
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }
 
-void Image::CreateSampler()
+std::shared_ptr<Sampler> Image::CreateLinearRepeatSampler() const
 {
 	VkSamplerCreateInfo samplerCreateInfo = {};
 	samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -181,22 +175,52 @@ void Image::CreateSampler()
 		samplerCreateInfo.anisotropyEnable = VK_FALSE;
 	}
 	samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-	CHECK_VK_ERROR(vkCreateSampler(GetDevice()->GetDeviceHandle(), &samplerCreateInfo, nullptr, &m_sampler));
+
+	return Sampler::Create(GetDevice(), samplerCreateInfo);
 }
 
-void Image::CreateImageView()
+std::shared_ptr<Sampler> Image::CreateLinearClampToEdgeSampler() const
 {
-	m_viewInfo = {};
-	m_viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	m_viewInfo.image = m_image;
-	m_viewInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-	m_viewInfo.format = m_info.format;
-	m_viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	m_viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	m_viewInfo.subresourceRange.baseArrayLayer = 0;
-	m_viewInfo.subresourceRange.layerCount = m_info.arrayLayers;
-	m_viewInfo.subresourceRange.baseMipLevel = 0;
-	m_viewInfo.subresourceRange.levelCount = m_info.mipLevels;
+	VkSamplerCreateInfo samplerCreateInfo = {};
+	samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+	samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+	samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerCreateInfo.mipLodBias = 0.0f;
+	samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
+	samplerCreateInfo.minLod = 0.0f;
+	samplerCreateInfo.maxLod = m_info.mipLevels;
+	//if (GetPhysicalDevice()->GetPhysicalDeviceFeatures().samplerAnisotropy)
+	//{
+	//	sampler.maxAnisotropy = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.maxSamplerAnisotropy;
+	//	sampler.anisotropyEnable = VK_TRUE;
+	//}
+	//else
+	{
+		samplerCreateInfo.maxAnisotropy = 1.0;
+		samplerCreateInfo.anisotropyEnable = VK_FALSE;
+	}
+	samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 
-	CHECK_VK_ERROR(vkCreateImageView(m_pDevice->GetDeviceHandle(), &m_viewInfo, nullptr, &m_view));
+	return Sampler::Create(GetDevice(), samplerCreateInfo);
+}
+
+std::shared_ptr<ImageView> Image::CreateDefaultImageView() const
+{
+	VkImageViewCreateInfo imgViewCreateInfo = {};
+	imgViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	imgViewCreateInfo.image = m_image;
+	imgViewCreateInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+	imgViewCreateInfo.format = m_info.format;
+	imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+	imgViewCreateInfo.subresourceRange.layerCount = m_info.arrayLayers;
+	imgViewCreateInfo.subresourceRange.baseMipLevel = 0;
+	imgViewCreateInfo.subresourceRange.levelCount = m_info.mipLevels;
+
+	return ImageView::Create(GetDevice(), imgViewCreateInfo);
 }

@@ -7,6 +7,8 @@
 #include "../vulkan/GlobalVulkanStates.h"
 #include "../vulkan/SharedIndirectBuffer.h"
 #include "RenderWorkManager.h"
+#include "RenderPassDiction.h"
+#include "ForwardRenderPass.h"
 
 std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -120,12 +122,8 @@ void ForwardMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 		{ 1.0f, 0 }
 	};
 
-	VkCommandBufferInheritanceInfo inheritanceInfo = {};
-	inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-	inheritanceInfo.renderPass = RenderWorkManager::GetInstance()->GetCurrentRenderPass()->GetDeviceHandle();
-	inheritanceInfo.subpass = RenderWorkManager::GetInstance()->GetCurrentRenderPass()->GetCurrentSubpass();
-	inheritanceInfo.framebuffer = RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetDeviceHandle();
-	pDrawCmdBuffer->StartSecondaryRecording(inheritanceInfo);
+	// FIXME: Subpass index hard-coded
+	pDrawCmdBuffer->StartSecondaryRecording(RenderWorkManager::GetInstance()->GetCurrentRenderPass(), 0, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
 
 	VkViewport viewport =
 	{

@@ -636,8 +636,14 @@ void CommandBuffer::EndPrimaryRecording()
 	CHECK_VK_ERROR(vkEndCommandBuffer(m_commandBuffer));
 }
 
-void CommandBuffer::StartSecondaryRecording(const VkCommandBufferInheritanceInfo& inheritanceInfo)
+void CommandBuffer::StartSecondaryRecording(const std::shared_ptr<RenderPass>& pRenderPass, uint32_t subpassIndex, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
+	VkCommandBufferInheritanceInfo inheritanceInfo = {};
+	inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+	inheritanceInfo.renderPass = pRenderPass->GetDeviceHandle();
+	inheritanceInfo.subpass = subpassIndex;
+	inheritanceInfo.framebuffer = pFrameBuffer->GetDeviceHandle();
+
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;

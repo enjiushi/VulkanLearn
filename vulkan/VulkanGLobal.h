@@ -138,9 +138,11 @@ public:
 	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer1;
 	std::shared_ptr<MeshRenderer>		m_pSphereRenderer;
 	//std::shared_ptr<ForwardMaterial>	m_pGunMaterial;
-	std::shared_ptr<DeferredMaterial>	m_pGunMaterial;
+	std::shared_ptr<DeferredGeometryMaterial>	m_pGunMaterial;
 	std::shared_ptr<MaterialInstance>	m_pGunMaterialInstance;
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance;
+
+	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
 
 	std::shared_ptr<BaseObject>			m_pSkyBoxObject;
 	std::shared_ptr<MeshRenderer>		m_pSkyBoxMeshRenderer;

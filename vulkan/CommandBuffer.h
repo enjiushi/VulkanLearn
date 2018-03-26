@@ -67,7 +67,7 @@ public:
 
 	void StartPrimaryRecording();
 	void EndPrimaryRecording();
-	void StartSecondaryRecording(const VkCommandBufferInheritanceInfo& inheritanceInfo);
+	void StartSecondaryRecording(const std::shared_ptr<RenderPass>& pRenderPass, uint32_t subpassIndex, const std::shared_ptr<FrameBuffer>& pFrameBuffer);
 	void EndSecondaryRecording();
 	void ExecuteSecondaryCommandBuffer(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers);
 	void PrepareNormalDrawCommands(const DrawCmdData& data);
