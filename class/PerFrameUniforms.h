@@ -10,7 +10,9 @@ typedef struct _PerFrameVariables
 	Matrix4f	viewMatrix;
 	Matrix4f	VPN;	// vulkanNDC * view * projection
 	Vector3f	cameraPosition;
-	float		padding;
+	float		padding0;
+	Vector3f	cameraDirection;
+	float		padding1;
 }PerFrameVariables;
 
 class PerFrameUniforms : public UniformDataStorage
@@ -27,8 +29,12 @@ public:
 	Matrix4f GetVPNMatrix() const { return m_perFrameVariables.VPN; }
 	void SetCameraPosition(const Vector3f& camPos);
 	Vector3f GetCameraPosition() const { return m_perFrameVariables.cameraPosition; }
-	void SetPadding(float val) { m_perFrameVariables.padding = val; }
-	float GetPadding() const { return m_perFrameVariables.padding; }
+	void SetCameraDirection(const Vector3f& camDir);
+	Vector3f GetCameraDirection() const { return m_perFrameVariables.cameraDirection; }
+	void SetPadding0(float val) { m_perFrameVariables.padding0 = val; }
+	float GetPadding0() const { return m_perFrameVariables.padding0; }
+	void SetPadding1(float val) { m_perFrameVariables.padding1 = val; }
+	float GetPadding1() const { return m_perFrameVariables.padding1; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;

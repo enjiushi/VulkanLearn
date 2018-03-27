@@ -34,6 +34,12 @@ void PerFrameUniforms::SetCameraPosition(const Vector3f& camPos)
 	SetDirty();
 }
 
+void PerFrameUniforms::SetCameraDirection(const Vector3f& camDir)
+{
+	m_perFrameVariables.cameraDirection = camDir;
+	SetDirty();
+}
+
 void PerFrameUniforms::SyncBufferDataInternal()
 {
 	GetBuffer()->UpdateByteStream(&m_perFrameVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perFrameVariables));

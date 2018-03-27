@@ -187,7 +187,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 	uint32_t mipLevels = std::log2(OFFSCREEN_SIZE);
 	for (uint32_t mipLevel = 0; mipLevel < mipLevels + 1; mipLevel++)
 	{
-		UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding(mipLevel / (float)mipLevels);
+		UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(mipLevel / (float)mipLevels);
 		uint32_t size = std::pow(2, mipLevels - mipLevel);
 		for (uint32_t i = 0; i < 6; i++)
 		{
