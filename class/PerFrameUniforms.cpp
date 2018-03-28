@@ -40,6 +40,12 @@ void PerFrameUniforms::SetCameraDirection(const Vector3f& camDir)
 	SetDirty();
 }
 
+void PerFrameUniforms::SetEyeSpaceSize(const Vector2f& eyeSpaceSize)
+{
+	m_perFrameVariables.eyeSpaceSize = { eyeSpaceSize.x, eyeSpaceSize.y, 1.0f / eyeSpaceSize.x, 1.0f / eyeSpaceSize.y };
+	SetDirty();
+}
+
 void PerFrameUniforms::SyncBufferDataInternal()
 {
 	GetBuffer()->UpdateByteStream(&m_perFrameVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perFrameVariables));

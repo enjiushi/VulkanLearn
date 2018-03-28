@@ -36,6 +36,7 @@ void Camera::UpdateViewMatrix()
 		return;
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetWorldTransform().Inverse());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(m_pObject.lock()->GetWorldTransform()[2].xyz().Negative());
 }
 
 void Camera::UpdateProjMatrix()
@@ -53,6 +54,10 @@ void Camera::UpdateProjMatrix()
 	proj.w2 = -2.0f * m_cameraInfo.near * m_cameraInfo.far / (m_cameraInfo.far - m_cameraInfo.near);
 	proj.w3 = 0.0f;
 
+	float height = 2.0f * tanFOV2 * m_cameraInfo.near;
+	float width = m_cameraInfo.aspect * height;
+
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetEyeSpaceSize({ width, height });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetProjectionMatrix(proj);
 
 	m_projDirty = false;
