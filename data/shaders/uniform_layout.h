@@ -16,10 +16,12 @@ struct GlobalData
 struct PerFrameData
 {
 	mat4 view;
+	mat4 viewCoordSystem;
 	mat4 VPN;
 	vec4 camPos;
 	vec4 camDir;
 	vec4 eyeSpaceSize;
+	vec2 nearFar;
 };
 
 struct PerObjectData

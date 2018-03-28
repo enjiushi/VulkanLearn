@@ -58,6 +58,7 @@ void Camera::UpdateProjMatrix()
 	float width = m_cameraInfo.aspect * height;
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetEyeSpaceSize({ width, height });
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetNearFar({ m_cameraInfo.near, m_cameraInfo.far });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetProjectionMatrix(proj);
 
 	m_projDirty = false;

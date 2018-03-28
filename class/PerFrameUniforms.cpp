@@ -25,6 +25,8 @@ std::shared_ptr<PerFrameUniforms> PerFrameUniforms::Create()
 void PerFrameUniforms::SetViewMatrix(const Matrix4f& viewMatrix)
 {
 	m_perFrameVariables.viewMatrix = viewMatrix;
+	m_perFrameVariables.viewCoordSystem = viewMatrix;
+	m_perFrameVariables.viewCoordSystem.Inverse();
 	SetDirty();
 }
 
@@ -43,6 +45,12 @@ void PerFrameUniforms::SetCameraDirection(const Vector3f& camDir)
 void PerFrameUniforms::SetEyeSpaceSize(const Vector2f& eyeSpaceSize)
 {
 	m_perFrameVariables.eyeSpaceSize = { eyeSpaceSize.x, eyeSpaceSize.y, 1.0f / eyeSpaceSize.x, 1.0f / eyeSpaceSize.y };
+	SetDirty();
+}
+
+void PerFrameUniforms::SetNearFar(const Vector2f& nearFar)
+{
+	m_perFrameVariables.nearFar = nearFar;
 	SetDirty();
 }
 
