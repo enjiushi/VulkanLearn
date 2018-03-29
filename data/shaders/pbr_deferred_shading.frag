@@ -20,16 +20,15 @@ struct GBufferVariables
 	vec4 albedo_roughness;
 	vec4 normal_ao;
 	vec4 world_position;
+	float metalic;
 };
 
-// Hard-coded
-float near = 1.0f;
-float far = 2000.0f;
+const vec3 lightPos = vec3(1000, 0, -1000);
 
 vec3 ReconstructPosition()
 {
 	float window_z = subpassLoad(DepthStencilBuffer).r;
-	float eye_z = (far * near) / (window_z * (far - near) - far);
+	float eye_z = (perFrameData.nearFar.x * perFrameData.nearFar.y) / (window_z * (perFrameData.nearFar.y - perFrameData.nearFar.x) - perFrameData.nearFar.y);
 
 	vec3 viewRay = normalize(inViewRay);
 
@@ -53,13 +52,14 @@ GBufferVariables UnpackGBuffers()
 	vec4 gbuffer2 = subpassLoad(GBuffer2);
 
 	vars.albedo_roughness.rgb = gbuffer1.rgb;
-	vars.albedo_roughness.a = gbuffer0.a;
-	vars.normal_ao.xy = gbuffer0.xy;
+	vars.albedo_roughness.a = gbuffer2.r;
+
+	vars.normal_ao.xyz = normalize(gbuffer0.xyz * 2.0f - 1.0f);
 	vars.normal_ao.w = gbuffer2.a;
 
-	vars.normal_ao.z = sqrt(1 - dot(gbuffer0.xy, gbuffer0.xy));
-
 	vars.world_position = vec4(ReconstructPosition(), 1.0);
+
+	vars.metalic = gbuffer2.g;
 
 	return vars;
 }
@@ -70,20 +70,47 @@ void main()
 
 	GBufferVariables vars = UnpackGBuffers();
 
-	//vec3 n = normal_ao.xyz;
-	//vec3 v = normalize(inViewDir);
-	//vec3 l = normalize(inLightDir);
-	//vec3 h = normalize(l + v);
+	vec3 n = vars.normal_ao.xyz;
+	vec3 v = normalize(perFrameData.camPos.xyz - vars.world_position.xyz);
+	vec3 l = normalize(lightPos - vars.world_position.xyz);
+	vec3 h = normalize(l + v);
 
-	//float NdotH = max(0.0f, dot(n, h));
-	//float NdotL = max(0.0f, dot(n, l));
-	//float NdotV = max(0.0f, dot(n, v));
-	//float LdotH = max(0.0f, dot(l, h));
+	float NdotH = max(0.0f, dot(n, h));
+	float NdotL = max(0.0f, dot(n, l));
+	float NdotV = max(0.0f, dot(n, v));
+	float LdotH = max(0.0f, dot(l, h));
 
-	if (length(vars.world_position.xyz) > 1000)	// Add this for debug purpose
-		outFragColor.rgb = vec3(0);
-	else
-	{
-		outFragColor.rgb = vars.world_position.xyz;
-	}
+	F0 = mix(F0, vars.albedo_roughness.rgb, vars.metalic);
+
+	vec3 fresnel = Fresnel_Schlick(F0, LdotH);
+	vec3 kD = (1.0 - vars.metalic) * (vec3(1.0) - fresnel);
+
+	//-------------- Ambient -----------------------
+	vec3 fresnel_roughness = Fresnel_Schlick_Roughness(F0, NdotV, vars.albedo_roughness.a);
+	vec3 kD_roughness = (1.0 - vars.metalic) * (vec3(1.0) - fresnel_roughness);
+
+	vec3 irradiance = texture(RGBA16_512_CUBE_IRRADIANCE, vec3(n.x, -n.y, n.z)).rgb * vars.albedo_roughness.rgb / PI;
+
+	vec3 reflectSampleDir = reflect(-v, n);
+	reflectSampleDir.y *= -1.0;
+
+	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
+	float lod = vars.albedo_roughness.a * MAX_REFLECTION_LOD;
+	vec3 reflect = textureLod(RGBA16_512_CUBE_PREFILTERENV, reflectSampleDir, lod).rgb;
+	vec2 brdf_lut = texture(RGBA16_512_2D_BRDFLUT, vec2(NdotV, vars.albedo_roughness.a)).rg;
+
+	// Here we use NdotV rather than LdotH, since L's direction is based on punctual light, and here ambient reflection calculation
+	// requires reflection vector dot with N, which is RdotN, equals NdotV
+	vec3 ambient = (reflect * (brdf_lut.x * fresnel_roughness + brdf_lut.y) + irradiance * kD_roughness) * vars.normal_ao.a;
+	//----------------------------------------------
+
+	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * GGX_D(NdotH, vars.albedo_roughness.a);
+	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
+	vec3 final = vars.normal_ao.a * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb) + ambient;
+
+	final = Uncharted2Tonemap(final * globalData.GEW.y);
+	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
+	final = pow(final, vec3(globalData.GEW.x));
+
+	outFragColor = vec4(final, 1.0);
 }
