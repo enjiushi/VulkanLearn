@@ -28,6 +28,8 @@ public:
 	void ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t index = 0);
 	void ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers, uint32_t index = 0);
 	void ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers, uint32_t width, uint32_t height, uint32_t index = 0);
+	std::shared_ptr<Image> GetColorTarget(uint32_t index) const { return m_images[index]; }
+	std::shared_ptr<DepthStencilBuffer> GetDepthStencilTarget() const { return m_pDepthStencilBuffer; }
 
 public:
 	static std::shared_ptr<FrameBuffer> Create(
