@@ -18,6 +18,7 @@ protected:
 
 public:
 	VkRenderPass GetDeviceHandle() const { return m_renderPass; }
+	std::vector<VkAttachmentDescription> GetAttachmentDesc() const { m_attachmentDescList; }
 	void CacheSecondaryCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	void ExecuteCachedSecondaryCommandBuffers(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
