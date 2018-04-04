@@ -803,11 +803,11 @@ void VulkanGlobal::Draw()
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->NextSubpass(pDrawCmdBuffer);
 
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->EndRenderPass(pDrawCmdBuffer);
-
-	//m_pSkyBoxMaterial->OnPassStart();
-	//m_pSkyBoxMaterial->Draw(pDrawCmdBuffer);
+	m_pSkyBoxMaterial->OnPassStart();
+	m_pSkyBoxMaterial->Draw(pDrawCmdBuffer);
 	m_pSkyBoxMaterial->OnPassEnd();
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->EndRenderPass(pDrawCmdBuffer);
 
 	pDrawCmdBuffer->EndPrimaryRecording();
 	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, {}, false);
