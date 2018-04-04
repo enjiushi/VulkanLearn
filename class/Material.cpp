@@ -35,12 +35,13 @@
 #include "../vulkan/TextureCube.h"
 #include "../vulkan/Texture2D.h"
 #include "../class/PerMaterialUniforms.h"
+#include "RenderPassBase.h"
 
 bool Material::Init
 (
 	const std::shared_ptr<Material>& pSelf,
 	const std::vector<std::wstring>	shaderPaths,
-	const std::shared_ptr<RenderPass>& pRenderPass,
+	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<UniformVar>& materialUniformVars,
 	uint32_t vertexFormat
@@ -164,7 +165,9 @@ bool Material::Init
 	}
 
 	// Create pipeline
-	m_pPipeline = GraphicPipeline::Create(GetDevice(), pipelineCreateInfo, shaders, pRenderPass, m_pPipelineLayout);
+	m_pPipeline = GraphicPipeline::Create(GetDevice(), pipelineCreateInfo, shaders, pRenderPass->GetRenderPass(), m_pPipelineLayout);
+
+	m_pRenderPass = pRenderPass;
 
 	// Prepare descriptor pool size according to resources used by this material
 	std::vector<uint32_t> counts(VK_DESCRIPTOR_TYPE_RANGE_SIZE);

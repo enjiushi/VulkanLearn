@@ -25,6 +25,7 @@ protected:
 public:
 	std::shared_ptr<RenderPass> GetRenderPass() const { return m_pRenderPass; }
 	std::shared_ptr<FrameBuffer> GetFrameBuffer();
+	std::shared_ptr<FrameBuffer> GetFrameBuffer(uint32_t index) { return m_frameBuffers[index]; }
 	uint32_t GetCurrentSubpassIndex() const { return m_currentSubpassIndex; }
 
 	virtual void BeginRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf);

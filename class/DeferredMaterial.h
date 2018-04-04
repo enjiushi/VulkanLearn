@@ -1,6 +1,8 @@
 #pragma once
 #include "Material.h"
 
+class RenderPassBase;
+
 class GBufferMaterial : public Material
 {
 public:
@@ -15,7 +17,7 @@ class DeferredShadingMaterial : public Material
 protected:
 	bool Init(const std::shared_ptr<DeferredShadingMaterial>& pSelf,
 		const std::vector<std::wstring>	shaderPaths,
-		const std::shared_ptr<RenderPass>& pRenderPass,
+		const std::shared_ptr<RenderPassBase>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 		const std::vector<UniformVar>& materialUniformVars,
 		uint32_t vertexFormat);

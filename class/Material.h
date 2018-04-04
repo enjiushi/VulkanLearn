@@ -21,6 +21,7 @@ class Image;
 class SharedIndirectBuffer;
 class PerMaterialIndirectUniforms;
 class FrameBuffer;
+class RenderPassBase;
 
 // More to add
 enum MaterialVariableType
@@ -39,7 +40,11 @@ typedef struct _SimpleMaterialCreateInfo
 	std::vector<VkVertexInputAttributeDescription>			vertexAttributesInfo;
 	std::vector<UniformVar>									materialUniformVars;
 	uint32_t												vertexFormat;
-	bool													isDeferredShadingMaterial = false;
+	uint32_t												subpassIndex = 0;
+	std::shared_ptr<RenderPassBase>							pRenderPass = nullptr;
+	bool													isTransparent = false;
+	bool													depthTestEnable = true;
+	bool													depthWriteEnable = true;
 }SimpleMaterialCreateInfo;
 
 class Material : public SelfRefBase<Material>
@@ -55,6 +60,7 @@ public:
 	};
 
 public:
+	std::shared_ptr<RenderPassBase> GetRenderPass() const { return m_pRenderPass; }
 	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
 	std::shared_ptr<GraphicPipeline> GetGraphicPipeline() const { return m_pPipeline; }
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
@@ -96,7 +102,7 @@ protected:
 	(
 		const std::shared_ptr<Material>& pSelf, 
 		const std::vector<std::wstring>	shaderPaths,
-		const std::shared_ptr<RenderPass>& pRenderPass,
+		const std::shared_ptr<RenderPassBase>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 		const std::vector<UniformVar>& materialUniformVars,
 		uint32_t vertexFormat
@@ -108,6 +114,8 @@ protected:
 	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex);
 
 protected:
+	std::shared_ptr<RenderPassBase>						m_pRenderPass;
+
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
 	std::shared_ptr<GraphicPipeline>					m_pPipeline;
 

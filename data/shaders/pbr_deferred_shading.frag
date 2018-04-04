@@ -13,7 +13,8 @@ layout (set = 3, binding = 5) uniform sampler2D DepthStencilBuffer;
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inViewRay;
 
-layout (location = 0) out vec4 outFragColor;
+layout (location = 0) out vec4 outFragColor0;
+layout (location = 1) out vec4 outFragColor1;
 
 struct GBufferVariables
 {
@@ -66,8 +67,6 @@ GBufferVariables UnpackGBuffers(ivec2 coord)
 
 void main() 
 {
-	outFragColor = vec4(vec3(0), 1);
-
 	ivec2 coord = ivec2(floor(inUv * vec2(1016, 737)));
 
 	GBufferVariables vars = UnpackGBuffers(coord);
@@ -114,5 +113,6 @@ void main()
 	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
 	final = pow(final, vec3(globalData.GEW.x));
 
-	outFragColor = vec4(final, 1.0);
+	outFragColor0 = vec4(final, 1.0);
+	outFragColor1 = outFragColor0;
 }

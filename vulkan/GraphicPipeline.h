@@ -26,6 +26,7 @@ public:
 
 public:
 	VkPipeline GetDeviceHandle() const { return m_pipeline; }
+	const VkGraphicsPipelineCreateInfo& GetInfo() const { return m_info; }
 	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
 	std::shared_ptr<RenderPass> GetRenderPass() const { return m_pRenderPass; }
 	std::shared_ptr<ShaderModule> GetShader(ShaderModule::ShaderType type) const { return m_shaders[(uint32_t)type]; }

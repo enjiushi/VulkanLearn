@@ -6,43 +6,49 @@
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/GlobalVulkanStates.h"
 #include "../vulkan/SharedIndirectBuffer.h"
+#include "../vulkan/GraphicPipeline.h"
 #include "RenderWorkManager.h"
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
 
-std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, bool offScreen)
+std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
 	std::shared_ptr<ForwardMaterial> pForwardMaterial = std::make_shared<ForwardMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
-	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo =
+	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
+	uint32_t colorTargetCount = simpleMaterialInfo.pRenderPass->GetFrameBuffer()->GetColorTargets().size();
+
+	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
-		{
-			VK_TRUE,							// blend enabled
+		blendStatesInfo.push_back(
+			{
+				simpleMaterialInfo.isTransparent,	// blend enabled
 
-			VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
-			VK_BLEND_OP_ADD,					// color blend op
+				VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
+				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
+				VK_BLEND_OP_ADD,					// color blend op
 
-			VK_BLEND_FACTOR_ONE,				// src alpha blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
-			VK_BLEND_OP_ADD,					// alpha blend factor
+				VK_BLEND_FACTOR_ONE,				// src alpha blend factor
+				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
+				VK_BLEND_OP_ADD,					// alpha blend factor
 
-			0xf,								// color mask
-		},
-	};
+				0xf,								// color mask
+			}
+		);
+	}
 
 	VkPipelineColorBlendStateCreateInfo blendCreateInfo = {};
 	blendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	blendCreateInfo.logicOpEnable = VK_FALSE;
-	blendCreateInfo.attachmentCount = 1;
+	blendCreateInfo.attachmentCount = colorTargetCount;
 	blendCreateInfo.pAttachments = blendStatesInfo.data();
 
 	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
 	depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilCreateInfo.depthTestEnable = VK_TRUE;
-	depthStencilCreateInfo.depthWriteEnable = VK_TRUE;
+	depthStencilCreateInfo.depthTestEnable = simpleMaterialInfo.depthTestEnable;
+	depthStencilCreateInfo.depthWriteEnable = simpleMaterialInfo.depthWriteEnable;
 	depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -105,18 +111,10 @@ std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const Si
 	createInfo.pViewportState = &viewportStateCreateInfo;
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
+	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	std::shared_ptr<RenderPass> pLowLevelRenderPass;
-	if (offScreen)
-		pLowLevelRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass();
-	else
-		pLowLevelRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPass()->GetRenderPass();
-
-	if (pForwardMaterial.get() && pForwardMaterial->Init(pForwardMaterial, simpleMaterialInfo.shaderPaths, pLowLevelRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
-	{
-		pForwardMaterial->m_offScreen = offScreen;
+	if (pForwardMaterial.get() && pForwardMaterial->Init(pForwardMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pForwardMaterial;
-	}
 	return nullptr;
 }
 
@@ -124,23 +122,10 @@ void ForwardMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::vector<VkClearValue> clearValues =
-	{
-		{ 0.0f, 0.0f, 0.0f, 0.0f },
-		{ 1.0f, 0 }
-	};
-
-	std::shared_ptr<RenderPassBase> pForwardRenderPass;
-
-	if (m_offScreen)
-		pForwardRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen();
-	else
-		pForwardRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPass();
-
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = pForwardRenderPass->GetFrameBuffer();
+	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = m_pRenderPass->GetFrameBuffer();
 
 	// FIXME: Subpass index hard-coded
-	pDrawCmdBuffer->StartSecondaryRecording(pForwardRenderPass->GetRenderPass(), 0, pCurrentFrameBuffer);
+	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
 
 	VkViewport viewport =
 	{

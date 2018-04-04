@@ -618,7 +618,8 @@ void VulkanGlobal::InitMaterials()
 	info.vertexAttributesInfo = m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars = vars;
 	info.vertexFormat = m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
-	info.isDeferredShadingMaterial = false;
+	info.subpassIndex = 0;
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
 
 
 	m_PBRGbufferMaterial = GBufferMaterial::CreateDefaultMaterial(info);
@@ -646,8 +647,11 @@ void VulkanGlobal::InitMaterials()
 	info.vertexAttributesInfo	= m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars	= vars;
 	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
+	info.subpassIndex			= 1;
+	info.pRenderPass			= RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
+	info.depthWriteEnable		= false;
 
-	m_pSkyBoxMaterial = ForwardMaterial::CreateDefaultMaterial(info, false);
+	m_pSkyBoxMaterial = ForwardMaterial::CreateDefaultMaterial(info);
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 
@@ -677,10 +681,14 @@ void VulkanGlobal::InitMaterials()
 	m_pTestMaterialInstance->SetMaterialTexture(1, m_pPrefilterEnvTex);
 	m_pTestMaterialInstance->SetMaterialTexture(2, m_pBRDFLut);*/
 
-	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/pbr_deferred_shading.frag.spv", L"" };
-	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
-	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.shaderPaths			= { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/pbr_deferred_shading.frag.spv", L"" };
+	info.vertexBindingsInfo		= { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo	= m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
+	info.vertexFormat			= m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.subpassIndex			= 0;
+	info.pRenderPass			= RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
+	info.depthTestEnable		= false;
+	info.depthWriteEnable		= false;
 
 	m_pShadingMaterial = DeferredShadingMaterial::CreateDefaultMaterial(info);
 }
@@ -792,6 +800,8 @@ void VulkanGlobal::Draw()
 	m_pShadingMaterial->OnPassStart();
 	m_pShadingMaterial->Draw(pDrawCmdBuffer);
 	m_pShadingMaterial->OnPassEnd();
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->NextSubpass(pDrawCmdBuffer);
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->EndRenderPass(pDrawCmdBuffer);
 

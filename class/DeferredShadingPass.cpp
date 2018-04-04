@@ -1,4 +1,6 @@
 #include "DeferredShadingPass.h"
+#include "RenderPassDiction.h"
+#include "GBufferPass.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/SwapChain.h"
@@ -7,7 +9,7 @@
 
 bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf, VkFormat format, VkImageLayout layout)
 {
-	std::vector<VkAttachmentDescription> attachmentDescs(2);
+	std::vector<VkAttachmentDescription> attachmentDescs(3);
 
 	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[0].finalLayout = layout;
@@ -27,6 +29,15 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 	attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachmentDescs[1].samples = VK_SAMPLE_COUNT_1_BIT;
 
+	attachmentDescs[2].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	attachmentDescs[2].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	attachmentDescs[2].format = OFFSCREEN_DEPTH_STENCIL_FORMAT;
+	attachmentDescs[2].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+	attachmentDescs[2].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachmentDescs[2].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachmentDescs[2].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachmentDescs[2].samples = VK_SAMPLE_COUNT_1_BIT;
+
 	std::vector<VkAttachmentReference> shadingPassColorAttach(2);
 	shadingPassColorAttach[0].attachment = 0;
 	shadingPassColorAttach[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -39,7 +50,17 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 	shadingSubPass.pDepthStencilAttachment = nullptr;
 	shadingSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
-	std::vector<VkSubpassDependency> dependencies(2);
+	VkAttachmentReference depthAttachment = {};
+	depthAttachment.attachment = 2;
+	depthAttachment.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+	VkSubpassDescription skyBoxSubPass = {};
+	skyBoxSubPass.colorAttachmentCount = shadingPassColorAttach.size();
+	skyBoxSubPass.pColorAttachments = shadingPassColorAttach.data();
+	skyBoxSubPass.pDepthStencilAttachment = &depthAttachment;
+	skyBoxSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+	std::vector<VkSubpassDependency> dependencies(3);
 
 	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 	dependencies[0].dstSubpass = 0;
@@ -49,16 +70,24 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 	dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-	// This one can be generated implicitly without definition
 	dependencies[1].srcSubpass = 0;
-	dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[1].dstSubpass = 1;
 	dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	dependencies[1].dstAccessMask = 0;
+	dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-	std::vector<VkSubpassDescription> subPasses = { shadingSubPass };
+	// This one can be generated implicitly without definition
+	dependencies[2].srcSubpass = 1;
+	dependencies[2].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[2].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[2].dstAccessMask = 0;
+	dependencies[2].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[2].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependencies[2].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	std::vector<VkSubpassDescription> subPasses = { shadingSubPass, skyBoxSubPass };
 
 	VkRenderPassCreateInfo renderpassCreateInfo = {};
 	renderpassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -76,10 +105,13 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 
 void DeferredShadingPass::InitFrameBuffers()
 {
+	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
+
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
 		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R16G16B16A16_SFLOAT);
-		m_frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget , GetSwapChain()->GetSwapChainImage(i) }, nullptr, GetRenderPass()));
+		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = pGBufferPass->GetFrameBuffer(i)->GetDepthStencilTarget();
+		m_frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget , GetSwapChain()->GetSwapChainImage(i) }, pDepthStencilBuffer, GetRenderPass()));
 	}
 }
 
@@ -95,8 +127,6 @@ std::vector<VkClearValue> DeferredShadingPass::GetClearValue()
 {
 	return
 	{
-		{ 0.0f, 0.0f, 0.0f, 0.0f },
-		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 1.0f, 0 }

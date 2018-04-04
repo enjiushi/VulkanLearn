@@ -9,6 +9,7 @@
 #include "../vulkan/DescriptorSet.h"
 #include "../vulkan/DepthStencilBuffer.h"
 #include "../vulkan/Texture2D.h"
+#include "../vulkan/GraphicPipeline.h"
 #include "RenderPassBase.h"
 #include "RenderPassDiction.h"
 #include "RenderWorkManager.h"
@@ -19,48 +20,27 @@ std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(const Si
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
-	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo =
+	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
+	uint32_t colorTargetCount = simpleMaterialInfo.pRenderPass->GetFrameBuffer()->GetColorTargets().size();
+
+	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
-		{
-			VK_FALSE,							// blend enabled
+		blendStatesInfo.push_back(
+			{
+				simpleMaterialInfo.isTransparent,	// blend enabled
 
-			VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
-			VK_BLEND_OP_ADD,					// color blend op
+				VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
+				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
+				VK_BLEND_OP_ADD,					// color blend op
 
-			VK_BLEND_FACTOR_ONE,				// src alpha blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
-			VK_BLEND_OP_ADD,					// alpha blend factor
+				VK_BLEND_FACTOR_ONE,				// src alpha blend factor
+				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
+				VK_BLEND_OP_ADD,					// alpha blend factor
 
-			0xf,								// color mask
-		},
-		{
-			VK_FALSE,							// blend enabled
-
-			VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
-			VK_BLEND_OP_ADD,					// color blend op
-
-			VK_BLEND_FACTOR_ONE,				// src alpha blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
-			VK_BLEND_OP_ADD,					// alpha blend factor
-
-			0xf,								// color mask
-		},
-		{
-			VK_FALSE,							// blend enabled
-
-			VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
-			VK_BLEND_OP_ADD,					// color blend op
-
-			VK_BLEND_FACTOR_ONE,				// src alpha blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
-			VK_BLEND_OP_ADD,					// alpha blend factor
-
-			0xf,								// color mask
-		},
-	};
+				0xf,								// color mask
+			}
+		);
+	}
 
 	VkPipelineColorBlendStateCreateInfo blendCreateInfo = {};
 	blendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -70,8 +50,8 @@ std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(const Si
 
 	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
 	depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilCreateInfo.depthTestEnable = VK_TRUE;
-	depthStencilCreateInfo.depthWriteEnable = VK_TRUE;
+	depthStencilCreateInfo.depthTestEnable = simpleMaterialInfo.depthTestEnable;
+	depthStencilCreateInfo.depthWriteEnable = simpleMaterialInfo.depthWriteEnable;
 	depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -134,10 +114,10 @@ std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(const Si
 	createInfo.pViewportState = &viewportStateCreateInfo;
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
-	createInfo.subpass = 0;
+	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 	createInfo.renderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->GetRenderPass()->GetDeviceHandle();
 
-	if (pGbufferMaterial.get() && pGbufferMaterial->Init(pGbufferMaterial, simpleMaterialInfo.shaderPaths, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->GetRenderPass(), createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pGbufferMaterial.get() && pGbufferMaterial->Init(pGbufferMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pGbufferMaterial;
 	return nullptr;
 }
@@ -156,7 +136,7 @@ void GBufferMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = pGBufferRenderPass->GetFrameBuffer();
 
 	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
-	pDrawCmdBuffer->StartSecondaryRecording(pGBufferRenderPass->GetRenderPass(), 0, pCurrentFrameBuffer);
+	pDrawCmdBuffer->StartSecondaryRecording(pGBufferRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
 
 	VkViewport viewport =
 	{
@@ -191,35 +171,27 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
-	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo =
+	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
+	uint32_t colorTargetCount = simpleMaterialInfo.pRenderPass->GetFrameBuffer()->GetColorTargets().size();
+
+	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
-		{
-			VK_FALSE,							// blend enabled
+		blendStatesInfo.push_back(
+			{
+				simpleMaterialInfo.isTransparent,	// blend enabled
 
-			VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
-			VK_BLEND_OP_ADD,					// color blend op
+				VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
+				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
+				VK_BLEND_OP_ADD,					// color blend op
 
-			VK_BLEND_FACTOR_ONE,				// src alpha blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
-			VK_BLEND_OP_ADD,					// alpha blend factor
+				VK_BLEND_FACTOR_ONE,				// src alpha blend factor
+				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
+				VK_BLEND_OP_ADD,					// alpha blend factor
 
-			0xf,								// color mask
-		},
-		{
-			VK_FALSE,							// blend enabled
-
-			VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
-			VK_BLEND_OP_ADD,					// color blend op
-
-			VK_BLEND_FACTOR_ONE,				// src alpha blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
-			VK_BLEND_OP_ADD,					// alpha blend factor
-
-			0xf,								// color mask
-		}
-	};
+				0xf,								// color mask
+			}
+		);
+	}
 
 	VkPipelineColorBlendStateCreateInfo blendCreateInfo = {};
 	blendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -229,8 +201,8 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 
 	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
 	depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilCreateInfo.depthTestEnable = VK_TRUE;
-	depthStencilCreateInfo.depthWriteEnable = VK_TRUE;
+	depthStencilCreateInfo.depthTestEnable = simpleMaterialInfo.depthTestEnable;
+	depthStencilCreateInfo.depthWriteEnable = simpleMaterialInfo.depthWriteEnable;
 	depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -294,9 +266,9 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
 	createInfo.renderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()->GetDeviceHandle();
-	createInfo.subpass = 0;
+	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	if (pDeferredMaterial.get() && pDeferredMaterial->Init(pDeferredMaterial, simpleMaterialInfo.shaderPaths, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass(), createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pDeferredMaterial.get() && pDeferredMaterial->Init(pDeferredMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pDeferredMaterial;
 
 	return nullptr;
@@ -304,7 +276,7 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 
 bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial>& pSelf,
 	const std::vector<std::wstring>	shaderPaths,
-	const std::shared_ptr<RenderPass>& pRenderPass,
+	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<UniformVar>& materialUniformVars,
 	uint32_t vertexFormat)
@@ -386,7 +358,7 @@ void DeferredShadingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf
 	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = pDeferredShadingPass->GetFrameBuffer();
 
 	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
-	pDrawCmdBuffer->StartSecondaryRecording(pDeferredShadingPass->GetRenderPass(), 0, pCurrentFrameBuffer);
+	pDrawCmdBuffer->StartSecondaryRecording(pDeferredShadingPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
 
 	VkViewport viewport =
 	{
