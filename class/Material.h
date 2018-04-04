@@ -67,12 +67,12 @@ public:
 	uint32_t GetUniformBufferSize() const;
 	std::vector<std::vector<uint32_t>> Material::GetCachedFrameOffsets() const { return m_cachedFrameOffsets; }
 
-	std::shared_ptr<DescriptorSet> GetDescriptorSet() const { return m_pDescriptorSet; }
+	std::shared_ptr<DescriptorSet> GetDescriptorSet() const { return m_pUniformStorageDescriptorSet; }
 
-	void BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
-	void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
-	void SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture);
-	void BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	virtual void BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	virtual void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	virtual void SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture);
+	virtual void BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 	template <typename T>
 	void SetParameter(uint32_t chunkIndex, uint32_t parameterIndex, T val)
@@ -108,7 +108,8 @@ protected:
 		uint32_t vertexFormat
 	);
 
-	virtual void CustomizeLayout() {}
+	virtual void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) {}
+	virtual void CustomizePoolSize(std::vector<uint32_t>& counts) {}
 
 	static uint32_t GetByteSize(std::vector<UniformVar>& UBOLayout);
 	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex);
@@ -120,7 +121,7 @@ protected:
 	std::shared_ptr<GraphicPipeline>					m_pPipeline;
 
 	std::shared_ptr<DescriptorSetLayout>				m_pDescriptorSetLayout;
-	std::shared_ptr<DescriptorSet>						m_pDescriptorSet;
+	std::shared_ptr<DescriptorSet>						m_pUniformStorageDescriptorSet;
 	std::shared_ptr<DescriptorPool>						m_pDescriptorPool;
 	std::vector<std::shared_ptr<DescriptorSet>>			m_descriptorSets;	// Including descriptor sets from uniform data, and "m_pDescriptorSet" of this class
 

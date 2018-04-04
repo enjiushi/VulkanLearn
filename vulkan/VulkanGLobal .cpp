@@ -767,6 +767,9 @@ void VulkanGlobal::Draw()
 {
 	GetSwapChain()->AcquireNextImage();
 
+	uint32_t frameIndex = FrameMgr()->FrameIndex();
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(FrameMgr()->FrameIndex());
+
 	m_pRootObject->Update();
 	m_pRootObject->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();

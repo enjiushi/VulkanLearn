@@ -5,10 +5,10 @@
 
 #include "uniform_layout.h"
 
-layout (set = 3, binding = 2) uniform sampler2D GBuffer0;
-layout (set = 3, binding = 3) uniform sampler2D GBuffer1;
-layout (set = 3, binding = 4) uniform sampler2D GBuffer2;
-layout (set = 3, binding = 5) uniform sampler2D DepthStencilBuffer;
+layout (set = 3, binding = 2) uniform sampler2D GBuffer0[3];
+layout (set = 3, binding = 3) uniform sampler2D GBuffer1[3];
+layout (set = 3, binding = 4) uniform sampler2D GBuffer2[3];
+layout (set = 3, binding = 5) uniform sampler2D DepthStencilBuffer[3];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inViewRay;
@@ -28,7 +28,7 @@ const vec3 lightPos = vec3(1000, 0, -1000);
 
 vec3 ReconstructPosition(ivec2 coord)
 {
-	float window_z = texelFetch(DepthStencilBuffer, coord, 0).r;
+	float window_z = texelFetch(DepthStencilBuffer[int(perFrameData.camDir.a)], coord, 0).r;
 	float eye_z = (perFrameData.nearFar.x * perFrameData.nearFar.y) / (window_z * (perFrameData.nearFar.y - perFrameData.nearFar.x) - perFrameData.nearFar.y);
 
 	vec3 viewRay = normalize(inViewRay);
@@ -48,9 +48,9 @@ GBufferVariables UnpackGBuffers(ivec2 coord)
 {
 	GBufferVariables vars;
 
-	vec4 gbuffer0 = texelFetch(GBuffer0, coord, 0);
-	vec4 gbuffer1 = texelFetch(GBuffer1, coord, 0);
-	vec4 gbuffer2 = texelFetch(GBuffer2, coord, 0);
+	vec4 gbuffer0 = texelFetch(GBuffer0[int(perFrameData.camDir.a)], coord, 0);
+	vec4 gbuffer1 = texelFetch(GBuffer1[int(perFrameData.camDir.a)], coord, 0);
+	vec4 gbuffer2 = texelFetch(GBuffer2[int(perFrameData.camDir.a)], coord, 0);
 
 	vars.albedo_roughness.rgb = gbuffer1.rgb;
 	vars.albedo_roughness.a = gbuffer2.r;

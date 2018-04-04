@@ -60,7 +60,7 @@ void DescriptorSet::UpdateUniformBufferDynamic(uint32_t binding, const std::shar
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
 
-	m_resourceTable[binding] = pBuffer;
+	m_resourceTable[binding].push_back(pBuffer);
 }
 
 void DescriptorSet::UpdateUniformBuffer(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer)
@@ -77,7 +77,7 @@ void DescriptorSet::UpdateUniformBuffer(uint32_t binding, const std::shared_ptr<
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
 
-	m_resourceTable[binding] = pBuffer;
+	m_resourceTable[binding].push_back(pBuffer);
 }
 
 void DescriptorSet::UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage, const std::shared_ptr<Sampler> pSampler, const std::shared_ptr<ImageView> pImageView)
@@ -97,10 +97,37 @@ void DescriptorSet::UpdateImage(uint32_t binding, const std::shared_ptr<Image>& 
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
 
-	m_resourceTable[binding] = pImage;
+	m_resourceTable[binding].push_back(pImage);
 
 	AddToReferenceTable(pSampler);
 	AddToReferenceTable(pImageView);
+}
+
+void DescriptorSet::UpdateImages(uint32_t binding, const std::vector<CombinedImage>& images)
+{
+	std::vector<VkWriteDescriptorSet> writeData = { {} };
+	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;;
+	writeData[0].dstBinding = binding;
+	writeData[0].descriptorCount = images.size();
+	writeData[0].dstSet = GetDeviceHandle();
+
+	std::vector<VkDescriptorImageInfo> info;
+	for (uint32_t i = 0; i < images.size(); i++)
+	{
+		info.push_back({
+			images[i].pSampler->GetDeviceHandle(),
+			images[i].pImageView->GetDeviceHandle(),
+			images[i].pImage->GetImageInfo().initialLayout
+			});
+
+		m_resourceTable[binding].push_back(images[i].pImage);
+		AddToReferenceTable(images[i].pSampler);
+		AddToReferenceTable(images[i].pImageView);
+	}
+	writeData[0].pImageInfo = info.data();
+
+	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
 }
 
 void DescriptorSet::UpdateInputImage(uint32_t binding, const std::shared_ptr<Image>& pImage, const std::shared_ptr<Sampler> pSampler, const std::shared_ptr<ImageView> pImageView)
@@ -121,7 +148,7 @@ void DescriptorSet::UpdateInputImage(uint32_t binding, const std::shared_ptr<Ima
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
 
-	m_resourceTable[binding] = pImage;
+	m_resourceTable[binding].push_back(pImage);
 
 	AddToReferenceTable(pSampler);
 	AddToReferenceTable(pImageView);
@@ -154,7 +181,7 @@ void DescriptorSet::UpdateShaderStorageBufferDynamic(uint32_t binding, const std
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
 
-	m_resourceTable[binding] = pBuffer;
+	m_resourceTable[binding].push_back(pBuffer);
 }
 
 void DescriptorSet::UpdateShaderStorageBuffer(uint32_t binding, const std::shared_ptr<ShaderStorageBuffer>& pBuffer)
@@ -171,5 +198,5 @@ void DescriptorSet::UpdateShaderStorageBuffer(uint32_t binding, const std::share
 
 	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
 
-	m_resourceTable[binding] = pBuffer;
+	m_resourceTable[binding].push_back(pBuffer);
 }

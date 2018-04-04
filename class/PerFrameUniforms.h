@@ -13,7 +13,7 @@ typedef struct _PerFrameVariables
 	Vector3f	cameraPosition;
 	float		padding0;
 	Vector3f	cameraDirection;
-	float		padding1;
+	float		frameIndex;
 	Vector4f	eyeSpaceSize;	// xy: eye space size, zw: inverted eye space size
 	Vector2f	nearFar;
 }PerFrameVariables;
@@ -41,8 +41,8 @@ public:
 	Vector2f GetNearFar() const { return m_perFrameVariables.nearFar; }
 	void SetPadding0(float val) { m_perFrameVariables.padding0 = val; }
 	float GetPadding0() const { return m_perFrameVariables.padding0; }
-	void SetPadding1(float val) { m_perFrameVariables.padding1 = val; }
-	float GetPadding1() const { return m_perFrameVariables.padding1; }
+	void SetFrameIndex(float frameIndex) { m_perFrameVariables.frameIndex = frameIndex; }
+	float GetFrameIndex() const { return m_perFrameVariables.frameIndex; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;

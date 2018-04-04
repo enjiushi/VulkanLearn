@@ -11,6 +11,13 @@ class Image;
 class Sampler;
 class ImageView;
 
+typedef struct _CombinedImage
+{
+	std::shared_ptr<Image> pImage;
+	std::shared_ptr<Sampler> pSampler;
+	std::shared_ptr<ImageView> pImageView;
+}CombinedImage;
+
 class DescriptorSet : public DeviceObjectBase<DescriptorSet>
 {
 public:
@@ -31,6 +38,7 @@ public:
 	void UpdateShaderStorageBufferDynamic(uint32_t binding, const std::shared_ptr<ShaderStorageBuffer>& pBuffer);
 	void UpdateShaderStorageBuffer(uint32_t binding, const std::shared_ptr<ShaderStorageBuffer>& pBuffer);
 	void UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage, const std::shared_ptr<Sampler> pSampler, const std::shared_ptr<ImageView> pImageView);
+	void UpdateImages(uint32_t binding, const std::vector<CombinedImage>& images);
 	void UpdateInputImage(uint32_t binding, const std::shared_ptr<Image>& pImage, const std::shared_ptr<Sampler> pSampler, const std::shared_ptr<ImageView> pImageView);
 
 	// FIXME: Refactor this when I create texture buffer object class
@@ -45,5 +53,5 @@ protected:
 	VkDescriptorSet									m_descriptorSet;
 	std::shared_ptr<DescriptorPool>					m_pDescriptorPool;
 	std::shared_ptr<DescriptorSetLayout>			m_pDescriptorSetLayout;
-	std::map<uint32_t, std::shared_ptr<Base>>		m_resourceTable;
+	std::map<uint32_t, std::vector<std::shared_ptr<Base>>>		m_resourceTable;
 };

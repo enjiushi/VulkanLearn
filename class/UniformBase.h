@@ -31,6 +31,7 @@ typedef struct _UniformVarList
 	MaterialVariableType		type;
 	std::string					name;
 	std::vector<UniformVar>		vars;
+	uint32_t					count = 1;
 }UniformVarList;
 
 class UniformBase : public SelfRefBase<UniformBase>

@@ -10,9 +10,13 @@
 #include "../vulkan/DepthStencilBuffer.h"
 #include "../vulkan/Texture2D.h"
 #include "../vulkan/GraphicPipeline.h"
+#include "../vulkan/SwapChain.h"
+#include "../vulkan/DescriptorPool.h"
+#include "../vulkan/DescriptorSetLayout.h"
 #include "RenderPassBase.h"
 #include "RenderPassDiction.h"
 #include "RenderWorkManager.h"
+#include "GBufferPass.h"
 
 std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -285,63 +289,101 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 		return false;
 
 	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
-	std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = pGBufferPass->GetFrameBuffer();
 
-	std::vector<std::shared_ptr<Image>> colorTargets = pGBufferFrameBuffer->GetColorTargets();
-	std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = pGBufferFrameBuffer->GetDepthStencilTarget();
+	/*
+	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+	{
+		std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = pGBufferPass->GetFrameBuffer(i);
 
-	m_pDescriptorSet->UpdateImage(2,
-		colorTargets[0],
-		colorTargets[0]->CreateLinearClampToEdgeSampler(),
-		colorTargets[0]->CreateDefaultImageView());
+		std::vector<std::shared_ptr<Image>> colorTargets = pGBufferFrameBuffer->GetColorTargets();
+		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = pGBufferFrameBuffer->GetDepthStencilTarget();
 
-	m_pDescriptorSet->UpdateImage(3, 
-		colorTargets[1],
-		colorTargets[1]->CreateLinearClampToEdgeSampler(),
-		colorTargets[1]->CreateDefaultImageView());
+		m_pUniformStorageDescriptorSet->UpdateImage(MaterialUniformStorageTypeCount + i * 4,
+			colorTargets[0],
+			colorTargets[0]->CreateLinearClampToEdgeSampler(),
+			colorTargets[0]->CreateDefaultImageView());
 
-	m_pDescriptorSet->UpdateImage(4, 
-		colorTargets[2],
-		colorTargets[2]->CreateLinearClampToEdgeSampler(),
-		colorTargets[2]->CreateDefaultImageView());
+		m_pUniformStorageDescriptorSet->UpdateImage(MaterialUniformStorageTypeCount + i * 4 + 1,
+			colorTargets[1],
+			colorTargets[1]->CreateLinearClampToEdgeSampler(),
+			colorTargets[1]->CreateDefaultImageView());
 
-	m_pDescriptorSet->UpdateImage(5, 
-		pDepthStencilBuffer,
-		pDepthStencilBuffer->CreateLinearClampToEdgeSampler(),
-		pDepthStencilBuffer->CreateDepthSampleImageView());
+		m_pUniformStorageDescriptorSet->UpdateImage(MaterialUniformStorageTypeCount + i * 4 + 2,
+			colorTargets[2],
+			colorTargets[2]->CreateLinearClampToEdgeSampler(),
+			colorTargets[2]->CreateDefaultImageView());
+
+		m_pUniformStorageDescriptorSet->UpdateImage(MaterialUniformStorageTypeCount + i * 4 + 3,
+			pDepthStencilBuffer,
+			pDepthStencilBuffer->CreateLinearClampToEdgeSampler(),
+			pDepthStencilBuffer->CreateDepthSampleImageView());
+	}*/
+
+	for (uint32_t i = 0; i < GBufferPass::GBufferCount + 1; i++)
+	{
+		std::vector<CombinedImage> gbuffers;
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+		{
+			std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = pGBufferPass->GetFrameBuffer(j);
+
+			if (i < GBufferPass::GBufferCount)
+				gbuffers.push_back({
+					pGBufferFrameBuffer->GetColorTarget(i),
+					pGBufferFrameBuffer->GetColorTarget(i)->CreateLinearClampToEdgeSampler(),
+					pGBufferFrameBuffer->GetColorTarget(i)->CreateDefaultImageView()
+					});
+			else
+				gbuffers.push_back({
+					pGBufferFrameBuffer->GetDepthStencilTarget(),
+					pGBufferFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToEdgeSampler(),
+					pGBufferFrameBuffer->GetDepthStencilTarget()->CreateDepthSampleImageView()
+				});
+		}
+
+		m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + i, gbuffers);
+	}
 
 	return true;
 }
 
-void DeferredShadingMaterial::CustomizeLayout()
+void DeferredShadingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
 {
-	m_materialVariableLayout.push_back(
-		{
-			CombinedSampler,
-			"Input GBuffer0",
-			{}
-		});
+		m_materialVariableLayout.push_back(
+			{
+				CombinedSampler,
+				"GBuffer0",
+				{},
+				GetSwapChain()->GetSwapChainImageCount()
+			});
 
-	m_materialVariableLayout.push_back(
-		{
-			CombinedSampler,
-			"Input GBuffer1",
-		{}
-		});
+		m_materialVariableLayout.push_back(
+			{
+				CombinedSampler,
+				"GBuffer1",
+				{},
+				GetSwapChain()->GetSwapChainImageCount()
+			});
 
-	m_materialVariableLayout.push_back(
-		{
-			CombinedSampler,
-			"Input GBuffer2",
-		{}
-		});
+		m_materialVariableLayout.push_back(
+			{
+				CombinedSampler,
+				"GBuffer2",
+				{},
+				GetSwapChain()->GetSwapChainImageCount()
+			});
 
-	m_materialVariableLayout.push_back(
-		{
-			CombinedSampler,
-			"Input GBuffer3",
-		{}
-		});
+		m_materialVariableLayout.push_back(
+			{
+				CombinedSampler,
+				"DepthBuffer",
+				{},
+				GetSwapChain()->GetSwapChainImageCount()
+			});
+}
+
+void DeferredShadingMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
+{
+	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (GBufferPass::GBufferCount + 1));
 }
 
 void DeferredShadingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)

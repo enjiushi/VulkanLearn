@@ -92,7 +92,7 @@ bool Material::Init
 			var.type = DynamicShaderStorageBuffer;
 	}
 
-	CustomizeLayout();
+	CustomizeMaterialLayout(m_materialVariableLayout);
 
 	// Build vulkan layout bindings
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
@@ -105,7 +105,7 @@ bool Material::Init
 			({
 				(uint32_t)bindings.size(),
 				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-				1,
+				var.count,
 				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				nullptr
 			});
@@ -116,7 +116,7 @@ bool Material::Init
 			({
 				(uint32_t)bindings.size(),
 				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
-				1,
+				var.count,
 				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				nullptr
 			});
@@ -127,7 +127,7 @@ bool Material::Init
 			({
 				(uint32_t)bindings.size(),
 				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-				1,
+				var.count,
 				VK_SHADER_STAGE_FRAGMENT_BIT,
 				nullptr
 			});
@@ -137,7 +137,7 @@ bool Material::Init
 			({
 				(uint32_t)bindings.size(),
 				VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-				1,
+				var.count,
 				VK_SHADER_STAGE_FRAGMENT_BIT,
 				nullptr
 				});
@@ -176,6 +176,8 @@ bool Material::Init
 		counts[binding.descriptorType]++;
 	}
 
+	CustomizePoolSize(counts);
+
 	std::vector<VkDescriptorPoolSize> descPoolSize;
 	for (uint32_t i = 0; i < counts.size(); i++)
 	{
@@ -187,19 +189,19 @@ bool Material::Init
 	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descPoolInfo.pPoolSizes = descPoolSize.data();
 	descPoolInfo.poolSizeCount = descPoolSize.size();
-	descPoolInfo.maxSets = 1;
+	descPoolInfo.maxSets = 1 + GetSwapChain()->GetSwapChainImageCount();
 
 	m_pDescriptorPool = DescriptorPool::Create(GetDevice(), descPoolInfo);
-	m_pDescriptorSet = m_pDescriptorPool->AllocateDescriptorSet(m_pDescriptorSetLayout);
+	m_pUniformStorageDescriptorSet = m_pDescriptorPool->AllocateDescriptorSet(m_pDescriptorSetLayout);
 
 	m_descriptorSets = UniformData::GetInstance()->GetDescriptorSets();
-	m_descriptorSets.push_back(m_pDescriptorSet);
+	m_descriptorSets.push_back(m_pUniformStorageDescriptorSet);
 
 	// Setup descriptor set
 	uint32_t bindingIndex = 0;
 	for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
 	{
-		bindingIndex = m_materialUniforms[i]->SetupDescriptorSet(m_pDescriptorSet, bindingIndex);
+		bindingIndex = m_materialUniforms[i]->SetupDescriptorSet(m_pUniformStorageDescriptorSet, bindingIndex);
 	}
 
 	// Setup cached frame offsets
