@@ -40,9 +40,6 @@ typedef struct _SimpleMaterialCreateInfo
 	std::vector<UniformVar>									materialUniformVars;
 	uint32_t												vertexFormat;
 	bool													isDeferredShadingMaterial = false;
-	// FIXME: Render pass is wired thing, as it's used both for pipeline and frame buffer
-	// Need to think about where it belongs or belongs to itself
-	std::shared_ptr<RenderPass>						pRenderPass;
 }SimpleMaterialCreateInfo;
 
 class Material : public SelfRefBase<Material>

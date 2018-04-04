@@ -10,7 +10,7 @@
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
 
-std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
+std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, bool offScreen)
 {
 	std::shared_ptr<ForwardMaterial> pForwardMaterial = std::make_shared<ForwardMaterial>();
 
@@ -105,10 +105,18 @@ std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const Si
 	createInfo.pViewportState = &viewportStateCreateInfo;
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
-	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetDeviceHandle();
 
-	if (pForwardMaterial.get() && pForwardMaterial->Init(pForwardMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	std::shared_ptr<RenderPass> pLowLevelRenderPass;
+	if (offScreen)
+		pLowLevelRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass();
+	else
+		pLowLevelRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPass()->GetRenderPass();
+
+	if (pForwardMaterial.get() && pForwardMaterial->Init(pForwardMaterial, simpleMaterialInfo.shaderPaths, pLowLevelRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	{
+		pForwardMaterial->m_offScreen = offScreen;
 		return pForwardMaterial;
+	}
 	return nullptr;
 }
 
@@ -122,20 +130,29 @@ void ForwardMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 		{ 1.0f, 0 }
 	};
 
+	std::shared_ptr<RenderPassBase> pForwardRenderPass;
+
+	if (m_offScreen)
+		pForwardRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen();
+	else
+		pForwardRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPass();
+
+	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = pForwardRenderPass->GetFrameBuffer();
+
 	// FIXME: Subpass index hard-coded
-	pDrawCmdBuffer->StartSecondaryRecording(RenderWorkManager::GetInstance()->GetCurrentRenderPass(), 0, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	pDrawCmdBuffer->StartSecondaryRecording(pForwardRenderPass->GetRenderPass(), 0, pCurrentFrameBuffer);
 
 	VkViewport viewport =
 	{
 		0, 0,
-		RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
 		0, 1
 	};
 
 	VkRect2D scissorRect =
 	{
 		0, 0,
-		RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
 	};
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });

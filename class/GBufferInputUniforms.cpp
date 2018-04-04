@@ -45,6 +45,7 @@ std::vector<UniformVarList> GBufferInputUniforms::PrepareUniformVarList() const
 
 uint32_t GBufferInputUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
 {
+	/*
 	std::vector<std::shared_ptr<Texture2D>> gbuffers = RenderWorkManager::GetInstance()->GetGBuffers();
 	std::shared_ptr<DepthStencilBuffer> pDSBuffer = RenderWorkManager::GetInstance()->GetDeferredDepthStencilBuffer();
 
@@ -59,7 +60,7 @@ uint32_t GBufferInputUniforms::SetupDescriptorSet(const std::shared_ptr<Descript
 	pDescriptorSet->UpdateInputImage(bindingIndex++, std::static_pointer_cast<Image>(pDSBuffer), 
 		pDSBuffer->CreateLinearClampToEdgeSampler(), 
 		pDSBuffer->CreateDepthSampleImageView());
-
+		*/
 	return bindingIndex;
 }
 

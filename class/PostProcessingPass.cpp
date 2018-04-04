@@ -1,9 +1,10 @@
-#include "DeferredRenderPass.h"
+#include "PostProcessingPass.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/CommandBuffer.h"
 
-bool DeferredRenderPass::Init(const std::shared_ptr<DeferredRenderPass>& pSelf, VkFormat format, VkImageLayout layout)
+bool PostProcessingPass::Init(const std::shared_ptr<PostProcessingPass>& pSelf)
 {
+	/*
 	std::vector<VkAttachmentDescription> attachmentDescs(5);
 
 	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -146,19 +147,19 @@ bool DeferredRenderPass::Init(const std::shared_ptr<DeferredRenderPass>& pSelf, 
 	renderpassCreateInfo.pDependencies = dependencies.data();
 
 	if (!RenderPassBase::Init(pSelf, renderpassCreateInfo))
-		return false;
+		return false;*/
 	return true;
 }
 
-std::shared_ptr<DeferredRenderPass> DeferredRenderPass::Create(VkFormat format, VkImageLayout layout)
+std::shared_ptr<PostProcessingPass> PostProcessingPass::Create()
 {
-	std::shared_ptr<DeferredRenderPass> pDeferredRenderPass = std::make_shared<DeferredRenderPass>();
-	if (pDeferredRenderPass != nullptr && pDeferredRenderPass->Init(pDeferredRenderPass, format, layout))
-		return pDeferredRenderPass;
+	std::shared_ptr<PostProcessingPass> pPostProcessingPass = std::make_shared<PostProcessingPass>();
+	if (pPostProcessingPass != nullptr && pPostProcessingPass->Init(pPostProcessingPass))
+		return pPostProcessingPass;
 	return nullptr;
 }
 
-std::vector<VkClearValue> DeferredRenderPass::GetClearValue()
+std::vector<VkClearValue> PostProcessingPass::GetClearValue()
 {
 	return
 	{
@@ -168,34 +169,4 @@ std::vector<VkClearValue> DeferredRenderPass::GetClearValue()
 		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 1.0f, 0 }
 	};
-}
-
-void DeferredRenderPass::BeginGeometryPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
-{
-
-}
-
-void DeferredRenderPass::EndGeometryPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
-{
-
-}
-
-void DeferredRenderPass::BeginShadingPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
-{
-	pCmdBuf->NextSubpass();
-}
-
-void DeferredRenderPass::EndShadingPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
-{
-
-}
-
-void DeferredRenderPass::BeginTransparentPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
-{
-	pCmdBuf->NextSubpass();
-}
-
-void DeferredRenderPass::EndTransparentPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
-{
-
 }

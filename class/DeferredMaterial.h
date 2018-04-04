@@ -1,10 +1,10 @@
 #pragma once
 #include "Material.h"
 
-class DeferredGeometryMaterial : public Material
+class GBufferMaterial : public Material
 {
 public:
-	static std::shared_ptr<DeferredGeometryMaterial> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo);
+	static std::shared_ptr<GBufferMaterial> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo);
 
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf) override;

@@ -7,47 +7,11 @@
 #include "../vulkan/Texture2D.h"
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
-#include "DeferredRenderPass.h"
 
 bool RenderWorkManager::Init()
 {
 	if (!Singleton<RenderWorkManager>::Init())
 		return false;
 
-	m_renderMode = Forward;	// FIXME: should put this into some configuration class
-
-	for (auto& fbs : m_frameBuffers)
-	{
-		fbs.resize(GetSwapChain()->GetSwapChainImageCount());
-	}
-
-	m_gbuffers[GBuffer0] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_A2R10G10B10_UNORM_PACK32);
-	m_gbuffers[GBuffer1] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R8G8B8A8_UNORM);
-	m_gbuffers[GBuffer2] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R8G8B8A8_UNORM);
-
-	m_pDepthStencilBuffer = DepthStencilBuffer::CreateInputAttachment(GetDevice());
-
-	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-	{
-		m_frameBuffers[RenderMode::Forward][i] = FrameBuffer::Create(GetDevice(), GetSwapChain()->GetSwapChainImage(i), m_pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetForwardRenderPass()->GetRenderPass());
-		
-		std::vector<std::shared_ptr<Image>> temp_vec;
-		temp_vec.insert(temp_vec.end(), GetSwapChain()->GetSwapChainImage(i));
-		temp_vec.insert(temp_vec.end(), m_gbuffers, m_gbuffers + GBuffer::GBufferCount);
-		m_frameBuffers[RenderMode::Deferred][i] = FrameBuffer::Create(GetDevice(), temp_vec, m_pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetDeferredRenderPass()->GetRenderPass());
-	}
-
 	return true;
-}
-
-void RenderWorkManager::SetCurrentFrameBuffer(const std::shared_ptr<FrameBuffer>& pFrameBuffer)
-{
-	m_pCurrentFrameBuffer = pFrameBuffer;
-	m_pCurrentRenderPass = m_pCurrentFrameBuffer->GetRenderPass();
-}
-
-void RenderWorkManager::SetCurrentFrameBuffer(RenderMode mode)
-{
-	m_pCurrentFrameBuffer = m_frameBuffers[mode][FrameMgr()->FrameIndex()];
-	m_pCurrentRenderPass = m_pCurrentFrameBuffer->GetRenderPass();
 }

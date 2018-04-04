@@ -48,9 +48,6 @@ typedef struct _TextureArrayDesc
 class GlobalTextures : public UniformBase
 {
 public:
-	const static uint32_t OFFSCREEN_SIZE = 512;
-
-public:
 	static std::shared_ptr<GlobalTextures> Create();
 
 public:

@@ -11,6 +11,7 @@
 #include "SceneGenerator.h"
 #include "../class/ForwardRenderPass.h"
 #include "../class/ForwardMaterial.h"
+#include "../class/RenderPassDiction.h"
 
 void SceneGenerator::PurgeExcistSceneData()
 {
@@ -30,7 +31,7 @@ void SceneGenerator::GenerateIrradianceGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(GlobalTextures::OFFSCREEN_SIZE);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera(RenderPassDiction::OFFSCREEN_SIZE);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMesh0 = GenerateBoxMesh();
@@ -52,7 +53,7 @@ void SceneGenerator::GeneratePrefilterEnvGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(GlobalTextures::OFFSCREEN_SIZE);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera(RenderPassDiction::OFFSCREEN_SIZE);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMesh0 = GenerateBoxMesh();
@@ -74,7 +75,7 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(GlobalTextures::OFFSCREEN_SIZE);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera(RenderPassDiction::OFFSCREEN_SIZE);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMesh0 = GenerateQuadMesh();
@@ -164,10 +165,9 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateIrradianceGenMaterial(c
 	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars = {};
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
-	return ForwardMaterial::CreateDefaultMaterial(info);
+	return ForwardMaterial::CreateDefaultMaterial(info, true);
 }
 
 std::shared_ptr<ForwardMaterial> SceneGenerator::GeneratePrefilterEnvGenMaterial(const std::shared_ptr<Mesh>& pMesh)
@@ -177,10 +177,9 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GeneratePrefilterEnvGenMaterial
 	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars = {};
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
-	return ForwardMaterial::CreateDefaultMaterial(info);
+	return ForwardMaterial::CreateDefaultMaterial(info, true);
 }
 
 std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateBRDFLUTGenMaterial(const std::shared_ptr<Mesh>& pMesh)
@@ -190,10 +189,9 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateBRDFLUTGenMaterial(cons
 	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars = {};
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass();
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 
-	return ForwardMaterial::CreateDefaultMaterial(info);
+	return ForwardMaterial::CreateDefaultMaterial(info, true);
 }
 
 std::shared_ptr<BaseObject> SceneGenerator::GenerateIBLGenOffScreenCamera(uint32_t screenSize)

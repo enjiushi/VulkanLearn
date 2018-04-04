@@ -9,10 +9,9 @@ layout (location = 2) in vec3 inTangent;
 layout (location = 3) in vec3 inBitangent;
 layout (location = 4) flat in int perMaterialIndex;
 
-layout (location = 0) out vec4 outColor;
-layout (location = 1) out vec4 outGBuffer0;
-layout (location = 2) out vec4 outGBuffer1;
-layout (location = 3) out vec4 outGBuffer2;
+layout (location = 0) out vec4 outGBuffer0;
+layout (location = 1) out vec4 outGBuffer1;
+layout (location = 2) out vec4 outGBuffer2;
 
 #include "uniform_layout.h"
 
@@ -33,8 +32,6 @@ layout(set = 3, binding = 1) buffer MaterialUniforms
 
 void main() 
 {
-	outColor = vec4(1);
-
 	float metalic = 1.0f;
 	if (textures[perMaterialIndex].metallicIndex < 0)
 		metalic *= textures[perMaterialIndex].AOMetalic.g;
@@ -61,8 +58,6 @@ void main()
 	vec4 albedo_roughness = textures[perMaterialIndex].albedoRougness;
 	if (textures[perMaterialIndex].albedoRoughnessIndex >= 0)
 		albedo_roughness = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].albedoRoughnessIndex), 0.0);
-
-	outColor.xyz = normal_ao.rgb;
 
 	outGBuffer0.xyz = normal_ao.xyz * 0.5f + 0.5f;
 

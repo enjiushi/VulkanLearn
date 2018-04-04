@@ -54,11 +54,11 @@ void GlobalTextures::InitIBLTextures()
 {
 	m_IBLCubeTextures.resize(IBLCubeTextureTypeCount);
 	m_IBLCubeTextures[RGBA16_1024_SkyBox] = TextureCube::CreateEmptyTextureCube(GetDevice(), 1024, 1024, std::log2(1024) + 1, VK_FORMAT_R16G16B16A16_SFLOAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance] = TextureCube::CreateEmptyTextureCube(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, 1, VK_FORMAT_R16G16B16A16_SFLOAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = TextureCube::CreateEmptyTextureCube(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, std::log2(512) + 1, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance] = TextureCube::CreateEmptyTextureCube(GetDevice(), RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE, 1, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = TextureCube::CreateEmptyTextureCube(GetDevice(), RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE, std::log2(512) + 1, VK_FORMAT_R16G16B16A16_SFLOAT);
 
 	m_IBL2DTextures.resize(IBL2DTextureTypeCount);
-	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateEmptyTexture(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateEmptyTexture(GetDevice(), RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE, VK_FORMAT_R16G16B16A16_SFLOAT);
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
@@ -71,9 +71,6 @@ void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
 
 void GlobalTextures::InitIrradianceTexture()
 {
-	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass());
-	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(pEnvFrameBuffer);
-
 	SceneGenerator::GetInstance()->GenerateIrradianceGenScene();
 
 	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::IrradianceGen);
@@ -114,14 +111,14 @@ void GlobalTextures::InitIrradianceTexture()
 		VkViewport viewport =
 		{
 			0, 0,
-			OFFSCREEN_SIZE, OFFSCREEN_SIZE,
+			RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE,
 			0, 1
 		};
 
 		VkRect2D scissorRect =
 		{
 			0, 0,
-			OFFSCREEN_SIZE, OFFSCREEN_SIZE,
+			RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE,
 		};
 
 		GetGlobalVulkanStates()->SetViewport(viewport);
@@ -135,28 +132,25 @@ void GlobalTextures::InitIrradianceTexture()
 
 		pDrawCmdBuffer->StartPrimaryRecording();
 
-		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer);
 
 		SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
 		SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
 		SceneGenerator::GetInstance()->GetMaterial0()->OnPassEnd();
 
-		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer);
 
 
 		pDrawCmdBuffer->EndPrimaryRecording();
 
 		GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
-		pEnvFrameBuffer->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance], 0, 1, i, 1);
+		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetFrameBuffer()->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance], 0, 1, i, 1);
 	}
 }
 
 void GlobalTextures::InitPrefilterEnvTexture()
 {
-	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass());
-	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(pEnvFrameBuffer);
-
 	SceneGenerator::GetInstance()->GeneratePrefilterEnvGenScene();
 
 	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::ReflectionGen);
@@ -184,7 +178,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(0, 0, 1)) * rotation,	// Negative Z, i.e front
 	};
 
-	uint32_t mipLevels = std::log2(OFFSCREEN_SIZE);
+	uint32_t mipLevels = std::log2(RenderPassDiction::OFFSCREEN_SIZE);
 	for (uint32_t mipLevel = 0; mipLevel < mipLevels + 1; mipLevel++)
 	{
 		UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(mipLevel / (float)mipLevels);
@@ -222,28 +216,25 @@ void GlobalTextures::InitPrefilterEnvTexture()
 
 			pDrawCmdBuffer->StartPrimaryRecording();
 
-			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer);
 
 			SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
 			SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
 			SceneGenerator::GetInstance()->GetMaterial0()->OnPassEnd();
 
-			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer);
 
 			pDrawCmdBuffer->EndPrimaryRecording();
 
 			GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
-			pEnvFrameBuffer->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv], mipLevel, 1, i, 1, size, size);
+			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetFrameBuffer()->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv], mipLevel, 1, i, 1, size, size);
 		}
 	}
 }
 
 void GlobalTextures::InitBRDFLUTTexture()
 {
-	std::shared_ptr<FrameBuffer> pEnvFrameBuffer = FrameBuffer::CreateOffScreenFrameBuffer(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass());
-	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(pEnvFrameBuffer);
-
 	SceneGenerator::GetInstance()->GenerateBRDFLUTGenScene();
 
 	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::BrdfLutGen);
@@ -259,14 +250,14 @@ void GlobalTextures::InitBRDFLUTTexture()
 	VkViewport viewport =
 	{
 		0, 0,
-		OFFSCREEN_SIZE, OFFSCREEN_SIZE,
+		RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE,
 		0, 1
 	};
 
 	VkRect2D scissorRect =
 	{
 		0, 0,
-		OFFSCREEN_SIZE, OFFSCREEN_SIZE,
+		RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE,
 	};
 
 	pDrawCmdBuffer->StartPrimaryRecording();
@@ -278,20 +269,20 @@ void GlobalTextures::InitBRDFLUTTexture()
 	SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();
 
-	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer);
 
 	SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
 	SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
 	SceneGenerator::GetInstance()->GetMaterial0()->OnPassEnd();
 
-	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer);
 
 
 	pDrawCmdBuffer->EndPrimaryRecording();
 
 	GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
-	pEnvFrameBuffer->ExtractContent(m_IBL2DTextures[RGBA16_512_BRDFLut]);
+	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetFrameBuffer()->ExtractContent(m_IBL2DTextures[RGBA16_512_BRDFLut]);
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()

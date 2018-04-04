@@ -30,7 +30,8 @@
 #include "../scene/SceneGenerator.h"
 #include "../class/RenderPassDiction.h"
 #include "../class/ForwardRenderPass.h"
-#include "../class/DeferredRenderPass.h"
+#include "../class/GBufferPass.h"
+#include "../class/DeferredShadingPass.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {
@@ -616,13 +617,12 @@ void VulkanGlobal::InitMaterials()
 	info.vertexBindingsInfo = { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars = vars;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetDeferredRenderPass()->GetRenderPass();
 	info.vertexFormat = m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
 	info.isDeferredShadingMaterial = false;
 
 
-	m_pGunMaterial = DeferredGeometryMaterial::CreateDefaultMaterial(info);
-	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
+	m_PBRGbufferMaterial = GBufferMaterial::CreateDefaultMaterial(info);
+	m_pGunMaterialInstance = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pGunMaterialInstance->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
 	m_pGunMaterialInstance->SetParameter(1, Vector2f(1.0f, 1.0f));
@@ -630,7 +630,7 @@ void VulkanGlobal::InitMaterials()
 	m_pGunMaterialInstance->SetMaterialTexture(3, RGBA8_1024, "GunNormalAO");
 	m_pGunMaterialInstance->SetMaterialTexture(4, R8_1024, "GunMetallic");
 
-	m_pSphereMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
+	m_pSphereMaterialInstance = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pSphereMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pSphereMaterialInstance->SetParameter(0, Vector4f(1.0f, 0.0f, 0.0f, 0.1f));
 	m_pSphereMaterialInstance->SetParameter(1, Vector2f(1.0f, 0.1f));
@@ -645,10 +645,9 @@ void VulkanGlobal::InitMaterials()
 	info.vertexBindingsInfo		= { m_pCubeMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo	= m_pCubeMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars	= vars;
-	info.pRenderPass			= RenderPassDiction::GetInstance()->GetForwardRenderPass()->GetRenderPass();
 	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
 
-	m_pSkyBoxMaterial = ForwardMaterial::CreateDefaultMaterial(info);
+	m_pSkyBoxMaterial = ForwardMaterial::CreateDefaultMaterial(info, false);
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 
@@ -682,7 +681,6 @@ void VulkanGlobal::InitMaterials()
 	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetDeferredRenderPass()->GetRenderPass();
 
 	m_pShadingMaterial = DeferredShadingMaterial::CreateDefaultMaterial(info);
 }
@@ -764,15 +762,13 @@ void VulkanGlobal::Draw()
 	m_pRootObject->Update();
 	m_pRootObject->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();
-	m_pGunMaterial->SyncBufferData();
+	m_PBRGbufferMaterial->SyncBufferData();
 	
 	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::Scene);
 	GetGlobalVulkanStates()->RestoreViewport();
 	GetGlobalVulkanStates()->RestoreScissor();
 
 	m_pCharacter->Move(m_moveFlag, 0.001f);
-
-	RenderWorkManager::GetInstance()->SetCurrentFrameBuffer(RenderWorkManager::Deferred);
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
 	pDrawCmdBuffer->StartPrimaryRecording();
@@ -783,24 +779,21 @@ void VulkanGlobal::Draw()
 		{ 1.0f, 0 }
 	};
 
-	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->BeginRenderPass(pDrawCmdBuffer);
 
-	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginGeometryPass(pDrawCmdBuffer);
-	m_pGunMaterial->OnPassStart();
-	m_pGunMaterial->Draw(pDrawCmdBuffer);
-	m_pGunMaterial->OnPassEnd();
-	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->EndGeometryPass(pDrawCmdBuffer);
+	m_PBRGbufferMaterial->OnPassStart();
+	m_PBRGbufferMaterial->Draw(pDrawCmdBuffer);
+	m_PBRGbufferMaterial->OnPassEnd();
 
-	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginShadingPass(pDrawCmdBuffer);
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->EndRenderPass(pDrawCmdBuffer);
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->BeginRenderPass(pDrawCmdBuffer);
+
 	m_pShadingMaterial->OnPassStart();
 	m_pShadingMaterial->Draw(pDrawCmdBuffer);
 	m_pShadingMaterial->OnPassEnd();
-	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->EndShadingPass(pDrawCmdBuffer);
 
-	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->BeginTransparentPass(pDrawCmdBuffer);
-	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->EndTransparentPass(pDrawCmdBuffer);
-
-	RenderPassDiction::GetInstance()->GetDeferredRenderPass()->EndRenderPass(pDrawCmdBuffer, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->EndRenderPass(pDrawCmdBuffer);
 
 	//m_pSkyBoxMaterial->OnPassStart();
 	//m_pSkyBoxMaterial->Draw(pDrawCmdBuffer);

@@ -20,5 +20,6 @@ void main()
 	// Transform ray from eye space to world space
 	outViewRay = (perFrameData.viewCoordSystem * vec4(eyeSpaceRay, 0.0)).xyz;
 
-	gl_Position.y *= -1.0;
+	gl_Position.y *= -1.0f;
+	outUv.y = 1.0f - outUv.y;
 }

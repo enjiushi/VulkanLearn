@@ -9,31 +9,18 @@
 #include "../vulkan/DescriptorSet.h"
 #include "../vulkan/DepthStencilBuffer.h"
 #include "../vulkan/Texture2D.h"
+#include "RenderPassBase.h"
 #include "RenderPassDiction.h"
-#include "DeferredRenderPass.h"
 #include "RenderWorkManager.h"
 
-std::shared_ptr<DeferredGeometryMaterial> DeferredGeometryMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
+std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
-	std::shared_ptr<DeferredGeometryMaterial> pDeferredMaterial = std::make_shared<DeferredGeometryMaterial>();
+	std::shared_ptr<GBufferMaterial> pGbufferMaterial = std::make_shared<GBufferMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo =
 	{
-		{
-			VK_FALSE,							// blend enabled
-
-			VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
-			VK_BLEND_OP_ADD,					// color blend op
-
-			VK_BLEND_FACTOR_ONE,				// src alpha blend factor
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
-			VK_BLEND_OP_ADD,					// alpha blend factor
-
-			0xf,								// color mask
-		},
 		{
 			VK_FALSE,							// blend enabled
 
@@ -147,15 +134,15 @@ std::shared_ptr<DeferredGeometryMaterial> DeferredGeometryMaterial::CreateDefaul
 	createInfo.pViewportState = &viewportStateCreateInfo;
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
-	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetDeviceHandle();
 	createInfo.subpass = 0;
+	createInfo.renderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->GetRenderPass()->GetDeviceHandle();
 
-	if (pDeferredMaterial.get() && pDeferredMaterial->Init(pDeferredMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
-		return pDeferredMaterial;
+	if (pGbufferMaterial.get() && pGbufferMaterial->Init(pGbufferMaterial, simpleMaterialInfo.shaderPaths, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->GetRenderPass(), createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+		return pGbufferMaterial;
 	return nullptr;
 }
 
-void DeferredGeometryMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+void GBufferMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
@@ -165,20 +152,23 @@ void DeferredGeometryMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBu
 		{ 1.0f, 0 }
 	};
 
+	std::shared_ptr<RenderPassBase> pGBufferRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
+	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = pGBufferRenderPass->GetFrameBuffer();
+
 	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
-	pDrawCmdBuffer->StartSecondaryRecording(RenderWorkManager::GetInstance()->GetCurrentRenderPass(), 0, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	pDrawCmdBuffer->StartSecondaryRecording(pGBufferRenderPass->GetRenderPass(), 0, pCurrentFrameBuffer);
 
 	VkViewport viewport =
 	{
 		0, 0,
-		RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
 		0, 1
 	};
 
 	VkRect2D scissorRect =
 	{
 		0, 0,
-		RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
 	};
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
@@ -203,6 +193,19 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo =
 	{
+		{
+			VK_FALSE,							// blend enabled
+
+			VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
+			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
+			VK_BLEND_OP_ADD,					// color blend op
+
+			VK_BLEND_FACTOR_ONE,				// src alpha blend factor
+			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
+			VK_BLEND_OP_ADD,					// alpha blend factor
+
+			0xf,								// color mask
+		},
 		{
 			VK_FALSE,							// blend enabled
 
@@ -290,10 +293,10 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 	createInfo.pViewportState = &viewportStateCreateInfo;
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
-	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetDeviceHandle();
-	createInfo.subpass = 1;
+	createInfo.renderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()->GetDeviceHandle();
+	createInfo.subpass = 0;
 
-	if (pDeferredMaterial.get() && pDeferredMaterial->Init(pDeferredMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pDeferredMaterial.get() && pDeferredMaterial->Init(pDeferredMaterial, simpleMaterialInfo.shaderPaths, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass(), createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pDeferredMaterial;
 
 	return nullptr;
@@ -309,19 +312,31 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
 		return false;
 
-	m_pDescriptorSet->UpdateInputImage(2,
-		std::static_pointer_cast<Image>(RenderWorkManager::GetInstance()->GetGBuffers()[0]),
-		RenderWorkManager::GetInstance()->GetGBuffers()[0]->CreateLinearClampToEdgeSampler(),
-		RenderWorkManager::GetInstance()->GetGBuffers()[0]->CreateDefaultImageView());
-	m_pDescriptorSet->UpdateInputImage(3, std::static_pointer_cast<Image>(RenderWorkManager::GetInstance()->GetGBuffers()[1]),
-		RenderWorkManager::GetInstance()->GetGBuffers()[1]->CreateLinearClampToEdgeSampler(),
-		RenderWorkManager::GetInstance()->GetGBuffers()[1]->CreateDefaultImageView());
-	m_pDescriptorSet->UpdateInputImage(4, std::static_pointer_cast<Image>(RenderWorkManager::GetInstance()->GetGBuffers()[2]),
-		RenderWorkManager::GetInstance()->GetGBuffers()[2]->CreateLinearClampToEdgeSampler(),
-		RenderWorkManager::GetInstance()->GetGBuffers()[2]->CreateDefaultImageView());
-	m_pDescriptorSet->UpdateInputImage(5, std::static_pointer_cast<Image>(RenderWorkManager::GetInstance()->GetDeferredDepthStencilBuffer()),
-		RenderWorkManager::GetInstance()->GetDeferredDepthStencilBuffer()->CreateLinearClampToEdgeSampler(),
-		RenderWorkManager::GetInstance()->GetDeferredDepthStencilBuffer()->CreateDepthSampleImageView());
+	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
+	std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = pGBufferPass->GetFrameBuffer();
+
+	std::vector<std::shared_ptr<Image>> colorTargets = pGBufferFrameBuffer->GetColorTargets();
+	std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = pGBufferFrameBuffer->GetDepthStencilTarget();
+
+	m_pDescriptorSet->UpdateImage(2,
+		colorTargets[0],
+		colorTargets[0]->CreateLinearClampToEdgeSampler(),
+		colorTargets[0]->CreateDefaultImageView());
+
+	m_pDescriptorSet->UpdateImage(3, 
+		colorTargets[1],
+		colorTargets[1]->CreateLinearClampToEdgeSampler(),
+		colorTargets[1]->CreateDefaultImageView());
+
+	m_pDescriptorSet->UpdateImage(4, 
+		colorTargets[2],
+		colorTargets[2]->CreateLinearClampToEdgeSampler(),
+		colorTargets[2]->CreateDefaultImageView());
+
+	m_pDescriptorSet->UpdateImage(5, 
+		pDepthStencilBuffer,
+		pDepthStencilBuffer->CreateLinearClampToEdgeSampler(),
+		pDepthStencilBuffer->CreateDepthSampleImageView());
 
 	return true;
 }
@@ -330,28 +345,28 @@ void DeferredShadingMaterial::CustomizeLayout()
 {
 	m_materialVariableLayout.push_back(
 		{
-			InputAttachment,
+			CombinedSampler,
 			"Input GBuffer0",
 			{}
 		});
 
 	m_materialVariableLayout.push_back(
 		{
-			InputAttachment,
+			CombinedSampler,
 			"Input GBuffer1",
 		{}
 		});
 
 	m_materialVariableLayout.push_back(
 		{
-			InputAttachment,
+			CombinedSampler,
 			"Input GBuffer2",
 		{}
 		});
 
 	m_materialVariableLayout.push_back(
 		{
-			InputAttachment,
+			CombinedSampler,
 			"Input GBuffer3",
 		{}
 		});
@@ -367,20 +382,23 @@ void DeferredShadingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf
 		{ 1.0f, 0 }
 	};
 
+	std::shared_ptr<RenderPassBase> pDeferredShadingPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
+	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = pDeferredShadingPass->GetFrameBuffer();
+
 	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
-	pDrawCmdBuffer->StartSecondaryRecording(RenderWorkManager::GetInstance()->GetCurrentRenderPass(), 1, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer());
+	pDrawCmdBuffer->StartSecondaryRecording(pDeferredShadingPass->GetRenderPass(), 0, pCurrentFrameBuffer);
 
 	VkViewport viewport =
 	{
 		0, 0,
-		RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
 		0, 1
 	};
 
 	VkRect2D scissorRect =
 	{
 		0, 0,
-		RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().width, RenderWorkManager::GetInstance()->GetCurrentFrameBuffer()->GetFramebufferInfo().height,
+		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
 	};
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });

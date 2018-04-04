@@ -82,8 +82,9 @@ void UniformData::BuildDescriptorSets()
 	std::vector<UniformVarList> globalTextureVars = m_uniformTextures[UniformTextureType::GlobalUniformTextures]->PrepareUniformVarList();
 	globalUniformVars.insert(globalUniformVars.end(), globalTextureVars.begin(), globalTextureVars.end());
 
+	/*
 	std::vector<UniformVarList> globalInputAttachVars = m_uniformTextures[UniformTextureType::GlobalGBufferInputUniforms]->PrepareUniformVarList();
-	globalUniformVars.insert(globalUniformVars.end(), globalInputAttachVars.begin(), globalInputAttachVars.end());
+	globalUniformVars.insert(globalUniformVars.end(), globalInputAttachVars.begin(), globalInputAttachVars.end());*/
 
 	// Setup per frame uniform var list
 	std::vector<UniformVarList> perFrameUniformVars = m_uniformStorageBuffers[UniformStorageType::PerFrameVariableBuffer]->PrepareUniformVarList();

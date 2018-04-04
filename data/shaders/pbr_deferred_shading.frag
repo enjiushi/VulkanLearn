@@ -5,10 +5,10 @@
 
 #include "uniform_layout.h"
 
-layout (input_attachment_index = 0, set = 3, binding = 2) uniform subpassInput GBuffer0;
-layout (input_attachment_index = 1, set = 3, binding = 3) uniform subpassInput GBuffer1;
-layout (input_attachment_index = 2, set = 3, binding = 4) uniform subpassInput GBuffer2;
-layout (input_attachment_index = 3, set = 3, binding = 5) uniform subpassInput DepthStencilBuffer;
+layout (set = 3, binding = 2) uniform sampler2D GBuffer0;
+layout (set = 3, binding = 3) uniform sampler2D GBuffer1;
+layout (set = 3, binding = 4) uniform sampler2D GBuffer2;
+layout (set = 3, binding = 5) uniform sampler2D DepthStencilBuffer;
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inViewRay;
@@ -25,9 +25,9 @@ struct GBufferVariables
 
 const vec3 lightPos = vec3(1000, 0, -1000);
 
-vec3 ReconstructPosition()
+vec3 ReconstructPosition(ivec2 coord)
 {
-	float window_z = subpassLoad(DepthStencilBuffer).r;
+	float window_z = texelFetch(DepthStencilBuffer, coord, 0).r;
 	float eye_z = (perFrameData.nearFar.x * perFrameData.nearFar.y) / (window_z * (perFrameData.nearFar.y - perFrameData.nearFar.x) - perFrameData.nearFar.y);
 
 	vec3 viewRay = normalize(inViewRay);
@@ -43,13 +43,13 @@ vec3 ReconstructPosition()
 }
 
 
-GBufferVariables UnpackGBuffers()
+GBufferVariables UnpackGBuffers(ivec2 coord)
 {
 	GBufferVariables vars;
 
-	vec4 gbuffer0 = subpassLoad(GBuffer0);
-	vec4 gbuffer1 = subpassLoad(GBuffer1);
-	vec4 gbuffer2 = subpassLoad(GBuffer2);
+	vec4 gbuffer0 = texelFetch(GBuffer0, coord, 0);
+	vec4 gbuffer1 = texelFetch(GBuffer1, coord, 0);
+	vec4 gbuffer2 = texelFetch(GBuffer2, coord, 0);
 
 	vars.albedo_roughness.rgb = gbuffer1.rgb;
 	vars.albedo_roughness.a = gbuffer2.r;
@@ -57,7 +57,7 @@ GBufferVariables UnpackGBuffers()
 	vars.normal_ao.xyz = normalize(gbuffer0.xyz * 2.0f - 1.0f);
 	vars.normal_ao.w = gbuffer2.a;
 
-	vars.world_position = vec4(ReconstructPosition(), 1.0);
+	vars.world_position = vec4(ReconstructPosition(coord), 1.0);
 
 	vars.metalic = gbuffer2.g;
 
@@ -68,7 +68,9 @@ void main()
 {
 	outFragColor = vec4(vec3(0), 1);
 
-	GBufferVariables vars = UnpackGBuffers();
+	ivec2 coord = ivec2(floor(inUv * vec2(1016, 737)));
+
+	GBufferVariables vars = UnpackGBuffers(coord);
 
 	vec3 n = vars.normal_ao.xyz;
 	vec3 v = normalize(perFrameData.camPos.xyz - vars.world_position.xyz);
