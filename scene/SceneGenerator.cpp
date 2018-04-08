@@ -137,6 +137,27 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateBoxMesh()
 	return pCubeMesh;
 }
 
+std::shared_ptr<Mesh> SceneGenerator::GeneratePBRQuadMesh()
+{
+	float quadVertices[] = {
+		-1.0, -1.0,  0.0,   0.0, 1.0, 0.0,   0.0, 0.0,   1.0, 0.0, 0.0,
+		1.0, -1.0,  0.0,   0.0, 1.0, 0.0,   1.0, 0.0,   1.0, 0.0, 0.0,
+		-1.0,  1.0,  0.0,   0.0, 1.0, 0.0,   0.0, 1.0,   1.0, 0.0, 0.0,
+		1.0,  1.0,  0.0,   0.0, 1.0, 0.0,   1.0, 1.0,   1.0, 0.0, 0.0,
+	};
+
+	uint32_t quadIndices[] = {
+		0, 1, 3,
+		0, 3, 2,
+	};
+
+	return Mesh::Create
+	(
+		quadVertices, 4, (1 << VAFPosition) | (1 << VAFNormal) | (1 << VAFTexCoord) | (1 << VAFTangent),
+		quadIndices, 6, VK_INDEX_TYPE_UINT32
+	);
+}
+
 std::shared_ptr<Mesh> SceneGenerator::GenerateQuadMesh()
 {
 	float quadVertices[] = {
@@ -157,6 +178,7 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateQuadMesh()
 		quadIndices, 6, VK_INDEX_TYPE_UINT32
 	);
 }
+
 
 std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateIrradianceGenMaterial(const std::shared_ptr<Mesh>& pMesh)
 {
