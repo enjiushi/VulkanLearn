@@ -389,6 +389,7 @@ void VulkanGlobal::InitVertices()
 {
 	m_pGunMesh = Mesh::Create("../data/textures/cerberus/cerberus.fbx");
 	m_pSphereMesh = Mesh::Create("../data/models/sphere.obj");
+	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
 	VkVertexInputBindingDescription bindingDesc = {};
 	std::vector<VkVertexInputAttributeDescription> attribDesc;
@@ -431,24 +432,6 @@ void VulkanGlobal::InitVertices()
 	(
 		cubeVertices, 8, 1 << VAFPosition,
 		cubeIndices, 36, VK_INDEX_TYPE_UINT32
-	);
-
-	float quadVertices[] = {
-		-1.0, -1.0,  0.0, 0.0, 0.0, 0.0,
-		1.0, -1.0,  0.0,  1.0, 0.0, 0.0,
-		-1.0,  1.0,  0.0, 0.0, 1.0, 0.0,
-		1.0,  1.0,  0.0,  1.0, 1.0, 0.0,
-	};
-
-	uint32_t quadIndices[] = {
-		0, 1, 3,
-		0, 3, 2,
-	};
-
-	m_pQuadMesh = Mesh::Create
-	(
-		quadVertices, 4, (1 << VAFPosition) | (1 << VAFTexCoord), 
-		quadIndices, 6, VK_INDEX_TYPE_UINT32
 	);
 }
 
@@ -639,6 +622,14 @@ void VulkanGlobal::InitMaterials()
 	m_pSphereMaterialInstance->SetMaterialTexture(3, RGBA8_1024, ":)");
 	m_pSphereMaterialInstance->SetMaterialTexture(4, R8_1024, ":)");
 
+	m_pQuadMaterialInstance = m_PBRGbufferMaterial->CreateMaterialInstance();
+	m_pQuadMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pQuadMaterialInstance->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 0.1f));
+	m_pQuadMaterialInstance->SetParameter(1, Vector2f(1.0f, 0.1f));
+	m_pQuadMaterialInstance->SetMaterialTexture(2, RGBA8_1024, ":)");
+	m_pQuadMaterialInstance->SetMaterialTexture(3, RGBA8_1024, ":)");
+	m_pQuadMaterialInstance->SetMaterialTexture(4, R8_1024, ":)");
+
 	// Skybox material
 	vars = {};
 
@@ -723,17 +714,29 @@ void VulkanGlobal::InitScene()
 	m_pGunObject = BaseObject::Create();
 	m_pGunObject1 = BaseObject::Create();
 	m_pSphere = BaseObject::Create();
+	m_pQuadObject = BaseObject::Create();
+
 	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
 	m_pGunMeshRenderer->SetDescription(L"GunMeshRenderer0");
 	m_pGunMeshRenderer1 = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
 	m_pGunMeshRenderer1->SetDescription(L"GunMeshRenderer1");
 	m_pSphereRenderer = MeshRenderer::Create(m_pSphereMesh, m_pSphereMaterialInstance);
 	m_pSphereRenderer->SetDescription(L"SphereRenderer");
+	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, m_pQuadMaterialInstance);
+
 	m_pGunObject->AddComponent(m_pGunMeshRenderer);
 	m_pGunObject1->AddComponent(m_pGunMeshRenderer1);
 	m_pGunObject1->SetPos({-100, 0, 0});
+
 	m_pSphere->AddComponent(m_pSphereRenderer);
 	m_pSphere->SetPos(0, 100, 0);
+
+	m_pQuadObject->AddComponent(m_pQuadRenderer);
+	m_pQuadObject->SetPos(0, 0, -200);
+	m_pQuadObject->SetScale(100);
+
+	//Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
+	//m_pQuadObject->SetRotation(Quaternionf(Vector3f(1, 0, 0), 0));
 
 	m_pSkyBoxObject = BaseObject::Create();
 	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, { m_pSkyBoxMaterialInstance });
@@ -747,7 +750,8 @@ void VulkanGlobal::InitScene()
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pGunObject);
 	m_pRootObject->AddChild(m_pGunObject1);
-	m_pGunObject->AddChild(m_pSphere);
+	m_pRootObject->AddChild(m_pSphere);
+	m_pRootObject->AddChild(m_pQuadObject);
 	//m_pRootObject->AddChild(m_pTestObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 
