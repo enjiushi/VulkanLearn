@@ -107,8 +107,8 @@ Matrix3x3<T> Quaternion<T>::Matrix() const
 	resMatrix.y1 = static_cast<T>(1.0) - static_cast<T>(2.0) * (x * x + z * z);
 	resMatrix.z1 = static_cast<T>(2.0) * (y * z - x * w);
 	resMatrix.x2 = static_cast<T>(2.0) * (x * z - y * w);
-	resMatrix.z2 = static_cast<T>(2.0) * (y * z + x * w);
-	resMatrix.y2 = static_cast<T>(1.0) - static_cast<T>(2.0) * (x * x + y * y);
+	resMatrix.y2 = static_cast<T>(2.0) * (y * z + x * w);
+	resMatrix.z2 = static_cast<T>(1.0) - static_cast<T>(2.0) * (x * x + y * y);
 
 	return resMatrix;
 }
