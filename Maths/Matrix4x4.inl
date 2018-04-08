@@ -71,6 +71,15 @@ Matrix4x4<T>::Matrix4x4(const Vector4<T>& c0, const Vector4<T>& c1, const Vector
 }
 
 template <typename T>
+Matrix4x4<T>::Matrix4x4(const Vector4<T>& v)
+{
+	c[0].x = v.x; c[0].y = 0; c[0].z = 0, c[0].w = 0;
+	c[1].x = 0; c[1].y = v.y; c[1].z = 0; c[1].w = 0;
+	c[2].x = 0; c[2].y = 0; c[2].z = v.z; c[2].w = 0;
+	c[3].x = 0; c[3].y = 0; c[3].z = 0; c[3].w = v.w;
+}
+
+template <typename T>
 bool Matrix4x4<T>::IsIdentity() const
 {
 	const static T eps = 10e-3f;

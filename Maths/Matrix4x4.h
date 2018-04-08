@@ -23,6 +23,7 @@ public:
 	Matrix4x4(const Matrix4x4<T>& m);
 	Matrix4x4(const Matrix3x3<T>& m);
 	Matrix4x4(const Matrix3x3<T>& m, const Vector3<T>& v);
+	Matrix4x4(const Vector4<T>& v);
 
 	bool IsIdentity() const;
 

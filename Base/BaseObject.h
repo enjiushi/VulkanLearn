@@ -6,6 +6,9 @@
 
 class BaseObject : public SelfRefBase<BaseObject>
 {
+protected:
+	bool Init(const std::shared_ptr<BaseObject>& pObj);
+
 public:
 	void AddComponent(const std::shared_ptr<BaseComponent>& pComp);
 	void DelComponent(uint32_t index);
@@ -23,6 +26,12 @@ public:
 	void SetPosX(float x) { m_localPosition.x = x; UpdateLocalTransform(); }
 	void SetPosY(float y) { m_localPosition.y = y; UpdateLocalTransform(); }
 	void SetPosZ(float z) { m_localPosition.z = z; UpdateLocalTransform(); }
+
+	void SetScale(const Vector3f& v) { m_localScale = v; UpdateLocalTransform(); }
+	void SetScale(float x, float y, float z) { m_localScale = Vector3f(x, y, z); UpdateLocalTransform(); }
+	void SetScaleX(float x) { m_localScale.x = x; UpdateLocalTransform(); }
+	void SetScaleY(float y) { m_localScale.y = y; UpdateLocalTransform(); }
+	void SetScaleZ(float z) { m_localScale.z = z; UpdateLocalTransform(); }
 
 	void SetRotation(const Matrix3f& m);
 	void SetRotation(const Quaternionf& q);
@@ -55,6 +64,7 @@ protected:
 	std::shared_ptr<BaseObject>						m_pParent;
 
 	Vector3f	m_localPosition;
+	Vector3f	m_localScale;
 
 	Matrix4f	m_localTransform;
 	Matrix3f	m_localRotationM;

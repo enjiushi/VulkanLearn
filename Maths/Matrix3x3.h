@@ -14,6 +14,8 @@ public:
 	Matrix3x3(const Vector3<T>& c0, const Vector3<T>& c1, const Vector3<T>& c2);
 	Matrix3x3(const T* pData);
 	Matrix3x3(const Matrix3x3<T>& m);
+	Matrix3x3(T data);
+	Matrix3x3(const Vector3<T>& v);
 
 	bool IsIdentity() const;
 

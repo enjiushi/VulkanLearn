@@ -2,6 +2,15 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/FrameManager.h"
 
+bool BaseObject::Init(const std::shared_ptr<BaseObject>& pObj)
+{
+	if (!SelfRefBase<BaseObject>::Init(pObj))
+		return false;
+
+	m_localScale = 1.0f;
+	return true;
+}
+
 std::shared_ptr<BaseObject> BaseObject::Create()
 {
 	std::shared_ptr<BaseObject> pObj = std::make_shared<BaseObject>();
@@ -120,7 +129,7 @@ void BaseObject::SetRotation(const Quaternionf& q)
 
 void BaseObject::UpdateLocalTransform()
 {
-	m_localTransform = Matrix4f(m_localRotationM, m_localPosition);
+	m_localTransform = Matrix4f(m_localRotationM, m_localPosition) * Matrix4f(Vector4f(m_localScale, 1));
 }
 
 Vector3f BaseObject::GetWorldPosition() const
