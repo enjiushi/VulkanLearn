@@ -624,7 +624,7 @@ void VulkanGlobal::InitMaterials()
 
 	m_pQuadMaterialInstance = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pQuadMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pQuadMaterialInstance->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 0.1f));
+	m_pQuadMaterialInstance->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 0.9f));
 	m_pQuadMaterialInstance->SetParameter(1, Vector2f(1.0f, 0.1f));
 	m_pQuadMaterialInstance->SetMaterialTexture(2, RGBA8_1024, ":)");
 	m_pQuadMaterialInstance->SetMaterialTexture(3, RGBA8_1024, ":)");
@@ -711,6 +711,13 @@ void VulkanGlobal::InitScene()
 	m_pCameraObj->SetPos({ 0, 0, 50 });
 	m_pCameraObj->Update();
 
+	m_pDirLightObj = BaseObject::Create();
+	m_pDirLightObj->SetPos(64, 64, -64);
+	m_pDirLightObj->SetRotation(Matrix3f::EulerAngle(0.78f, 0, 0) * Matrix3f::EulerAngle(0, -0.78f, 0));
+
+	m_pDirLight = DirectionLight::Create({ 1, 1, 1 });
+	m_pDirLightObj->AddComponent(m_pDirLight);
+
 	m_pGunObject = BaseObject::Create();
 	m_pGunObject1 = BaseObject::Create();
 	m_pSphere = BaseObject::Create();
@@ -732,11 +739,11 @@ void VulkanGlobal::InitScene()
 	m_pSphere->SetPos(0, 100, 0);
 
 	m_pQuadObject->AddComponent(m_pQuadRenderer);
-	m_pQuadObject->SetPos(0, 0, -200);
-	m_pQuadObject->SetScale(100);
+	m_pQuadObject->SetPos(0, -50, 0);
+	m_pQuadObject->SetScale(200);
 
-	//Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
-	//m_pQuadObject->SetRotation(Quaternionf(Vector3f(1, 0, 0), 0));
+	Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
+	m_pQuadObject->SetRotation(Quaternionf(Vector3f(1, 0, 0), -1.57));
 
 	m_pSkyBoxObject = BaseObject::Create();
 	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, { m_pSkyBoxMaterialInstance });
@@ -754,11 +761,12 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pQuadObject);
 	//m_pRootObject->AddChild(m_pTestObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
+	m_pRootObject->AddChild(m_pDirLightObj);
 
 	m_pRootObject->AddChild(m_pCameraObj);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor({ 1, 1, 1 });
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ -1, -1, 1 });
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ 1, 1, -1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetRenderSettings({ 1.0f / 2.2f, 4.5f, 11.2f, 0.0f });
 }
 

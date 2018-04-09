@@ -41,6 +41,7 @@
 #include "Texture2DArray.h"
 #include "../class/ForwardMaterial.h"
 #include "../class/DeferredMaterial.h"
+#include "../component/DirectionLight.h"
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
@@ -121,6 +122,9 @@ public:
 	std::shared_ptr<Camera>				m_pCameraComp;
 	std::shared_ptr<Character>			m_pCharacter;
 	uint32_t							m_moveFlag = 0;
+
+	std::shared_ptr<BaseObject>			m_pDirLightObj;
+	std::shared_ptr<DirectionLight>		m_pDirLight;
 
 	std::shared_ptr<Texture2D>			m_pAlbedoRoughness;
 	std::shared_ptr<Texture2D>			m_pNormalAO;

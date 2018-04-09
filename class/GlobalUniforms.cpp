@@ -60,7 +60,7 @@ void GlobalUniforms::SetDirty()
 
 void GlobalUniforms::SetMainLightDir(const Vector3f& dir)
 {
-	m_globalVariables.mainLightDir = dir.Normal();
+	m_globalVariables.mainLightDir = dir.Normal().Negative();
 	UniformDataStorage::SetDirty();
 }
 
