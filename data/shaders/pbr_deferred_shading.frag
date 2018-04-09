@@ -24,8 +24,6 @@ struct GBufferVariables
 	float metalic;
 };
 
-const vec3 lightPos = vec3(1000, 0, -1000);
-
 vec3 ReconstructPosition(ivec2 coord)
 {
 	float window_z = texelFetch(DepthStencilBuffer[int(perFrameData.camDir.a)], coord, 0).r;
@@ -73,7 +71,7 @@ void main()
 
 	vec3 n = vars.normal_ao.xyz;
 	vec3 v = normalize(perFrameData.camPos.xyz - vars.world_position.xyz);
-	vec3 l = normalize(lightPos - vars.world_position.xyz);
+	vec3 l = globalData.mainLightDir.xyz;
 	vec3 h = normalize(l + v);
 
 	float NdotH = max(0.0f, dot(n, h));
