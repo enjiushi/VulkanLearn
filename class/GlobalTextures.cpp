@@ -73,7 +73,7 @@ void GlobalTextures::InitIrradianceTexture()
 {
 	SceneGenerator::GetInstance()->GenerateIrradianceGenScene();
 
-	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::IrradianceGen);
+	RenderWorkManager::GetInstance()->SetRenderStateMask(RenderWorkManager::IrradianceGen);
 
 	Vector3f up = { 0, 1, 0 };
 	Vector3f look = { 0, 0, -1 };
@@ -153,7 +153,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 {
 	SceneGenerator::GetInstance()->GeneratePrefilterEnvGenScene();
 
-	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::ReflectionGen);
+	RenderWorkManager::GetInstance()->SetRenderStateMask(RenderWorkManager::ReflectionGen);
 
 	Vector3f up = { 0, 1, 0 };
 	Vector3f look = { 0, 0, -1 };
@@ -237,7 +237,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 {
 	SceneGenerator::GetInstance()->GenerateBRDFLUTGenScene();
 
-	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::BrdfLutGen);
+	RenderWorkManager::GetInstance()->SetRenderStateMask(RenderWorkManager::BrdfLutGen);
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 

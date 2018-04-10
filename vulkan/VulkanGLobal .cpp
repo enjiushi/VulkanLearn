@@ -374,7 +374,6 @@ void VulkanGlobal::InitSwapchainImgs()
 
 void VulkanGlobal::InitDepthStencil()
 {
-	m_pDSBuffer = DepthStencilBuffer::Create(m_pDevice);
 }
 
 void VulkanGlobal::InitRenderpass()
@@ -597,7 +596,7 @@ void VulkanGlobal::InitMaterials()
 
 	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths = { L"../data/shaders/pbr_gbuffer_gen.vert.spv", L"", L"", L"", L"../data/shaders/pbr_gbuffer_gen.frag.spv", L"" };
-	info.vertexBindingsInfo = { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexBindingsInfo = { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };	// FIXME: I need to extract shared vertex buffer out of specific mesh
 	info.vertexAttributesInfo = m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
 	info.materialUniformVars = vars;
 	info.vertexFormat = m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
@@ -682,6 +681,19 @@ void VulkanGlobal::InitMaterials()
 	info.depthWriteEnable		= false;
 
 	m_pShadingMaterial = DeferredShadingMaterial::CreateDefaultMaterial(info);
+
+	info.shaderPaths = { L"../data/shaders/shadow_map_gen.vert.spv", L"", L"", L"", L"", L"" };
+	info.vertexBindingsInfo = { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };	// FIXME: I need to extract shared vertex buffer out of specific mesh
+	info.vertexAttributesInfo = m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
+	info.vertexFormat = m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
+	info.subpassIndex = 0;
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap);
+	info.depthTestEnable = false;
+	info.depthWriteEnable = false;
+
+	m_pShadowMapMaterial = ShadowMapMaterial::CreateDefaultMaterial(info);
+	m_pShadowMapMaterialInstance = m_pShadowMapMaterial->CreateMaterialInstance();
+	m_pShadowMapMaterialInstance->SetRenderMask(1 << RenderWorkManager::ShadowMapGen);
 }
 
 void VulkanGlobal::InitScene()
@@ -723,13 +735,13 @@ void VulkanGlobal::InitScene()
 	m_pSphere = BaseObject::Create();
 	m_pQuadObject = BaseObject::Create();
 
-	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
+	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, { m_pGunMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pGunMeshRenderer->SetDescription(L"GunMeshRenderer0");
-	m_pGunMeshRenderer1 = MeshRenderer::Create(m_pGunMesh, m_pGunMaterialInstance);
+	m_pGunMeshRenderer1 = MeshRenderer::Create(m_pGunMesh, { m_pGunMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pGunMeshRenderer1->SetDescription(L"GunMeshRenderer1");
-	m_pSphereRenderer = MeshRenderer::Create(m_pSphereMesh, m_pSphereMaterialInstance);
+	m_pSphereRenderer = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pSphereRenderer->SetDescription(L"SphereRenderer");
-	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, m_pQuadMaterialInstance);
+	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
 
 	m_pGunObject->AddComponent(m_pGunMeshRenderer);
 	m_pGunObject1->AddComponent(m_pGunMeshRenderer1);
@@ -782,12 +794,13 @@ void VulkanGlobal::Draw()
 	uint32_t frameIndex = FrameMgr()->FrameIndex();
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(FrameMgr()->FrameIndex());
 
+	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
+
 	m_pRootObject->Update();
 	m_pRootObject->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();
 	m_PBRGbufferMaterial->SyncBufferData();
 	
-	RenderWorkManager::GetInstance()->SetRenderState(RenderWorkManager::Scene);
 	GetGlobalVulkanStates()->RestoreViewport();
 	GetGlobalVulkanStates()->RestoreScissor();
 
@@ -809,6 +822,14 @@ void VulkanGlobal::Draw()
 	m_PBRGbufferMaterial->OnPassEnd();
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->EndRenderPass(pDrawCmdBuffer);
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap)->BeginRenderPass(pDrawCmdBuffer);
+
+	m_pShadowMapMaterial->OnPassStart();
+	m_pShadowMapMaterial->Draw(pDrawCmdBuffer);
+	m_pShadowMapMaterial->OnPassEnd();
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap)->EndRenderPass(pDrawCmdBuffer);
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->BeginRenderPass(pDrawCmdBuffer);
 

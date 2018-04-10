@@ -42,6 +42,7 @@
 #include "../class/ForwardMaterial.h"
 #include "../class/DeferredMaterial.h"
 #include "../component/DirectionLight.h"
+#include "../class/ShadowMapMaterial.h"
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
@@ -149,6 +150,9 @@ public:
 	std::shared_ptr<MaterialInstance>	m_pQuadMaterialInstance;
 
 	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
+
+	std::shared_ptr<ShadowMapMaterial>	m_pShadowMapMaterial;
+	std::shared_ptr<MaterialInstance>	m_pShadowMapMaterialInstance;
 
 	std::shared_ptr<BaseObject>			m_pSkyBoxObject;
 	std::shared_ptr<MeshRenderer>		m_pSkyBoxMeshRenderer;

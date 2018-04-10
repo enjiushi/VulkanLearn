@@ -83,7 +83,7 @@ void MeshRenderer::LateUpdate()
 
 	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
 	{
-		if (((1 << RenderWorkManager::GetInstance()->GetRenderState()) & m_materialInstances[i].first->GetRenderMask()) == 0)
+		if ((RenderWorkManager::GetInstance()->GetRenderStateMask() & m_materialInstances[i].first->GetRenderMask()) == 0)
 			continue;
 
 		VkDrawIndexedIndirectCommand cmd;

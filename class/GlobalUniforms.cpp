@@ -70,6 +70,12 @@ void GlobalUniforms::SetMainLightColor(const Vector3f& color)
 	UniformDataStorage::SetDirty();
 }
 
+void GlobalUniforms::SetMainLightVP(const Matrix4f& vp)
+{
+	m_globalVariables.mainLightVP = vp;
+	UniformDataStorage::SetDirty();
+}
+
 
 void GlobalUniforms::SetRenderSettings(const Vector4f& setting)
 {

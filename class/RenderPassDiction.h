@@ -20,6 +20,7 @@ public:
 	enum PipelineRenderPass
 	{
 		PipelineRenderPassGBuffer,
+		PipelineRenderPassShadowMap,
 		PipelineRenderPassSSAO,
 		PipelineRenderPassShading,
 		PipelineRenderPassPostProcessing,

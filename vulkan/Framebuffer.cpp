@@ -9,6 +9,7 @@
 #include "Queue.h"
 #include "VulkanUtil.h"
 #include "ImageView.h"
+#include "../Maths/Vector.h"
 
 FrameBuffer::~FrameBuffer()
 {
@@ -29,12 +30,22 @@ bool FrameBuffer::Init(
 	m_pDepthStencilBuffer = pDepthStencilBuffer;
 	m_pRenderPass = pRenderPass;
 
-	ASSERTION(images.size() != 0);
+	Vector2ui size = { 0, 0 };
 
+	bool sizeAcquired = false;
 	for (auto& pImg : m_images)
+	{
 		m_imageViews.push_back(pImg->CreateDefaultImageView());
+		size = { m_images[0]->GetImageInfo().extent.width, m_images[0]->GetImageInfo().extent.height };
+		sizeAcquired = true;
+	}
 	if (m_pDepthStencilBuffer != nullptr)
+	{
 		m_imageViews.push_back(m_pDepthStencilBuffer->CreateDefaultImageView());
+
+		if (!sizeAcquired)
+			size = { m_pDepthStencilBuffer->GetImageInfo().extent.width, m_pDepthStencilBuffer->GetImageInfo().extent.height };
+	}
 
 	std::vector<VkImageView> rawViews;
 	for (auto& pImgView : m_imageViews)
@@ -45,8 +56,8 @@ bool FrameBuffer::Init(
 	m_info.attachmentCount = rawViews.size();
 	m_info.pAttachments = rawViews.data();
 	m_info.layers = 1;
-	m_info.width = m_images[0]->GetImageInfo().extent.width;
-	m_info.height = m_images[0]->GetImageInfo().extent.height;
+	m_info.width = size.x;
+	m_info.height = size.y;
 	m_info.renderPass = m_pRenderPass->GetDeviceHandle();
 
 	RETURN_FALSE_VK_RESULT(vkCreateFramebuffer(GetDevice()->GetDeviceHandle(), &m_info, nullptr, &m_framebuffer));

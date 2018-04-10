@@ -18,6 +18,7 @@ public:
 		ReflectionGen,
 		BrdfLutGen,
 		Scene,
+		ShadowMapGen,
 		RenderStateCount
 	};
 
@@ -25,9 +26,11 @@ public:
 	bool Init();
 
 public:
-	void SetRenderState(RenderState renderState) { m_renderState = renderState; }
-	RenderState GetRenderState() const { return m_renderState; }
+	void SetRenderStateMask(RenderState renderState) { m_renderStateMask = (1 << renderState); }
+	void SetRenderStateMask(uint32_t mask) { m_renderStateMask = mask; }
+	void AddRenderStateMask(RenderState renderState) { m_renderStateMask |= (1 << renderState); }
+	uint32_t GetRenderStateMask() const { return m_renderStateMask; }
 
 protected:
-	RenderState						m_renderState;
+	uint32_t	m_renderStateMask;
 };

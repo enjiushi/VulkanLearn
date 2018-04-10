@@ -8,6 +8,7 @@
 #include "SSAOPass.h"
 #include "DeferredShadingPass.h"
 #include "PostProcessingPass.h"
+#include "ShadowMapPass.h"
 
 bool RenderPassDiction::Init()
 {
@@ -23,6 +24,8 @@ bool RenderPassDiction::Init()
 		{
 		case  PipelineRenderPassGBuffer:
 			m_pipelineRenderPasses.push_back(GBufferPass::Create());
+		case  PipelineRenderPassShadowMap:
+			m_pipelineRenderPasses.push_back(ShadowMapPass::Create());
 		case PipelineRenderPassSSAO:
 			m_pipelineRenderPasses.push_back(SSAOPass::Create());
 		case PipelineRenderPassShading:

@@ -8,6 +8,7 @@ struct GlobalData
 	// Scene Settings
 	vec4 mainLightDir;
 	vec4 mainLightColor;
+	mat4 mainLightVP;
 
 	// Render Settings
 	vec4 GEW;		//Gamma, exposure, white scale

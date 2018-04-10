@@ -77,7 +77,7 @@ void ForwardRenderPass::InitFrameBuffers()
 		else
 			pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), m_size.x, m_size.y, m_pRenderPass->GetAttachmentDesc()[0].format);
 
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateInputAttachment(GetDevice());
+		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateInputAttachment(GetDevice(), VK_FORMAT_D32_SFLOAT_S8_UINT);
 
 		m_frameBuffers.push_back(FrameBuffer::Create(GetDevice(), pColorTarget, pDepthStencilBuffer, GetRenderPass()));
 	}

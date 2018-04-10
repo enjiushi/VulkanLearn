@@ -24,6 +24,7 @@ uint32_t VulkanUtil::GetBytesFromFormat(VkFormat format)
 	case VK_FORMAT_D24_UNORM_S8_UINT:			return 4;
 	case VK_FORMAT_D32_SFLOAT_S8_UINT:			return 6;
 	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:	return 4;
+	case VK_FORMAT_D32_SFLOAT:					return 4;
 	default: ASSERTION(false);	// New one used, add it here
 	}
 	return 0;

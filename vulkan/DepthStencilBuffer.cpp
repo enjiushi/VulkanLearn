@@ -57,19 +57,19 @@ std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::Create(const std::shared
 	return nullptr;
 }
 
-std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::Create(const std::shared_ptr<Device>& pDevice)
+std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::Create(const std::shared_ptr<Device>& pDevice, VkFormat format)
 {
-	return Create(pDevice, pDevice->GetPhysicalDevice()->GetDepthStencilFormat(), pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height);
+	return Create(pDevice, format, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height);
 }
 
-std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::CreateInputAttachment(const std::shared_ptr<Device>& pDevice)
+std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::CreateInputAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format)
 {
-	return Create(pDevice, pDevice->GetPhysicalDevice()->GetDepthStencilFormat(), pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+	return Create(pDevice, format, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
 }
 
-std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::CreateSampledAttachment(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height)
+std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::CreateSampledAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height)
 {
-	return Create(pDevice, pDevice->GetPhysicalDevice()->GetDepthStencilFormat(), width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
+	return Create(pDevice, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
 }
 
 std::shared_ptr<ImageView> DepthStencilBuffer::CreateDefaultImageView() const
@@ -80,7 +80,9 @@ std::shared_ptr<ImageView> DepthStencilBuffer::CreateDefaultImageView() const
 	imgViewCreateInfo.image = m_image;
 	imgViewCreateInfo.format = m_info.format;
 	imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+	if (m_info.format == VK_FORMAT_D16_UNORM_S8_UINT || m_info.format == VK_FORMAT_D24_UNORM_S8_UINT || m_info.format == VK_FORMAT_D32_SFLOAT_S8_UINT)
+		imgViewCreateInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 	imgViewCreateInfo.subresourceRange.layerCount = 1;
 	imgViewCreateInfo.subresourceRange.baseMipLevel = 0;

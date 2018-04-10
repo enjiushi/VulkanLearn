@@ -56,6 +56,7 @@ void DirectionLight::LateUpdate()
 	std::shared_ptr<BaseObject> pObj = GetBaseObject();
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir(pObj->GetLocalRotationM()[2]);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightVP(AcquireProjectionMatrix());
 
 	if (m_isDirty)
 	{
