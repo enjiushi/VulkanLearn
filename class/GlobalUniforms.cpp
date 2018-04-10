@@ -72,7 +72,7 @@ void GlobalUniforms::SetMainLightColor(const Vector3f& color)
 
 void GlobalUniforms::SetMainLightVP(const Matrix4f& vp)
 {
-	m_globalVariables.mainLightVP = vp;
+	m_globalVariables.mainLightVPN = GetVulkanNDCMatrix() * vp;
 	UniformDataStorage::SetDirty();
 }
 

@@ -16,7 +16,7 @@ typedef struct _GlobalVariables
 	// Scene settings
 	Vector4f	mainLightDir;		// Main directional light		w: empty for padding
 	Vector4f	mainLightColor;		// Main directional light color	w: empty for padding
-	Matrix4f	mainLightVP;
+	Matrix4f	mainLightVPN;
 
 	// Render settings
 	Vector4f	GEW;	// x: Gamma, y: Exposure, z: White Scale, w: empty for padding
@@ -36,7 +36,7 @@ public:
 	void SetMainLightColor(const Vector3f& color);
 	Vector4f GetMainLightColor() const { return m_globalVariables.mainLightColor; }
 	void SetMainLightVP(const Matrix4f& vp);
-	Matrix4f GetmainLightVP() const { return m_globalVariables.mainLightVP; }
+	Matrix4f GetmainLightVPN() const { return m_globalVariables.mainLightVPN; }
 
 	void SetRenderSettings(const Vector4f& setting);
 	Vector4f GetRenderSettings() const { return m_globalVariables.GEW; }

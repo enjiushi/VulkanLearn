@@ -798,8 +798,10 @@ void VulkanGlobal::Draw()
 
 	m_pRootObject->Update();
 	m_pRootObject->LateUpdate();
+
 	UniformData::GetInstance()->SyncDataBuffer();
 	m_PBRGbufferMaterial->SyncBufferData();
+	m_pShadowMapMaterial->SyncBufferData();
 	
 	GetGlobalVulkanStates()->RestoreViewport();
 	GetGlobalVulkanStates()->RestoreScissor();
