@@ -748,10 +748,10 @@ void VulkanGlobal::InitScene()
 	m_pGunObject1->SetPos({-100, 0, 0});
 
 	m_pSphere->AddComponent(m_pSphereRenderer);
-	m_pSphere->SetPos(0, 100, 0);
+	m_pSphere->SetPos(-50, 0, 0);
 
 	m_pQuadObject->AddComponent(m_pQuadRenderer);
-	m_pQuadObject->SetPos(0, -50, 0);
+	m_pQuadObject->SetPos(-50, -40, 0);
 	m_pQuadObject->SetScale(200);
 
 	Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
