@@ -36,7 +36,7 @@ Matrix4f DirectionLight::AcquireProjectionMatrix() const
 	Matrix4f proj;
 	proj.c00 = 1.0f / m_frustumSize.x;
 	proj.c11 = 1.0f / m_frustumSize.y;
-	proj.c22 = 1.0f / m_frustumSize.z;
+	proj.c22 = -1.0f / m_frustumSize.z;
 
 	return proj * view;
 }

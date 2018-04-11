@@ -725,7 +725,7 @@ void VulkanGlobal::InitScene()
 
 	m_pDirLightObj = BaseObject::Create();
 	m_pDirLightObj->SetPos(64, 64, -64);
-	m_pDirLightObj->SetRotation(Matrix3f::EulerAngle(0.78f, 0, 0) * Matrix3f::EulerAngle(0, -0.78f, 0));
+	m_pDirLightObj->SetRotation(Matrix3f::EulerAngle(0.78f, 0, 0) * Matrix3f::EulerAngle(0, 2.355f, 0));
 
 	m_pDirLight = DirectionLight::Create({ 1, 1, 1 });
 	m_pDirLightObj->AddComponent(m_pDirLight);
