@@ -7,7 +7,7 @@ class DirectionLight : public BaseComponent
 public:
 	static const uint32_t DEFAULT_SHADOWMAP_SIZE = 512;
 	static const uint32_t DEFAULT_FRUSTUM_SIZE = 256;
-	static const uint32_t DEFAULT_FRUSTUM_LENGTH = 256;
+	static const uint32_t DEFAULT_FRUSTUM_LENGTH = 512;
 
 protected:
 	bool Init(const std::shared_ptr<DirectionLight>& pLight, const Vector3f& lightColor, const Vector3f& frustumSize, const Vector2ui& shadowMapSize);
