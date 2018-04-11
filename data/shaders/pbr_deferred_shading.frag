@@ -26,9 +26,11 @@ struct GBufferVariables
 	float shadowFactor;
 };
 
+int index = int(perFrameData.camDir.a);
+
 vec3 ReconstructPosition(ivec2 coord)
 {
-	float window_z = texelFetch(DepthStencilBuffer[int(perFrameData.camDir.a)], coord, 0).r;
+	float window_z = texelFetch(DepthStencilBuffer[index], coord, 0).r;
 	float eye_z = (perFrameData.nearFar.x * perFrameData.nearFar.y) / (window_z * (perFrameData.nearFar.y - perFrameData.nearFar.x) - perFrameData.nearFar.y);
 
 	vec3 viewRay = normalize(inViewRay);
@@ -43,14 +45,53 @@ vec3 ReconstructPosition(ivec2 coord)
 	return viewRay * abs(eye_z) / cos_viewRay_camDir + perFrameData.camPos.xyz;
 }
 
+float AcquireShadowFactor(vec4 world_position)
+{
+	vec4 light_space_pos = globalData.mainLightVPN * world_position;
+	light_space_pos /= light_space_pos.w;
+	light_space_pos.xy = light_space_pos.xy * 0.5f + 0.5f;	// NOTE: Don't do this to z, as it's already within [0, 1] after vulkan ndc transform
+
+	vec2 texelSize = 1.0f / textureSize(ShadowMapDepthBuffer[index], 0);
+	float shadowFactor = 0.0f;
+	float pcfDepth;
+
+	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(-1, -1) * texelSize).r; 
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
+
+	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(0, -1) * texelSize).r; 
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+
+	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(1, -1) * texelSize).r; 
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
+
+	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(-1, 0) * texelSize).r; 
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+
+	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(0, 0) * texelSize).r; 
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.195346;
+
+	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(1, 0) * texelSize).r; 
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+
+	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(-1, 1) * texelSize).r; 
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
+
+	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(0, 1) * texelSize).r; 
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+
+	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(1, 1) * texelSize).r; 
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847; 
+
+	return 1.0f - shadowFactor;
+}
 
 GBufferVariables UnpackGBuffers(ivec2 coord)
 {
 	GBufferVariables vars;
 
-	vec4 gbuffer0 = texelFetch(GBuffer0[int(perFrameData.camDir.a)], coord, 0);
-	vec4 gbuffer1 = texelFetch(GBuffer1[int(perFrameData.camDir.a)], coord, 0);
-	vec4 gbuffer2 = texelFetch(GBuffer2[int(perFrameData.camDir.a)], coord, 0);
+	vec4 gbuffer0 = texelFetch(GBuffer0[index], coord, 0);
+	vec4 gbuffer1 = texelFetch(GBuffer1[index], coord, 0);
+	vec4 gbuffer2 = texelFetch(GBuffer2[index], coord, 0);
 
 	vars.albedo_roughness.rgb = gbuffer1.rgb;
 	vars.albedo_roughness.a = gbuffer2.r;
@@ -62,13 +103,7 @@ GBufferVariables UnpackGBuffers(ivec2 coord)
 
 	vars.metalic = gbuffer2.g;
 
-	vec4 light_position = globalData.mainLightVPN * vars.world_position;
-	light_position /= light_position.w;
-	light_position.xy = light_position.xy * 0.5f + 0.5f;	// NOTE: Don't do this to z, as it's already within [0, 1] after vulkan ndc transform
-
-	float light_depth = texture(ShadowMapDepthBuffer[int(perFrameData.camDir.a)], light_position.xy).r;
-
-	vars.shadowFactor = light_position.z > light_depth ? 0.0f : 1.0f;
+	vars.shadowFactor = AcquireShadowFactor(vars.world_position);
 
 	return vars;
 }
@@ -122,6 +157,6 @@ void main()
 	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
 	final = pow(final, vec3(globalData.GEW.x));
 
-	outFragColor0 = vec4(final, 1.0);
-	outFragColor1 = vec4(punctualRadiance, 1.0);
+	outFragColor1 = vec4(final, 1.0);
+	outFragColor0 = vec4(punctualRadiance, 1.0);
 }
