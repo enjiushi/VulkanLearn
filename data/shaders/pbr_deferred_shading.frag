@@ -24,9 +24,6 @@ struct GBufferVariables
 	vec4 world_position;
 	float metalic;
 	float shadowFactor;
-
-	float currentDepth;
-	float closestDepth;
 };
 
 vec3 ReconstructPosition(ivec2 coord)
@@ -73,9 +70,6 @@ GBufferVariables UnpackGBuffers(ivec2 coord)
 
 	vars.shadowFactor = light_position.z > light_depth ? 0.0f : 1.0f;
 
-	vars.currentDepth = light_position.z;
-	vars.closestDepth = light_depth;
-
 	return vars;
 }
 
@@ -121,14 +115,13 @@ void main()
 
 	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * GGX_D(NdotH, vars.albedo_roughness.a);
 	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
-	vec3 final = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb) + ambient;
+	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
+	vec3 final = punctualRadiance + ambient;
 
 	final = Uncharted2Tonemap(final * globalData.GEW.y);
 	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
 	final = pow(final, vec3(globalData.GEW.x));
 
 	outFragColor0 = vec4(final, 1.0);
-	//outFragColor0 = vec4(vec3(vars.currentDepth), 1.0);
-	outFragColor1 = outFragColor0;
-	//outFragColor1 = vec4(vec3(vars.closestDepth), 1.0);
+	outFragColor1 = vec4(punctualRadiance, 1.0);
 }
