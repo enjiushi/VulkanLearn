@@ -17,6 +17,7 @@ public:
 	static const VkFormat OFFSCREEN_DEPTH_STENCIL_FORMAT = VK_FORMAT_D32_SFLOAT_S8_UINT;
 	static const VkFormat OFFSCREEN_DEPTH_FORMAT = VK_FORMAT_D32_SFLOAT;
 	static const VkFormat GBUFFER0_COLOR_FORMAT = VK_FORMAT_A2R10G10B10_UNORM_PACK32;
+	static const VkFormat SSAO_FORMAT = VK_FORMAT_R16_SFLOAT;
 
 protected:
 	bool Init(const std::shared_ptr<RenderPassBase>& pSelf, const VkRenderPassCreateInfo& info);
