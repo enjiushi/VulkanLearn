@@ -48,6 +48,9 @@ typedef struct _TextureArrayDesc
 class GlobalTextures : public UniformBase
 {
 public:
+	const static uint32_t SSAO_RANDOM_ROTATION_COUNT = 16;
+
+public:
 	static std::shared_ptr<GlobalTextures> Create();
 
 public:
@@ -68,9 +71,11 @@ protected:
 	void InitIrradianceTexture();
 	void InitPrefilterEnvTexture();
 	void InitBRDFLUTTexture();
+	void InitSSAORandomRotationTexture();
 
 protected:
 	std::vector<TextureArrayDesc>				m_textureDiction;
 	std::vector<std::shared_ptr<TextureCube>>	m_IBLCubeTextures;
 	std::vector<std::shared_ptr<Texture2D>>		m_IBL2DTextures;
+	std::shared_ptr<Texture2D>					m_pSSAORandomRotations;
 };

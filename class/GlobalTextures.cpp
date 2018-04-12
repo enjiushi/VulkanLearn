@@ -20,6 +20,9 @@
 #include "GlobalTextures.h"
 #include "Material.h"
 #include "ForwardMaterial.h"
+#include "../Maths/Vector.h"
+#include <random>
+#include <gli\gli.hpp>
 
 bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 {
@@ -28,6 +31,7 @@ bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 
 	InitTextureDiction();
 	InitIBLTextures();
+	InitSSAORandomRotationTexture();
 
 	return true;
 }
@@ -67,6 +71,25 @@ void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
 	InitIrradianceTexture();
 	InitPrefilterEnvTexture();
 	InitBRDFLUTTexture();
+}
+
+void GlobalTextures::InitSSAORandomRotationTexture()
+{
+	std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
+	std::default_random_engine randomEngine;
+
+	std::vector<Vector4f> tangents;
+	for (uint32_t i = 0; i < SSAO_RANDOM_ROTATION_COUNT; i++)
+	{
+		Vector3f tangent = { randomFloats(randomEngine) * 2.0f - 1.0f, randomFloats(randomEngine) * 2.0f - 1.0f, 0 };
+		tangent.Normalize();
+		tangents.push_back({ tangent, 0 });	// NOTE: make it 4 units to pair with gpu variable alignment
+	}
+
+	gli::texture2d tex = gli::texture2d(gli::FORMAT_RGBA32_SFLOAT_PACK32, { std::sqrt(SSAO_RANDOM_ROTATION_COUNT), std::sqrt(SSAO_RANDOM_ROTATION_COUNT) }, 1);
+	std::memcpy(tex.data(), tangents.data(), tex.size());
+
+	m_pSSAORandomRotations = Texture2D::Create(GetDevice(), { {tex} }, VK_FORMAT_R32G32B32A32_SFLOAT);
 }
 
 void GlobalTextures::InitIrradianceTexture()
