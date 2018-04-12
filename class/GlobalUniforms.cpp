@@ -10,6 +10,7 @@
 #include "GlobalTextures.h"
 #include "GlobalUniforms.h"
 #include "Material.h"
+#include <random>
 
 bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 {
@@ -22,7 +23,7 @@ bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 	// NDC space z ranges from 0 to 1 in Vulkan compared to OpenGL's -1 to 1
 	m_globalVariables.vulkanNDC.c[2].z = m_globalVariables.vulkanNDC.c[3].z = 0.5f;
 
-	SetDirty();
+	InitSSAORandomSample();
 
 	return true;
 }
@@ -110,6 +111,11 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				{
 					Vec4Unit,
 					"Settings: Gamma, Exposure, White Scale"
+				},
+				{
+					Vec4Unit,
+					"SSAO Samples",
+					SSAO_SAMPLE_COUNT
 				}
 			}
 		}
@@ -123,5 +129,26 @@ uint32_t GlobalUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	pDescriptorSet->UpdateUniformBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<UniformBuffer>(GetBuffer()));
 
 	return bindingIndex;
+}
+
+void GlobalUniforms::InitSSAORandomSample()
+{
+	std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
+	std::default_random_engine randomEngine;
+
+	std::vector<Vector4f> samples;
+	for (uint32_t i = 0; i < SSAO_SAMPLE_COUNT; i++)
+	{
+		Vector3f sample = { randomFloats(randomEngine) * 2.0f - 1.0f, randomFloats(randomEngine) * 2.0f - 1.0f, randomFloats(randomEngine) };
+
+		float length = randomFloats(randomEngine);
+		length = length * length;		// Make sample length more distributed near hemisphere center
+		length = 0.1f * (1.0f - length) + 1.0f * length;
+
+		sample = sample.Normal() * length;
+		m_globalVariables.SSAOSamples[i] = Vector4f(sample, 0.0f);	// NOTE: make it 4 units to pair with gpu variable alignment
+	}
+
+	SetDirty();
 }
 

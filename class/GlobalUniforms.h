@@ -6,6 +6,8 @@ class DescriptorSetLayout;
 class DescriptorSet;
 class GlobalTextures;
 
+const static uint32_t SSAO_SAMPLE_COUNT = 16;
+
 typedef struct _GlobalVariables
 {
 	// Camera settings
@@ -20,6 +22,9 @@ typedef struct _GlobalVariables
 
 	// Render settings
 	Vector4f	GEW;	// x: Gamma, y: Exposure, z: White Scale, w: empty for padding
+
+	// SSAO settings
+	Vector4f	SSAOSamples[SSAO_SAMPLE_COUNT];
 }GlobalVariables;
 
 class GlobalUniforms : public UniformDataStorage
@@ -51,6 +56,8 @@ public:
 protected:
 	void SyncBufferDataInternal() override;
 	void SetDirty() override;
+
+	void InitSSAORandomSample();
 
 protected:
 	GlobalVariables							m_globalVariables;
