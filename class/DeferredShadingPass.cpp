@@ -109,7 +109,7 @@ void DeferredShadingPass::InitFrameBuffers()
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R16G16B16A16_SFLOAT);
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, GetRenderPass()->GetAttachmentDesc()[0].format);
 		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = pGBufferPass->GetFrameBuffer(i)->GetDepthStencilTarget();
 		m_frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget , GetSwapChain()->GetSwapChainImage(i) }, pDepthStencilBuffer, GetRenderPass()));
 	}
