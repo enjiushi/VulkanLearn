@@ -744,11 +744,12 @@ void VulkanGlobal::InitScene()
 	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
 
 	m_pGunObject->AddComponent(m_pGunMeshRenderer);
+	m_pGunObject->SetPos({ 0, -8, 0 });
 	m_pGunObject1->AddComponent(m_pGunMeshRenderer1);
-	m_pGunObject1->SetPos({-100, 0, 0});
+	m_pGunObject1->SetPos({-150, -8, 0});
 
 	m_pSphere->AddComponent(m_pSphereRenderer);
-	m_pSphere->SetPos(-50, 0, 0);
+	m_pSphere->SetPos(-60, -15, 0);
 
 	m_pQuadObject->AddComponent(m_pQuadRenderer);
 	m_pQuadObject->SetPos(-50, -40, 0);
