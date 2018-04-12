@@ -241,31 +241,31 @@ uint32_t Material::GetByteSize(std::vector<UniformVar>& UBOLayout)
 			break;
 		case Vec2Unit:
 			unitCount = (unitCount + 1) / 2 * 2;
-			unitCount += 2;
+			unitCount += 2 * var.count;
 			if (maxAlignUnit < 2)
 				maxAlignUnit = 2;
 			break;
 		case Vec3Unit:
 			unitCount = (unitCount + 3) / 4 * 4;
-			unitCount += 3;
+			unitCount += 4 * var.count;
 			if (maxAlignUnit < 4)
 				maxAlignUnit = 4;
 			break;
 		case Vec4Unit:
 			unitCount = (unitCount + 3) / 4 * 4;
-			unitCount += 4;
+			unitCount += 4 * var.count;
 			if (maxAlignUnit < 4)
 				maxAlignUnit = 4;
 			break;
 		case Mat3Unit:
 			unitCount = (unitCount + 3) / 4 * 4;
-			unitCount += 4 * 3;
+			unitCount += 4 * 4 * var.count;
 			if (maxAlignUnit < 4)
 				maxAlignUnit = 4;
 			break;
 		case Mat4Unit:
 			unitCount = (unitCount + 3) / 4 * 4;
-			unitCount += 4 * 4;
+			unitCount += 4 * 4 * var.count;
 			if (maxAlignUnit < 4)
 				maxAlignUnit = 4;
 			break;
