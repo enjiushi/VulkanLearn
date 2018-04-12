@@ -103,6 +103,29 @@ void DescriptorSet::UpdateImage(uint32_t binding, const std::shared_ptr<Image>& 
 	AddToReferenceTable(pImageView);
 }
 
+void DescriptorSet::UpdateImage(uint32_t binding, const CombinedImage& image)
+{
+	std::vector<VkWriteDescriptorSet> writeData = { {} };
+	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;;
+	writeData[0].dstBinding = binding;
+	writeData[0].descriptorCount = 1;
+	writeData[0].dstSet = GetDeviceHandle();
+
+	VkDescriptorImageInfo info = {};
+	info.imageLayout = image.pImage->GetImageInfo().initialLayout;
+	info.imageView = image.pImageView->GetDeviceHandle();
+	info.sampler = image.pSampler->GetDeviceHandle();
+	writeData[0].pImageInfo = &info;
+
+	vkUpdateDescriptorSets(GetDevice()->GetDeviceHandle(), writeData.size(), writeData.data(), 0, nullptr);
+
+	m_resourceTable[binding].push_back(image.pImage);
+
+	AddToReferenceTable(image.pSampler);
+	AddToReferenceTable(image.pImageView);
+}
+
 void DescriptorSet::UpdateImages(uint32_t binding, const std::vector<CombinedImage>& images)
 {
 	std::vector<VkWriteDescriptorSet> writeData = { {} };
