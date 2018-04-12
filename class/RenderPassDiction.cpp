@@ -27,7 +27,7 @@ bool RenderPassDiction::Init()
 		case  PipelineRenderPassShadowMap:
 			m_pipelineRenderPasses.push_back(ShadowMapPass::Create());
 		case PipelineRenderPassSSAO:
-			m_pipelineRenderPasses.push_back(SSAOPass::Create());
+			m_pipelineRenderPasses.push_back(SSAOPass::Create(RenderPassBase::SSAO_FORMAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
 		case PipelineRenderPassShading:
 			m_pipelineRenderPasses.push_back(DeferredShadingPass::Create(RenderPassBase::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
 		case PipelineRenderPassPostProcessing:
