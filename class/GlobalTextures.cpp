@@ -343,6 +343,10 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 		{
 			CombinedSampler,
 			"R8_512_Texture_2D_BRDFLUT"
+		},
+		{
+			CombinedSampler,
+			"RGBA32_4_SSAO_Random_Rotation"
 		}
 	};
 }
@@ -406,6 +410,8 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 		std::shared_ptr<Texture2D> pTexture2D = GetIBLTexture2D((IBLTextureType)i);
 		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTexture2D), pTexture2D->CreateLinearClampToEdgeSampler(), pTexture2D->CreateDefaultImageView());
 	}
+
+	pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(m_pSSAORandomRotations), m_pSSAORandomRotations->CreateNearestRepeatSampler(), m_pSSAORandomRotations->CreateDefaultImageView());
 
 	return bindingIndex;
 }

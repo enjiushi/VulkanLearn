@@ -36,6 +36,7 @@ public:
 
 	virtual std::shared_ptr<ImageView> CreateDefaultImageView() const;
 	virtual std::shared_ptr<Sampler> CreateLinearRepeatSampler() const;
+	virtual std::shared_ptr<Sampler> CreateNearestRepeatSampler() const;
 	virtual std::shared_ptr<Sampler> CreateLinearClampToEdgeSampler() const;
 
 protected:
