@@ -24,6 +24,7 @@ typedef struct _UniformVar
 	UBOType		type;
 	std::string name;
 	uint32_t	offset;
+	uint32_t	count = 1;
 }UniformVar;
 
 typedef struct _UniformVarList
