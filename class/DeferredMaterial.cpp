@@ -291,35 +291,6 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 
 	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
 
-	/*
-	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-	{
-		std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = pGBufferPass->GetFrameBuffer(i);
-
-		std::vector<std::shared_ptr<Image>> colorTargets = pGBufferFrameBuffer->GetColorTargets();
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = pGBufferFrameBuffer->GetDepthStencilTarget();
-
-		m_pUniformStorageDescriptorSet->UpdateImage(MaterialUniformStorageTypeCount + i * 4,
-			colorTargets[0],
-			colorTargets[0]->CreateLinearClampToEdgeSampler(),
-			colorTargets[0]->CreateDefaultImageView());
-
-		m_pUniformStorageDescriptorSet->UpdateImage(MaterialUniformStorageTypeCount + i * 4 + 1,
-			colorTargets[1],
-			colorTargets[1]->CreateLinearClampToEdgeSampler(),
-			colorTargets[1]->CreateDefaultImageView());
-
-		m_pUniformStorageDescriptorSet->UpdateImage(MaterialUniformStorageTypeCount + i * 4 + 2,
-			colorTargets[2],
-			colorTargets[2]->CreateLinearClampToEdgeSampler(),
-			colorTargets[2]->CreateDefaultImageView());
-
-		m_pUniformStorageDescriptorSet->UpdateImage(MaterialUniformStorageTypeCount + i * 4 + 3,
-			pDepthStencilBuffer,
-			pDepthStencilBuffer->CreateLinearClampToEdgeSampler(),
-			pDepthStencilBuffer->CreateDepthSampleImageView());
-	}*/
-
 	for (uint32_t i = 0; i < GBufferPass::GBufferCount + 1; i++)
 	{
 		std::vector<CombinedImage> gbuffers;
