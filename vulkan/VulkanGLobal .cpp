@@ -694,6 +694,17 @@ void VulkanGlobal::InitMaterials()
 	m_pShadowMapMaterial = ShadowMapMaterial::CreateDefaultMaterial(info);
 	m_pShadowMapMaterialInstance = m_pShadowMapMaterial->CreateMaterialInstance();
 	m_pShadowMapMaterialInstance->SetRenderMask(1 << RenderWorkManager::ShadowMapGen);
+
+	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/ssao_gen.frag.spv", L"" };
+	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
+	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.subpassIndex = 0;
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
+	info.depthTestEnable = false;
+	info.depthWriteEnable = false;
+
+	m_pSSAOMaterial = SSAOMaterial::CreateDefaultMaterial(info);
 }
 
 void VulkanGlobal::InitScene()
@@ -833,6 +844,14 @@ void VulkanGlobal::Draw()
 	m_pShadowMapMaterial->OnPassEnd();
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap)->EndRenderPass(pDrawCmdBuffer);
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO)->BeginRenderPass(pDrawCmdBuffer);
+
+	m_pSSAOMaterial->OnPassStart();
+	m_pSSAOMaterial->Draw(pDrawCmdBuffer);
+	m_pSSAOMaterial->OnPassEnd();
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO)->EndRenderPass(pDrawCmdBuffer);
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->BeginRenderPass(pDrawCmdBuffer);
 

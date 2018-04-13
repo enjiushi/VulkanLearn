@@ -138,29 +138,29 @@ bool SSAOMaterial::Init(const std::shared_ptr<SSAOMaterial>& pSelf,
 	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
 		return false;
 
-	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
+	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
 
-	CombinedImage gbuffer0;
-	CombinedImage depthBuffer;
+	std::vector<CombinedImage> gbuffer0;
+	std::vector<CombinedImage> depthBuffer;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
 		std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = pGBufferPass->GetFrameBuffer(j);
 
-		gbuffer0 = {
+		gbuffer0.push_back({
 			pGBufferFrameBuffer->GetColorTarget(0),
 			pGBufferFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
 			pGBufferFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
-		};
+		});
 
-		depthBuffer = {
+		depthBuffer.push_back({
 			pGBufferFrameBuffer->GetDepthStencilTarget(),
 			pGBufferFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToEdgeSampler(),
 			pGBufferFrameBuffer->GetDepthStencilTarget()->CreateDepthSampleImageView()
-		};
+		});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImage(MaterialUniformStorageTypeCount, gbuffer0);
-	m_pUniformStorageDescriptorSet->UpdateImage(MaterialUniformStorageTypeCount + 1, depthBuffer);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, gbuffer0);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, depthBuffer);
 
 	return true;
 }
