@@ -28,23 +28,6 @@ struct GBufferVariables
 
 int index = int(perFrameData.camDir.a);
 
-vec3 ReconstructPosition(ivec2 coord)
-{
-	float window_z = texelFetch(DepthStencilBuffer[index], coord, 0).r;
-	float eye_z = (perFrameData.nearFarAB.x * perFrameData.nearFarAB.y) / (window_z * (perFrameData.nearFarAB.y - perFrameData.nearFarAB.x) - perFrameData.nearFarAB.y);
-
-	vec3 viewRay = normalize(inViewRay);
-
-	// Get cosine theta between view ray and camera direction
-	float cos_viewRay_camDir = dot(viewRay, perFrameData.camDir.xyz);
-
-	// "eye_z / cos_viewRay_camDir" is viewRay length between camera and surface point
-	// NOTE: "eye_z" IS Z AXIS POSITION IN EYE SPACE, SO IT IS A MINUS VALUE, IF IT IS MULTIPLIED WITH A VECTOR, THEN WE SHOULD
-	//       GET IT'S ABSOLUTE VALUE, I.E. DISTANCE TO CAMERA POSITION
-	// DAMN THIS BUG HAUNTED ME FOR A DAY
-	return viewRay * abs(eye_z) / cos_viewRay_camDir + perFrameData.camPos.xyz;
-}
-
 float AcquireShadowFactor(vec4 world_position)
 {
 	vec4 light_space_pos = globalData.mainLightVPN * world_position;
@@ -99,7 +82,8 @@ GBufferVariables UnpackGBuffers(ivec2 coord)
 	vars.normal_ao.xyz = normalize(gbuffer0.xyz * 2.0f - 1.0f);
 	vars.normal_ao.w = gbuffer2.a;
 
-	vars.world_position = vec4(ReconstructPosition(coord), 1.0);
+	float linearDepth;
+	vars.world_position = vec4(ReconstructPosition(coord, inViewRay, DepthStencilBuffer[index], linearDepth), 1.0);
 
 	vars.metalic = gbuffer2.g;
 

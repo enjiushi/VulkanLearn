@@ -158,3 +158,25 @@ vec3 Uncharted2Tonemap(vec3 x)
 	float F = 0.30;
 	return ((x*(A*x + C*B) + D*E) / (x*(A*x + B) + D*F)) - E / F;
 }
+
+float ReconstructLinearDepth(float sampledDepth)
+{
+	return (perFrameData.nearFarAB.x * perFrameData.nearFarAB.y) / (sampledDepth * (perFrameData.nearFarAB.y - perFrameData.nearFarAB.x) - perFrameData.nearFarAB.y);
+}
+
+vec3 ReconstructPosition(in ivec2 coord, in vec3 worldSpaceViewRay, in sampler2D DepthBuffer, out float linearDepth)
+{
+	float window_z = texelFetch(DepthBuffer, coord, 0).r;
+	linearDepth = ReconstructLinearDepth(window_z);
+
+	vec3 viewRay = normalize(worldSpaceViewRay);
+
+	// Get cosine theta between view ray and camera direction
+	float cos_viewRay_camDir = dot(viewRay, perFrameData.camDir.xyz);
+
+	// "linearDepth / cos_viewRay_camDir" is viewRay length between camera and surface point
+	// NOTE: "linearDepth" IS Z AXIS POSITION IN EYE SPACE, SO IT IS A MINUS VALUE, IF IT IS MULTIPLIED WITH A VECTOR, THEN WE SHOULD
+	//       GET IT'S ABSOLUTE VALUE, I.E. DISTANCE TO CAMERA POSITION
+	// DAMN THIS BUG HAUNTED ME FOR A DAY
+	return viewRay * abs(linearDepth) / cos_viewRay_camDir + perFrameData.camPos.xyz;
+}
