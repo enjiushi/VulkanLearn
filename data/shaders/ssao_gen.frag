@@ -16,7 +16,7 @@ layout (location = 0) out vec4 outFragColor0;
 
 int index = int(perFrameData.camDir.a);
 vec2 windowSize = vec2(1016, 737);
-float SSAO_RADIUS = 5.0f;
+float SSAO_RADIUS = 2.0f;
 
 vec3 UnpackNormal(ivec2 coord)
 {
@@ -63,7 +63,7 @@ void main()
 	}
 
 	occlusion /= 16.0f;
-	occlusion = pow(occlusion, 2.0f);
+	//occlusion = pow(occlusion, 2.0f);
 
 	outFragColor0 = vec4(vec3(occlusion), 1.0);
 }

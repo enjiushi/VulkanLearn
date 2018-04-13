@@ -18,6 +18,7 @@
 #include "RenderWorkManager.h"
 #include "GBufferPass.h"
 #include "ShadowMapPass.h"
+#include "SSAOPass.h"
 
 std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -331,6 +332,22 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + GBufferPass::GBufferCount + 1, depthBuffers);
 
+	std::shared_ptr<RenderPassBase> pSSAOPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
+
+	std::vector<CombinedImage> SSAOBuffers;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pSSAOFrameBuffer = pSSAOPass->GetFrameBuffer(j);
+
+		SSAOBuffers.push_back({
+			pSSAOFrameBuffer->GetColorTarget(0),
+			pSSAOFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pSSAOFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
+			});
+	}
+
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + GBufferPass::GBufferCount + 2, SSAOBuffers);
+
 	return true;
 }
 
@@ -372,6 +389,14 @@ void DeferredShadingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 			{
 				CombinedSampler,
 				"ShadowMapDepthBuffer",
+				{},
+				GetSwapChain()->GetSwapChainImageCount()
+			});
+
+		m_materialVariableLayout.push_back(
+			{
+				CombinedSampler,
+				"SSAOBuffer",
 				{},
 				GetSwapChain()->GetSwapChainImageCount()
 			});

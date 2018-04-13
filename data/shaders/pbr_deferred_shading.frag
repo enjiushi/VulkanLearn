@@ -10,6 +10,7 @@ layout (set = 3, binding = 3) uniform sampler2D GBuffer1[3];
 layout (set = 3, binding = 4) uniform sampler2D GBuffer2[3];
 layout (set = 3, binding = 5) uniform sampler2D DepthStencilBuffer[3];
 layout (set = 3, binding = 6) uniform sampler2D ShadowMapDepthBuffer[3];
+layout (set = 3, binding = 7) uniform sampler2D SSAOBuffer[3];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inViewRay;
@@ -24,6 +25,7 @@ struct GBufferVariables
 	vec4 world_position;
 	float metalic;
 	float shadowFactor;
+	float ssaoFactor;
 };
 
 int index = int(perFrameData.camDir.a);
@@ -68,7 +70,7 @@ float AcquireShadowFactor(vec4 world_position)
 	return 1.0f - shadowFactor;
 }
 
-GBufferVariables UnpackGBuffers(ivec2 coord)
+GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord)
 {
 	GBufferVariables vars;
 
@@ -89,6 +91,9 @@ GBufferVariables UnpackGBuffers(ivec2 coord)
 
 	vars.shadowFactor = AcquireShadowFactor(vars.world_position);
 
+	vars.ssaoFactor = texture(SSAOBuffer[index], texcoord).r;
+	vars.ssaoFactor = min(1.0f, vars.ssaoFactor * 4.0f);
+
 	return vars;
 }
 
@@ -96,7 +101,7 @@ void main()
 {
 	ivec2 coord = ivec2(floor(inUv * vec2(1016, 737)));
 
-	GBufferVariables vars = UnpackGBuffers(coord);
+	GBufferVariables vars = UnpackGBuffers(coord, inUv);
 
 	vec3 n = vars.normal_ao.xyz;
 	vec3 v = normalize(perFrameData.camPos.xyz - vars.world_position.xyz);
@@ -129,7 +134,7 @@ void main()
 
 	// Here we use NdotV rather than LdotH, since L's direction is based on punctual light, and here ambient reflection calculation
 	// requires reflection vector dot with N, which is RdotN, equals NdotV
-	vec3 ambient = (reflect * (brdf_lut.x * fresnel_roughness + brdf_lut.y) + irradiance * kD_roughness) * vars.normal_ao.a;
+	vec3 ambient = (reflect * (brdf_lut.x * fresnel_roughness + brdf_lut.y) + irradiance * kD_roughness) * min(vars.normal_ao.a, 1.0f - vars.ssaoFactor);
 	//----------------------------------------------
 
 	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * GGX_D(NdotH, vars.albedo_roughness.a);
