@@ -48,9 +48,9 @@ void PerFrameUniforms::SetEyeSpaceSize(const Vector2f& eyeSpaceSize)
 	SetDirty();
 }
 
-void PerFrameUniforms::SetNearFar(const Vector2f& nearFar)
+void PerFrameUniforms::SetNearFarAB(const Vector4f& nearFarAB)
 {
-	m_perFrameVariables.nearFar = nearFar;
+	m_perFrameVariables.nearFarAB = nearFarAB;
 	SetDirty();
 }
 

@@ -15,7 +15,7 @@ typedef struct _PerFrameVariables
 	Vector3f	cameraDirection;
 	float		frameIndex;
 	Vector4f	eyeSpaceSize;	// xy: eye space size, zw: inverted eye space size
-	Vector2f	nearFar;
+	Vector4f	nearFarAB;
 }PerFrameVariables;
 
 class PerFrameUniforms : public UniformDataStorage
@@ -37,8 +37,8 @@ public:
 	void SetEyeSpaceSize(const Vector2f& eyeSpaceSize);
 	Vector2f GetEyeSpaceSize() const { return { m_perFrameVariables.eyeSpaceSize.x, m_perFrameVariables.eyeSpaceSize.y }; }
 	Vector2f GetEyeSpaceSizeInv() const { return { m_perFrameVariables.eyeSpaceSize.z, m_perFrameVariables.eyeSpaceSize.w }; }
-	void SetNearFar(const Vector2f& nearFar);
-	Vector2f GetNearFar() const { return m_perFrameVariables.nearFar; }
+	void SetNearFarAB(const Vector4f& nearFarAB);
+	Vector4f GetNearFarAB() const { return m_perFrameVariables.nearFarAB; }
 	void SetPadding0(float val) { m_perFrameVariables.padding0 = val; }
 	float GetPadding0() const { return m_perFrameVariables.padding0; }
 	void SetFrameIndex(float frameIndex) { m_perFrameVariables.frameIndex = frameIndex; }

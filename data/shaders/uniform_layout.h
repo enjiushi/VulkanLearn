@@ -12,6 +12,9 @@ struct GlobalData
 
 	// Render Settings
 	vec4 GEW;		//Gamma, exposure, white scale
+
+	// SSAO Settings
+	vec4 SSAOSamples[16];
 };
 
 struct PerFrameData
@@ -22,7 +25,7 @@ struct PerFrameData
 	vec4 camPos;
 	vec4 camDir;
 	vec4 eyeSpaceSize;
-	vec2 nearFar;
+	vec4 nearFarAB;
 };
 
 struct PerObjectData
@@ -48,6 +51,7 @@ layout(set = 0, binding = 3) uniform samplerCube RGBA16_1024_MIP_CUBE_SKYBOX;
 layout(set = 0, binding = 4) uniform samplerCube RGBA16_512_CUBE_IRRADIANCE;
 layout(set = 0, binding = 5) uniform samplerCube RGBA16_512_CUBE_PREFILTERENV;
 layout(set = 0, binding = 6) uniform sampler2D RGBA16_512_2D_BRDFLUT;
+layout(set = 0, binding = 7) uniform sampler2D SSAO_RANDOM_ROTATIONS;
 
 layout(set = 1, binding = 0) uniform PerFrameUniforms
 {

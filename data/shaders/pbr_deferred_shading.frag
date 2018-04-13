@@ -31,7 +31,7 @@ int index = int(perFrameData.camDir.a);
 vec3 ReconstructPosition(ivec2 coord)
 {
 	float window_z = texelFetch(DepthStencilBuffer[index], coord, 0).r;
-	float eye_z = (perFrameData.nearFar.x * perFrameData.nearFar.y) / (window_z * (perFrameData.nearFar.y - perFrameData.nearFar.x) - perFrameData.nearFar.y);
+	float eye_z = (perFrameData.nearFarAB.x * perFrameData.nearFarAB.y) / (window_z * (perFrameData.nearFarAB.y - perFrameData.nearFarAB.x) - perFrameData.nearFarAB.y);
 
 	vec3 viewRay = normalize(inViewRay);
 

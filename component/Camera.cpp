@@ -46,19 +46,22 @@ void Camera::UpdateProjMatrix()
 
 	float tanFOV2 = std::tanf(m_cameraInfo.fov / 2.0f);
 
+	float A = -(m_cameraInfo.far + m_cameraInfo.near) / (m_cameraInfo.far - m_cameraInfo.near);
+	float B = -2.0f * m_cameraInfo.near * m_cameraInfo.far / (m_cameraInfo.far - m_cameraInfo.near);
+
 	Matrix4f proj;
 	proj.x0 = 1.0f / (m_cameraInfo.aspect * tanFOV2 * m_cameraInfo.near);
 	proj.y1 = 1.0f / (tanFOV2 * m_cameraInfo.near);
-	proj.z2 = -(m_cameraInfo.far + m_cameraInfo.near) / (m_cameraInfo.far - m_cameraInfo.near);
+	proj.z2 = A;
 	proj.z3 = -1.0f;
-	proj.w2 = -2.0f * m_cameraInfo.near * m_cameraInfo.far / (m_cameraInfo.far - m_cameraInfo.near);
+	proj.w2 = B;
 	proj.w3 = 0.0f;
 
 	float height = 2.0f * tanFOV2 * m_cameraInfo.near;
 	float width = m_cameraInfo.aspect * height;
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetEyeSpaceSize({ width, height });
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetNearFar({ m_cameraInfo.near, m_cameraInfo.far });
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetNearFarAB({ m_cameraInfo.near, m_cameraInfo.far, A, B });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetProjectionMatrix(proj);
 
 	m_projDirty = false;
