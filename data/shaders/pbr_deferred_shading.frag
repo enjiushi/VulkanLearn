@@ -92,7 +92,7 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord)
 	vars.shadowFactor = AcquireShadowFactor(vars.world_position);
 
 	vars.ssaoFactor = texture(SSAOBuffer[index], texcoord).r;
-	vars.ssaoFactor = min(1.0f, vars.ssaoFactor * 4.0f);
+	vars.ssaoFactor = min(1.0f, vars.ssaoFactor * 2.0f);
 
 	return vars;
 }
