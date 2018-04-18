@@ -18,6 +18,7 @@
 #include "RenderWorkManager.h"
 #include "GBufferPass.h"
 #include "ShadowMapPass.h"
+#include "FrameBufferDiction.h"
 
 std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -26,7 +27,7 @@ std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial(const SimpleMa
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = simpleMaterialInfo.pRenderPass->GetFrameBuffer()->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAO)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -144,7 +145,7 @@ bool SSAOMaterial::Init(const std::shared_ptr<SSAOMaterial>& pSelf,
 	std::vector<CombinedImage> depthBuffer;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = pGBufferPass->GetFrameBuffer(j);
+		std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
 
 		gbuffer0.push_back({
 			pGBufferFrameBuffer->GetColorTarget(0),
@@ -186,7 +187,7 @@ void SSAOMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& material
 
 void SSAOMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 {
-	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (GBufferPass::GBufferCount + 1));
+	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (FrameBufferDiction::GBufferCount + 1));
 }
 
 void SSAOMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
@@ -200,7 +201,7 @@ void SSAOMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 	};
 
 	std::shared_ptr<RenderPassBase> pSSAOPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = pSSAOPass->GetFrameBuffer();
+	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAO);
 
 	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
 	pDrawCmdBuffer->StartSecondaryRecording(pSSAOPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);

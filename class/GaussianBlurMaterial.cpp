@@ -1,4 +1,4 @@
-#include "ShadowMapMaterial.h"
+#include "GaussianBlurMaterial.h"
 #include "../vulkan/RenderPass.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/CommandBuffer.h"
@@ -10,16 +10,15 @@
 #include "RenderWorkManager.h"
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
-#include "RenderPassDiction.h"
 
-std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
+std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
-	std::shared_ptr<ShadowMapMaterial> pShadowMapMaterial = std::make_shared<ShadowMapMaterial>();
+	std::shared_ptr<GaussianBlurMaterial> pGaussianBlurMaterial = std::make_shared<GaussianBlurMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_ShadowMap)->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GaussianBlur)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -35,7 +34,7 @@ std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(cons
 				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
 				VK_BLEND_OP_ADD,					// alpha blend factor
 
-				0x0,								// color mask
+				0xf,								// color mask
 			}
 		);
 	}
@@ -118,16 +117,16 @@ std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(cons
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	if (pShadowMapMaterial.get() && pShadowMapMaterial->Init(pShadowMapMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
-		return pShadowMapMaterial;
+	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+		return pGaussianBlurMaterial;
 	return nullptr;
 }
 
-void ShadowMapMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_ShadowMap);
+	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GaussianBlur);
 
 	// FIXME: Subpass index hard-coded
 	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);

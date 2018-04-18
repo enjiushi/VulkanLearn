@@ -72,17 +72,6 @@ std::shared_ptr<SSAOPass> SSAOPass::Create(VkFormat format, VkImageLayout layout
 	return nullptr;
 }
 
-void SSAOPass::InitFrameBuffers()
-{
-	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
-
-	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R16_SFLOAT);
-		m_frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, GetRenderPass()));
-	}
-}
-
 std::vector<VkClearValue> SSAOPass::GetClearValue()
 {
 	return

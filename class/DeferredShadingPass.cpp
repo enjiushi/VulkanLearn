@@ -6,6 +6,7 @@
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/Texture2D.h"
 #include "../vulkan/CommandBuffer.h"
+#include "FrameBufferDiction.h"
 
 bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf, VkFormat format, VkImageLayout layout)
 {
@@ -31,7 +32,7 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 
 	attachmentDescs[2].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 	attachmentDescs[2].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-	attachmentDescs[2].format = OFFSCREEN_DEPTH_STENCIL_FORMAT;
+	attachmentDescs[2].format = FrameBufferDiction::OFFSCREEN_DEPTH_STENCIL_FORMAT;
 	attachmentDescs[2].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 	attachmentDescs[2].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[2].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -101,18 +102,6 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 	if (!RenderPassBase::Init(pSelf, renderpassCreateInfo))
 		return false;
 	return true;
-}
-
-void DeferredShadingPass::InitFrameBuffers()
-{
-	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
-
-	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, GetRenderPass()->GetAttachmentDesc()[0].format);
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = pGBufferPass->GetFrameBuffer(i)->GetDepthStencilTarget();
-		m_frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget , GetSwapChain()->GetSwapChainImage(i) }, pDepthStencilBuffer, GetRenderPass()));
-	}
 }
 
 std::shared_ptr<DeferredShadingPass> DeferredShadingPass::Create(VkFormat format, VkImageLayout layout)

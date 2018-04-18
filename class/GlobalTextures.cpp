@@ -21,6 +21,7 @@
 #include "Material.h"
 #include "ForwardMaterial.h"
 #include "../Maths/Vector.h"
+#include "FrameBufferDiction.h"
 #include <random>
 #include <gli\gli.hpp>
 
@@ -43,13 +44,13 @@ void GlobalTextures::InitTextureDiction()
 
 	m_textureDiction[RGBA8_1024].textureArrayName = "RGBA8TextureArray";
 	m_textureDiction[RGBA8_1024].textureArrayDescription = "RGBA8, size16, mipLevel11";
-	m_textureDiction[RGBA8_1024].pTextureArray = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 1024, 1024, std::log2(1024) + 1, 16, VK_FORMAT_R8G8B8A8_UNORM);
+	m_textureDiction[RGBA8_1024].pTextureArray = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 1024, 1024, std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
 	m_textureDiction[RGBA8_1024].maxSlotIndex = 0;
 	m_textureDiction[RGBA8_1024].currentEmptySlot = 0;
 
 	m_textureDiction[R8_1024].textureArrayName = "R8TextureArray";
 	m_textureDiction[R8_1024].textureArrayDescription = "R8, size16, mipLevel11";
-	m_textureDiction[R8_1024].pTextureArray = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 1024, 1024, std::log2(1024) + 1, 16, VK_FORMAT_R8_UNORM);
+	m_textureDiction[R8_1024].pTextureArray = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 1024, 1024, std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_SINGLE_COLOR_FORMAT);
 	m_textureDiction[R8_1024].maxSlotIndex = 0;
 	m_textureDiction[R8_1024].currentEmptySlot = 0;
 }
@@ -57,12 +58,12 @@ void GlobalTextures::InitTextureDiction()
 void GlobalTextures::InitIBLTextures()
 {
 	m_IBLCubeTextures.resize(IBLCubeTextureTypeCount);
-	m_IBLCubeTextures[RGBA16_1024_SkyBox] = TextureCube::CreateEmptyTextureCube(GetDevice(), 1024, 1024, std::log2(1024) + 1, VK_FORMAT_R16G16B16A16_SFLOAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance] = TextureCube::CreateEmptyTextureCube(GetDevice(), RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE, 1, VK_FORMAT_R16G16B16A16_SFLOAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = TextureCube::CreateEmptyTextureCube(GetDevice(), RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE, std::log2(512) + 1, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_IBLCubeTextures[RGBA16_1024_SkyBox] = TextureCube::CreateEmptyTextureCube(GetDevice(), 1024, 1024, std::log2(1024) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance] = TextureCube::CreateEmptyTextureCube(GetDevice(), FrameBufferDiction::OFFSCREEN_SIZE, FrameBufferDiction::OFFSCREEN_SIZE, 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = TextureCube::CreateEmptyTextureCube(GetDevice(), FrameBufferDiction::OFFSCREEN_SIZE, FrameBufferDiction::OFFSCREEN_SIZE, std::log2(512) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
 
 	m_IBL2DTextures.resize(IBL2DTextureTypeCount);
-	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateEmptyTexture(GetDevice(), RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateEmptyTexture(GetDevice(), FrameBufferDiction::OFFSCREEN_SIZE, FrameBufferDiction::OFFSCREEN_SIZE, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
@@ -134,14 +135,14 @@ void GlobalTextures::InitIrradianceTexture()
 		VkViewport viewport =
 		{
 			0, 0,
-			RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE,
+			FrameBufferDiction::OFFSCREEN_SIZE, FrameBufferDiction::OFFSCREEN_SIZE,
 			0, 1
 		};
 
 		VkRect2D scissorRect =
 		{
 			0, 0,
-			RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE,
+			FrameBufferDiction::OFFSCREEN_SIZE, FrameBufferDiction::OFFSCREEN_SIZE,
 		};
 
 		GetGlobalVulkanStates()->SetViewport(viewport);
@@ -155,7 +156,7 @@ void GlobalTextures::InitIrradianceTexture()
 
 		pDrawCmdBuffer->StartPrimaryRecording();
 
-		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer);
+		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]);
 
 		SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
 		SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
@@ -168,7 +169,7 @@ void GlobalTextures::InitIrradianceTexture()
 
 		GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
-		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetFrameBuffer()->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance], 0, 1, i, 1);
+		FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance], 0, 1, i, 1);
 	}
 }
 
@@ -201,7 +202,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(0, 0, 1)) * rotation,	// Negative Z, i.e front
 	};
 
-	uint32_t mipLevels = std::log2(RenderPassDiction::OFFSCREEN_SIZE);
+	uint32_t mipLevels = std::log2(FrameBufferDiction::OFFSCREEN_SIZE);
 	for (uint32_t mipLevel = 0; mipLevel < mipLevels + 1; mipLevel++)
 	{
 		UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(mipLevel / (float)mipLevels);
@@ -239,7 +240,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 
 			pDrawCmdBuffer->StartPrimaryRecording();
 
-			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer);
+			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]);
 
 			SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
 			SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
@@ -251,7 +252,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 
 			GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
-			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetFrameBuffer()->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv], mipLevel, 1, i, 1, size, size);
+			FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv], mipLevel, 1, i, 1, size, size);
 		}
 	}
 }
@@ -273,14 +274,14 @@ void GlobalTextures::InitBRDFLUTTexture()
 	VkViewport viewport =
 	{
 		0, 0,
-		RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE,
+		FrameBufferDiction::OFFSCREEN_SIZE, FrameBufferDiction::OFFSCREEN_SIZE,
 		0, 1
 	};
 
 	VkRect2D scissorRect =
 	{
 		0, 0,
-		RenderPassDiction::OFFSCREEN_SIZE, RenderPassDiction::OFFSCREEN_SIZE,
+		FrameBufferDiction::OFFSCREEN_SIZE, FrameBufferDiction::OFFSCREEN_SIZE,
 	};
 
 	pDrawCmdBuffer->StartPrimaryRecording();
@@ -292,7 +293,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 	SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();
 
-	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer);
+	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]);
 
 	SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
 	SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
@@ -305,7 +306,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 	GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
-	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetFrameBuffer()->ExtractContent(m_IBL2DTextures[RGBA16_512_BRDFLut]);
+	FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]->ExtractContent(m_IBL2DTextures[RGBA16_512_BRDFLut]);
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()

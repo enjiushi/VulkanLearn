@@ -19,6 +19,7 @@
 #include "GBufferPass.h"
 #include "ShadowMapPass.h"
 #include "SSAOPass.h"
+#include "FrameBufferDiction.h"
 
 std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
@@ -27,7 +28,7 @@ std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(const Si
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = simpleMaterialInfo.pRenderPass->GetFrameBuffer()->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -139,7 +140,7 @@ void GBufferMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 	};
 
 	std::shared_ptr<RenderPassBase> pGBufferRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = pGBufferRenderPass->GetFrameBuffer();
+	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer);
 
 	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
 	pDrawCmdBuffer->StartSecondaryRecording(pGBufferRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
@@ -178,7 +179,7 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = simpleMaterialInfo.pRenderPass->GetFrameBuffer()->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -292,14 +293,14 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 
 	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
 
-	for (uint32_t i = 0; i < GBufferPass::GBufferCount + 1; i++)
+	for (uint32_t i = 0; i < FrameBufferDiction::GBufferCount + 1; i++)
 	{
 		std::vector<CombinedImage> gbuffers;
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
-			std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = pGBufferPass->GetFrameBuffer(j);
+			std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
 
-			if (i < GBufferPass::GBufferCount)
+			if (i < FrameBufferDiction::GBufferCount)
 				gbuffers.push_back({
 					pGBufferFrameBuffer->GetColorTarget(i),
 					pGBufferFrameBuffer->GetColorTarget(i)->CreateLinearClampToEdgeSampler(),
@@ -321,7 +322,7 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 	std::vector<CombinedImage> depthBuffers;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		std::shared_ptr<FrameBuffer> pShadowPassFrameBuffer = pShadowPass->GetFrameBuffer(j);
+		std::shared_ptr<FrameBuffer> pShadowPassFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ShadowMap)[j];
 
 		depthBuffers.push_back({
 			pShadowPassFrameBuffer->GetDepthStencilTarget(),
@@ -330,14 +331,14 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 			});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + GBufferPass::GBufferCount + 1, depthBuffers);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 1, depthBuffers);
 
 	std::shared_ptr<RenderPassBase> pSSAOPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
 
 	std::vector<CombinedImage> SSAOBuffers;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		std::shared_ptr<FrameBuffer> pSSAOFrameBuffer = pSSAOPass->GetFrameBuffer(j);
+		std::shared_ptr<FrameBuffer> pSSAOFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAO)[j];
 
 		SSAOBuffers.push_back({
 			pSSAOFrameBuffer->GetColorTarget(0),
@@ -346,7 +347,7 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 			});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + GBufferPass::GBufferCount + 2, SSAOBuffers);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 2, SSAOBuffers);
 
 	return true;
 }
@@ -404,7 +405,7 @@ void DeferredShadingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 
 void DeferredShadingMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 {
-	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (GBufferPass::GBufferCount + 1));
+	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (FrameBufferDiction::GBufferCount + 1));
 }
 
 void DeferredShadingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
@@ -418,7 +419,7 @@ void DeferredShadingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf
 	};
 
 	std::shared_ptr<RenderPassBase> pDeferredShadingPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = pDeferredShadingPass->GetFrameBuffer();
+	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading);
 
 	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
 	pDrawCmdBuffer->StartSecondaryRecording(pDeferredShadingPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);

@@ -1,5 +1,6 @@
 #pragma once
 #include "Material.h"
+#include "FrameBufferDiction.h"
 
 class ForwardMaterial : public Material
 {
@@ -8,4 +9,7 @@ public:
 
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf) override;
+
+protected:
+	FrameBufferDiction::FrameBufferType	m_frameBufferType;
 };

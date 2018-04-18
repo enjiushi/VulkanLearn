@@ -3,6 +3,7 @@
 #include "../vulkan/DeviceObjectBase.h"
 #include "../class/UniformData.h"
 #include "PerMaterialUniforms.h"
+#include "FrameBufferDiction.h"
 #include <map>
 #include "Enums.h"
 
@@ -41,6 +42,7 @@ typedef struct _SimpleMaterialCreateInfo
 	std::vector<UniformVar>									materialUniformVars;
 	uint32_t												vertexFormat;
 	uint32_t												subpassIndex = 0;
+	FrameBufferDiction::FrameBufferType						frameBufferType;
 	std::shared_ptr<RenderPassBase>							pRenderPass = nullptr;
 	bool													isTransparent = false;
 	bool													depthTestEnable = true;

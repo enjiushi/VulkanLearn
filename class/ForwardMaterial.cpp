@@ -10,15 +10,18 @@
 #include "RenderWorkManager.h"
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
+#include "FrameBufferDiction.h"
 
 std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
 	std::shared_ptr<ForwardMaterial> pForwardMaterial = std::make_shared<ForwardMaterial>();
 
+	pForwardMaterial->m_frameBufferType = simpleMaterialInfo.frameBufferType;
+
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = simpleMaterialInfo.pRenderPass->GetFrameBuffer()->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(pForwardMaterial->m_frameBufferType)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -122,7 +125,7 @@ void ForwardMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = m_pRenderPass->GetFrameBuffer();
+	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(m_frameBufferType);
 
 	// FIXME: Subpass index hard-coded
 	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);

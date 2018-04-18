@@ -6,13 +6,11 @@
 class ForwardRenderPass : public RenderPassBase
 {
 protected:
-	bool Init(const std::shared_ptr<ForwardRenderPass>& pSelf, const Vector2ui& size, VkFormat format, VkImageLayout layout);
-
-	void InitFrameBuffers() override;
+	bool Init(const std::shared_ptr<ForwardRenderPass>& pSelf, VkFormat format, VkImageLayout layout);
 
 public:
 	static std::shared_ptr<ForwardRenderPass> CreateForwardScreen();
-	static std::shared_ptr<ForwardRenderPass> CreateForwardOffScreen(const Vector2ui& size, VkFormat format, VkImageLayout layout);
+	static std::shared_ptr<ForwardRenderPass> CreateForwardOffScreen(VkFormat format, VkImageLayout layout);
 
 public:
 	std::vector<VkClearValue> GetClearValue() override;

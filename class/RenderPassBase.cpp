@@ -14,14 +14,12 @@ bool RenderPassBase::Init(const std::shared_ptr<RenderPassBase>& pSelf, const Vk
 
 	m_pRenderPass = RenderPass::Create(GetDevice(), info);
 
-	InitFrameBuffers();
-
 	return m_pRenderPass != nullptr;
 }
 
-void RenderPassBase::BeginRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+void RenderPassBase::BeginRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
-	pCmdBuf->BeginRenderPass(GetFrameBuffer(), m_pRenderPass, GetClearValue(), true);
+	pCmdBuf->BeginRenderPass(pFrameBuffer, m_pRenderPass, GetClearValue(), true);
 }
 
 void RenderPassBase::EndRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
@@ -34,9 +32,4 @@ void RenderPassBase::NextSubpass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 	pCmdBuf->NextSubpass();
 	m_currentSubpassIndex++;
-}
-
-std::shared_ptr<FrameBuffer> RenderPassBase::GetFrameBuffer()
-{
-	return m_frameBuffers[FrameMgr()->FrameIndex()];
 }

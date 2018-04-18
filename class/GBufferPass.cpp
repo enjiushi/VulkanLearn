@@ -5,6 +5,7 @@
 #include "../vulkan/Texture2D.h"
 #include "../vulkan/DepthStencilBuffer.h"
 #include "../vulkan/CommandBuffer.h"
+#include "FrameBufferDiction.h"
 
 bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 {
@@ -12,7 +13,7 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 
 	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	attachmentDescs[0].format = GBUFFER0_COLOR_FORMAT;
+	attachmentDescs[0].format = FrameBufferDiction::GetGBufferFormat(FrameBufferDiction::GBuffer0);
 	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -21,7 +22,7 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 
 	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	attachmentDescs[1].format = OFFSCREEN_COLOR_FORMAT;
+	attachmentDescs[1].format = FrameBufferDiction::GetGBufferFormat(FrameBufferDiction::GBuffer1);
 	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -30,7 +31,7 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 
 	attachmentDescs[2].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[2].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	attachmentDescs[2].format = OFFSCREEN_COLOR_FORMAT;
+	attachmentDescs[2].format = FrameBufferDiction::GetGBufferFormat(FrameBufferDiction::GBuffer2);
 	attachmentDescs[2].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[2].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[2].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -39,7 +40,7 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 
 	attachmentDescs[3].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[3].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-	attachmentDescs[3].format = OFFSCREEN_DEPTH_STENCIL_FORMAT;
+	attachmentDescs[3].format = FrameBufferDiction::OFFSCREEN_DEPTH_STENCIL_FORMAT;
 	attachmentDescs[3].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[3].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[3].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -116,20 +117,4 @@ std::vector<VkClearValue> GBufferPass::GetClearValue()
 		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 1.0f, 0 }
 	};
-}
-
-void GBufferPass::InitFrameBuffers()
-{
-	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-	{
-		std::vector<std::shared_ptr<Image>> gbuffer_vec(GBufferCount);
-
-		gbuffer_vec[GBuffer0] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_A2R10G10B10_UNORM_PACK32);
-		gbuffer_vec[GBuffer1] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R8G8B8A8_UNORM);
-		gbuffer_vec[GBuffer2] = Texture2D::CreateOffscreenTexture(GetDevice(), GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height, VK_FORMAT_R8G8B8A8_UNORM);
-
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), VK_FORMAT_D32_SFLOAT_S8_UINT, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height);
-
-		m_frameBuffers.push_back(FrameBuffer::Create(GetDevice(), gbuffer_vec, pDepthStencilBuffer, GetRenderPass()));
-	}
 }
