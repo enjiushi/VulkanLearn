@@ -9,6 +9,7 @@
 #include "RenderPassDiction.h"
 #include "RenderPassBase.h"
 #include "ForwardRenderPass.h"
+#include "UniformData.h"
 
 VkFormat FrameBufferDiction::m_GBufferFormatTable[FrameBufferDiction::GBufferCount] =
 {
@@ -150,7 +151,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardOffScreenF
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), OFFSCREEN_SIZE, OFFSCREEN_SIZE, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, OFFSCREEN_HDR_COLOR_FORMAT);
 
 		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height);
 

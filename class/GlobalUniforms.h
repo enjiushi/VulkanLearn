@@ -15,6 +15,12 @@ typedef struct _GlobalVariables
 	Matrix4f	vulkanNDC;
 	Matrix4f	PN;		// vulkanNDC * projectionMatrix
 
+	// Windows settings
+	Vector4f	gameWindowSize;
+	Vector4f	envGenWindowSize;
+	Vector4f	SSAOWindowSize;
+	Vector4f	bloomWindowSize;
+
 	// Scene settings
 	Vector4f	mainLightDir;		// Main directional light		w: empty for padding
 	Vector4f	mainLightColor;		// Main directional light color	w: empty for padding
@@ -35,6 +41,15 @@ public:
 	void SetVulkanNDCMatrix(const Matrix4f& vndc);
 	Matrix4f GetVulkanNDCMatrix() const { return m_globalVariables.vulkanNDC; }
 	Matrix4f GetPNMatrix() const { return m_globalVariables.PN; }
+
+	void SetGameWindowSize(const Vector2f& size);
+	Vector2f GetGameWindowSize() const { return { m_globalVariables.gameWindowSize.x, m_globalVariables.gameWindowSize.y }; }
+	void SetEnvGenWindowSize(const Vector2f& size);
+	Vector2f GetEnvGenWindowSize() const { return { m_globalVariables.envGenWindowSize.x, m_globalVariables.envGenWindowSize.y }; }
+	void SetSSAOWindowSize(const Vector2f& size);
+	Vector2f GetSSAOWindowSize() const { return { m_globalVariables.SSAOWindowSize.x, m_globalVariables.SSAOWindowSize.y }; }
+	void SetBloomWindowSize(const Vector2f& size);
+	Vector2f GetBloomWindowSize() const { return { m_globalVariables.bloomWindowSize.x, m_globalVariables.bloomWindowSize.y }; }
 
 	void SetMainLightDir(const Vector3f& dir);
 	Vector4f GetMainLightDir() const { return m_globalVariables.mainLightDir; }

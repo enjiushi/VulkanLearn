@@ -5,6 +5,12 @@ struct GlobalData
 	mat4 vulkanNDC;
 	mat4 PN;
 
+	// Window settings
+	vec4 gameWindowSize;
+	vec4 envGenWindowSize;
+	vec4 SSAOWindowSize;
+	vec4 bloomWindowSize;
+
 	// Scene Settings
 	vec4 mainLightDir;
 	vec4 mainLightColor;

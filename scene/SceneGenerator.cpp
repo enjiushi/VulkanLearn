@@ -32,7 +32,7 @@ void SceneGenerator::GenerateIrradianceGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(FrameBufferDiction::OFFSCREEN_SIZE);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMesh0 = GenerateBoxMesh();
@@ -54,7 +54,7 @@ void SceneGenerator::GeneratePrefilterEnvGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(FrameBufferDiction::OFFSCREEN_SIZE);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMesh0 = GenerateBoxMesh();
@@ -76,7 +76,7 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(FrameBufferDiction::OFFSCREEN_SIZE);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMesh0 = GenerateQuadMesh();

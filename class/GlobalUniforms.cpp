@@ -23,6 +23,8 @@ bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 	// NDC space z ranges from 0 to 1 in Vulkan compared to OpenGL's -1 to 1
 	m_globalVariables.vulkanNDC.c[2].z = m_globalVariables.vulkanNDC.c[3].z = 0.5f;
 
+	SetEnvGenWindowSize({ (float)FrameBufferDiction::OFFSCREEN_SIZE, (float)FrameBufferDiction::OFFSCREEN_SIZE });
+
 	InitSSAORandomSample();
 
 	return true;
@@ -45,6 +47,42 @@ void GlobalUniforms::SetProjectionMatrix(const Matrix4f& proj)
 void GlobalUniforms::SetVulkanNDCMatrix(const Matrix4f& vndc) 
 { 
 	m_globalVariables.vulkanNDC = vndc;
+	SetDirty();
+}
+
+void GlobalUniforms::SetGameWindowSize(const Vector2f& size)
+{
+	m_globalVariables.gameWindowSize.x = size.x;
+	m_globalVariables.gameWindowSize.y = size.y;
+	m_globalVariables.gameWindowSize.z = 1.0f / size.x;
+	m_globalVariables.gameWindowSize.w = 1.0f / size.y;
+	SetDirty();
+}
+
+void GlobalUniforms::SetEnvGenWindowSize(const Vector2f& size)
+{
+	m_globalVariables.envGenWindowSize.x = size.x;
+	m_globalVariables.envGenWindowSize.y = size.y;
+	m_globalVariables.envGenWindowSize.z = 1.0f / size.x;
+	m_globalVariables.envGenWindowSize.w = 1.0f / size.y;
+	SetDirty();
+}
+
+void GlobalUniforms::SetSSAOWindowSize(const Vector2f& size)
+{
+	m_globalVariables.SSAOWindowSize.x = size.x;
+	m_globalVariables.SSAOWindowSize.y = size.y;
+	m_globalVariables.SSAOWindowSize.z = 1.0f / size.x;
+	m_globalVariables.SSAOWindowSize.w = 1.0f / size.y;
+	SetDirty();
+}
+
+void GlobalUniforms::SetBloomWindowSize(const Vector2f& size)
+{
+	m_globalVariables.bloomWindowSize.x = size.x;
+	m_globalVariables.bloomWindowSize.y = size.y;
+	m_globalVariables.bloomWindowSize.z = 1.0f / size.x;
+	m_globalVariables.bloomWindowSize.w = 1.0f / size.y;
 	SetDirty();
 }
 
