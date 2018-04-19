@@ -194,12 +194,6 @@ void SSAOMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::vector<VkClearValue> clearValues =
-	{
-		{ 0.0f, 0.0f, 0.0f, 0.0f },
-		{ 1.0f, 0 }
-	};
-
 	std::shared_ptr<RenderPassBase> pSSAOPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
 	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAO);
 

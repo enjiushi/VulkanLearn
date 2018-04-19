@@ -17,7 +17,10 @@ public:
 	static const VkFormat GBUFFER0_COLOR_FORMAT = VK_FORMAT_A2R10G10B10_UNORM_PACK32;
 	static const VkFormat SSAO_FORMAT = VK_FORMAT_R16_SFLOAT;
 	static const VkFormat BLUR_FORMAT = VK_FORMAT_R16_SFLOAT;
-	static const uint32_t OFFSCREEN_SIZE = 512;
+
+	static const uint32_t ENV_GEN_WINDOW_SIZE = 512;
+	static const uint32_t SSAO_WINDOW_SIZE = 512;
+	static const uint32_t BLOOM_WINDOW_SIZE = 256;
 
 	typedef std::vector<std::shared_ptr<FrameBuffer>> FrameBufferCombo;
 

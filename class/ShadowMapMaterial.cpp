@@ -132,19 +132,6 @@ void ShadowMapMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 	// FIXME: Subpass index hard-coded
 	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
 
-	VkViewport viewport =
-	{
-		0, 0,
-		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
-		0, 1
-	};
-
-	VkRect2D scissorRect =
-	{
-		0, 0,
-		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
-	};
-
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
 

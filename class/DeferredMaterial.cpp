@@ -133,30 +133,11 @@ void GBufferMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::vector<VkClearValue> clearValues =
-	{
-		{ 0.0f, 0.0f, 0.0f, 0.0f },
-		{ 1.0f, 0 }
-	};
-
 	std::shared_ptr<RenderPassBase> pGBufferRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
 	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer);
 
 	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
 	pDrawCmdBuffer->StartSecondaryRecording(pGBufferRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
-
-	VkViewport viewport =
-	{
-		0, 0,
-		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
-		0, 1
-	};
-
-	VkRect2D scissorRect =
-	{
-		0, 0,
-		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
-	};
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
@@ -412,30 +393,11 @@ void DeferredShadingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::vector<VkClearValue> clearValues =
-	{
-		{ 0.0f, 0.0f, 0.0f, 0.0f },
-		{ 1.0f, 0 }
-	};
-
 	std::shared_ptr<RenderPassBase> pDeferredShadingPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
 	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading);
 
 	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
 	pDrawCmdBuffer->StartSecondaryRecording(pDeferredShadingPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
-
-	VkViewport viewport =
-	{
-		0, 0,
-		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
-		0, 1
-	};
-
-	VkRect2D scissorRect =
-	{
-		0, 0,
-		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
-	};
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });

@@ -23,7 +23,11 @@ bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 	// NDC space z ranges from 0 to 1 in Vulkan compared to OpenGL's -1 to 1
 	m_globalVariables.vulkanNDC.c[2].z = m_globalVariables.vulkanNDC.c[3].z = 0.5f;
 
-	SetEnvGenWindowSize({ (float)FrameBufferDiction::OFFSCREEN_SIZE, (float)FrameBufferDiction::OFFSCREEN_SIZE });
+	SetGameWindowSize({ (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height });
+	SetEnvGenWindowSize({ (float)FrameBufferDiction::ENV_GEN_WINDOW_SIZE, (float)FrameBufferDiction::ENV_GEN_WINDOW_SIZE });
+	//SetSSAOWindowSize({ (float)FrameBufferDiction::SSAO_WINDOW_SIZE, (float)FrameBufferDiction::SSAO_WINDOW_SIZE });
+	SetSSAOWindowSize(GetGameWindowSize());
+	SetBloomWindowSize({ (float)FrameBufferDiction::BLOOM_WINDOW_SIZE, (float)FrameBufferDiction::BLOOM_WINDOW_SIZE });
 
 	InitSSAORandomSample();
 
