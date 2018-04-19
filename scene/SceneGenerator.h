@@ -32,6 +32,7 @@ public:
 	static std::shared_ptr<Mesh> GenerateBoxMesh();
 	static std::shared_ptr<Mesh> GenerateQuadMesh();
 	static std::shared_ptr<Mesh> GeneratePBRQuadMesh();
+	static std::shared_ptr<Mesh> GeneratePBRBoxMesh();
 	static std::shared_ptr<ForwardMaterial> GenerateIrradianceGenMaterial(const std::shared_ptr<Mesh>& pMesh);
 	static std::shared_ptr<ForwardMaterial> GeneratePrefilterEnvGenMaterial(const std::shared_ptr<Mesh>& pMesh);
 	static std::shared_ptr<ForwardMaterial> GenerateBRDFLUTGenMaterial(const std::shared_ptr<Mesh>& pMesh);
