@@ -191,7 +191,7 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateIrradianceGenMaterial(c
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen();
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_ForwardOffScreen;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_EnvGenOffScreen;
 
 	return ForwardMaterial::CreateDefaultMaterial(info);
 }
@@ -206,7 +206,7 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GeneratePrefilterEnvGenMaterial
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen();
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_ForwardOffScreen;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_EnvGenOffScreen;
 
 	return ForwardMaterial::CreateDefaultMaterial(info);
 }
@@ -221,7 +221,7 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateBRDFLUTGenMaterial(cons
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen();
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_ForwardOffScreen;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_EnvGenOffScreen;
 
 	return ForwardMaterial::CreateDefaultMaterial(info);
 }

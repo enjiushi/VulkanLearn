@@ -156,7 +156,7 @@ void GlobalTextures::InitIrradianceTexture()
 
 		pDrawCmdBuffer->StartPrimaryRecording();
 
-		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]);
+		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]);
 
 		SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
 		SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
@@ -169,7 +169,7 @@ void GlobalTextures::InitIrradianceTexture()
 
 		GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
-		FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance], 0, 1, i, 1);
+		FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance], 0, 1, i, 1);
 	}
 }
 
@@ -240,7 +240,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 
 			pDrawCmdBuffer->StartPrimaryRecording();
 
-			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]);
+			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]);
 
 			SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
 			SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
@@ -252,7 +252,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 
 			GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
-			FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv], mipLevel, 1, i, 1, size, size);
+			FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv], mipLevel, 1, i, 1, size, size);
 		}
 	}
 }
@@ -293,7 +293,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 	SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();
 
-	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]);
+	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]);
 
 	SceneGenerator::GetInstance()->GetMaterial0()->OnPassStart();
 	SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer);
@@ -306,7 +306,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 	GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
-	FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ForwardOffScreen)[0]->ExtractContent(m_IBL2DTextures[RGBA16_512_BRDFLut]);
+	FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]->ExtractContent(m_IBL2DTextures[RGBA16_512_BRDFLut]);
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()

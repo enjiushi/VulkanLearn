@@ -34,7 +34,7 @@ public:
 		FrameBufferType_GaussianBlur,
 		FrameBufferType_Shading,
 		FrameBufferType_PostProcessing,
-		FrameBufferType_ForwardOffScreen,
+		FrameBufferType_EnvGenOffScreen,
 		FrameBufferType_ForwardScreen,
 		PipelineRenderPassCount
 	};
@@ -62,7 +62,7 @@ public:
 	FrameBufferCombo CreateGaussianBlurFrameBuffer();
 	FrameBufferCombo CreateShadingFrameBuffer();
 	FrameBufferCombo CreatePostProcessingFrameBuffer();
-	FrameBufferCombo CreateForwardOffScreenFrameBuffer();
+	FrameBufferCombo CreateForwardEnvGenOffScreenFrameBuffer();
 	FrameBufferCombo CreateForwardScreenFrameBuffer();
 
 protected:

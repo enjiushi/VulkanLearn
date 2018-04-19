@@ -39,8 +39,8 @@ bool FrameBufferDiction::Init()
 			m_frameBuffers.push_back(CreateShadingFrameBuffer()); break;
 		case FrameBufferType_PostProcessing:
 			m_frameBuffers.push_back(CreatePostProcessingFrameBuffer()); break;
-		case FrameBufferType_ForwardOffScreen:
-			m_frameBuffers.push_back(CreateForwardOffScreenFrameBuffer()); break;
+		case FrameBufferType_EnvGenOffScreen:
+			m_frameBuffers.push_back(CreateForwardEnvGenOffScreenFrameBuffer()); break;
 		case FrameBufferType_ForwardScreen:
 			m_frameBuffers.push_back(CreateForwardScreenFrameBuffer()); break;
 		default:
@@ -155,7 +155,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreatePostProcessingFra
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardOffScreenFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardEnvGenOffScreenFrameBuffer()
 {
 	FrameBufferCombo frameBuffers;
 
