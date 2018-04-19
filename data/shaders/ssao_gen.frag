@@ -15,7 +15,7 @@ layout (location = 2) in vec3 inViewSpaceRay;
 layout (location = 0) out vec4 outFragColor0;
 
 int index = int(perFrameData.camDir.a);
-vec2 windowSize = vec2(1016, 737);
+
 float SSAO_RADIUS = 3.0f;
 
 vec3 UnpackNormal(ivec2 coord)
@@ -27,14 +27,14 @@ vec3 UnpackNormal(ivec2 coord)
 
 void main() 
 {
-	ivec2 coord = ivec2(floor(inUv * windowSize));
+	ivec2 coord = ivec2(floor(inUv * globalData.gameWindowSize.xy));
 
 	vec3 normal = UnpackNormal(coord);
 
 	float linearDepth;
 	vec3 position = ReconstructPosition(coord, inViewRay, DepthStencilBuffer[index], linearDepth);
 
-	vec3 tangent = texture(SSAO_RANDOM_ROTATIONS, inUv * windowSize / textureSize(SSAO_RANDOM_ROTATIONS, 0)).xyz * 2.0f - 1.0f;
+	vec3 tangent = texture(SSAO_RANDOM_ROTATIONS, inUv * globalData.SSAOWindowSize.xy / textureSize(SSAO_RANDOM_ROTATIONS, 0)).xyz * 2.0f - 1.0f;
 	tangent = normalize(tangent - dot(normal, tangent) * normal);
 
 	vec3 bitangent = normalize(cross(normal, tangent));

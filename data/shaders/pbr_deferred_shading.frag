@@ -99,7 +99,7 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord)
 
 void main() 
 {
-	ivec2 coord = ivec2(floor(inUv * vec2(1016, 737)));
+	ivec2 coord = ivec2(floor(inUv * globalData.gameWindowSize.xy));
 
 	GBufferVariables vars = UnpackGBuffers(coord, inUv);
 
