@@ -793,8 +793,6 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor({ 1, 1, 1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ 1, 1, -1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetRenderSettings({ 1.0f / 2.2f, 4.5f, 11.2f, 0.0f });
-	UniformData::GetInstance()->GetGlobalUniforms()->SetGameWindowSize({ (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height });
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOWindowSize(UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize());
 }
 
 void VulkanGlobal::EndSetup()
