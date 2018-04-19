@@ -18,6 +18,7 @@ typedef struct _GlobalVariables
 	// Windows settings
 	Vector4f	gameWindowSize;
 	Vector4f	envGenWindowSize;
+	Vector4f	shadowGenWindowSize;
 	Vector4f	SSAOWindowSize;
 	Vector4f	bloomWindowSize;
 
@@ -46,6 +47,8 @@ public:
 	Vector2f GetGameWindowSize() const { return { m_globalVariables.gameWindowSize.x, m_globalVariables.gameWindowSize.y }; }
 	void SetEnvGenWindowSize(const Vector2f& size);
 	Vector2f GetEnvGenWindowSize() const { return { m_globalVariables.envGenWindowSize.x, m_globalVariables.envGenWindowSize.y }; }
+	void SetShadowGenWindowSize(const Vector2f& size);
+	Vector2f GetShadowGenWindowSize() const { return { m_globalVariables.shadowGenWindowSize.x, m_globalVariables.shadowGenWindowSize.y }; }
 	void SetSSAOWindowSize(const Vector2f& size);
 	Vector2f GetSSAOWindowSize() const { return { m_globalVariables.SSAOWindowSize.x, m_globalVariables.SSAOWindowSize.y }; }
 	void SetBloomWindowSize(const Vector2f& size);

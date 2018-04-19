@@ -8,6 +8,7 @@ struct GlobalData
 	// Window settings
 	vec4 gameWindowSize;
 	vec4 envGenWindowSize;
+	vec4 shadowGenWindowSize;
 	vec4 SSAOWindowSize;
 	vec4 bloomWindowSize;
 

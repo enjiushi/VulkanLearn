@@ -19,6 +19,7 @@ public:
 	static const VkFormat BLUR_FORMAT = VK_FORMAT_R16_SFLOAT;
 
 	static const uint32_t ENV_GEN_WINDOW_SIZE = 512;
+	static const uint32_t SHADOW_GEN_WINDOW_SIZE = 1024;
 	static const uint32_t SSAO_WINDOW_SIZE = 512;
 	static const uint32_t BLOOM_WINDOW_SIZE = 256;
 

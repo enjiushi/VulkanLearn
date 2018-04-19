@@ -25,6 +25,7 @@ bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 
 	SetGameWindowSize({ (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height });
 	SetEnvGenWindowSize({ (float)FrameBufferDiction::ENV_GEN_WINDOW_SIZE, (float)FrameBufferDiction::ENV_GEN_WINDOW_SIZE });
+	SetShadowGenWindowSize({ (float)FrameBufferDiction::SHADOW_GEN_WINDOW_SIZE, (float)FrameBufferDiction::SHADOW_GEN_WINDOW_SIZE });
 	//SetSSAOWindowSize({ (float)FrameBufferDiction::SSAO_WINDOW_SIZE, (float)FrameBufferDiction::SSAO_WINDOW_SIZE });
 	SetSSAOWindowSize(GetGameWindowSize());
 	SetBloomWindowSize({ (float)FrameBufferDiction::BLOOM_WINDOW_SIZE, (float)FrameBufferDiction::BLOOM_WINDOW_SIZE });
@@ -71,6 +72,16 @@ void GlobalUniforms::SetEnvGenWindowSize(const Vector2f& size)
 	m_globalVariables.envGenWindowSize.w = 1.0f / size.y;
 	SetDirty();
 }
+
+void GlobalUniforms::SetShadowGenWindowSize(const Vector2f& size)
+{
+	m_globalVariables.shadowGenWindowSize.x = size.x;
+	m_globalVariables.shadowGenWindowSize.y = size.y;
+	m_globalVariables.shadowGenWindowSize.z = 1.0f / size.x;
+	m_globalVariables.shadowGenWindowSize.w = 1.0f / size.y;
+	SetDirty();
+}
+
 
 void GlobalUniforms::SetSSAOWindowSize(const Vector2f& size)
 {

@@ -70,7 +70,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffe
 		gbuffer_vec[GBuffer1] = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, m_GBufferFormatTable[GBuffer1]);
 		gbuffer_vec[GBuffer2] = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, m_GBufferFormatTable[GBuffer2]);
 
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height);
+		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, windowSize.x, windowSize.y);
 
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), gbuffer_vec, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->GetRenderPass()));
 	}
@@ -80,11 +80,13 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffe
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadowMapFrameBuffer()
 {
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize();
+
 	FrameBufferCombo frameBuffers;
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_FORMAT, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height);
+		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_FORMAT, windowSize.x, windowSize.y);
 
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), std::vector<std::shared_ptr<Image>>(), pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap)->GetRenderPass()));
 	}
