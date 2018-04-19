@@ -7,10 +7,10 @@ class CommandBuffer;
 class GaussianBlurPass : public RenderPassBase
 {
 protected:
-	bool Init(const std::shared_ptr<GaussianBlurPass>& pSelf);
+	bool Init(const std::shared_ptr<GaussianBlurPass>& pSelf, VkFormat format);
 
 public:
-	static std::shared_ptr<GaussianBlurPass> Create();
+	static std::shared_ptr<GaussianBlurPass> Create(VkFormat format);
 
 public:
 	std::vector<VkClearValue> GetClearValue() override;

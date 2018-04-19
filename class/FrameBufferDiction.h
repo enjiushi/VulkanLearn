@@ -31,7 +31,8 @@ public:
 		FrameBufferType_GBuffer,
 		FrameBufferType_ShadowMap,
 		FrameBufferType_SSAO,
-		FrameBufferType_GaussianBlur,
+		FrameBufferType_SSAOBlurV,
+		FrameBufferType_SSAOBlurH,
 		FrameBufferType_Shading,
 		FrameBufferType_PostProcessing,
 		FrameBufferType_EnvGenOffScreen,
@@ -59,7 +60,8 @@ public:
 	FrameBufferCombo CreateGBufferFrameBuffer();
 	FrameBufferCombo CreateShadowMapFrameBuffer();
 	FrameBufferCombo CreateSSAOFrameBuffer();
-	FrameBufferCombo CreateGaussianBlurFrameBuffer();
+	FrameBufferCombo CreateSSAOBlurVFrameBuffer();
+	FrameBufferCombo CreateSSAOBlurHFrameBuffer();
 	FrameBufferCombo CreateShadingFrameBuffer();
 	FrameBufferCombo CreatePostProcessingFrameBuffer();
 	FrameBufferCombo CreateForwardEnvGenOffScreenFrameBuffer();

@@ -11,14 +11,18 @@
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
 
-std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
+std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo,
+	FrameBufferDiction::FrameBufferType vertical,
+	FrameBufferDiction::FrameBufferType horizontal)
 {
 	std::shared_ptr<GaussianBlurMaterial> pGaussianBlurMaterial = std::make_shared<GaussianBlurMaterial>();
+	pGaussianBlurMaterial->m_currentFB = pGaussianBlurMaterial->m_verticalBlurFB = vertical;
+	pGaussianBlurMaterial->m_horizontalBlurFB = horizontal;
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GaussianBlur)->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(pGaussianBlurMaterial->m_verticalBlurFB)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -126,9 +130,8 @@ void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GaussianBlur);
+	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(m_currentFB);
 
-	// FIXME: Subpass index hard-coded
 	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
@@ -138,9 +141,14 @@ void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 	BindDescriptorSet(pDrawCmdBuffer);
 	BindMeshData(pDrawCmdBuffer);
 
-	pDrawCmdBuffer->DrawIndexedIndirect(m_pIndirectBuffer, 0, m_indirectIndex);
+	pDrawCmdBuffer->DrawIndexed(3);
 
 	pDrawCmdBuffer->EndSecondaryRecording();
 
 	pCmdBuf->Execute({ pDrawCmdBuffer });
+
+	if (m_currentFB == FrameBufferDiction::FrameBufferType_SSAOBlurV)
+		m_currentFB = FrameBufferDiction::FrameBufferType_SSAOBlurH;
+	else
+		m_currentFB = FrameBufferDiction::FrameBufferType_SSAOBlurV;
 }

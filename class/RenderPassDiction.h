@@ -16,6 +16,7 @@ public:
 		PipelineRenderPassGBuffer,
 		PipelineRenderPassShadowMap,
 		PipelineRenderPassSSAO,
+		PipelineRenderPassGaussianBlur,
 		PipelineRenderPassShading,
 		PipelineRenderPassPostProcessing,
 		PipelineRenderPassCount
