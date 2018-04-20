@@ -13,7 +13,8 @@ public:
 
 	bool Init(const std::shared_ptr<Device>& pDevice,
 		const std::shared_ptr<PipelineLayout>& pSelf,
-		const DescriptorSetLayoutList& descriptorSetLayoutList);
+		const DescriptorSetLayoutList& descriptorSetLayoutList,
+		const std::vector<VkPushConstantRange>& pushConstsRanges);
 
 public:
 	VkPipelineLayout GetDeviceHandle() const { return m_pipelineLayout; }
@@ -23,6 +24,9 @@ public:
 public:
 	static std::shared_ptr<PipelineLayout> Create(const std::shared_ptr<Device>& pDevice,
 		const DescriptorSetLayoutList& descriptorSetLayoutList);
+	static std::shared_ptr<PipelineLayout> Create(const std::shared_ptr<Device>& pDevice,
+		const DescriptorSetLayoutList& descriptorSetLayoutList,
+		const std::vector<VkPushConstantRange>& pushConstsRanges);
 
 protected:
 	DescriptorSetLayoutList						m_descriptorSetLayoutList;

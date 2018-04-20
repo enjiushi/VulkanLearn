@@ -8,7 +8,8 @@ PipelineLayout::~PipelineLayout()
 
 bool PipelineLayout::Init(const std::shared_ptr<Device>& pDevice,
 	const std::shared_ptr<PipelineLayout>& pSelf,
-	const DescriptorSetLayoutList& descriptorSetLayoutList)
+	const DescriptorSetLayoutList& descriptorSetLayoutList,
+	const std::vector<VkPushConstantRange>& pushConstsRanges)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
@@ -21,6 +22,8 @@ bool PipelineLayout::Init(const std::shared_ptr<Device>& pDevice,
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	info.setLayoutCount = dsLayoutDeviceHandleList.size();
 	info.pSetLayouts = dsLayoutDeviceHandleList.data();
+	info.pushConstantRangeCount = pushConstsRanges.size();
+	info.pPushConstantRanges = pushConstsRanges.data();
 	CHECK_VK_ERROR(vkCreatePipelineLayout(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_pipelineLayout));
 
 	return true;
@@ -29,8 +32,15 @@ bool PipelineLayout::Init(const std::shared_ptr<Device>& pDevice,
 std::shared_ptr<PipelineLayout> PipelineLayout::Create(const std::shared_ptr<Device>& pDevice,
 	const DescriptorSetLayoutList& descriptorSetLayoutList)
 {
+	return Create(pDevice, descriptorSetLayoutList, {});
+}
+
+std::shared_ptr<PipelineLayout> PipelineLayout::Create(const std::shared_ptr<Device>& pDevice,
+	const DescriptorSetLayoutList& descriptorSetLayoutList,
+	const std::vector<VkPushConstantRange>& pushConstsRanges)
+{
 	std::shared_ptr<PipelineLayout> pPipelineLayout = std::make_shared<PipelineLayout>();
-	if (pPipelineLayout.get() && pPipelineLayout->Init(pDevice, pPipelineLayout, descriptorSetLayoutList))
+	if (pPipelineLayout.get() && pPipelineLayout->Init(pDevice, pPipelineLayout, descriptorSetLayoutList, pushConstsRanges))
 		return pPipelineLayout;
 	return nullptr;
 }

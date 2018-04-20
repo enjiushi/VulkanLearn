@@ -47,6 +47,20 @@ bool Material::Init
 	uint32_t vertexFormat
 )
 {
+	return Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, {}, materialUniformVars, vertexFormat);
+}
+
+bool Material::Init
+(
+	const std::shared_ptr<Material>& pSelf,
+	const std::vector<std::wstring>	shaderPaths,
+	const std::shared_ptr<RenderPassBase>& pRenderPass,
+	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
+	const std::vector<VkPushConstantRange>& pushConstsRanges,
+	const std::vector<UniformVar>& materialUniformVars,
+	uint32_t vertexFormat
+)
+{
 	if (!SelfRefBase<Material>::Init(pSelf))
 		return false;
 
@@ -153,7 +167,7 @@ bool Material::Init
 	descriptorSetLayouts.push_back(m_pDescriptorSetLayout);
 
 	// Create pipeline layout
-	m_pPipelineLayout = PipelineLayout::Create(GetDevice(), descriptorSetLayouts);
+	m_pPipelineLayout = PipelineLayout::Create(GetDevice(), descriptorSetLayouts, pushConstsRanges);
 
 	// Init shaders
 	std::vector<std::shared_ptr<ShaderModule>> shaders;

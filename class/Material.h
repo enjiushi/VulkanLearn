@@ -110,6 +110,17 @@ protected:
 		uint32_t vertexFormat
 	);
 
+	bool Init
+	(
+		const std::shared_ptr<Material>& pSelf,
+		const std::vector<std::wstring>	shaderPaths,
+		const std::shared_ptr<RenderPassBase>& pRenderPass,
+		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
+		const std::vector<VkPushConstantRange>& pushConstsRanges,
+		const std::vector<UniformVar>& materialUniformVars,
+		uint32_t vertexFormat
+	);
+
 	virtual void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) {}
 	virtual void CustomizePoolSize(std::vector<uint32_t>& counts) {}
 
