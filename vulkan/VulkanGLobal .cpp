@@ -600,6 +600,7 @@ void VulkanGlobal::InitMaterials()
 	info.materialUniformVars = vars;
 	info.vertexFormat = m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_GBuffer;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
 
 
@@ -685,38 +686,13 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 
-	/*layout =
-	{
-		{
-			DynamicUniformBuffer,
-			"MaterialVariables",
-			{
-				{ Vec4Unit, "TestColor" },
-			}
-		},
-		{ CombinedSampler, "tex0" },
-		{ CombinedSampler, "tex1" },
-	};
-
-	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/screen_quad.frag.spv", L"" };
-	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
-	info.maxMaterialInstance = 1;
-	info.materialVariableLayout = layout;
-	info.pRenderPass = RenderWorkManager::GetDefaultRenderPass();
-
-	m_pTestMaterial = Material::CreateDefaultMaterial(info);
-	m_pTestMaterialInstance = m_pTestMaterial->CreateMaterialInstance();
-	m_pTestMaterialInstance->SetRenderMask(1 << GlobalVulkanStates::Scene);
-	m_pTestMaterialInstance->SetMaterialTexture(1, m_pPrefilterEnvTex);
-	m_pTestMaterialInstance->SetMaterialTexture(2, m_pBRDFLut);*/
-
 	info.shaderPaths			= { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/pbr_deferred_shading.frag.spv", L"" };
 	info.vertexBindingsInfo		= { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo	= m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
 	info.vertexFormat			= m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex			= 0;
 	info.pRenderPass			= RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
+	info.frameBufferType		= FrameBufferDiction::FrameBufferType_Shading;
 	info.depthTestEnable		= false;
 	info.depthWriteEnable		= false;
 
@@ -727,6 +703,7 @@ void VulkanGlobal::InitMaterials()
 	info.vertexAttributesInfo = m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
 	info.vertexFormat = m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_ShadowMap;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap);
 	info.depthTestEnable = false;
 	info.depthWriteEnable = false;
@@ -740,6 +717,7 @@ void VulkanGlobal::InitMaterials()
 	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAO;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
 	info.depthTestEnable = false;
 	info.depthWriteEnable = false;
@@ -887,7 +865,7 @@ void VulkanGlobal::Draw()
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y });
 
 	m_PBRGbufferMaterial->OnPassStart();
-	m_PBRGbufferMaterial->Draw(pDrawCmdBuffer);
+	m_PBRGbufferMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer));
 	m_PBRGbufferMaterial->OnPassEnd();
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->EndRenderPass(pDrawCmdBuffer);
@@ -900,7 +878,7 @@ void VulkanGlobal::Draw()
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize().y });
 
 	m_pShadowMapMaterial->OnPassStart();
-	m_pShadowMapMaterial->Draw(pDrawCmdBuffer);
+	m_pShadowMapMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_ShadowMap));
 	m_pShadowMapMaterial->OnPassEnd();
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap)->EndRenderPass(pDrawCmdBuffer);
@@ -913,10 +891,23 @@ void VulkanGlobal::Draw()
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y });
 
 	m_pSSAOMaterial->OnPassStart();
-	m_pSSAOMaterial->Draw(pDrawCmdBuffer);
+	m_pSSAOMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAO));
 	m_pSSAOMaterial->OnPassEnd();
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO)->EndRenderPass(pDrawCmdBuffer);
+
+
+
+	//RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAO));
+
+	//GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y, 0, 1 });
+	//GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y });
+
+	//m_pSSAOMaterial->OnPassStart();
+	//m_pSSAOMaterial->Draw(pDrawCmdBuffer);
+	//m_pSSAOMaterial->OnPassEnd();
+
+	//RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur)->EndRenderPass(pDrawCmdBuffer);
 
 
 
@@ -926,7 +917,7 @@ void VulkanGlobal::Draw()
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y });
 
 	m_pShadingMaterial->OnPassStart();
-	m_pShadingMaterial->Draw(pDrawCmdBuffer);
+	m_pShadingMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading));
 	m_pShadingMaterial->OnPassEnd();
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->NextSubpass(pDrawCmdBuffer);
@@ -935,7 +926,7 @@ void VulkanGlobal::Draw()
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y });
 
 	m_pSkyBoxMaterial->OnPassStart();
-	m_pSkyBoxMaterial->Draw(pDrawCmdBuffer);
+	m_pSkyBoxMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading));
 	m_pSkyBoxMaterial->OnPassEnd();
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->EndRenderPass(pDrawCmdBuffer);

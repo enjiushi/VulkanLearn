@@ -9,7 +9,7 @@ public:
 	static std::shared_ptr<GBufferMaterial> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo);
 
 public:
-	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf) override;
+	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) override;
 };
 
 class DeferredShadingMaterial : public Material
@@ -29,7 +29,7 @@ public:
 	static std::shared_ptr<DeferredShadingMaterial> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo);
 
 public:
-	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf) override;
+	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) override;
 	void OnPassStart() override {}
 	void OnPassEnd() override {}
 };

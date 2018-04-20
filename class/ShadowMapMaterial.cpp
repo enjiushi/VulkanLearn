@@ -117,20 +117,19 @@ std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(cons
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
+	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
 	if (pShadowMapMaterial.get() && pShadowMapMaterial->Init(pShadowMapMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pShadowMapMaterial;
 	return nullptr;
 }
 
-void ShadowMapMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+void ShadowMapMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_ShadowMap);
-
 	// FIXME: Subpass index hard-coded
-	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
+	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pFrameBuffer);
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });

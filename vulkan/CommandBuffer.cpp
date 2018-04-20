@@ -513,6 +513,11 @@ void CommandBuffer::CopyBufferImage(const std::shared_ptr<Buffer>& pSrc, const s
 	AddToReferenceTable(pDst);
 }
 
+void CommandBuffer::PushConstants(const std::shared_ptr<PipelineLayout>& pPipelineLayout, VkShaderStageFlags shaderFlag, uint32_t offset, uint32_t size, const void* pData)
+{
+	vkCmdPushConstants(GetDeviceHandle(), pPipelineLayout->GetDeviceHandle(), shaderFlag, offset, size, pData);
+}
+
 void CommandBuffer::PrepareBufferCopyCommands(const BufferCopyCmdData& data)
 {
 	VkCommandBufferBeginInfo beginInfo = {};

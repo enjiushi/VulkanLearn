@@ -77,6 +77,8 @@ public:
 	void CopyImage(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions);
 	void CopyBufferImage(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions);
 
+	void PushConstants(const std::shared_ptr<PipelineLayout>& pPipelineLayout, VkShaderStageFlags shaderFlag, uint32_t offset, uint32_t size, const void* pData);
+
 	void AttachBarriers
 	(
 		VkPipelineStageFlags src,

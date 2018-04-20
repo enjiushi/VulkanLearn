@@ -115,20 +115,19 @@ std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const Si
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
+	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
 	if (pForwardMaterial.get() && pForwardMaterial->Init(pForwardMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pForwardMaterial;
 	return nullptr;
 }
 
-void ForwardMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+void ForwardMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(m_frameBufferType);
-
 	// FIXME: Subpass index hard-coded
-	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
+	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pFrameBuffer);
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });

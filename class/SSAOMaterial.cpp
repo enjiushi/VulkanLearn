@@ -27,7 +27,7 @@ std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial(const SimpleMa
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAO)->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -120,7 +120,7 @@ std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial(const SimpleMa
 	createInfo.pViewportState = &viewportStateCreateInfo;
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
-	createInfo.renderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()->GetDeviceHandle();
+	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
 	if (pSSAOMaterial.get() && pSSAOMaterial->Init(pSSAOMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
@@ -190,27 +190,23 @@ void SSAOMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (FrameBufferDiction::GBufferCount + 1));
 }
 
-void SSAOMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+void SSAOMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::shared_ptr<RenderPassBase> pSSAOPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAO);
-
-	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
-	pDrawCmdBuffer->StartSecondaryRecording(pSSAOPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
+	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pFrameBuffer);
 
 	VkViewport viewport =
 	{
 		0, 0,
-		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
+		pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
 		0, 1
 	};
 
 	VkRect2D scissorRect =
 	{
 		0, 0,
-		pCurrentFrameBuffer->GetFramebufferInfo().width, pCurrentFrameBuffer->GetFramebufferInfo().height,
+		pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
 	};
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });

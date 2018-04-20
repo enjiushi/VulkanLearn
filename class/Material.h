@@ -96,7 +96,7 @@ public:
 	virtual void SyncBufferData();
 
 	virtual void OnPassStart();
-	virtual void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf) = 0;
+	virtual void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) = 0;
 	virtual void OnPassEnd();
 
 protected:

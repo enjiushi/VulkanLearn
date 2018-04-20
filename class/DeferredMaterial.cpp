@@ -28,7 +28,7 @@ std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(const Si
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer)->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -122,22 +122,19 @@ std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(const Si
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
-	createInfo.renderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->GetRenderPass()->GetDeviceHandle();
+	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
 	if (pGbufferMaterial.get() && pGbufferMaterial->Init(pGbufferMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pGbufferMaterial;
 	return nullptr;
 }
 
-void GBufferMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+void GBufferMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::shared_ptr<RenderPassBase> pGBufferRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer);
-
 	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
-	pDrawCmdBuffer->StartSecondaryRecording(pGBufferRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
+	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pFrameBuffer);
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
@@ -160,7 +157,7 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading)->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -253,7 +250,7 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 	createInfo.pViewportState = &viewportStateCreateInfo;
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
-	createInfo.renderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()->GetDeviceHandle();
+	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
 	if (pDeferredMaterial.get() && pDeferredMaterial->Init(pDeferredMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
@@ -383,15 +380,12 @@ void DeferredShadingMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (FrameBufferDiction::GBufferCount + 1));
 }
 
-void DeferredShadingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+void DeferredShadingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::shared_ptr<RenderPassBase> pDeferredShadingPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading);
-
 	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
-	pDrawCmdBuffer->StartSecondaryRecording(pDeferredShadingPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
+	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pFrameBuffer);
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });

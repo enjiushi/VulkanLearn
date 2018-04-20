@@ -7,22 +7,20 @@
 #include "../vulkan/GlobalVulkanStates.h"
 #include "../vulkan/SharedIndirectBuffer.h"
 #include "../vulkan/GraphicPipeline.h"
+#include "../vulkan/SwapChain.h"
+#include "../vulkan/DescriptorSet.h"
 #include "RenderWorkManager.h"
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
 
-std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo,
-	FrameBufferDiction::FrameBufferType vertical,
-	FrameBufferDiction::FrameBufferType horizontal)
+std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
 	std::shared_ptr<GaussianBlurMaterial> pGaussianBlurMaterial = std::make_shared<GaussianBlurMaterial>();
-	pGaussianBlurMaterial->m_currentFB = pGaussianBlurMaterial->m_verticalBlurFB = vertical;
-	pGaussianBlurMaterial->m_horizontalBlurFB = horizontal;
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(pGaussianBlurMaterial->m_verticalBlurFB)->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -120,19 +118,61 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
+	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
 	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pGaussianBlurMaterial;
 	return nullptr;
 }
 
-void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+bool GaussianBlurMaterial::Init(const std::shared_ptr<GaussianBlurMaterial>& pSelf,
+	const std::vector<std::wstring>	shaderPaths,
+	const std::shared_ptr<RenderPassBase>& pRenderPass,
+	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
+	const std::vector<UniformVar>& materialUniformVars,
+	uint32_t vertexFormat)
+{
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
+		return false;
+
+	std::vector<CombinedImage> SSAOBuffers;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pSSAOFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAO)[j];
+
+		SSAOBuffers.push_back({
+			pSSAOFrameBuffer->GetColorTarget(0),
+			pSSAOFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pSSAOFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
+			});
+	}
+
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, SSAOBuffers);
+
+	return true;
+}
+
+void GaussianBlurMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
+{
+	materialLayout.push_back(
+	{
+		CombinedSampler,
+		"SSAO Texture",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
+}
+
+void GaussianBlurMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
+{
+	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount());
+}
+
+void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	std::shared_ptr<FrameBuffer> pCurrentFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(m_currentFB);
-
-	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pCurrentFrameBuffer);
+	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pFrameBuffer);
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
@@ -141,14 +181,15 @@ void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 	BindDescriptorSet(pDrawCmdBuffer);
 	BindMeshData(pDrawCmdBuffer);
 
+	int32_t direction = 0;
+	if (!m_isVertical)
+		direction = 1;
+
+	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(int32_t), &direction);
+
 	pDrawCmdBuffer->DrawIndexed(3);
 
 	pDrawCmdBuffer->EndSecondaryRecording();
 
 	pCmdBuf->Execute({ pDrawCmdBuffer });
-
-	if (m_currentFB == FrameBufferDiction::FrameBufferType_SSAOBlurV)
-		m_currentFB = FrameBufferDiction::FrameBufferType_SSAOBlurH;
-	else
-		m_currentFB = FrameBufferDiction::FrameBufferType_SSAOBlurV;
 }

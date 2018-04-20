@@ -13,5 +13,6 @@ public:
 	static std::shared_ptr<GaussianBlurPass> Create(VkFormat format);
 
 public:
+	void BeginRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) override;
 	std::vector<VkClearValue> GetClearValue() override;
 };
