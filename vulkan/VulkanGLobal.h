@@ -109,6 +109,7 @@ public:
 	std::shared_ptr<Mesh>				m_pSphereMesh;
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
+	std::shared_ptr<Mesh>				m_pPBRBoxMesh;
 
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
 
@@ -138,17 +139,30 @@ public:
 	std::shared_ptr<Texture2D>			m_pBRDFLut;
 
 	std::shared_ptr<BaseObject>			m_pGunObject;
-	std::shared_ptr<BaseObject>			m_pGunObject1;
-	std::shared_ptr<BaseObject>			m_pSphere;
+	std::shared_ptr<BaseObject>			m_pSphere0;
+	std::shared_ptr<BaseObject>			m_pSphere1;
+	std::shared_ptr<BaseObject>			m_pSphere2;
+	std::shared_ptr<BaseObject>			m_pBoxObject0;
+	std::shared_ptr<BaseObject>			m_pBoxObject1;
+	std::shared_ptr<BaseObject>			m_pBoxObject2;
 	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer;
-	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer1;
-	std::shared_ptr<MeshRenderer>		m_pSphereRenderer;
+	std::shared_ptr<MeshRenderer>		m_pSphereRenderer0;
+	std::shared_ptr<MeshRenderer>		m_pSphereRenderer1;
+	std::shared_ptr<MeshRenderer>		m_pSphereRenderer2;
 	std::shared_ptr<MeshRenderer>		m_pQuadRenderer;
+	std::shared_ptr<MeshRenderer>		m_pBoxRenderer0;
+	std::shared_ptr<MeshRenderer>		m_pBoxRenderer1;
+	std::shared_ptr<MeshRenderer>		m_pBoxRenderer2;
 	//std::shared_ptr<ForwardMaterial>	m_pGunMaterial;
 	std::shared_ptr<GBufferMaterial>	m_PBRGbufferMaterial;
 	std::shared_ptr<MaterialInstance>	m_pGunMaterialInstance;
-	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance;
+	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance0;
+	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance1;
+	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance2;
 	std::shared_ptr<MaterialInstance>	m_pQuadMaterialInstance;
+	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance0;
+	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance1;
+	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance2;
 
 	std::shared_ptr<SSAOMaterial>				m_pSSAOMaterial;
 	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
