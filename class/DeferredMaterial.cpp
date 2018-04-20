@@ -272,8 +272,6 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
 		return false;
 
-	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
-
 	for (uint32_t i = 0; i < FrameBufferDiction::GBufferCount + 1; i++)
 	{
 		std::vector<CombinedImage> gbuffers;
@@ -298,8 +296,6 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 		m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + i, gbuffers);
 	}
 
-	std::shared_ptr<RenderPassBase> pShadowPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap);
-
 	std::vector<CombinedImage> depthBuffers;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
@@ -313,8 +309,6 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 	}
 
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 1, depthBuffers);
-
-	std::shared_ptr<RenderPassBase> pSSAOPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
 
 	std::vector<CombinedImage> SSAOBuffers;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
@@ -335,53 +329,53 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 
 void DeferredShadingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
 {
-		m_materialVariableLayout.push_back(
-			{
-				CombinedSampler,
-				"GBuffer0",
-				{},
-				GetSwapChain()->GetSwapChainImageCount()
-			});
+	materialLayout.push_back(
+	{
+		CombinedSampler,
+		"GBuffer0",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
 
-		m_materialVariableLayout.push_back(
-			{
-				CombinedSampler,
-				"GBuffer1",
-				{},
-				GetSwapChain()->GetSwapChainImageCount()
-			});
+	materialLayout.push_back(
+	{
+		CombinedSampler,
+		"GBuffer1",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
 
-		m_materialVariableLayout.push_back(
-			{
-				CombinedSampler,
-				"GBuffer2",
-				{},
-				GetSwapChain()->GetSwapChainImageCount()
-			});
+	materialLayout.push_back(
+	{
+		CombinedSampler,
+		"GBuffer2",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
 
-		m_materialVariableLayout.push_back(
-			{
-				CombinedSampler,
-				"DepthBuffer",
-				{},
-				GetSwapChain()->GetSwapChainImageCount()
-			});
+	materialLayout.push_back(
+	{
+		CombinedSampler,
+		"DepthBuffer",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
 
-		m_materialVariableLayout.push_back(
-			{
-				CombinedSampler,
-				"ShadowMapDepthBuffer",
-				{},
-				GetSwapChain()->GetSwapChainImageCount()
-			});
+	materialLayout.push_back(
+	{
+		CombinedSampler,
+		"ShadowMapDepthBuffer",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
 
-		m_materialVariableLayout.push_back(
-			{
-				CombinedSampler,
-				"SSAOBuffer",
-				{},
-				GetSwapChain()->GetSwapChainImageCount()
-			});
+	materialLayout.push_back(
+	{
+		CombinedSampler,
+		"SSAOBuffer",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
 }
 
 void DeferredShadingMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
