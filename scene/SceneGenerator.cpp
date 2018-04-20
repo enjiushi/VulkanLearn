@@ -185,12 +185,12 @@ std::shared_ptr<Mesh> SceneGenerator::GeneratePBRBoxMesh()
 		0, 2, 3,
 
 		// back
-		4, 5, 6,
-		4, 6, 7,
+		4, 6, 5,
+		4, 7, 6,
 
 		// top
-		8, 9, 10,
-		8, 10, 11,
+		8, 10, 9,
+		8, 11, 10,
 
 		// bottom
 		12, 13, 14,
@@ -201,8 +201,8 @@ std::shared_ptr<Mesh> SceneGenerator::GeneratePBRBoxMesh()
 		16, 18, 19,
 
 		// right
-		20, 21, 22,
-		20, 22, 23,
+		20, 22, 21,
+		20, 23, 22,
 	};
 
 	return Mesh::Create
