@@ -141,6 +141,21 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffe
 	return frameBuffers;
 }
 
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBuffer()
+{
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize();
+
+	FrameBufferCombo frameBuffers;
+
+	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+	{
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget , GetSwapChain()->GetSwapChainImage(i) }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()));
+	}
+
+	return frameBuffers;
+}
+
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreatePostProcessingFrameBuffer()
 {
 	FrameBufferCombo frameBuffers;

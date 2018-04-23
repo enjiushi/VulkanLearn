@@ -33,6 +33,7 @@ public:
 		FrameBufferType_SSAO,
 		FrameBufferType_SSAOBlur,
 		FrameBufferType_Shading,
+		FrameBufferType_Bloom,
 		FrameBufferType_PostProcessing,
 		FrameBufferType_EnvGenOffScreen,
 		FrameBufferType_ForwardScreen,
@@ -61,6 +62,7 @@ public:
 	FrameBufferCombo CreateSSAOFrameBuffer();
 	FrameBufferCombo CreateSSAOBlurFrameBuffer();
 	FrameBufferCombo CreateShadingFrameBuffer();
+	FrameBufferCombo CreateBloomFrameBuffer();
 	FrameBufferCombo CreatePostProcessingFrameBuffer();
 	FrameBufferCombo CreateForwardEnvGenOffScreenFrameBuffer();
 	FrameBufferCombo CreateForwardScreenFrameBuffer();
