@@ -723,6 +723,18 @@ void VulkanGlobal::InitMaterials()
 	info.depthWriteEnable = false;
 
 	m_pSSAOMaterial = SSAOMaterial::CreateDefaultMaterial(info);
+
+	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
+	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
+	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.subpassIndex = 0;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOBlurV;
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur);
+	info.depthTestEnable = false;
+	info.depthWriteEnable = false;
+
+	m_pGaussianBlurMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info);
 }
 
 void VulkanGlobal::InitScene()
@@ -898,16 +910,17 @@ void VulkanGlobal::Draw()
 
 
 
-	//RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAO));
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurV));
 
-	//GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y, 0, 1 });
-	//GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y });
+	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y, 0, 1 });
+	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y });
 
-	//m_pSSAOMaterial->OnPassStart();
-	//m_pSSAOMaterial->Draw(pDrawCmdBuffer);
-	//m_pSSAOMaterial->OnPassEnd();
+	m_pGaussianBlurMaterial->SetDirection(true);
+	m_pGaussianBlurMaterial->OnPassStart();
+	m_pGaussianBlurMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurV));
+	m_pGaussianBlurMaterial->OnPassEnd();
 
-	//RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur)->EndRenderPass(pDrawCmdBuffer);
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur)->EndRenderPass(pDrawCmdBuffer);
 
 
 

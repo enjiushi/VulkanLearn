@@ -49,8 +49,8 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 
 	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
 	depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilCreateInfo.depthTestEnable = true;
-	depthStencilCreateInfo.depthWriteEnable = true;
+	depthStencilCreateInfo.depthTestEnable = false;
+	depthStencilCreateInfo.depthWriteEnable = false;
 	depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -64,7 +64,7 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = {};
 	rasterizerCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-	rasterizerCreateInfo.cullMode = VK_CULL_MODE_FRONT_BIT;
+	rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
 	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizerCreateInfo.lineWidth = 1.0f;
 	rasterizerCreateInfo.depthClampEnable = VK_FALSE;
@@ -120,7 +120,9 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
-	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	VkPushConstantRange pushConstantRange = { VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(int32_t) };
+
+	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pGaussianBlurMaterial;
 	return nullptr;
 }
@@ -129,10 +131,11 @@ bool GaussianBlurMaterial::Init(const std::shared_ptr<GaussianBlurMaterial>& pSe
 	const std::vector<std::wstring>	shaderPaths,
 	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
+	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
 	uint32_t vertexFormat)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat))
 		return false;
 
 	std::vector<CombinedImage> SSAOBuffers;
@@ -185,7 +188,7 @@ void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, c
 	if (!m_isVertical)
 		direction = 1;
 
-	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(int32_t), &direction);
+	//pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(int32_t), &direction);
 
 	pDrawCmdBuffer->DrawIndexed(3);
 

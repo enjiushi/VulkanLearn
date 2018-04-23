@@ -18,6 +18,7 @@ protected:
 		const std::vector<std::wstring>	shaderPaths,
 		const std::shared_ptr<RenderPassBase>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
+		const std::vector<VkPushConstantRange>& pushConstsRanges,
 		const std::vector<UniformVar>& materialUniformVars,
 		uint32_t vertexFormat);
 
@@ -25,5 +26,5 @@ protected:
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;
 
 protected:
-	bool	m_isVertical;
+	bool	m_isVertical = true;
 };

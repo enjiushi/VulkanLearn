@@ -73,11 +73,6 @@ std::shared_ptr<GaussianBlurPass> GaussianBlurPass::Create(VkFormat format)
 	return nullptr;
 }
 
-void GaussianBlurPass::BeginRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
-{
-
-}
-
 std::vector<VkClearValue> GaussianBlurPass::GetClearValue()
 {
 	return
