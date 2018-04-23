@@ -369,14 +369,6 @@ void DeferredShadingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 	materialLayout.push_back(
 	{
 		CombinedSampler,
-		"SSAOBuffer",
-		{},
-		GetSwapChain()->GetSwapChainImageCount()
-	});
-
-	materialLayout.push_back(
-	{
-		CombinedSampler,
 		"VerticalBlurredSSAOBuffer",
 		{},
 		GetSwapChain()->GetSwapChainImageCount()
