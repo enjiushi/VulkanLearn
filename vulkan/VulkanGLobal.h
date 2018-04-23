@@ -45,6 +45,8 @@
 #include "../class/ShadowMapMaterial.h"
 #include "../class/SSAOMaterial.h"
 #include "../class/GaussianBlurMaterial.h"
+#include "../class/BloomMaterial.h"
+#include "../class/BloomPass.h"
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
@@ -168,6 +170,7 @@ public:
 	std::shared_ptr<SSAOMaterial>				m_pSSAOMaterial;
 	std::shared_ptr<GaussianBlurMaterial>		m_pGaussianBlurMaterial;
 	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
+	std::shared_ptr<BloomMaterial>				m_pBloomMaterial;
 
 	std::shared_ptr<ShadowMapMaterial>	m_pShadowMapMaterial;
 	std::shared_ptr<MaterialInstance>	m_pShadowMapMaterialInstance;

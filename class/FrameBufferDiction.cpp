@@ -37,6 +37,8 @@ bool FrameBufferDiction::Init()
 			m_frameBuffers.push_back(CreateSSAOBlurFrameBuffer()); break;
 		case FrameBufferType_Shading:
 			m_frameBuffers.push_back(CreateShadingFrameBuffer()); break;
+		case FrameBufferType_Bloom:
+			m_frameBuffers.push_back(CreateBloomFrameBuffer()); break;
 		case FrameBufferType_PostProcessing:
 			m_frameBuffers.push_back(CreatePostProcessingFrameBuffer()); break;
 		case FrameBufferType_EnvGenOffScreen:
@@ -150,7 +152,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBuffer(
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
 		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
-		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget , GetSwapChain()->GetSwapChainImage(i) }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()));
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->GetRenderPass()));
 	}
 
 	return frameBuffers;

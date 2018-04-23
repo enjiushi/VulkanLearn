@@ -10,6 +10,7 @@
 #include "PostProcessingPass.h"
 #include "ShadowMapPass.h"
 #include "GaussianBlurPass.h"
+#include "BloomPass.h"
 #include "FrameBufferDiction.h"
 
 bool RenderPassDiction::Init()
@@ -34,6 +35,8 @@ bool RenderPassDiction::Init()
 			m_pipelineRenderPasses.push_back(GaussianBlurPass::Create(FrameBufferDiction::SSAO_FORMAT)); break;
 		case PipelineRenderPassShading:
 			m_pipelineRenderPasses.push_back(DeferredShadingPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)); break;
+		case PipelineRenderPassBloom:
+			m_pipelineRenderPasses.push_back(BloomPass::Create()); break;
 		case PipelineRenderPassPostProcessing:
 			m_pipelineRenderPasses.push_back(PostProcessingPass::Create()); break;
 		default:

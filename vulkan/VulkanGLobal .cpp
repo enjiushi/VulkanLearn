@@ -724,6 +724,18 @@ void VulkanGlobal::InitMaterials()
 
 	m_pSSAOMaterial = SSAOMaterial::CreateDefaultMaterial(info);
 
+	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/bloom_gen.frag.spv", L"" };
+	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
+	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.subpassIndex = 0;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_Bloom;
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom);
+	info.depthTestEnable = false;
+	info.depthWriteEnable = false;
+
+	m_pBloomMaterial = BloomMaterial::CreateDefaultMaterial(info);
+
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
 	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
@@ -943,6 +955,19 @@ void VulkanGlobal::Draw()
 	m_pSkyBoxMaterial->OnPassEnd();
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->EndRenderPass(pDrawCmdBuffer);
+
+
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Bloom));
+
+	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize().y, 0, 1 });
+	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize().y });
+
+	m_pBloomMaterial->OnPassStart();
+	m_pBloomMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Bloom));
+	m_pBloomMaterial->OnPassEnd();
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->EndRenderPass(pDrawCmdBuffer);
 
 	pDrawCmdBuffer->EndPrimaryRecording();
 	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, {}, false);

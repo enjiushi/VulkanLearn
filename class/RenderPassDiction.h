@@ -18,6 +18,7 @@ public:
 		PipelineRenderPassSSAO,
 		PipelineRenderPassGaussianBlur,
 		PipelineRenderPassShading,
+		PipelineRenderPassBloom,
 		PipelineRenderPassPostProcessing,
 		PipelineRenderPassCount
 	};
