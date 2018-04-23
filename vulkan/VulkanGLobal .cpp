@@ -729,7 +729,7 @@ void VulkanGlobal::InitMaterials()
 	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOBlurV;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOBlur;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur);
 	info.depthTestEnable = false;
 	info.depthWriteEnable = false;
@@ -910,14 +910,14 @@ void VulkanGlobal::Draw()
 
 
 
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurV));
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlur));
 
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y, 0, 1 });
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y });
 
 	m_pGaussianBlurMaterial->SetDirection(true);
 	m_pGaussianBlurMaterial->OnPassStart();
-	m_pGaussianBlurMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurV));
+	m_pGaussianBlurMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlur));
 	m_pGaussianBlurMaterial->OnPassEnd();
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur)->EndRenderPass(pDrawCmdBuffer);

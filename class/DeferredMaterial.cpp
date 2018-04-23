@@ -324,7 +324,7 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 	std::vector<CombinedImage> verticalBlurredSSAOBuffers;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		std::shared_ptr<FrameBuffer> pFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOBlurV)[j];
+		std::shared_ptr<FrameBuffer> pFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOBlur)[j];
 
 		verticalBlurredSSAOBuffers.push_back({
 			pFrameBuffer->GetColorTarget(0),
