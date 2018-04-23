@@ -187,3 +187,33 @@ vec3 ReconstructPosition(in ivec2 coord, in vec3 worldSpaceViewRay, in sampler2D
 	// DAMN THIS BUG HAUNTED ME FOR A DAY
 	return viewRay * abs(linearDepth) / cos_viewRay_camDir + perFrameData.camPos.xyz;
 }
+
+const int sampleCount = 5;
+const float weight[sampleCount] =
+{
+	0.227027,
+	0.1945946,
+	0.1216216,
+	0.054054,
+	0.016216
+};
+
+vec3 AcquireBlurredSSAO(sampler2D tex, vec2 uv, int direction)
+{
+	vec2 step = vec2(1.0f) / textureSize(tex, 0).xy;
+
+	vec2 dir = vec2(0.0f, 1.0f);
+	if (direction == 1)
+		dir = vec2(1.0f, 0.0f);
+
+	dir = dir * step;
+
+	vec3 result = texture(tex, uv).rgb * weight[0];
+	for (int i = 1; i < sampleCount; i++)
+	{
+		result += texture(tex, uv + dir * i).rgb * weight[i];
+		result += texture(tex, uv + dir * -i).rgb * weight[i];
+	}
+
+	return result;
+}

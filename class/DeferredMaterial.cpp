@@ -307,20 +307,6 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 1, depthBuffers);
 
-	std::vector<CombinedImage> SSAOBuffers;
-	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
-	{
-		std::shared_ptr<FrameBuffer> pSSAOFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAO)[j];
-
-		SSAOBuffers.push_back({
-			pSSAOFrameBuffer->GetColorTarget(0),
-			pSSAOFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-			pSSAOFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
-			});
-	}
-
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 2, SSAOBuffers);
-
 	std::vector<CombinedImage> verticalBlurredSSAOBuffers;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
@@ -333,7 +319,7 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 			});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 3, verticalBlurredSSAOBuffers);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 2, verticalBlurredSSAOBuffers);
 
 	return true;
 }
