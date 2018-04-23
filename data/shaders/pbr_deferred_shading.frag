@@ -11,6 +11,7 @@ layout (set = 3, binding = 4) uniform sampler2D GBuffer2[3];
 layout (set = 3, binding = 5) uniform sampler2D DepthStencilBuffer[3];
 layout (set = 3, binding = 6) uniform sampler2D ShadowMapDepthBuffer[3];
 layout (set = 3, binding = 7) uniform sampler2D SSAOBuffer[3];
+layout (set = 3, binding = 8) uniform sampler2D VerticalBlurredSSAOBuffer[3];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inViewRay;
@@ -29,6 +30,36 @@ struct GBufferVariables
 };
 
 int index = int(perFrameData.camDir.a);
+
+const int sampleCount = 5;
+const float weight[sampleCount] = 
+{
+	0.227027,
+	0.1945946,
+	0.1216216,
+	0.054054,
+	0.016216
+};
+
+vec3 AcquireBlurredSSAO(int direction)
+{
+	vec2 step = vec2(1.0f) / textureSize(VerticalBlurredSSAOBuffer[index], 0).xy;
+
+	vec2 dir = vec2(0.0f, 1.0f);
+	if (direction == 1)
+		dir = vec2(1.0f, 0.0f);
+
+	dir = dir * step;
+
+	vec3 result = texture(VerticalBlurredSSAOBuffer[index], inUv).rgb * weight[0];
+	for (int i = 1; i < sampleCount; i++)
+	{
+		result += texture(VerticalBlurredSSAOBuffer[index], inUv + dir * i).rgb * weight[i];
+		result += texture(VerticalBlurredSSAOBuffer[index], inUv + dir * -i).rgb * weight[i];
+	}
+
+	return result;
+}
 
 float AcquireShadowFactor(vec4 world_position)
 {
@@ -91,8 +122,9 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord)
 
 	vars.shadowFactor = AcquireShadowFactor(vars.world_position);
 
-	vars.ssaoFactor = texture(SSAOBuffer[index], texcoord).r;
-	vars.ssaoFactor = min(1.0f, vars.ssaoFactor * 2.0f);
+	//vars.ssaoFactor = texture(SSAOBuffer[index], texcoord).r;
+	vars.ssaoFactor = AcquireBlurredSSAO(1).r;
+	vars.ssaoFactor = min(1.0f, vars.ssaoFactor * 3.0f);
 
 	return vars;
 }
