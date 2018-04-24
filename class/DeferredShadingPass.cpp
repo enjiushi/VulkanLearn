@@ -10,7 +10,7 @@
 
 bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf, VkFormat format, VkImageLayout layout)
 {
-	std::vector<VkAttachmentDescription> attachmentDescs(3);
+	std::vector<VkAttachmentDescription> attachmentDescs(2);
 
 	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[0].finalLayout = layout;
@@ -21,29 +21,18 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 	attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
 
-	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	attachmentDescs[1].format = GetDevice()->GetPhysicalDevice()->GetSurfaceFormat().format;
-	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	attachmentDescs[1].format = FrameBufferDiction::OFFSCREEN_DEPTH_STENCIL_FORMAT;
+	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachmentDescs[1].samples = VK_SAMPLE_COUNT_1_BIT;
 
-	attachmentDescs[2].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-	attachmentDescs[2].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-	attachmentDescs[2].format = FrameBufferDiction::OFFSCREEN_DEPTH_STENCIL_FORMAT;
-	attachmentDescs[2].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-	attachmentDescs[2].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	attachmentDescs[2].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachmentDescs[2].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachmentDescs[2].samples = VK_SAMPLE_COUNT_1_BIT;
-
-	std::vector<VkAttachmentReference> shadingPassColorAttach(2);
+	std::vector<VkAttachmentReference> shadingPassColorAttach(1);
 	shadingPassColorAttach[0].attachment = 0;
 	shadingPassColorAttach[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	shadingPassColorAttach[1].attachment = 1;
-	shadingPassColorAttach[1].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription shadingSubPass = {};
 	shadingSubPass.colorAttachmentCount = shadingPassColorAttach.size();
@@ -52,7 +41,7 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 	shadingSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
 	VkAttachmentReference depthAttachment = {};
-	depthAttachment.attachment = 2;
+	depthAttachment.attachment = 1;
 	depthAttachment.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
 	VkSubpassDescription skyBoxSubPass = {};
@@ -116,7 +105,6 @@ std::vector<VkClearValue> DeferredShadingPass::GetClearValue()
 {
 	return
 	{
-		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 1.0f, 0 }
 	};

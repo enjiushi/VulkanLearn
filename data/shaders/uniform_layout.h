@@ -83,7 +83,7 @@ float GGX_D(float NdotH, float roughness)
 {
 	float m2 = roughness * roughness;
 	float m4 = m2 * m2;
-	float f = NdotH * NdotH * (m4 - 1) + 1;
+	float f = NdotH * NdotH * (m4 - 1.0f) + 1.0f;
 	return m4 / (f * f * PI);
 }
 
@@ -198,7 +198,7 @@ const float weight[sampleCount] =
 	0.016216
 };
 
-vec3 AcquireBlurredSSAO(sampler2D tex, vec2 uv, int direction)
+vec3 AcquireBlurredSSAO(sampler2D tex, vec2 uv, int direction, float scale, float strength)
 {
 	vec2 step = vec2(1.0f) / textureSize(tex, 0).xy;
 
@@ -211,9 +211,9 @@ vec3 AcquireBlurredSSAO(sampler2D tex, vec2 uv, int direction)
 	vec3 result = texture(tex, uv).rgb * weight[0];
 	for (int i = 1; i < sampleCount; i++)
 	{
-		result += texture(tex, uv + dir * i).rgb * weight[i];
-		result += texture(tex, uv + dir * -i).rgb * weight[i];
+		result += texture(tex, uv + dir * i * scale).rgb * weight[i];
+		result += texture(tex, uv + dir * -i * scale).rgb * weight[i];
 	}
 
-	return result;
+	return result * strength;
 }

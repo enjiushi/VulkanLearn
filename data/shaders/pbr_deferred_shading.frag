@@ -16,7 +16,6 @@ layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inViewRay;
 
 layout (location = 0) out vec4 outFragColor0;
-layout (location = 1) out vec4 outFragColor1;
 
 struct GBufferVariables
 {
@@ -137,16 +136,10 @@ void main()
 	vec3 ambient = (reflect * (brdf_lut.x * fresnel_roughness + brdf_lut.y) + irradiance * kD_roughness) * min(vars.normal_ao.a, 1.0f - vars.ssaoFactor);
 	//----------------------------------------------
 
-	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * GGX_D(NdotH, vars.albedo_roughness.a);
+	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * GGX_D(NdotH, vars.albedo_roughness.a) / (4.0f * NdotL * NdotV + 0.001f);
 	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
 	vec3 final = punctualRadiance + ambient;
 
 	outFragColor0 = vec4(final, 1.0);
-
-	final = Uncharted2Tonemap(final * globalData.GEW.y);
-	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
-	final = pow(final, vec3(globalData.GEW.x));
-
-	outFragColor1 = vec4(final, 1.0);
 }

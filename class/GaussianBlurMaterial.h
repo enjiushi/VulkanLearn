@@ -5,14 +5,19 @@
 class GaussianBlurMaterial : public Material
 {
 public:
-	static std::shared_ptr<GaussianBlurMaterial> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, const std::vector<std::shared_ptr<Image>>& inputTextures, bool isVertical);
-	static std::shared_ptr<GaussianBlurMaterial> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, FrameBufferDiction::FrameBufferType frameBufferType, bool isVertical);
+	typedef struct _GaussianBlurParams
+	{
+		bool	isVertical = true;
+		float	scale = 1.0f;
+		float	strength = 1.0f;
+	}GaussianBlurParams;
+
+public:
+	static std::shared_ptr<GaussianBlurMaterial> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, const std::vector<std::shared_ptr<Image>>& inputTextures, GaussianBlurParams params);
+	static std::shared_ptr<GaussianBlurMaterial> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, FrameBufferDiction::FrameBufferType frameBufferType, GaussianBlurParams params);
 
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) override;
-
-	void SetDirection(bool isVertical) { m_isVertical = isVertical; }
-	bool GetDirection() const { return m_isVertical; }
 
 protected:
 	bool Init(const std::shared_ptr<GaussianBlurMaterial>& pSelf,
@@ -23,11 +28,11 @@ protected:
 		const std::vector<UniformVar>& materialUniformVars,
 		uint32_t vertexFormat,
 		const std::vector<std::shared_ptr<Image>>& inputTextures,
-		bool isVertical);
+		GaussianBlurParams params);
 
 	void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) override;
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;
 
 protected:
-	bool	m_isVertical = true;
+	GaussianBlurParams	m_params;
 };

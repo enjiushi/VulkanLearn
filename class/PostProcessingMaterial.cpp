@@ -1,4 +1,4 @@
-#include "GaussianBlurMaterial.h"
+#include "PostProcessingMaterial.h"
 #include "../vulkan/RenderPass.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/CommandBuffer.h"
@@ -6,16 +6,23 @@
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/GlobalVulkanStates.h"
 #include "../vulkan/SharedIndirectBuffer.h"
+#include "../vulkan/DescriptorSet.h"
+#include "../vulkan/DepthStencilBuffer.h"
+#include "../vulkan/Texture2D.h"
 #include "../vulkan/GraphicPipeline.h"
 #include "../vulkan/SwapChain.h"
-#include "../vulkan/DescriptorSet.h"
-#include "RenderWorkManager.h"
+#include "../vulkan/DescriptorPool.h"
+#include "../vulkan/DescriptorSetLayout.h"
+#include "RenderPassBase.h"
 #include "RenderPassDiction.h"
-#include "ForwardRenderPass.h"
+#include "RenderWorkManager.h"
+#include "GBufferPass.h"
+#include "ShadowMapPass.h"
+#include "FrameBufferDiction.h"
 
-std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, const std::vector<std::shared_ptr<Image>>& inputTextures, GaussianBlurParams params)
+std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
 {
-	std::shared_ptr<GaussianBlurMaterial> pGaussianBlurMaterial = std::make_shared<GaussianBlurMaterial>();
+	std::shared_ptr<PostProcessingMaterial> pPostProcessMaterial = std::make_shared<PostProcessingMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
@@ -26,7 +33,7 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	{
 		blendStatesInfo.push_back(
 			{
-				false,	// blend enabled
+				VK_FALSE,							// blend enabled
 
 				VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
 				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
@@ -44,13 +51,13 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	VkPipelineColorBlendStateCreateInfo blendCreateInfo = {};
 	blendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	blendCreateInfo.logicOpEnable = VK_FALSE;
-	blendCreateInfo.attachmentCount = colorTargetCount;
+	blendCreateInfo.attachmentCount = blendStatesInfo.size();
 	blendCreateInfo.pAttachments = blendStatesInfo.data();
 
 	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
 	depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilCreateInfo.depthTestEnable = false;
-	depthStencilCreateInfo.depthWriteEnable = false;
+	depthStencilCreateInfo.depthTestEnable = VK_FALSE;
+	depthStencilCreateInfo.depthWriteEnable = VK_FALSE;
 	depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -70,10 +77,6 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	rasterizerCreateInfo.depthClampEnable = VK_FALSE;
 	rasterizerCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 	rasterizerCreateInfo.depthBiasEnable = VK_FALSE;
-	//rasterizerCreateInfo.depthBiasEnable = VK_TRUE;
-	//rasterizerCreateInfo.depthBiasConstantFactor = 1.25f;
-	//rasterizerCreateInfo.depthBiasClamp = 0.0f;
-	//rasterizerCreateInfo.depthBiasSlopeFactor = 1.75f;
 
 	VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {};
 	viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -117,79 +120,96 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	createInfo.pViewportState = &viewportStateCreateInfo;
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
-	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
+	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	VkPushConstantRange pushConstantRange0 = { VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(int32_t) };
-	VkPushConstantRange pushConstantRange1 = { VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(int32_t), sizeof(float) };
-	VkPushConstantRange pushConstantRange2 = { VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(int32_t) + sizeof(float), sizeof(float) };
+	if (pPostProcessMaterial.get() && pPostProcessMaterial->Init(pPostProcessMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+		return pPostProcessMaterial;
 
-	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0, pushConstantRange1, pushConstantRange2 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, inputTextures, params))
-		return pGaussianBlurMaterial;
 	return nullptr;
 }
 
-std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, FrameBufferDiction::FrameBufferType frameBufferType, GaussianBlurParams params)
-{
-	std::vector<std::shared_ptr<FrameBuffer>> frameBuffers = FrameBufferDiction::GetInstance()->GetFrameBuffers(frameBufferType);
-	std::vector<std::shared_ptr<Image>> textures(frameBuffers.size());
-	for (uint32_t i = 0; i < frameBuffers.size(); i++)
-		textures[i] = frameBuffers[i]->GetColorTarget(0);
-
-	return CreateDefaultMaterial(simpleMaterialInfo, textures, params);
-}
-
-bool GaussianBlurMaterial::Init(const std::shared_ptr<GaussianBlurMaterial>& pSelf,
+bool PostProcessingMaterial::Init(const std::shared_ptr<PostProcessingMaterial>& pSelf,
 	const std::vector<std::wstring>	shaderPaths,
 	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
-	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat,
-	const std::vector<std::shared_ptr<Image>>& inputTextures,
-	GaussianBlurParams params)
+	uint32_t vertexFormat)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
 		return false;
 
-	std::vector<CombinedImage> combinedImages;
+	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
+
+	std::vector<CombinedImage> shadingResults;
+	std::vector<CombinedImage> bloomTextures;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		combinedImages.push_back({
-			inputTextures[j],
-			inputTextures[j]->CreateLinearClampToEdgeSampler(),
-			inputTextures[j]->CreateDefaultImageView()
-			});
+		std::shared_ptr<FrameBuffer> pShadingFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
+
+		shadingResults.push_back({
+			pShadingFrameBuffer->GetColorTarget(0),
+			pShadingFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pShadingFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
+		});
+
+		std::shared_ptr<FrameBuffer> pBloomFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_BloomBlurH)[j];
+
+		bloomTextures.push_back({
+			pBloomFrameBuffer->GetColorTarget(0),
+			pBloomFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pBloomFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
+		});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, combinedImages);
-
-	m_params = params;
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, shadingResults);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, bloomTextures);
 
 	return true;
 }
 
-void GaussianBlurMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
+void PostProcessingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
 {
-	materialLayout.push_back(
-	{
-		CombinedSampler,
-		"Input Texture",
-		{},
-		GetSwapChain()->GetSwapChainImageCount()
-	});
+		m_materialVariableLayout.push_back(
+			{
+				CombinedSampler,
+				"Shading Result",
+				{},
+				GetSwapChain()->GetSwapChainImageCount()
+			});
+
+		m_materialVariableLayout.push_back(
+			{
+				CombinedSampler,
+				"Bloom Texture",
+				{},
+				GetSwapChain()->GetSwapChainImageCount()
+			});
 }
 
-void GaussianBlurMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
+void PostProcessingMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 {
-	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount());
+	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * 2);
 }
 
-void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
+void PostProcessingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
 	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pFrameBuffer);
+
+	VkViewport viewport =
+	{
+		0, 0,
+		pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
+		0, 1
+	};
+
+	VkRect2D scissorRect =
+	{
+		0, 0,
+		pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
+	};
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
@@ -197,14 +217,6 @@ void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, c
 	BindPipeline(pDrawCmdBuffer);
 	BindDescriptorSet(pDrawCmdBuffer);
 	BindMeshData(pDrawCmdBuffer);
-
-	int32_t direction = 0;
-	if (!m_params.isVertical)
-		direction = 1;
-
-	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(int32_t), &direction);
-	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(int32_t), sizeof(float), &m_params.scale);
-	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(int32_t) + sizeof(float), sizeof(float), &m_params.strength);
 
 	pDrawCmdBuffer->DrawIndexed(3);
 

@@ -736,18 +736,6 @@ void VulkanGlobal::InitMaterials()
 
 	m_pBloomMaterial = BloomMaterial::CreateDefaultMaterial(info);
 
-	//info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	//info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
-	//info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
-	//info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
-	//info.subpassIndex = 0;
-	//info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomV;
-	//info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurV);
-	//info.depthTestEnable = false;
-	//info.depthWriteEnable = false;
-
-	//m_pGaussianBlurMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info);
-
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
 	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
 	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
@@ -758,7 +746,7 @@ void VulkanGlobal::InitMaterials()
 	info.depthTestEnable = false;
 	info.depthWriteEnable = false;
 
-	m_pSSAOBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAO, true);
+	m_pSSAOBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAO, { true, 1, 1 });
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
 	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
@@ -770,7 +758,7 @@ void VulkanGlobal::InitMaterials()
 	info.depthTestEnable = false;
 	info.depthWriteEnable = false;
 
-	m_pSSAOBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAOBlurV, false);
+	m_pSSAOBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAOBlurV, { false, 1, 1 });
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
 	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
@@ -782,7 +770,7 @@ void VulkanGlobal::InitMaterials()
 	info.depthTestEnable = false;
 	info.depthWriteEnable = false;
 
-	m_pBloomBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_BloomBlurH, true);
+	m_pBloomBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_BloomBlurH, { true, 1.2f, 1.0f });
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
 	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
@@ -794,7 +782,19 @@ void VulkanGlobal::InitMaterials()
 	info.depthTestEnable = false;
 	info.depthWriteEnable = false;
 
-	m_pBloomBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_BloomBlurV, false);
+	m_pBloomBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_BloomBlurV, { false, 1.2f, 1.0f });
+
+	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/post_processing.frag.spv", L"" };
+	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
+	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.subpassIndex = 0;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_PostProcessing;
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing);
+	info.depthTestEnable = false;
+	info.depthWriteEnable = false;
+
+	m_pPostProcessMaterial = PostProcessingMaterial::CreateDefaultMaterial(info);
 }
 
 void VulkanGlobal::InitScene()
@@ -1052,6 +1052,19 @@ void VulkanGlobal::Draw()
 	m_pBloomBlurHMaterial->OnPassEnd();
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloomBlurH)->EndRenderPass(pDrawCmdBuffer);
+
+
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_PostProcessing));
+
+	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y, 0, 1 });
+	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y });
+
+	m_pPostProcessMaterial->OnPassStart();
+	m_pPostProcessMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_PostProcessing));
+	m_pPostProcessMaterial->OnPassEnd();
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing)->EndRenderPass(pDrawCmdBuffer);
 
 	pDrawCmdBuffer->EndPrimaryRecording();
 	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, {}, false);
