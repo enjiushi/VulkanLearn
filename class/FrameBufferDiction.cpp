@@ -39,9 +39,9 @@ bool FrameBufferDiction::Init()
 			m_frameBuffers.push_back(CreateSSAOBlurFrameBufferH()); break;
 		case FrameBufferType_Shading:
 			m_frameBuffers.push_back(CreateShadingFrameBuffer()); break;
-		case FrameBufferType_BloomV:
+		case FrameBufferType_BloomBlurV:
 			m_frameBuffers.push_back(CreateBloomFrameBufferV()); break;
-		case FrameBufferType_BloomH:
+		case FrameBufferType_BloomBlurH:
 			m_frameBuffers.push_back(CreateBloomFrameBufferH()); break;
 		case FrameBufferType_PostProcessing:
 			m_frameBuffers.push_back(CreatePostProcessingFrameBuffer()); break;

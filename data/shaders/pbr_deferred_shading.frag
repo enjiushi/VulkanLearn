@@ -92,7 +92,7 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord)
 	vars.shadowFactor = AcquireShadowFactor(vars.world_position);
 
 	vars.ssaoFactor = texture(BlurredSSAOBuffer[index], texcoord).r;
-	vars.ssaoFactor = min(1.0f, vars.ssaoFactor * 2.0f);
+	vars.ssaoFactor = min(1.0f, vars.ssaoFactor * 3.0f);
 
 	return vars;
 }
@@ -142,10 +142,11 @@ void main()
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
 	vec3 final = punctualRadiance + ambient;
 
+	outFragColor0 = vec4(final, 1.0);
+
 	final = Uncharted2Tonemap(final * globalData.GEW.y);
 	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
 	final = pow(final, vec3(globalData.GEW.x));
 
 	outFragColor1 = vec4(final, 1.0);
-	outFragColor0 = vec4(punctualRadiance, 1.0);
 }

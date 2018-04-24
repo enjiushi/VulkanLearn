@@ -172,7 +172,8 @@ public:
 	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurHMaterial;
 	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
 	std::shared_ptr<BloomMaterial>				m_pBloomMaterial;
-	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurMaterial;
+	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurVMaterial;
+	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurHMaterial;
 
 	std::shared_ptr<ShadowMapMaterial>	m_pShadowMapMaterial;
 	std::shared_ptr<MaterialInstance>	m_pShadowMapMaterialInstance;

@@ -162,6 +162,8 @@ bool GaussianBlurMaterial::Init(const std::shared_ptr<GaussianBlurMaterial>& pSe
 
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, combinedImages);
 
+	m_isVertical = isVertical;
+
 	return true;
 }
 
