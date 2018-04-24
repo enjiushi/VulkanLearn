@@ -307,19 +307,19 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 1, depthBuffers);
 
-	std::vector<CombinedImage> verticalBlurredSSAOBuffers;
+	std::vector<CombinedImage> blurredSSAOBuffers;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		std::shared_ptr<FrameBuffer> pFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOBlur)[j];
+		std::shared_ptr<FrameBuffer> pFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOBlurH)[j];
 
-		verticalBlurredSSAOBuffers.push_back({
+		blurredSSAOBuffers.push_back({
 			pFrameBuffer->GetColorTarget(0),
 			pFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
 			pFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
 			});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 2, verticalBlurredSSAOBuffers);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 2, blurredSSAOBuffers);
 
 	return true;
 }
@@ -369,7 +369,7 @@ void DeferredShadingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 	materialLayout.push_back(
 	{
 		CombinedSampler,
-		"VerticalBlurredSSAOBuffer",
+		"BlurredSSAOBuffer",
 		{},
 		GetSwapChain()->GetSwapChainImageCount()
 	});

@@ -18,5 +18,5 @@ int index = int(perFrameData.camDir.a);
 
 void main() 
 {
-	outFragColor0 = vec4(AcquireBlurredSSAO(InputTexture[index], inUv, 0), 1.0f);
+	outFragColor0 = vec4(AcquireBlurredSSAO(InputTexture[index], inUv, pushConsts.direction), 1.0f);
 }

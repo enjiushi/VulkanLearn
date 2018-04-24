@@ -10,7 +10,7 @@ layout (set = 3, binding = 3) uniform sampler2D GBuffer1[3];
 layout (set = 3, binding = 4) uniform sampler2D GBuffer2[3];
 layout (set = 3, binding = 5) uniform sampler2D DepthStencilBuffer[3];
 layout (set = 3, binding = 6) uniform sampler2D ShadowMapDepthBuffer[3];
-layout (set = 3, binding = 7) uniform sampler2D VerticalBlurredSSAOBuffer[3];
+layout (set = 3, binding = 7) uniform sampler2D BlurredSSAOBuffer[3];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inViewRay;
@@ -91,7 +91,7 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord)
 
 	vars.shadowFactor = AcquireShadowFactor(vars.world_position);
 
-	vars.ssaoFactor = AcquireBlurredSSAO(VerticalBlurredSSAOBuffer[index], texcoord, 1).r;
+	vars.ssaoFactor = texture(BlurredSSAOBuffer[index], texcoord).r;
 	vars.ssaoFactor = min(1.0f, vars.ssaoFactor * 2.0f);
 
 	return vars;

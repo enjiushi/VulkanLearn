@@ -191,11 +191,11 @@ vec3 ReconstructPosition(in ivec2 coord, in vec3 worldSpaceViewRay, in sampler2D
 const int sampleCount = 5;
 const float weight[sampleCount] =
 {
-	0.227027,
-	0.1945946,
-	0.1216216,
-	0.054054,
-	0.016216
+	0.1, //0.227027,
+	0.1, //0.1945946,
+	0.1, //0.1216216,
+	0.1, //0.054054,
+	0.1, //0.016216
 };
 
 vec3 AcquireBlurredSSAO(sampler2D tex, vec2 uv, int direction)

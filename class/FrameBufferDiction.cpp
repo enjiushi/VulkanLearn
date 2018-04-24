@@ -33,8 +33,10 @@ bool FrameBufferDiction::Init()
 			m_frameBuffers.push_back(CreateShadowMapFrameBuffer()); break;
 		case FrameBufferType_SSAO:
 			m_frameBuffers.push_back(CreateSSAOFrameBuffer()); break;
-		case FrameBufferType_SSAOBlur:
-			m_frameBuffers.push_back(CreateSSAOBlurFrameBuffer()); break;
+		case FrameBufferType_SSAOBlurV:
+			m_frameBuffers.push_back(CreateSSAOBlurFrameBufferV()); break;
+		case FrameBufferType_SSAOBlurH:
+			m_frameBuffers.push_back(CreateSSAOBlurFrameBufferH()); break;
 		case FrameBufferType_Shading:
 			m_frameBuffers.push_back(CreateShadingFrameBuffer()); break;
 		case FrameBufferType_Bloom:
@@ -111,7 +113,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOFrameBuffer()
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferV()
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize();
 
@@ -121,11 +123,28 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBuff
 	{
 		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, SSAO_FORMAT);
 
-		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), pColorTarget, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlur)->GetRenderPass()));
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), pColorTarget, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlurV)->GetRenderPass()));
 	}
 
 	return frameBuffers;
 }
+
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferH()
+{
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize();
+
+	FrameBufferCombo frameBuffers;
+
+	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+	{
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, SSAO_FORMAT);
+
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), pColorTarget, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlurH)->GetRenderPass()));
+	}
+
+	return frameBuffers;
+}
+
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffer()
 {
