@@ -34,7 +34,8 @@ public:
 		FrameBufferType_SSAOBlurV,
 		FrameBufferType_SSAOBlurH,
 		FrameBufferType_Shading,
-		FrameBufferType_Bloom,
+		FrameBufferType_BloomV,
+		FrameBufferType_BloomH,
 		FrameBufferType_PostProcessing,
 		FrameBufferType_EnvGenOffScreen,
 		FrameBufferType_ForwardScreen,
@@ -64,7 +65,8 @@ public:
 	FrameBufferCombo CreateSSAOBlurFrameBufferV();
 	FrameBufferCombo CreateSSAOBlurFrameBufferH();
 	FrameBufferCombo CreateShadingFrameBuffer();
-	FrameBufferCombo CreateBloomFrameBuffer();
+	FrameBufferCombo CreateBloomFrameBufferV();
+	FrameBufferCombo CreateBloomFrameBufferH();
 	FrameBufferCombo CreatePostProcessingFrameBuffer();
 	FrameBufferCombo CreateForwardEnvGenOffScreenFrameBuffer();
 	FrameBufferCombo CreateForwardScreenFrameBuffer();

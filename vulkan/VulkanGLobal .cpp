@@ -729,12 +729,24 @@ void VulkanGlobal::InitMaterials()
 	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_Bloom;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomH;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom);
 	info.depthTestEnable = false;
 	info.depthWriteEnable = false;
 
 	m_pBloomMaterial = BloomMaterial::CreateDefaultMaterial(info);
+
+	//info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
+	//info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	//info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
+	//info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	//info.subpassIndex = 0;
+	//info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomV;
+	//info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurV);
+	//info.depthTestEnable = false;
+	//info.depthWriteEnable = false;
+
+	//m_pGaussianBlurMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info);
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
 	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
@@ -742,11 +754,23 @@ void VulkanGlobal::InitMaterials()
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOBlurV;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlurV);
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurV);
 	info.depthTestEnable = false;
 	info.depthWriteEnable = false;
 
-	m_pGaussianBlurMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info);
+	m_pSSAOBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAO, true);
+
+	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
+	info.vertexBindingsInfo = { m_pQuadMesh->GetVertexBuffer()->GetBindingDesc() };
+	info.vertexAttributesInfo = m_pQuadMesh->GetVertexBuffer()->GetAttribDesc();
+	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.subpassIndex = 0;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOBlurH;
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurH);
+	info.depthTestEnable = false;
+	info.depthWriteEnable = false;
+
+	m_pSSAOBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAOBlurV, false);
 }
 
 void VulkanGlobal::InitScene()
@@ -781,7 +805,7 @@ void VulkanGlobal::InitScene()
 	m_pDirLightObj->SetPos(64, 64, -64);
 	m_pDirLightObj->SetRotation(Matrix3f::EulerAngle(0.78f, 0, 0) * Matrix3f::EulerAngle(0, 2.355f, 0));
 
-	m_pDirLight = DirectionLight::Create({ 1, 1, 1 });
+	m_pDirLight = DirectionLight::Create({ 4.0f, 4.0f, 4.0f });
 	m_pDirLightObj->AddComponent(m_pDirLight);
 
 	m_pGunObject = BaseObject::Create();
@@ -922,31 +946,29 @@ void VulkanGlobal::Draw()
 
 
 
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlurV)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurV));
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurV)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurV));
 
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y, 0, 1 });
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y });
 
-	m_pGaussianBlurMaterial->SetDirection(true);
-	m_pGaussianBlurMaterial->OnPassStart();
-	m_pGaussianBlurMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurV));
-	m_pGaussianBlurMaterial->OnPassEnd();
+	m_pSSAOBlurVMaterial->OnPassStart();
+	m_pSSAOBlurVMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurV));
+	m_pSSAOBlurVMaterial->OnPassEnd();
 
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlurV)->EndRenderPass(pDrawCmdBuffer);
-
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurV)->EndRenderPass(pDrawCmdBuffer);
 
 
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlurH)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurH));
+
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurH)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurH));
 
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y, 0, 1 });
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize().y });
 
-	m_pGaussianBlurMaterial->SetDirection(false);
-	m_pGaussianBlurMaterial->OnPassStart();
-	m_pGaussianBlurMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurH));
-	m_pGaussianBlurMaterial->OnPassEnd();
+	m_pSSAOBlurHMaterial->OnPassStart();
+	m_pSSAOBlurHMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurH));
+	m_pSSAOBlurHMaterial->OnPassEnd();
 
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGaussianBlurH)->EndRenderPass(pDrawCmdBuffer);
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurH)->EndRenderPass(pDrawCmdBuffer);
 
 
 
@@ -972,13 +994,13 @@ void VulkanGlobal::Draw()
 
 
 
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Bloom));
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_BloomH));
 
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize().y, 0, 1 });
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize().y });
 
 	m_pBloomMaterial->OnPassStart();
-	m_pBloomMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Bloom));
+	m_pBloomMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_BloomH));
 	m_pBloomMaterial->OnPassEnd();
 
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->EndRenderPass(pDrawCmdBuffer);

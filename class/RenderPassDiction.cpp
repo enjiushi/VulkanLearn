@@ -31,14 +31,18 @@ bool RenderPassDiction::Init()
 			m_pipelineRenderPasses.push_back(ShadowMapPass::Create()); break;
 		case PipelineRenderPassSSAO:
 			m_pipelineRenderPasses.push_back(SSAOPass::Create(FrameBufferDiction::SSAO_FORMAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)); break;
-		case PipelineRenderPassGaussianBlurV:
+		case PipelineRenderPassSSAOBlurV:
 			m_pipelineRenderPasses.push_back(GaussianBlurPass::Create(FrameBufferDiction::SSAO_FORMAT)); break;
-		case PipelineRenderPassGaussianBlurH:
+		case PipelineRenderPassSSAOBlurH:
 			m_pipelineRenderPasses.push_back(GaussianBlurPass::Create(FrameBufferDiction::SSAO_FORMAT)); break;
 		case PipelineRenderPassShading:
 			m_pipelineRenderPasses.push_back(DeferredShadingPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)); break;
 		case PipelineRenderPassBloom:
 			m_pipelineRenderPasses.push_back(BloomPass::Create()); break;
+		case PipelineRenderPassBloomBlurV:
+			m_pipelineRenderPasses.push_back(GaussianBlurPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT)); break;
+		case PipelineRenderPassBloomBlurH:
+			m_pipelineRenderPasses.push_back(GaussianBlurPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT)); break;
 		case PipelineRenderPassPostProcessing:
 			m_pipelineRenderPasses.push_back(PostProcessingPass::Create()); break;
 		default:

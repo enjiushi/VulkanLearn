@@ -168,9 +168,11 @@ public:
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance2;
 
 	std::shared_ptr<SSAOMaterial>				m_pSSAOMaterial;
-	std::shared_ptr<GaussianBlurMaterial>		m_pGaussianBlurMaterial;
+	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurVMaterial;
+	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurHMaterial;
 	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
 	std::shared_ptr<BloomMaterial>				m_pBloomMaterial;
+	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurMaterial;
 
 	std::shared_ptr<ShadowMapMaterial>	m_pShadowMapMaterial;
 	std::shared_ptr<MaterialInstance>	m_pShadowMapMaterialInstance;

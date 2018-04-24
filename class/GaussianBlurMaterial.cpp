@@ -13,7 +13,7 @@
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
 
-std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
+std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, const std::vector<std::shared_ptr<Image>>& inputTextures, bool isVertical)
 {
 	std::shared_ptr<GaussianBlurMaterial> pGaussianBlurMaterial = std::make_shared<GaussianBlurMaterial>();
 
@@ -122,9 +122,19 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 
 	VkPushConstantRange pushConstantRange = { VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(int32_t) };
 
-	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, inputTextures, isVertical))
 		return pGaussianBlurMaterial;
 	return nullptr;
+}
+
+std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, FrameBufferDiction::FrameBufferType frameBufferType, bool isVertical)
+{
+	std::vector<std::shared_ptr<FrameBuffer>> frameBuffers = FrameBufferDiction::GetInstance()->GetFrameBuffers(frameBufferType);
+	std::vector<std::shared_ptr<Image>> textures(frameBuffers.size());
+	for (uint32_t i = 0; i < frameBuffers.size(); i++)
+		textures[i] = frameBuffers[i]->GetColorTarget(0);
+
+	return CreateDefaultMaterial(simpleMaterialInfo, textures, isVertical);
 }
 
 bool GaussianBlurMaterial::Init(const std::shared_ptr<GaussianBlurMaterial>& pSelf,
@@ -133,24 +143,24 @@ bool GaussianBlurMaterial::Init(const std::shared_ptr<GaussianBlurMaterial>& pSe
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat)
+	uint32_t vertexFormat,
+	const std::vector<std::shared_ptr<Image>>& inputTextures,
+	bool isVertical)
 {
 	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat))
 		return false;
 
-	std::vector<CombinedImage> SSAOBuffers;
+	std::vector<CombinedImage> combinedImages;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		std::shared_ptr<FrameBuffer> pSSAOFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAO)[j];
-
-		SSAOBuffers.push_back({
-			pSSAOFrameBuffer->GetColorTarget(0),
-			pSSAOFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-			pSSAOFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
+		combinedImages.push_back({
+			inputTextures[j],
+			inputTextures[j]->CreateLinearClampToEdgeSampler(),
+			inputTextures[j]->CreateDefaultImageView()
 			});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, SSAOBuffers);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, combinedImages);
 
 	return true;
 }
@@ -160,7 +170,7 @@ void GaussianBlurMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& 
 	materialLayout.push_back(
 	{
 		CombinedSampler,
-		"SSAO Texture",
+		"Input Texture",
 		{},
 		GetSwapChain()->GetSwapChainImageCount()
 	});

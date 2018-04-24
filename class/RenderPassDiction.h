@@ -16,10 +16,12 @@ public:
 		PipelineRenderPassGBuffer,
 		PipelineRenderPassShadowMap,
 		PipelineRenderPassSSAO,
-		PipelineRenderPassGaussianBlurV,
-		PipelineRenderPassGaussianBlurH,
+		PipelineRenderPassSSAOBlurV,
+		PipelineRenderPassSSAOBlurH,
 		PipelineRenderPassShading,
 		PipelineRenderPassBloom,
+		PipelineRenderPassBloomBlurV,
+		PipelineRenderPassBloomBlurH,
 		PipelineRenderPassPostProcessing,
 		PipelineRenderPassCount
 	};
