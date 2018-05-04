@@ -15,7 +15,6 @@ int index = int(perFrameData.camDir.a);
 
 void main() 
 {
-	vec3 result = texture(ShadingResult[index], inUv).rgb;
-	outBloomFrag = vec4(vec3(1.0f) + sign(result - vec3(1.0f)), 1.0f);
-	outBloomFrag.rgb = sign(outBloomFrag.rgb);
+	outBloomFrag.rgb = texture(ShadingResult[index], inUv).rgb;
+	outBloomFrag.rgb = clamp(outBloomFrag.rgb, 0.0f, 1.0f);
 }

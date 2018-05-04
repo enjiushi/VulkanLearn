@@ -13,7 +13,9 @@ layout (location = 0) in vec2 inUv;
 layout (location = 0) out vec4 outFragColor0;
 
 int index = int(perFrameData.camDir.a);
-const float bloomStrength = 0.8f;
+
+const float bloomMagnitude = 0.2f;
+const float bloomExposure = 1.3f;
 
 
 void main() 
@@ -21,7 +23,7 @@ void main()
 	ivec2 coord = ivec2(floor(inUv * globalData.gameWindowSize.xy));
 
 	vec3 final = texelFetch(ShadingResults[index], coord, 0).rgb;
-	final += texture(BloomTextures[index], inUv).rgb * bloomStrength;
+	final += pow(texture(BloomTextures[index], inUv).rgb * bloomMagnitude, vec3(bloomExposure));
 
 	final = Uncharted2Tonemap(final * globalData.GEW.y);
 	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
