@@ -15,4 +15,5 @@ What I want to do later:
 5. Clusterred Deferred
 6. Cascade Shadow Map
 
-![Alt text](assets/screen_shot.png "Screen Shot")
+![Alt text](assets/screen_shot0.png "Screen Shot 0")
+![Alt text](assets/screen_shot1.png "Screen Shot 1")
