@@ -16,5 +16,5 @@ What I want to do later:
 6. Cascade Shadow Map
 
 <p align="center">
-<img src="https://github.com/enjiushi/VulkanLearn/tree/master/assets/screen_shot.jpg">
+<img src="https://github.com/enjiushi/VulkanLearn/tree/master/assets/screen_shot.png">
 </p>
