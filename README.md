@@ -15,6 +15,4 @@ What I want to do later:
 5. Clusterred Deferred
 6. Cascade Shadow Map
 
-<p align="center">
-![ScreenShot](https://github.com/enjiushi/VulkanLearn/tree/master/assets/screen_shot.png)
-</p>
+![Alt text](assets/screen_shot.png "Screen Shot")
