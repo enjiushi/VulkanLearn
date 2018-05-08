@@ -133,7 +133,7 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateBoxMesh()
 
 	std::shared_ptr<Mesh> pCubeMesh = Mesh::Create
 	(
-		cubeVertices, 8, 1 << VAFPosition,
+		cubeVertices, 8, VertexFormatP,
 		cubeIndices, 36, VK_INDEX_TYPE_UINT32
 	);
 
@@ -209,7 +209,7 @@ std::shared_ptr<Mesh> SceneGenerator::GeneratePBRBoxMesh()
 
 	return Mesh::Create
 	(
-		cubeVertices, 24, (1 << VAFPosition) | (1 << VAFNormal) | (1 << VAFTexCoord) | (1 << VAFTangent),
+		cubeVertices, 24, VertexFormatPNTCT,
 		cubeIndices, 36, VK_INDEX_TYPE_UINT32
 	);
 }
@@ -230,7 +230,7 @@ std::shared_ptr<Mesh> SceneGenerator::GeneratePBRQuadMesh()
 
 	return Mesh::Create
 	(
-		quadVertices, 4, (1 << VAFPosition) | (1 << VAFNormal) | (1 << VAFTexCoord) | (1 << VAFTangent),
+		quadVertices, 4, VertexFormatPNTCT,
 		quadIndices, 6, VK_INDEX_TYPE_UINT32
 	);
 }
@@ -251,7 +251,7 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateQuadMesh()
 
 	return Mesh::Create
 	(
-		quadVertices, 4, (1 << VAFPosition) | (1 << VAFTexCoord),
+		quadVertices, 4, VertexFormatPTC,
 		quadIndices, 6, VK_INDEX_TYPE_UINT32
 	);
 }
