@@ -22,8 +22,42 @@
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
+std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial()
 {
+	std::vector<UniformVar> vars =
+	{
+		{
+			{
+				Vec4Unit,
+				"AlbedoRoughness"
+			},
+			{
+				Vec2Unit,
+				"AOMetalic"
+			},
+			{
+				OneUnit,
+				"AlbedoRoughnessTextureIndex"
+			},
+			{
+				OneUnit,
+				"NormalAOTextureIndex"
+			},
+			{
+				OneUnit,
+				"MetallicTextureIndex"
+			}
+		}
+	};
+
+	SimpleMaterialCreateInfo simpleMaterialInfo = {};
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/pbr_gbuffer_gen.vert.spv", L"", L"", L"", L"../data/shaders/pbr_gbuffer_gen.frag.spv", L"" };
+	simpleMaterialInfo.materialUniformVars = vars;
+	simpleMaterialInfo.vertexFormat = VertexFormatPNTCT;
+	simpleMaterialInfo.subpassIndex = 0;
+	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_GBuffer;
+	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
+
 	std::shared_ptr<GBufferMaterial> pGbufferMaterial = std::make_shared<GBufferMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};

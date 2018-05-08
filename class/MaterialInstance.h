@@ -18,6 +18,7 @@ public:
 	uint32_t GetRenderMask() const { return m_renderMask; }
 	void SetRenderMask(uint32_t renderMask) { m_renderMask = renderMask; }
 	void SetMaterialTexture(uint32_t parameterIndex, InGameTextureType type, const std::string& textureName);
+	void SetMaterialTexture(const std::string& paramName, InGameTextureType type, const std::string& textureName);
 	void PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	void Draw();
 
@@ -32,6 +33,18 @@ public:
 	T GetParameter(uint32_t parameterIndex)
 	{
 		return m_pMaterial->GetParameter<T>(m_materialBufferChunkIndex, parameterIndex);
+	}
+
+	template <typename T>
+	void SetParameter(const std::string& paramName, T val)
+	{
+		m_pMaterial->SetParameter(m_materialBufferChunkIndex, paramName, val);
+	}
+
+	template <typename T>
+	T GetParameter(const std::string& paramName)
+	{
+		return m_pMaterial->GetParameter<T>(m_materialBufferChunkIndex, paramName);
 	}
 
 	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex);

@@ -87,10 +87,23 @@ public:
 		return m_pPerMaterialUniforms->GetParameter<T>(chunkIndex, m_materialVariableLayout[PerMaterialVariableBuffer].vars[parameterIndex].offset);
 	}
 
+	template <typename T>
+	void SetParameter(uint32_t chunkIndex, const std::string& paramName, T val)
+	{
+		m_pPerMaterialUniforms->SetParameter(chunkIndex, m_materialVariableLayout[PerMaterialVariableBuffer].vars[GetParamIndex(paramName)].offset, val);
+	}
+
+	template <typename T>
+	T GetParameter(uint32_t chunkIndex, const std::string& paramName)
+	{
+		return m_pPerMaterialUniforms->GetParameter<T>(chunkIndex, m_materialVariableLayout[PerMaterialVariableBuffer].vars[GetParamIndex(paramName)].offset);
+	}
+
 	void SetPerObjectIndex(uint32_t indirectIndex, uint32_t perObjectIndex);
 	uint32_t GetPerObjectIndex(uint32_t indirectIndex) const;
 	void SetPerMaterialIndex(uint32_t indirectIndex, uint32_t perMaterialIndex);
 	uint32_t GetPerMaterialIndex(uint32_t indirectIndex) const;
+	uint32_t GetParamIndex(const std::string& paramName) const;
 
 	virtual void SyncBufferData();
 

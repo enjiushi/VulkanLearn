@@ -397,3 +397,12 @@ uint32_t Material::GetPerMaterialIndex(uint32_t indirectIndex) const
 {
 	return m_pPerMaterialIndirectUniforms->GetPerMaterialIndex(indirectIndex);
 }
+
+uint32_t Material::GetParamIndex(const std::string& paramName) const
+{
+	for (uint32_t i = 0; i < m_materialVariableLayout[PerMaterialVariableBuffer].vars.size(); i++)
+		if (m_materialVariableLayout[PerMaterialVariableBuffer].vars[i].name == paramName)
+			return i;
+
+	return -1;
+}

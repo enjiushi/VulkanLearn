@@ -584,70 +584,70 @@ void VulkanGlobal::InitMaterials()
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
 
 
-	m_PBRGbufferMaterial = GBufferMaterial::CreateDefaultMaterial(info);
+	m_PBRGbufferMaterial = GBufferMaterial::CreateDefaultMaterial();
 	m_pGunMaterialInstance = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pGunMaterialInstance->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-	m_pGunMaterialInstance->SetParameter(1, Vector2f(1.0f, 1.0f));
-	m_pGunMaterialInstance->SetMaterialTexture(2, RGBA8_1024, "GunAlbedoRoughness");
-	m_pGunMaterialInstance->SetMaterialTexture(3, RGBA8_1024, "GunNormalAO");
-	m_pGunMaterialInstance->SetMaterialTexture(4, R8_1024, "GunMetallic");
+	m_pGunMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	m_pGunMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 1.0f));
+	m_pGunMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, "GunAlbedoRoughness");
+	m_pGunMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "GunNormalAO");
+	m_pGunMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, "GunMetallic");
 
 	m_pSphereMaterialInstance0 = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pSphereMaterialInstance0->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pSphereMaterialInstance0->SetParameter(0, Vector4f(1.0f, 0.0f, 0.0f, 0.1f));
-	m_pSphereMaterialInstance0->SetParameter(1, Vector2f(1.0f, 0.1f));
-	m_pSphereMaterialInstance0->SetMaterialTexture(2, RGBA8_1024, ":)");
-	m_pSphereMaterialInstance0->SetMaterialTexture(3, RGBA8_1024, ":)");
-	m_pSphereMaterialInstance0->SetMaterialTexture(4, R8_1024, ":)");
+	m_pSphereMaterialInstance0->SetParameter("AlbedoRoughness", Vector4f(1.0f, 0.0f, 0.0f, 0.1f));
+	m_pSphereMaterialInstance0->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pSphereMaterialInstance0->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance0->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance0->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
 	m_pSphereMaterialInstance1 = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pSphereMaterialInstance1->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pSphereMaterialInstance1->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 0.1f));
-	m_pSphereMaterialInstance1->SetParameter(1, Vector2f(1.0f, 1.0f));
-	m_pSphereMaterialInstance1->SetMaterialTexture(2, RGBA8_1024, ":)");
-	m_pSphereMaterialInstance1->SetMaterialTexture(3, RGBA8_1024, ":)");
-	m_pSphereMaterialInstance1->SetMaterialTexture(4, R8_1024, ":)");
+	m_pSphereMaterialInstance1->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 0.1f));
+	m_pSphereMaterialInstance1->SetParameter("AOMetalic", Vector2f(1.0f, 1.0f));
+	m_pSphereMaterialInstance1->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance1->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance1->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
 	m_pSphereMaterialInstance2 = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pSphereMaterialInstance2->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pSphereMaterialInstance2->SetParameter(0, Vector4f(0.0f, 1.0f, 0.0f, 1.0f));
-	m_pSphereMaterialInstance2->SetParameter(1, Vector2f(1.0f, 0.1f));
-	m_pSphereMaterialInstance2->SetMaterialTexture(2, RGBA8_1024, ":)");
-	m_pSphereMaterialInstance2->SetMaterialTexture(3, RGBA8_1024, ":)");
-	m_pSphereMaterialInstance2->SetMaterialTexture(4, R8_1024, ":)");
+	m_pSphereMaterialInstance2->SetParameter("AlbedoRoughness", Vector4f(0.0f, 1.0f, 0.0f, 1.0f));
+	m_pSphereMaterialInstance2->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pSphereMaterialInstance2->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
 	m_pQuadMaterialInstance = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pQuadMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pQuadMaterialInstance->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 0.9f));
-	m_pQuadMaterialInstance->SetParameter(1, Vector2f(1.0f, 0.1f));
-	m_pQuadMaterialInstance->SetMaterialTexture(2, RGBA8_1024, ":)");
-	m_pQuadMaterialInstance->SetMaterialTexture(3, RGBA8_1024, ":)");
-	m_pQuadMaterialInstance->SetMaterialTexture(4, R8_1024, ":)");
+	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 0.9f));
+	m_pQuadMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pQuadMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
 	m_pBoxMaterialInstance0 = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pBoxMaterialInstance0->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pBoxMaterialInstance0->SetParameter(0, Vector4f(0.0f, 1.0f, 0.0f, 0.9f));
-	m_pBoxMaterialInstance0->SetParameter(1, Vector2f(1.0f, 0.1f));
-	m_pBoxMaterialInstance0->SetMaterialTexture(2, RGBA8_1024, ":)");
-	m_pBoxMaterialInstance0->SetMaterialTexture(3, RGBA8_1024, ":)");
-	m_pBoxMaterialInstance0->SetMaterialTexture(4, R8_1024, ":)");
+	m_pBoxMaterialInstance0->SetParameter("AlbedoRoughness", Vector4f(0.0f, 1.0f, 0.0f, 0.9f));
+	m_pBoxMaterialInstance0->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pBoxMaterialInstance0->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance0->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance0->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
 	m_pBoxMaterialInstance1 = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pBoxMaterialInstance1->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pBoxMaterialInstance1->SetParameter(0, Vector4f(0.0f, 0.0f, 1.0f, 0.1f));
-	m_pBoxMaterialInstance1->SetParameter(1, Vector2f(1.0f, 0.9f));
-	m_pBoxMaterialInstance1->SetMaterialTexture(2, RGBA8_1024, ":)");
-	m_pBoxMaterialInstance1->SetMaterialTexture(3, RGBA8_1024, ":)");
-	m_pBoxMaterialInstance1->SetMaterialTexture(4, R8_1024, ":)");
+	m_pBoxMaterialInstance1->SetParameter("AlbedoRoughness", Vector4f(0.0f, 0.0f, 1.0f, 0.1f));
+	m_pBoxMaterialInstance1->SetParameter("AOMetalic", Vector2f(1.0f, 0.9f));
+	m_pBoxMaterialInstance1->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance1->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance1->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
 	m_pBoxMaterialInstance2 = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pBoxMaterialInstance2->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pBoxMaterialInstance2->SetParameter(0, Vector4f(1.0f, 1.0f, 0.0f, 0.5f));
-	m_pBoxMaterialInstance2->SetParameter(1, Vector2f(1.0f, 0.9f));
-	m_pBoxMaterialInstance2->SetMaterialTexture(2, RGBA8_1024, ":)");
-	m_pBoxMaterialInstance2->SetMaterialTexture(3, RGBA8_1024, ":)");
-	m_pBoxMaterialInstance2->SetMaterialTexture(4, R8_1024, ":)");
+	m_pBoxMaterialInstance2->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 0.0f, 0.5f));
+	m_pBoxMaterialInstance2->SetParameter("AOMetalic", Vector2f(1.0f, 0.9f));
+	m_pBoxMaterialInstance2->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
 	// Skybox material
 	vars = {};

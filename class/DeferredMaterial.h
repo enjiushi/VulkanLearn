@@ -6,7 +6,7 @@ class RenderPassBase;
 class GBufferMaterial : public Material
 {
 public:
-	static std::shared_ptr<GBufferMaterial> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo);
+	static std::shared_ptr<GBufferMaterial> CreateDefaultMaterial();
 
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) override;

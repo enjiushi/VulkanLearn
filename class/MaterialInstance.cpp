@@ -29,6 +29,15 @@ void MaterialInstance::SetMaterialTexture(uint32_t parameterIndex, InGameTexture
 		SetParameter(parameterIndex, (float)textureIndex);
 }
 
+void MaterialInstance::SetMaterialTexture(const std::string& paramName, InGameTextureType type, const std::string& textureName)
+{
+	uint32_t textureIndex;
+	if (!UniformData::GetInstance()->GetGlobalTextures()->GetTextureIndex(type, textureName, textureIndex))
+		SetParameter(paramName, (float)-1);
+	else
+		SetParameter(paramName, (float)textureIndex);
+}
+
 void MaterialInstance::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	GetMaterial()->BindPipeline(pCmdBuffer);
