@@ -1,6 +1,7 @@
 #pragma once
 #include "Material.h"
 #include "FrameBufferDiction.h"
+#include "RenderPassDiction.h"
 
 class GaussianBlurMaterial : public Material
 {
@@ -13,8 +14,17 @@ public:
 	}GaussianBlurParams;
 
 public:
-	static std::shared_ptr<GaussianBlurMaterial> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, const std::vector<std::shared_ptr<Image>>& inputTextures, GaussianBlurParams params);
-	static std::shared_ptr<GaussianBlurMaterial> CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, FrameBufferDiction::FrameBufferType frameBufferType, GaussianBlurParams params);
+	static std::shared_ptr<GaussianBlurMaterial> CreateDefaultMaterial(
+		const std::vector<std::shared_ptr<Image>>& inputTextures,
+		FrameBufferDiction::FrameBufferType outputFrameBufferType,
+		RenderPassDiction::PipelineRenderPass renderPass,
+		GaussianBlurParams params);
+
+	static std::shared_ptr<GaussianBlurMaterial> CreateDefaultMaterial(
+		FrameBufferDiction::FrameBufferType inputFrameBufferType,
+		FrameBufferDiction::FrameBufferType outputFrameBufferType,
+		RenderPassDiction::PipelineRenderPass renderPass,
+		GaussianBlurParams params);
 
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) override;

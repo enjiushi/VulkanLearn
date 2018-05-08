@@ -21,8 +21,17 @@
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
+std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMaterial()
 {
+	SimpleMaterialCreateInfo simpleMaterialInfo = {};
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/post_processing.frag.spv", L"" };
+	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.subpassIndex = 0;
+	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_PostProcessing;
+	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing);
+	simpleMaterialInfo.depthTestEnable = false;
+	simpleMaterialInfo.depthWriteEnable = false;
+
 	std::shared_ptr<PostProcessingMaterial> pPostProcessMaterial = std::make_shared<PostProcessingMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};

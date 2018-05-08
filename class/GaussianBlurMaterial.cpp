@@ -10,12 +10,25 @@
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/DescriptorSet.h"
 #include "RenderWorkManager.h"
-#include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
 #include "../common/Util.h"
 
-std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, const std::vector<std::shared_ptr<Image>>& inputTextures, GaussianBlurParams params)
+std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(
+	const std::vector<std::shared_ptr<Image>>& inputTextures,
+	FrameBufferDiction::FrameBufferType outputFrameBufferType,
+	RenderPassDiction::PipelineRenderPass renderPass,
+	GaussianBlurParams params)
 {
+	SimpleMaterialCreateInfo simpleMaterialInfo = {};
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
+	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.subpassIndex = 0;
+	simpleMaterialInfo.frameBufferType = outputFrameBufferType;
+	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(renderPass);
+	simpleMaterialInfo.depthTestEnable = false;
+	simpleMaterialInfo.depthWriteEnable = false;
+
+
 	std::shared_ptr<GaussianBlurMaterial> pGaussianBlurMaterial = std::make_shared<GaussianBlurMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
@@ -128,14 +141,18 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	return nullptr;
 }
 
-std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, FrameBufferDiction::FrameBufferType frameBufferType, GaussianBlurParams params)
+std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(
+	FrameBufferDiction::FrameBufferType inputFrameBufferType,
+	FrameBufferDiction::FrameBufferType outputFrameBufferType,
+	RenderPassDiction::PipelineRenderPass renderPass,
+	GaussianBlurParams params)
 {
-	std::vector<std::shared_ptr<FrameBuffer>> frameBuffers = FrameBufferDiction::GetInstance()->GetFrameBuffers(frameBufferType);
+	std::vector<std::shared_ptr<FrameBuffer>> frameBuffers = FrameBufferDiction::GetInstance()->GetFrameBuffers(inputFrameBufferType);
 	std::vector<std::shared_ptr<Image>> textures(frameBuffers.size());
 	for (uint32_t i = 0; i < frameBuffers.size(); i++)
 		textures[i] = frameBuffers[i]->GetColorTarget(0);
 
-	return CreateDefaultMaterial(simpleMaterialInfo, textures, params);
+	return CreateDefaultMaterial(textures, outputFrameBufferType, renderPass, params);
 }
 
 bool GaussianBlurMaterial::Init(const std::shared_ptr<GaussianBlurMaterial>& pSelf,

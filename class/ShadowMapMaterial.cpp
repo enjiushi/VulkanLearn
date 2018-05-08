@@ -13,8 +13,17 @@
 #include "RenderPassDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
+std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial()
 {
+	SimpleMaterialCreateInfo simpleMaterialInfo = {};
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/shadow_map_gen.vert.spv", L"", L"", L"", L"", L"" };
+	simpleMaterialInfo.vertexFormat = VertexFormatPNTCT;
+	simpleMaterialInfo.subpassIndex = 0;
+	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_ShadowMap;
+	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap);
+	simpleMaterialInfo.depthTestEnable = false;
+	simpleMaterialInfo.depthWriteEnable = false;
+
 	std::shared_ptr<ShadowMapMaterial> pShadowMapMaterial = std::make_shared<ShadowMapMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};

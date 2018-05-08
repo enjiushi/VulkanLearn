@@ -548,42 +548,6 @@ void VulkanGlobal::InitSemaphore()
 
 void VulkanGlobal::InitMaterials()
 {
-	// Gun material
-	std::vector<UniformVar> vars =
-	{ 
-		{
-			{
-				Vec4Unit,
-				"Albedo Roughness"
-			},
-			{
-				Vec2Unit,
-				"AO Metalic"
-			},
-			{
-				OneUnit,
-				"Albedo Roughness Texture Index"
-			},
-			{
-				OneUnit,
-				"Normal AO Texture Index"
-			},
-			{
-				OneUnit,
-				"Metallic Texture Index"
-			}
-		}
-	};
-
-	SimpleMaterialCreateInfo info = {};
-	info.shaderPaths = { L"../data/shaders/pbr_gbuffer_gen.vert.spv", L"", L"", L"", L"../data/shaders/pbr_gbuffer_gen.frag.spv", L"" };
-	info.materialUniformVars = vars;
-	info.vertexFormat = VertexFormatPNTCT;
-	info.subpassIndex = 0;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_GBuffer;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
-
-
 	m_PBRGbufferMaterial = GBufferMaterial::CreateDefaultMaterial();
 	m_pGunMaterialInstance = m_PBRGbufferMaterial->CreateMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
@@ -650,10 +614,9 @@ void VulkanGlobal::InitMaterials()
 	m_pBoxMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
 	// Skybox material
-	vars = {};
-
+	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" };
-	info.materialUniformVars	= vars;
+	info.materialUniformVars = {};
 	info.vertexFormat			= VertexFormatP;
 	info.subpassIndex			= 1;
 	info.pRenderPass			= RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
@@ -664,97 +627,23 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterialInstance = m_pSkyBoxMaterial->CreateMaterialInstance();
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 
-	info.shaderPaths			= { L"../data/shaders/screen_quad_vert_recon.vert.spv", L"", L"", L"", L"../data/shaders/pbr_deferred_shading.frag.spv", L"" };
-	info.vertexFormat			= VertexFormatNul;
-	info.subpassIndex			= 0;
-	info.pRenderPass			= RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
-	info.frameBufferType		= FrameBufferDiction::FrameBufferType_Shading;
-	info.depthTestEnable		= false;
-	info.depthWriteEnable		= false;
+	m_pShadingMaterial = DeferredShadingMaterial::CreateDefaultMaterial();
 
-	m_pShadingMaterial = DeferredShadingMaterial::CreateDefaultMaterial(info);
-
-	info.shaderPaths = { L"../data/shaders/shadow_map_gen.vert.spv", L"", L"", L"", L"", L"" };
-	info.vertexFormat = VertexFormatPNTCT;
-	info.subpassIndex = 0;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_ShadowMap;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap);
-	info.depthTestEnable = false;
-	info.depthWriteEnable = false;
-
-	m_pShadowMapMaterial = ShadowMapMaterial::CreateDefaultMaterial(info);
+	m_pShadowMapMaterial = ShadowMapMaterial::CreateDefaultMaterial();
 	m_pShadowMapMaterialInstance = m_pShadowMapMaterial->CreateMaterialInstance();
 	m_pShadowMapMaterialInstance->SetRenderMask(1 << RenderWorkManager::ShadowMapGen);
 
-	info.shaderPaths = { L"../data/shaders/screen_quad_vert_recon.vert.spv", L"", L"", L"", L"../data/shaders/ssao_gen.frag.spv", L"" };
-	info.vertexFormat = VertexFormatNul;
-	info.subpassIndex = 0;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAO;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
-	info.depthTestEnable = false;
-	info.depthWriteEnable = false;
+	m_pSSAOMaterial = SSAOMaterial::CreateDefaultMaterial();
 
-	m_pSSAOMaterial = SSAOMaterial::CreateDefaultMaterial(info);
+	m_pBloomMaterial = BloomMaterial::CreateDefaultMaterial();
 
-	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/bloom_gen.frag.spv", L"" };
-	info.vertexFormat = VertexFormatNul;
-	info.subpassIndex = 0;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomBlurH;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom);
-	info.depthTestEnable = false;
-	info.depthWriteEnable = false;
+	m_pSSAOBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAO, FrameBufferDiction::FrameBufferType_SSAOBlurV, RenderPassDiction::PipelineRenderPassSSAOBlurV, { true, 1, 1 });
+	m_pSSAOBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOBlurV, FrameBufferDiction::FrameBufferType_SSAOBlurH, RenderPassDiction::PipelineRenderPassSSAOBlurH, { false, 1, 1 });
 
-	m_pBloomMaterial = BloomMaterial::CreateDefaultMaterial(info);
+	m_pBloomBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_BloomBlurH, FrameBufferDiction::FrameBufferType_BloomBlurV, RenderPassDiction::PipelineRenderPassBloomBlurV, { true, 1.2f, 1.0f });
+	m_pBloomBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_BloomBlurV, FrameBufferDiction::FrameBufferType_BloomBlurH, RenderPassDiction::PipelineRenderPassBloomBlurH, { false, 1.2f, 1.0f });
 
-	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexFormat = VertexFormatNul;
-	info.subpassIndex = 0;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOBlurV;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurV);
-	info.depthTestEnable = false;
-	info.depthWriteEnable = false;
-
-	m_pSSAOBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAO, { true, 1, 1 });
-
-	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexFormat = VertexFormatNul;
-	info.subpassIndex = 0;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOBlurH;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurH);
-	info.depthTestEnable = false;
-	info.depthWriteEnable = false;
-
-	m_pSSAOBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAOBlurV, { false, 1, 1 });
-
-	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexFormat = VertexFormatNul;
-	info.subpassIndex = 0;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomBlurH;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloomBlurV);
-	info.depthTestEnable = false;
-	info.depthWriteEnable = false;
-
-	m_pBloomBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_BloomBlurH, { true, 1.2f, 1.0f });
-
-	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexFormat = VertexFormatNul;
-	info.subpassIndex = 0;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomBlurH;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloomBlurH);
-	info.depthTestEnable = false;
-	info.depthWriteEnable = false;
-
-	m_pBloomBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_BloomBlurV, { false, 1.2f, 1.0f });
-
-	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/post_processing.frag.spv", L"" };
-	info.vertexFormat = VertexFormatNul;
-	info.subpassIndex = 0;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_PostProcessing;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing);
-	info.depthTestEnable = false;
-	info.depthWriteEnable = false;
-
-	m_pPostProcessMaterial = PostProcessingMaterial::CreateDefaultMaterial(info);
+	m_pPostProcessMaterial = PostProcessingMaterial::CreateDefaultMaterial();
 }
 
 void VulkanGlobal::InitScene()

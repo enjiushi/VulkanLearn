@@ -21,8 +21,17 @@
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
+std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial()
 {
+	SimpleMaterialCreateInfo simpleMaterialInfo = {};
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon.vert.spv", L"", L"", L"", L"../data/shaders/ssao_gen.frag.spv", L"" };
+	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.subpassIndex = 0;
+	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_SSAO;
+	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
+	simpleMaterialInfo.depthTestEnable = false;
+	simpleMaterialInfo.depthWriteEnable = false;
+
 	std::shared_ptr<SSAOMaterial> pSSAOMaterial = std::make_shared<SSAOMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};

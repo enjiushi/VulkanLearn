@@ -21,8 +21,17 @@
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<BloomMaterial> BloomMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
+std::shared_ptr<BloomMaterial> BloomMaterial::CreateDefaultMaterial()
 {
+	SimpleMaterialCreateInfo simpleMaterialInfo = {};
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/bloom_gen.frag.spv", L"" };
+	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.subpassIndex = 0;
+	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_BloomBlurH;
+	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom);
+	simpleMaterialInfo.depthTestEnable = false;
+	simpleMaterialInfo.depthWriteEnable = false;
+
 	std::shared_ptr<BloomMaterial> pBloomMaterial = std::make_shared<BloomMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};

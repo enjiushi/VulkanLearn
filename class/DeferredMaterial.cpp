@@ -185,8 +185,17 @@ void GBufferMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const 
 	pCmdBuf->Execute({ pDrawCmdBuffer });
 }
 
-std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo)
+std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultMaterial()
 {
+	SimpleMaterialCreateInfo simpleMaterialInfo = {};
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon.vert.spv", L"", L"", L"", L"../data/shaders/pbr_deferred_shading.frag.spv", L"" };
+	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.subpassIndex = 0;
+	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
+	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_Shading;
+	simpleMaterialInfo.depthTestEnable = false;
+	simpleMaterialInfo.depthWriteEnable = false;
+
 	std::shared_ptr<DeferredShadingMaterial> pDeferredMaterial = std::make_shared<DeferredShadingMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
