@@ -68,6 +68,7 @@ public:
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
 	uint32_t GetUniformBufferSize() const;
 	std::vector<std::vector<uint32_t>> Material::GetCachedFrameOffsets() const { return m_cachedFrameOffsets; }
+	uint32_t GetVertexFormat() const { return m_vertexFormat; }
 
 	std::shared_ptr<DescriptorSet> GetDescriptorSet() const { return m_pUniformStorageDescriptorSet; }
 
