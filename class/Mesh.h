@@ -15,7 +15,7 @@ public:
 	static std::shared_ptr<Mesh> Create(const std::string& filePath);
 	static std::shared_ptr<Mesh> Create
 	(
-		const void* pVertices, uint32_t verticesCount, uint32_t vertexAttribFlag,
+		const void* pVertices, uint32_t verticesCount, uint32_t vertexFormat,
 		const void* pIndices, uint32_t indicesCount, VkIndexType indexType
 	);
 
@@ -31,7 +31,7 @@ public:
 protected:
 	bool Init
 	(
-		const void* pVertices, uint32_t verticesCount, uint32_t vertexAttribFlag,
+		const void* pVertices, uint32_t verticesCount, uint32_t vertexFormat,
 		const void* pIndices, uint32_t indicesCount, VkIndexType indexType
 	);
 

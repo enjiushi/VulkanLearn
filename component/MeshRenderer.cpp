@@ -22,6 +22,7 @@
 #include "../vulkan/RenderPass.h"
 #include "../vulkan/Framebuffer.h"
 #include "../class/UniformData.h"
+#include "../class/Material.h"
 
 std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance)
 {
@@ -67,6 +68,8 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 	{
 		uint32_t key = val->AddMeshRenderer(std::dynamic_pointer_cast<MeshRenderer>(GetSelfSharedPtr()));
 		m_materialInstances.push_back({ val, key });
+
+		ASSERTION(m_pMesh->GetVertexFormat() == val->GetMaterial()->GetVertexFormat());
 	}
 
 	m_perObjectBufferIndex = UniformData::GetInstance()->GetPerObjectUniforms()->AllocatePerObjectChunk();

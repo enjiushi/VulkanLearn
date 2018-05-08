@@ -13,6 +13,7 @@
 #include "../class/ForwardMaterial.h"
 #include "../class/RenderPassDiction.h"
 #include "../class/FrameBufferDiction.h"
+#include "../class/Enums.h"
 
 void SceneGenerator::PurgeExcistSceneData()
 {
@@ -259,8 +260,8 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateIrradianceGenMaterial(c
 {
 	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" };
-	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
+	info.vertexBindingsInfo = { GenerateBindingDesc(0, pMesh->GetVertexBuffer()->GetVertexFormat()) };
+	info.vertexAttributesInfo = GenerateAttribDesc(0, pMesh->GetVertexBuffer()->GetVertexFormat());
 	info.materialUniformVars = {};
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
@@ -274,8 +275,8 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GeneratePrefilterEnvGenMaterial
 {
 	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" };
-	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
+	info.vertexBindingsInfo = { GenerateBindingDesc(0, pMesh->GetVertexBuffer()->GetVertexFormat()) };
+	info.vertexAttributesInfo = GenerateAttribDesc(0, pMesh->GetVertexBuffer()->GetVertexFormat());
 	info.materialUniformVars = {};
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
@@ -289,8 +290,8 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateBRDFLUTGenMaterial(cons
 {
 	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths = { L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" };
-	info.vertexBindingsInfo = { pMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo = pMesh->GetVertexBuffer()->GetAttribDesc();
+	info.vertexBindingsInfo = { GenerateBindingDesc(0, pMesh->GetVertexBuffer()->GetVertexFormat()) };
+	info.vertexAttributesInfo = GenerateAttribDesc(0, pMesh->GetVertexBuffer()->GetVertexFormat());
 	info.materialUniformVars = {};
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;

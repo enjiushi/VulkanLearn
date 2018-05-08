@@ -10,76 +10,15 @@
 
 bool Mesh::Init
 (
-	const void* pVertices, uint32_t verticesCount, uint32_t vertexAttribFlag,
+	const void* pVertices, uint32_t verticesCount, uint32_t vertexFormat,
 	const void* pIndices, uint32_t indicesCount, VkIndexType indexType
 )
 {
-	m_vertexBytes = ::GetVertexBytes(vertexAttribFlag);
+	m_vertexBytes = ::GetVertexBytes(vertexFormat);
 	m_verticesCount = verticesCount;
 	m_indicesCount = indicesCount;
 
-	//Binding and attributes information
-	VkVertexInputBindingDescription bindingDesc = {};
-	bindingDesc.binding = 0;
-	bindingDesc.stride = m_vertexBytes;
-	bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-	std::vector<VkVertexInputAttributeDescription> attribDesc;
-
-	uint32_t offset = 0;
-
-	if (vertexAttribFlag & (1 << VAFPosition))
-	{
-		VkVertexInputAttributeDescription attrib = {};
-		attrib.binding = 0;
-		attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
-		attrib.location = VAFPosition;
-		attrib.offset = offset;
-		offset += sizeof(float) * 3;
-		attribDesc.push_back(attrib);
-	}
-	if (vertexAttribFlag & (1 << VAFNormal))
-	{
-		VkVertexInputAttributeDescription attrib = {};
-		attrib.binding = 0;
-		attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
-		attrib.location = VAFNormal;
-		attrib.offset = offset;
-		offset += sizeof(float) * 3;
-		attribDesc.push_back(attrib);
-	}
-	if (vertexAttribFlag & (1 << VAFColor))
-	{
-		VkVertexInputAttributeDescription attrib = {};
-		attrib.binding = 0;
-		attrib.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-		attrib.location = VAFColor;
-		attrib.offset = offset;
-		offset += sizeof(float) * 4;
-		attribDesc.push_back(attrib);
-	}
-	if (vertexAttribFlag & (1 << VAFTexCoord))
-	{
-		VkVertexInputAttributeDescription attrib = {};
-		attrib.binding = 0;
-		attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
-		attrib.location = VAFTexCoord;
-		attrib.offset = offset;
-		offset += sizeof(float) * 2;
-		attribDesc.push_back(attrib);
-	}
-	if (vertexAttribFlag & (1 << VAFTangent))
-	{
-		VkVertexInputAttributeDescription attrib = {};
-		attrib.binding = 0;
-		attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
-		attrib.location = VAFTangent;
-		attrib.offset = offset;
-		offset += sizeof(float) * 3;
-		attribDesc.push_back(attrib);
-	}
-
-	m_pVertexBuffer = SharedVertexBuffer::Create(GetDevice(), m_verticesCount * m_vertexBytes, bindingDesc, attribDesc, vertexAttribFlag);
+	m_pVertexBuffer = SharedVertexBuffer::Create(GetDevice(), m_verticesCount * m_vertexBytes, vertexFormat);
 	m_pVertexBuffer->UpdateByteStream(pVertices, 0, m_verticesCount * m_vertexBytes);
 	m_pIndexBuffer = SharedIndexBuffer::Create(GetDevice(), indicesCount * GetIndexBytes(indexType), indexType);
 	m_pIndexBuffer->UpdateByteStream(pIndices, 0, indicesCount * GetIndexBytes(indexType));
@@ -89,14 +28,14 @@ bool Mesh::Init
 
 std::shared_ptr<Mesh> Mesh::Create
 (
-	const void* pVertices, uint32_t verticesCount, uint32_t vertexAttribFlag,
+	const void* pVertices, uint32_t verticesCount, uint32_t vertexFormat,
 	const void* pIndices, uint32_t indicesCount, VkIndexType indexType
 )
 {
 	std::shared_ptr<Mesh> pRetMesh = std::make_shared<Mesh>();
 	if (pRetMesh.get() && pRetMesh->Init
 	(
-		pVertices, verticesCount, vertexAttribFlag,
+		pVertices, verticesCount, vertexFormat,
 		pIndices, indicesCount, indexType
 	))
 		return pRetMesh;
