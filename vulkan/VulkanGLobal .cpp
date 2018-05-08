@@ -596,8 +596,6 @@ void VulkanGlobal::InitMaterials()
 
 	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths = { L"../data/shaders/pbr_gbuffer_gen.vert.spv", L"", L"", L"", L"../data/shaders/pbr_gbuffer_gen.frag.spv", L"" };
-	info.vertexBindingsInfo = { GenerateBindingDesc(0, m_pGunMesh->GetVertexBuffer()->GetVertexFormat()) };
-	info.vertexAttributesInfo = GenerateAttribDesc(0, m_pGunMesh->GetVertexBuffer()->GetVertexFormat());
 	info.materialUniformVars = vars;
 	info.vertexFormat = m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
@@ -674,8 +672,6 @@ void VulkanGlobal::InitMaterials()
 	vars = {};
 
 	info.shaderPaths			= { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" };
-	info.vertexBindingsInfo		= { GenerateBindingDesc(0, m_pCubeMesh->GetVertexBuffer()->GetVertexFormat()) };
-	info.vertexAttributesInfo	= GenerateAttribDesc(0, m_pCubeMesh->GetVertexBuffer()->GetVertexFormat());
 	info.materialUniformVars	= vars;
 	info.vertexFormat			= m_pCubeMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex			= 1;
@@ -688,8 +684,6 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 
 	info.shaderPaths			= { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/pbr_deferred_shading.frag.spv", L"" };
-	info.vertexBindingsInfo		= { GenerateBindingDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat()) };
-	info.vertexAttributesInfo	= GenerateAttribDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat());
 	info.vertexFormat			= m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex			= 0;
 	info.pRenderPass			= RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
@@ -700,8 +694,6 @@ void VulkanGlobal::InitMaterials()
 	m_pShadingMaterial = DeferredShadingMaterial::CreateDefaultMaterial(info);
 
 	info.shaderPaths = { L"../data/shaders/shadow_map_gen.vert.spv", L"", L"", L"", L"", L"" };
-	info.vertexBindingsInfo = { GenerateBindingDesc(0, m_pGunMesh->GetVertexBuffer()->GetVertexFormat()) };
-	info.vertexAttributesInfo = GenerateAttribDesc(0, m_pGunMesh->GetVertexBuffer()->GetVertexFormat());
 	info.vertexFormat = m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_ShadowMap;
@@ -714,8 +706,6 @@ void VulkanGlobal::InitMaterials()
 	m_pShadowMapMaterialInstance->SetRenderMask(1 << RenderWorkManager::ShadowMapGen);
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/ssao_gen.frag.spv", L"" };
-	info.vertexBindingsInfo = { GenerateBindingDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat()) };
-	info.vertexAttributesInfo = GenerateAttribDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat());
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAO;
@@ -726,8 +716,6 @@ void VulkanGlobal::InitMaterials()
 	m_pSSAOMaterial = SSAOMaterial::CreateDefaultMaterial(info);
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/bloom_gen.frag.spv", L"" };
-	info.vertexBindingsInfo = { GenerateBindingDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat()) };
-	info.vertexAttributesInfo = GenerateAttribDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat());
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomBlurH;
@@ -738,8 +726,6 @@ void VulkanGlobal::InitMaterials()
 	m_pBloomMaterial = BloomMaterial::CreateDefaultMaterial(info);
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexBindingsInfo = { GenerateBindingDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat()) };
-	info.vertexAttributesInfo = GenerateAttribDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat());
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOBlurV;
@@ -750,8 +736,6 @@ void VulkanGlobal::InitMaterials()
 	m_pSSAOBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAO, { true, 1, 1 });
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexBindingsInfo = { GenerateBindingDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat()) };
-	info.vertexAttributesInfo = GenerateAttribDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat());
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOBlurH;
@@ -762,8 +746,6 @@ void VulkanGlobal::InitMaterials()
 	m_pSSAOBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAOBlurV, { false, 1, 1 });
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexBindingsInfo = { GenerateBindingDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat()) };
-	info.vertexAttributesInfo = GenerateAttribDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat());
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomBlurH;
@@ -774,8 +756,6 @@ void VulkanGlobal::InitMaterials()
 	m_pBloomBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_BloomBlurH, { true, 1.2f, 1.0f });
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexBindingsInfo = { GenerateBindingDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat()) };
-	info.vertexAttributesInfo = GenerateAttribDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat());
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomBlurH;
@@ -786,8 +766,6 @@ void VulkanGlobal::InitMaterials()
 	m_pBloomBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_BloomBlurV, { false, 1.2f, 1.0f });
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/post_processing.frag.spv", L"" };
-	info.vertexBindingsInfo = { GenerateBindingDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat()) };
-	info.vertexAttributesInfo = GenerateAttribDesc(0, m_pQuadMesh->GetVertexBuffer()->GetVertexFormat());
 	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_PostProcessing;

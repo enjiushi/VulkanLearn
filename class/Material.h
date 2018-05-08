@@ -37,8 +37,6 @@ enum MaterialVariableType
 typedef struct _SimpleMaterialCreateInfo
 {
 	std::vector<std::wstring>								shaderPaths;
-	std::vector<VkVertexInputBindingDescription>			vertexBindingsInfo;
-	std::vector<VkVertexInputAttributeDescription>			vertexAttributesInfo;
 	std::vector<UniformVar>									materialUniformVars;
 	uint32_t												vertexFormat;
 	uint32_t												subpassIndex = 0;

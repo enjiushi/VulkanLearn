@@ -12,6 +12,7 @@
 #include "RenderWorkManager.h"
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
+#include "../common/Util.h"
 
 std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(const SimpleMaterialCreateInfo& simpleMaterialInfo, const std::vector<std::shared_ptr<Image>>& inputTextures, GaussianBlurParams params)
 {
@@ -93,13 +94,10 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	dynamicStatesCreateInfo.dynamicStateCount = dynamicStates.size();
 	dynamicStatesCreateInfo.pDynamicStates = dynamicStates.data();
 
-	std::vector<VkVertexInputBindingDescription> vertexBindingsInfo(simpleMaterialInfo.vertexBindingsInfo.size());
-	for (uint32_t i = 0; i < simpleMaterialInfo.vertexBindingsInfo.size(); i++)
-		vertexBindingsInfo[i] = simpleMaterialInfo.vertexBindingsInfo[i];
+	std::vector<VkVertexInputBindingDescription> vertexBindingsInfo;
+	vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
 
-	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo(simpleMaterialInfo.vertexAttributesInfo.size());
-	for (uint32_t i = 0; i < simpleMaterialInfo.vertexAttributesInfo.size(); i++)
-		vertexAttributesInfo[i] = simpleMaterialInfo.vertexAttributesInfo[i];
+	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
 	vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
