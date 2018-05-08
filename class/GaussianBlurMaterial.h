@@ -7,7 +7,7 @@ class GaussianBlurMaterial : public Material
 public:
 	typedef struct _GaussianBlurParams
 	{
-		bool	isVertical = true;
+		int		direction = 0;
 		float	scale = 1.0f;
 		float	strength = 1.0f;
 	}GaussianBlurParams;

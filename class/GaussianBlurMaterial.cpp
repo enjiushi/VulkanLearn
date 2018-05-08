@@ -118,11 +118,9 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
-	VkPushConstantRange pushConstantRange0 = { VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(int32_t) };
-	VkPushConstantRange pushConstantRange1 = { VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(int32_t), sizeof(float) };
-	VkPushConstantRange pushConstantRange2 = { VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(int32_t) + sizeof(float), sizeof(float) };
+	VkPushConstantRange pushConstantRange0 = { VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GaussianBlurParams) };
 
-	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0, pushConstantRange1, pushConstantRange2 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, inputTextures, params))
+	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, inputTextures, params))
 		return pGaussianBlurMaterial;
 	return nullptr;
 }
@@ -196,13 +194,7 @@ void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, c
 	BindDescriptorSet(pDrawCmdBuffer);
 	BindMeshData(pDrawCmdBuffer);
 
-	int32_t direction = 0;
-	if (!m_params.isVertical)
-		direction = 1;
-
-	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(int32_t), &direction);
-	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(int32_t), sizeof(float), &m_params.scale);
-	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(int32_t) + sizeof(float), sizeof(float), &m_params.strength);
+	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GaussianBlurParams), &m_params);
 
 	pDrawCmdBuffer->DrawIndexed(3);
 
