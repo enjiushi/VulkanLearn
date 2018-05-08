@@ -98,9 +98,12 @@ std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMat
 	dynamicStatesCreateInfo.pDynamicStates = dynamicStates.data();
 
 	std::vector<VkVertexInputBindingDescription> vertexBindingsInfo;
-	vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-
-	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
+	if (simpleMaterialInfo.vertexFormat)
+	{
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
 	vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -214,9 +217,8 @@ void PostProcessingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf,
 
 	BindPipeline(pDrawCmdBuffer);
 	BindDescriptorSet(pDrawCmdBuffer);
-	BindMeshData(pDrawCmdBuffer);
 
-	pDrawCmdBuffer->DrawIndexed(3);
+	pDrawCmdBuffer->Draw(3, 1, 0, 0);
 
 	pDrawCmdBuffer->EndSecondaryRecording();
 

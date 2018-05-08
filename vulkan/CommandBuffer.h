@@ -102,6 +102,7 @@ public:
 	void DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
 	void DrawIndexed(uint32_t count);
 	void DrawIndexedIndirect(const std::shared_ptr<IndirectBuffer>& pIndirectBuffer, uint32_t offset, uint32_t count);
+	void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
 
 	void NextSubpass();
 

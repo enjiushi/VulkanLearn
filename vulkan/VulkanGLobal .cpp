@@ -575,25 +575,6 @@ void VulkanGlobal::InitMaterials()
 		}
 	};
 
-	/*SimpleMaterialCreateInfo info = {};
-	info.shaderPaths			= { L"../data/shaders/pbr.vert.spv", L"", L"", L"", L"../data/shaders/pbr.frag.spv", L"" };
-	info.vertexBindingsInfo		= { m_pGunMesh->GetVertexBuffer()->GetBindingDesc() };
-	info.vertexAttributesInfo	= m_pGunMesh->GetVertexBuffer()->GetAttribDesc();
-	info.materialUniformVars	= vars;
-	info.pRenderPass			= RenderPassDiction::GetInstance()->GetForwardRenderPass()->GetRenderPass();
-	info.vertexFormat			= m_pGunMesh->GetVertexBuffer()->GetVertexFormat();
-	info.isDeferredShadingMaterial = false;
-
-
-	m_pGunMaterial = ForwardMaterial::CreateDefaultMaterial(info);
-	m_pGunMaterialInstance = m_pGunMaterial->CreateMaterialInstance();
-	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pGunMaterialInstance->SetParameter(0, Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-	m_pGunMaterialInstance->SetParameter(1, Vector2f(1.0f, 1.0f));
-	m_pGunMaterialInstance->SetMaterialTexture(2, RGBA8_1024, "GunAlbedoRoughness");
-	m_pGunMaterialInstance->SetMaterialTexture(3, RGBA8_1024, "GunNormalAO");
-	m_pGunMaterialInstance->SetMaterialTexture(4, R8_1024, "GunMetallic");*/
-
 	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths = { L"../data/shaders/pbr_gbuffer_gen.vert.spv", L"", L"", L"", L"../data/shaders/pbr_gbuffer_gen.frag.spv", L"" };
 	info.materialUniformVars = vars;
@@ -684,7 +665,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkyBoxMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 
 	info.shaderPaths			= { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/pbr_deferred_shading.frag.spv", L"" };
-	info.vertexFormat			= m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.vertexFormat			= 0;
 	info.subpassIndex			= 0;
 	info.pRenderPass			= RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
 	info.frameBufferType		= FrameBufferDiction::FrameBufferType_Shading;
@@ -706,7 +687,7 @@ void VulkanGlobal::InitMaterials()
 	m_pShadowMapMaterialInstance->SetRenderMask(1 << RenderWorkManager::ShadowMapGen);
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/ssao_gen.frag.spv", L"" };
-	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.vertexFormat = 0;
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAO;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
@@ -716,7 +697,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSSAOMaterial = SSAOMaterial::CreateDefaultMaterial(info);
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/bloom_gen.frag.spv", L"" };
-	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.vertexFormat = 0;
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomBlurH;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom);
@@ -726,7 +707,7 @@ void VulkanGlobal::InitMaterials()
 	m_pBloomMaterial = BloomMaterial::CreateDefaultMaterial(info);
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.vertexFormat = 0;
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOBlurV;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurV);
@@ -736,7 +717,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSSAOBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAO, { true, 1, 1 });
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.vertexFormat = 0;
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOBlurH;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurH);
@@ -746,7 +727,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSSAOBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_SSAOBlurV, { false, 1, 1 });
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.vertexFormat = 0;
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomBlurH;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloomBlurV);
@@ -756,7 +737,7 @@ void VulkanGlobal::InitMaterials()
 	m_pBloomBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_BloomBlurH, { true, 1.2f, 1.0f });
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
-	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.vertexFormat = 0;
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_BloomBlurH;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloomBlurH);
@@ -766,7 +747,7 @@ void VulkanGlobal::InitMaterials()
 	m_pBloomBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(info, FrameBufferDiction::FrameBufferType_BloomBlurV, { false, 1.2f, 1.0f });
 
 	info.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/post_processing.frag.spv", L"" };
-	info.vertexFormat = m_pQuadMesh->GetVertexBuffer()->GetVertexFormat();
+	info.vertexFormat = 0;
 	info.subpassIndex = 0;
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_PostProcessing;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing);

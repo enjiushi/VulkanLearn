@@ -94,9 +94,12 @@ std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(cons
 	dynamicStatesCreateInfo.pDynamicStates = dynamicStates.data();
 
 	std::vector<VkVertexInputBindingDescription> vertexBindingsInfo;
-	vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-
-	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
+	if (simpleMaterialInfo.vertexFormat)
+	{
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
 	vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

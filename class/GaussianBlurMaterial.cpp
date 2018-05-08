@@ -95,9 +95,12 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	dynamicStatesCreateInfo.pDynamicStates = dynamicStates.data();
 
 	std::vector<VkVertexInputBindingDescription> vertexBindingsInfo;
-	vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-
-	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
+	if (simpleMaterialInfo.vertexFormat)
+	{
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
 	vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -192,11 +195,10 @@ void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, c
 
 	BindPipeline(pDrawCmdBuffer);
 	BindDescriptorSet(pDrawCmdBuffer);
-	BindMeshData(pDrawCmdBuffer);
 
 	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GaussianBlurParams), &m_params);
 
-	pDrawCmdBuffer->DrawIndexed(3);
+	pDrawCmdBuffer->Draw(3, 1, 0, 0);;
 
 	pDrawCmdBuffer->EndSecondaryRecording();
 
