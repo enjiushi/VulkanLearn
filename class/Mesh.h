@@ -3,7 +3,7 @@
 #include "../Maths/Matrix.h"
 #include "../vulkan/DeviceObjectBase.h"
 #include <string>
-#include "Enums.h"
+#include "../common/Enums.h"
 
 class SharedVertexBuffer;
 class SharedIndexBuffer;

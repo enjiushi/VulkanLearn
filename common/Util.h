@@ -1,6 +1,8 @@
 #pragma once
 #include <assert.h>
-#include <GL\glew.h>
+#include <vulkan.h>
+#include <vector>
+
 #define SAFE_DELETE(x) if ((x) != nullptr) { delete (x); (x) = nullptr; }
 
 #ifdef _DEBUG
@@ -17,3 +19,8 @@ if (!pRet || !pRet->Init()) \
 }
 
 #define EQUAL(type, x, y) ((((x) - (std::numeric_limits<type>::epsilon())) <= (y)) && (((x) + (std::numeric_limits<type>::epsilon())) >= (y)))
+
+uint32_t GetVertexBytes(uint32_t vertexFormat);
+uint32_t GetIndexBytes(VkIndexType indexType);
+VkVertexInputBindingDescription GenerateBindingDesc(uint32_t bindingIndex, uint32_t vertexFormat);
+std::vector<VkVertexInputAttributeDescription> GenerateAttribDesc(uint32_t bindingIndex, uint32_t vertexFormat);

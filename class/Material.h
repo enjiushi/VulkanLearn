@@ -5,7 +5,7 @@
 #include "PerMaterialUniforms.h"
 #include "FrameBufferDiction.h"
 #include <map>
-#include "Enums.h"
+#include "../common/Enums.h"
 
 class PipelineLayout;
 class GraphicPipeline;

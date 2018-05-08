@@ -7,6 +7,7 @@
 #include "scene.h"
 #include "postprocess.h"
 #include <string>
+#include "../common/Util.h"
 
 bool Mesh::Init
 (

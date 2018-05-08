@@ -54,4 +54,13 @@
     }                                                                   \
 }
 
-#define SAFE_DELETE(x) if (x) { delete x; x = nullptr; }
+#define SAFE_DELETE(x) if ((x) != nullptr) { delete (x); (x) = nullptr; }
+
+#define CREATE_OBJ(type, pRet) type* pRet = new type; \
+if (!pRet || !pRet->Init()) \
+{ \
+	SAFE_DELETE(pRet); \
+	return nullptr; \
+}
+
+#define EQUAL(type, x, y) ((((x) - (std::numeric_limits<type>::epsilon())) <= (y)) && (((x) + (std::numeric_limits<type>::epsilon())) >= (y)))

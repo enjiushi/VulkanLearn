@@ -1,5 +1,5 @@
 #include "VertexBuffer.h"
-#include "../class/Enums.h"
+#include "../common/Util.h"
 
 bool VertexBuffer::Init(const std::shared_ptr<Device>& pDevice, 
 	const std::shared_ptr<VertexBuffer>& pSelf,

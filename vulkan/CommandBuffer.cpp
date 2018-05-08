@@ -15,7 +15,7 @@
 #include "../vulkan/GlobalVulkanStates.h"
 #include "GlobalDeviceObjects.h"
 #include "IndirectBuffer.h"
-#include "../class/Enums.h"
+#include "../common/Enums.h"
 
 CommandBuffer::~CommandBuffer()
 {

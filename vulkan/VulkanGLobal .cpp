@@ -25,14 +25,14 @@
 #include "../class/UniformData.h"
 #include "IndirectBuffer.h"
 #include "SharedIndirectBuffer.h"
-#include "../class/Enums.h"
+#include "../common/Util.h"
+#include "../common/Enums.h"
 #include "../class/GlobalTextures.h"
 #include "../scene/SceneGenerator.h"
 #include "../class/RenderPassDiction.h"
 #include "../class/ForwardRenderPass.h"
 #include "../class/GBufferPass.h"
 #include "../class/DeferredShadingPass.h"
-#include "../class/Enums.h"
 
 void VulkanGlobal::InitVulkanInstance()
 {

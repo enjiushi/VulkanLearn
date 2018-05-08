@@ -13,7 +13,8 @@
 #include "../class/ForwardMaterial.h"
 #include "../class/RenderPassDiction.h"
 #include "../class/FrameBufferDiction.h"
-#include "../class/Enums.h"
+#include "../common/Util.h"
+#include "../common/Enums.h"
 
 void SceneGenerator::PurgeExcistSceneData()
 {
