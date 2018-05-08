@@ -12,7 +12,7 @@ class CommandBuffer;
 class Mesh : public SelfRefBase<Mesh>
 {
 public:
-	static std::shared_ptr<Mesh> Create(const std::string& filePath);
+	static std::shared_ptr<Mesh> Create(const std::string& filePath, uint32_t argumentedVertexFormat = 0);
 	static std::shared_ptr<Mesh> Create
 	(
 		const void* pVertices, uint32_t verticesCount, uint32_t vertexFormat,

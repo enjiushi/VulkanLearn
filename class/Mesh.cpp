@@ -42,7 +42,7 @@ std::shared_ptr<Mesh> Mesh::Create
 	return nullptr;
 }
 
-std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
+std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath, uint32_t argumentedVertexFormat)
 {
 	Assimp::Importer imp;
 	const aiScene* pScene = nullptr;
@@ -52,36 +52,39 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
 	// FIXME: Now scene file is used as single mesh, it shouldn't be however, some class like "scene" should load it and dispatch mesh data to this class, in future
 	aiMesh* pMesh = pScene->mMeshes[0];
 
-	uint32_t vertexAttribFlag = 0;
+	uint32_t vertexFormat = 0;
 
 	uint32_t vertexSize = 0;
 	if (pMesh->HasPositions())
 	{
 		vertexSize += 3 * sizeof(float);
-		vertexAttribFlag |= (1 << VAFPosition);
+		vertexFormat |= (1 << VAFPosition);
 	}
 	if (pMesh->HasNormals())
 	{
 		vertexSize += 3 * sizeof(float);
-		vertexAttribFlag |= (1 << VAFNormal);
+		vertexFormat |= (1 << VAFNormal);
 	}
 	//FIXME: hard-coded index 0 here, we don't have more than 1 color for now
 	if (pMesh->HasVertexColors(0))
 	{
 		vertexSize += 4 * sizeof(float);
-		vertexAttribFlag |= (1 << VAFColor);
+		vertexFormat |= (1 << VAFColor);
 	}
 	//FIXME: hard-coded index 0 here, we don't have more than 1 texture coord for now
 	if (pMesh->HasTextureCoords(0))
 	{
 		vertexSize += 2 * sizeof(float);
-		vertexAttribFlag |= (1 << VAFTexCoord);
+		vertexFormat |= (1 << VAFTexCoord);
 	}
 	if (pMesh->HasTangentsAndBitangents())
 	{
 		vertexSize += 3 * sizeof(float);
-		vertexAttribFlag |= (1 << VAFTangent);
+		vertexFormat |= (1 << VAFTangent);
 	}
+
+	if (vertexFormat != argumentedVertexFormat && argumentedVertexFormat != 0)
+		return nullptr;
 
 	float* pVertices = new float[pMesh->mNumVertices * vertexSize / sizeof(float)];
 	uint32_t verticesNumBytes = pMesh->mNumVertices * vertexSize;
@@ -91,21 +94,21 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
 	{
 		uint32_t offset = i * vertexSize / sizeof(float);
 		count = 0;
-		if (vertexAttribFlag & (1 << VAFPosition))
+		if (vertexFormat & (1 << VAFPosition))
 		{
 			pVertices[offset] = pMesh->mVertices[i].x;
 			pVertices[offset + 1] = pMesh->mVertices[i].y;
 			pVertices[offset + 2] = pMesh->mVertices[i].z;
 			count += 3;
 		}
-		if (vertexAttribFlag & (1 << VAFNormal))
+		if (vertexFormat & (1 << VAFNormal))
 		{
 			pVertices[offset + count] = pMesh->mNormals[i].x;
 			pVertices[offset + count + 1] = pMesh->mNormals[i].y;
 			pVertices[offset + count + 2] = pMesh->mNormals[i].z;
 			count += 3;
 		}
-		if (vertexAttribFlag & (1 << VAFColor))
+		if (vertexFormat & (1 << VAFColor))
 		{
 			pVertices[offset + count] = pMesh->mColors[i][0].r;
 			pVertices[offset + count + 1] = pMesh->mColors[i][0].g;
@@ -113,13 +116,13 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
 			pVertices[offset + count + 3] = pMesh->mColors[i][0].a;
 			count += 4;
 		}
-		if (vertexAttribFlag & (1 << VAFTexCoord))
+		if (vertexFormat & (1 << VAFTexCoord))
 		{
 			pVertices[offset + count] = pMesh->mTextureCoords[0][i].x;
 			pVertices[offset + count + 1] = pMesh->mTextureCoords[0][i].y;
 			count += 2;
 		}
-		if (vertexAttribFlag & (1 << VAFTangent))
+		if (vertexFormat & (1 << VAFTangent))
 		{
 			pVertices[offset + count] = pMesh->mTangents[i].x;
 			pVertices[offset + count + 1] = pMesh->mTangents[i].y;
@@ -140,7 +143,7 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath)
 	std::shared_ptr<Mesh> pRetMesh = std::make_shared<Mesh>();
 	if (pRetMesh.get() && pRetMesh->Init
 	(
-		pVertices, pMesh->mNumVertices, vertexAttribFlag,
+		pVertices, pMesh->mNumVertices, vertexFormat,
 		pIndices, pMesh->mNumFaces * 3, VK_INDEX_TYPE_UINT32
 	))
 		return pRetMesh;
