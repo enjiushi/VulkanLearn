@@ -12,7 +12,7 @@ bool GaussianBlurPass::Init(const std::shared_ptr<GaussianBlurPass>& pSelf, VkFo
 	std::vector<VkAttachmentDescription> attachmentDescs(1);
 
 	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	attachmentDescs[0].format = format;
 	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
