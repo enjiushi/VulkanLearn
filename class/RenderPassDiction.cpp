@@ -30,7 +30,7 @@ bool RenderPassDiction::Init()
 		case  PipelineRenderPassShadowMap:
 			m_pipelineRenderPasses.push_back(ShadowMapPass::Create()); break;
 		case PipelineRenderPassSSAO:
-			m_pipelineRenderPasses.push_back(SSAOPass::Create(FrameBufferDiction::SSAO_FORMAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)); break;
+			m_pipelineRenderPasses.push_back(SSAOPass::Create(FrameBufferDiction::SSAO_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)); break;
 		case PipelineRenderPassSSAOBlurV:
 			m_pipelineRenderPasses.push_back(GaussianBlurPass::Create(FrameBufferDiction::SSAO_FORMAT)); break;
 		case PipelineRenderPassSSAOBlurH:
