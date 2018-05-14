@@ -736,6 +736,8 @@ void VulkanGlobal::Draw()
 	uint32_t frameIndex = FrameMgr()->FrameIndex();
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(FrameMgr()->FrameIndex());
 
+	m_pCharacter->Move(m_moveFlag, 0.001f);
+
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
 	m_pRootObject->Update();
@@ -743,8 +745,6 @@ void VulkanGlobal::Draw()
 
 	UniformData::GetInstance()->SyncDataBuffer();
 	RenderWorkManager::GetInstance()->SyncMaterialData();
-
-	m_pCharacter->Move(m_moveFlag, 0.001f);
 
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
 	pDrawCmdBuffer->StartPrimaryRecording();
