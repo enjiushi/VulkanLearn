@@ -243,7 +243,7 @@ void SSAOMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& 
 
 	VkImageMemoryBarrier imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(0)->GetDeviceHandle();
+	imgBarrier.image = pGBuffer0->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
