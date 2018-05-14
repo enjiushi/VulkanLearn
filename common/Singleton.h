@@ -23,10 +23,9 @@ public:
 		m_instance = nullptr;
 	}
 
+protected:
 	Singleton<T>() {}
 	virtual ~Singleton<T>() {}
-
-public:
 	virtual bool Init() { return true; }
 
 protected:
