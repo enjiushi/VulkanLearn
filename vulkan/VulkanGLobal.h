@@ -158,8 +158,7 @@ public:
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer0;
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer1;
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer2;
-	//std::shared_ptr<ForwardMaterial>	m_pGunMaterial;
-	std::shared_ptr<GBufferMaterial>	m_PBRGbufferMaterial;
+
 	std::shared_ptr<MaterialInstance>	m_pGunMaterialInstance;
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance0;
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance1;
@@ -169,16 +168,6 @@ public:
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance1;
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance2;
 
-	std::shared_ptr<SSAOMaterial>				m_pSSAOMaterial;
-	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurVMaterial;
-	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurHMaterial;
-	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
-	std::shared_ptr<BloomMaterial>				m_pBloomMaterial;
-	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurVMaterial;
-	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurHMaterial;
-	std::shared_ptr<PostProcessingMaterial>		m_pPostProcessMaterial;
-
-	std::shared_ptr<ShadowMapMaterial>	m_pShadowMapMaterial;
 	std::shared_ptr<MaterialInstance>	m_pShadowMapMaterialInstance;
 
 	std::shared_ptr<BaseObject>			m_pSkyBoxObject;
