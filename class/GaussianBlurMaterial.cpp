@@ -14,11 +14,16 @@
 #include "../common/Util.h"
 
 std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(
-	const std::vector<std::shared_ptr<Image>>& inputTextures,
+	FrameBufferDiction::FrameBufferType inputFrameBufferType,
 	FrameBufferDiction::FrameBufferType outputFrameBufferType,
 	RenderPassDiction::PipelineRenderPass renderPass,
 	GaussianBlurParams params)
 {
+	std::vector<std::shared_ptr<FrameBuffer>> frameBuffers = FrameBufferDiction::GetInstance()->GetFrameBuffers(inputFrameBufferType);
+	std::vector<std::shared_ptr<Image>> textures(frameBuffers.size());
+	for (uint32_t i = 0; i < frameBuffers.size(); i++)
+		textures[i] = frameBuffers[i]->GetColorTarget(0);
+
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
@@ -135,24 +140,12 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
 	VkPushConstantRange pushConstantRange0 = { VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GaussianBlurParams) };
+	
+	pGaussianBlurMaterial->m_inputFrameBufferType = inputFrameBufferType;
 
-	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, inputTextures, params))
+	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, textures, params))
 		return pGaussianBlurMaterial;
 	return nullptr;
-}
-
-std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMaterial(
-	FrameBufferDiction::FrameBufferType inputFrameBufferType,
-	FrameBufferDiction::FrameBufferType outputFrameBufferType,
-	RenderPassDiction::PipelineRenderPass renderPass,
-	GaussianBlurParams params)
-{
-	std::vector<std::shared_ptr<FrameBuffer>> frameBuffers = FrameBufferDiction::GetInstance()->GetFrameBuffers(inputFrameBufferType);
-	std::vector<std::shared_ptr<Image>> textures(frameBuffers.size());
-	for (uint32_t i = 0; i < frameBuffers.size(); i++)
-		textures[i] = frameBuffers[i]->GetColorTarget(0);
-
-	return CreateDefaultMaterial(textures, outputFrameBufferType, renderPass, params);
 }
 
 bool GaussianBlurMaterial::Init(const std::shared_ptr<GaussianBlurMaterial>& pSelf,
@@ -220,4 +213,32 @@ void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, c
 	pDrawCmdBuffer->EndSecondaryRecording();
 
 	pCmdBuf->Execute({ pDrawCmdBuffer });
+}
+
+void GaussianBlurMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	std::shared_ptr<Image> pImg = FrameBufferDiction::GetInstance()->GetFrameBuffers(m_inputFrameBufferType)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
+	VkImageSubresourceRange subresourceRange = {};
+	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange.baseMipLevel = 0;
+	subresourceRange.levelCount = pImg->GetImageInfo().mipLevels;
+	subresourceRange.layerCount = pImg->GetImageInfo().arrayLayers;
+
+	VkImageMemoryBarrier imgBarrier = {};
+	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier.image = pImg->GetDeviceHandle();
+	imgBarrier.subresourceRange = subresourceRange;
+	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	pCmdBuffer->AttachBarriers
+	(
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		{},
+		{},
+		{ imgBarrier }
+	);
 }

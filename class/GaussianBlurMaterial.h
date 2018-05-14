@@ -15,12 +15,6 @@ public:
 
 public:
 	static std::shared_ptr<GaussianBlurMaterial> CreateDefaultMaterial(
-		const std::vector<std::shared_ptr<Image>>& inputTextures,
-		FrameBufferDiction::FrameBufferType outputFrameBufferType,
-		RenderPassDiction::PipelineRenderPass renderPass,
-		GaussianBlurParams params);
-
-	static std::shared_ptr<GaussianBlurMaterial> CreateDefaultMaterial(
 		FrameBufferDiction::FrameBufferType inputFrameBufferType,
 		FrameBufferDiction::FrameBufferType outputFrameBufferType,
 		RenderPassDiction::PipelineRenderPass renderPass,
@@ -28,6 +22,7 @@ public:
 
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) override;
+	void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer) override;
 
 protected:
 	bool Init(const std::shared_ptr<GaussianBlurMaterial>& pSelf,
@@ -44,5 +39,6 @@ protected:
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;
 
 protected:
-	GaussianBlurParams	m_params;
+	GaussianBlurParams					m_params;
+	FrameBufferDiction::FrameBufferType m_inputFrameBufferType;
 };
