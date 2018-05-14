@@ -68,6 +68,12 @@ std::shared_ptr<MaterialInstance> RenderWorkManager::AcquireSkyBoxMaterialInstan
 	return pMaterialInstance;
 }
 
+void RenderWorkManager::SyncMaterialData()
+{
+	m_PBRGbufferMaterial->SyncBufferData();
+	m_pShadowMapMaterial->SyncBufferData();
+}
+
 void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffer)
 {
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer));

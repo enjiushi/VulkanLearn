@@ -45,6 +45,7 @@ public:
 	std::shared_ptr<MaterialInstance> AcquireShadowMaterialInstance() const;
 	std::shared_ptr<MaterialInstance> AcquireSkyBoxMaterialInstance() const;
 
+	void SyncMaterialData();
 	void Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffer);
 
 protected:
