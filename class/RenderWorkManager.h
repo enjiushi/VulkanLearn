@@ -15,6 +15,8 @@ class DeferredShadingMaterial;
 class ForwardMaterial;
 class BloomMaterial;
 class PostProcessingMaterial;
+class MaterialInstance;
+class CommandBuffer;
 
 class RenderWorkManager : public Singleton<RenderWorkManager>
 {
@@ -39,7 +41,11 @@ public:
 	void AddRenderStateMask(RenderState renderState) { m_renderStateMask |= (1 << renderState); }
 	uint32_t GetRenderStateMask() const { return m_renderStateMask; }
 
-	void Draw();
+	std::shared_ptr<MaterialInstance> AcquirePBRMaterialInstance() const;
+	std::shared_ptr<MaterialInstance> AcquireShadowMaterialInstance() const;
+	std::shared_ptr<MaterialInstance> AcquireSkyBoxMaterialInstance() const;
+
+	void Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffer);
 
 protected:
 	uint32_t m_renderStateMask;
