@@ -21,8 +21,8 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 	attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
 
-	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	attachmentDescs[1].format = FrameBufferDiction::OFFSCREEN_DEPTH_STENCIL_FORMAT;
 	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;

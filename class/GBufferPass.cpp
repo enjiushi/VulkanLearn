@@ -39,7 +39,7 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 	attachmentDescs[2].samples = VK_SAMPLE_COUNT_1_BIT;
 
 	attachmentDescs[3].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachmentDescs[3].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	attachmentDescs[3].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	attachmentDescs[3].format = FrameBufferDiction::OFFSCREEN_DEPTH_STENCIL_FORMAT;
 	attachmentDescs[3].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[3].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
