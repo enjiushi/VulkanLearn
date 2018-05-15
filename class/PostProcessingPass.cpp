@@ -36,7 +36,7 @@ bool PostProcessingPass::Init(const std::shared_ptr<PostProcessingPass>& pSelf)
 	dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 	// This one can be generated implicitly without definition
-	dependencies[1].srcSubpass = 1;
+	dependencies[1].srcSubpass = 0;
 	dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
 	dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	dependencies[1].dstAccessMask = 0;
