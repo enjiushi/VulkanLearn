@@ -736,7 +736,7 @@ void VulkanGlobal::Draw()
 	uint32_t frameIndex = FrameMgr()->FrameIndex();
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(FrameMgr()->FrameIndex());
 
-	m_pCharacter->Move(m_moveFlag, 0.001f);
+	m_pCharacter->Move(m_moveFlag, 0.005f);
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
