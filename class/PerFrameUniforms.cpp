@@ -56,12 +56,13 @@ void PerFrameUniforms::SetNearFarAB(const Vector4f& nearFarAB)
 
 void PerFrameUniforms::SyncBufferDataInternal()
 {
+	m_perFrameVariables.VPN = UniformData::GetInstance()->GetGlobalUniforms()->GetPNMatrix() * m_perFrameVariables.viewMatrix;
+
 	GetBuffer()->UpdateByteStream(&m_perFrameVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perFrameVariables));
 }
 
 void PerFrameUniforms::SetDirty()
 {
-	m_perFrameVariables.VPN = UniformData::GetInstance()->GetGlobalUniforms()->GetPNMatrix() * m_perFrameVariables.viewMatrix;
 	UniformDataStorage::SetDirty();
 }
 

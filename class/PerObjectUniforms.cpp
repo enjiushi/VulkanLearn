@@ -32,12 +32,16 @@ void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4f& modelMatr
 
 void PerObjectUniforms::SyncBufferDataInternal()
 {
+	for (auto index : m_dirtyChunks)
+		m_perObjectVariables[index].MVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPNMatrix() * m_perObjectVariables[index].modelMatrix;
+	m_dirtyChunks.clear();
+
 	GetBuffer()->UpdateByteStream(m_perObjectVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perObjectVariables));
 }
 
 void PerObjectUniforms::SetDirty(uint32_t index)
 {
-	m_perObjectVariables[index].MVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPNMatrix() * m_perObjectVariables[index].modelMatrix;
+	m_dirtyChunks.push_back(index);
 	UniformDataStorage::SetDirty();
 }
 

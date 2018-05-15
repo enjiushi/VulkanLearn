@@ -32,4 +32,5 @@ protected:
 
 protected:
 	PerObjectVariables	m_perObjectVariables[MAXIMUM_OBJECTS];
+	std::vector<uint32_t>	m_dirtyChunks;
 };

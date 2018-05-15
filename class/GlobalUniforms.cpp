@@ -102,12 +102,13 @@ void GlobalUniforms::SetBloomWindowSize(const Vector2f& size)
 
 void GlobalUniforms::SyncBufferDataInternal()
 {
+	m_globalVariables.PN = m_globalVariables.vulkanNDC * m_globalVariables.projectionMatrix;
+
 	GetBuffer()->UpdateByteStream(&m_globalVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_globalVariables));
 }
 
 void GlobalUniforms::SetDirty()
 {
-	m_globalVariables.PN = m_globalVariables.vulkanNDC * m_globalVariables.projectionMatrix;
 	UniformDataStorage::SetDirty();
 }
 
