@@ -36,7 +36,7 @@ bool RenderPassDiction::Init()
 		case PipelineRenderPassSSAOBlurH:
 			m_pipelineRenderPasses.push_back(GaussianBlurPass::Create(FrameBufferDiction::SSAO_FORMAT)); break;
 		case PipelineRenderPassShading:
-			m_pipelineRenderPasses.push_back(DeferredShadingPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)); break;
+			m_pipelineRenderPasses.push_back(DeferredShadingPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)); break;
 		case PipelineRenderPassBloom:
 			m_pipelineRenderPasses.push_back(BloomPass::Create()); break;
 		case PipelineRenderPassBloomBlurV:
