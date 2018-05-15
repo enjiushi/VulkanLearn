@@ -443,3 +443,67 @@ void DeferredShadingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf
 
 	pCmdBuf->Execute({ pDrawCmdBuffer });
 }
+
+void DeferredShadingMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	std::vector<VkImageMemoryBarrier> barriers;
+	for (uint32_t i = 0; i < FrameBufferDiction::GBufferCount; i++)
+	{
+		std::shared_ptr<Image> pGBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
+
+		VkImageSubresourceRange subresourceRange = {};
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.levelCount = pGBuffer->GetImageInfo().mipLevels;
+		subresourceRange.layerCount = pGBuffer->GetImageInfo().arrayLayers;
+
+		VkImageMemoryBarrier imgBarrier = {};
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = pGBuffer->GetDeviceHandle();
+		imgBarrier.subresourceRange = subresourceRange;
+		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		barriers.push_back(imgBarrier);
+	}
+
+	pCmdBuffer->AttachBarriers
+	(
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		{},
+		{},
+		barriers
+	);
+	barriers.clear();
+
+	std::shared_ptr<Image> pShadowMap = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ShadowMap)[FrameMgr()->FrameIndex()]->GetDepthStencilTarget();
+
+	VkImageSubresourceRange subresourceRange = {};
+	subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+	subresourceRange.baseMipLevel = 0;
+	subresourceRange.levelCount = pShadowMap->GetImageInfo().mipLevels;
+	subresourceRange.layerCount = pShadowMap->GetImageInfo().arrayLayers;
+
+	VkImageMemoryBarrier imgBarrier = {};
+	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier.image = pShadowMap->GetDeviceHandle();
+	imgBarrier.subresourceRange = subresourceRange;
+	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	barriers.push_back(imgBarrier);
+
+	pCmdBuffer->AttachBarriers
+	(
+		VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		{},
+		{},
+		barriers
+	);
+}

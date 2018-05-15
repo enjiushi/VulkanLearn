@@ -12,7 +12,7 @@ bool ShadowMapPass::Init(const std::shared_ptr<ShadowMapPass>& pSelf)
 	std::vector<VkAttachmentDescription> attachmentDescs(1);
 
 	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	attachmentDescs[0].format = FrameBufferDiction::OFFSCREEN_DEPTH_FORMAT;
 	attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
