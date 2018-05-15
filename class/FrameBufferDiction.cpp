@@ -228,7 +228,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardScreenFram
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = GetSwapChain()->GetSwapChainImage(0);
+		std::shared_ptr<Image> pColorTarget = GetSwapChain()->GetSwapChainImage(i);
 
 		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height);
 
