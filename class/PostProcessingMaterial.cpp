@@ -233,3 +233,48 @@ void PostProcessingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf,
 
 	pCmdBuf->Execute({ pDrawCmdBuffer });
 }
+
+void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
+	std::shared_ptr<Image> pBloomTex = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_BloomBlurH)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
+
+	VkImageSubresourceRange subresourceRange0 = {};
+	subresourceRange0.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange0.baseMipLevel = 0;
+	subresourceRange0.levelCount = pShadingResult->GetImageInfo().mipLevels;
+	subresourceRange0.layerCount = pShadingResult->GetImageInfo().arrayLayers;
+
+	VkImageMemoryBarrier imgBarrier0 = {};
+	imgBarrier0.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier0.image = pShadingResult->GetDeviceHandle();
+	imgBarrier0.subresourceRange = subresourceRange0;
+	imgBarrier0.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier0.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	imgBarrier0.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier0.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	VkImageSubresourceRange subresourceRange1 = {};
+	subresourceRange1.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange1.baseMipLevel = 0;
+	subresourceRange1.levelCount = pShadingResult->GetImageInfo().mipLevels;
+	subresourceRange1.layerCount = pShadingResult->GetImageInfo().arrayLayers;
+
+	VkImageMemoryBarrier imgBarrier1 = {};
+	imgBarrier1.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier1.image = pShadingResult->GetDeviceHandle();
+	imgBarrier1.subresourceRange = subresourceRange0;
+	imgBarrier1.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier1.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	imgBarrier1.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier1.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	pCmdBuffer->AttachBarriers
+	(
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		{},
+		{},
+		{ imgBarrier0, imgBarrier1 }
+	);
+}
