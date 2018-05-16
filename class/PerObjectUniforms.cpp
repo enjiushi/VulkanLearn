@@ -26,6 +26,7 @@ std::shared_ptr<PerObjectUniforms> PerObjectUniforms::Create()
 
 void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4f& modelMatrix)
 {
+	m_perObjectVariables[index].prevModelMatrix = m_perObjectVariables[index].modelMatrix;
 	m_perObjectVariables[index].modelMatrix = modelMatrix;
 	SetDirty(index);
 }
@@ -33,7 +34,10 @@ void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4f& modelMatr
 void PerObjectUniforms::SyncBufferDataInternal()
 {
 	for (auto index : m_dirtyChunks)
+	{
+		m_perObjectVariables[index].prevMVPN = m_perObjectVariables[index].MVPN;
 		m_perObjectVariables[index].MVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPNMatrix() * m_perObjectVariables[index].modelMatrix;
+	}
 	m_dirtyChunks.clear();
 
 	GetBuffer()->UpdateByteStream(m_perObjectVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perObjectVariables));

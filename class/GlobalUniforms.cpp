@@ -44,6 +44,7 @@ std::shared_ptr<GlobalUniforms> GlobalUniforms::Create()
 
 void GlobalUniforms::SetProjectionMatrix(const Matrix4f& proj) 
 { 
+	m_globalVariables.prevProjectionMatrix = m_globalVariables.projectionMatrix;
 	m_globalVariables.projectionMatrix = proj;
 	SetDirty();
 }
@@ -102,6 +103,7 @@ void GlobalUniforms::SetBloomWindowSize(const Vector2f& size)
 
 void GlobalUniforms::SyncBufferDataInternal()
 {
+	m_globalVariables.prevPN = m_globalVariables.PN;
 	m_globalVariables.PN = m_globalVariables.vulkanNDC * m_globalVariables.projectionMatrix;
 
 	GetBuffer()->UpdateByteStream(&m_globalVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_globalVariables));

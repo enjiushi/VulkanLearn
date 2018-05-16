@@ -15,6 +15,9 @@ typedef struct _GlobalVariables
 	Matrix4f	vulkanNDC;
 	Matrix4f	PN;		// vulkanNDC * projectionMatrix
 
+	Matrix4f	prevProjectionMatrix;
+	Matrix4f	prevPN;
+
 	// Windows settings
 	Vector4f	gameWindowSize;
 	Vector4f	envGenWindowSize;

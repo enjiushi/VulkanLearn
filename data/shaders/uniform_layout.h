@@ -5,6 +5,9 @@ struct GlobalData
 	mat4 vulkanNDC;
 	mat4 PN;
 
+	mat4 prevProj;
+	mat4 prevPN;
+
 	// Window settings
 	vec4 gameWindowSize;
 	vec4 envGenWindowSize;
@@ -39,6 +42,9 @@ struct PerObjectData
 {
 	mat4 model;
 	mat4 MVPN;
+
+	mat4 prevModel;
+	mat4 prevMVPN;
 };
 
 struct ObjectDataIndex

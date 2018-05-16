@@ -9,6 +9,9 @@ typedef struct _PerObjectVariables
 {
 	Matrix4f modelMatrix;
 	Matrix4f MVPN;	//vulkanNDC * projection * view * model
+
+	Matrix4f prevModelMatrix;
+	Matrix4f prevMVPN;
 }PerObjectVariables;
 
 
