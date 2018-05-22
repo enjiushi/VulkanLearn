@@ -50,8 +50,8 @@ void Camera::UpdateProjMatrix()
 	float B = -2.0f * m_cameraInfo.near * m_cameraInfo.far / (m_cameraInfo.far - m_cameraInfo.near);
 
 	Matrix4f proj;
-	proj.x0 = 1.0f / (m_cameraInfo.aspect * tanFOV2 * m_cameraInfo.near);
-	proj.y1 = 1.0f / (tanFOV2 * m_cameraInfo.near);
+	proj.x0 = 1.0f / (m_cameraInfo.aspect * tanFOV2);
+	proj.y1 = 1.0f / (tanFOV2);
 	proj.z2 = A;
 	proj.z3 = -1.0f;
 	proj.w2 = B;
