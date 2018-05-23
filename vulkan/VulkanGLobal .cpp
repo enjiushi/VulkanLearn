@@ -349,7 +349,7 @@ void VulkanGlobal::Update()
 		if (fpsTimer > 1000.0f)
 		{
 			std::stringstream ss;
-			ss << "FPS:" << frameCount;
+			ss << "Elapsed Time:" << 1000.0f / frameCount;
 			SetWindowText(m_hWindow, ss.str().c_str());
 			fpsTimer = 0.0f;
 			frameCount = 0.0f;
