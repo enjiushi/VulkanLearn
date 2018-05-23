@@ -7,12 +7,15 @@
 #include "GlobalDeviceObjects.h"
 #include "SwapChain.h"
 
-bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex, const std::shared_ptr<PerFrameResource>& pSelf)
+bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex, const std::shared_ptr<PerFrameResource>& pSelf, bool transientCBPool)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	m_pCommandPool = CommandPool::Create(pDevice, pSelf);
+	if (transientCBPool)
+		m_pCommandPool = CommandPool::CreateTransientCBPool(pDevice, pSelf);
+	else
+		m_pCommandPool = CommandPool::Create(pDevice, pSelf);
 
 	std::vector<VkDescriptorPoolSize> descPoolSize =
 	{
@@ -36,10 +39,10 @@ bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t fra
 	return true;
 }
 
-std::shared_ptr<PerFrameResource> PerFrameResource::Create(const std::shared_ptr<Device>& pDevice, uint32_t frameBinIndex)
+std::shared_ptr<PerFrameResource> PerFrameResource::Create(const std::shared_ptr<Device>& pDevice, uint32_t frameBinIndex, bool transientCBPool)
 {
 	std::shared_ptr<PerFrameResource> pPerFrameRes = std::make_shared<PerFrameResource>();
-	if (pPerFrameRes.get() && pPerFrameRes->Init(pDevice, frameBinIndex, pPerFrameRes))
+	if (pPerFrameRes.get() && pPerFrameRes->Init(pDevice, frameBinIndex, pPerFrameRes, transientCBPool))
 		return pPerFrameRes;
 	return nullptr;
 }

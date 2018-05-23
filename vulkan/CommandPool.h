@@ -11,7 +11,7 @@ class CommandPool : public DeviceObjectBase<CommandPool>
 public:
 	~CommandPool();
 
-	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes, const std::shared_ptr<CommandPool>& pSelf);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes, const std::shared_ptr<CommandPool>& pSelf, VkCommandPoolCreateFlags flags = 0);
 
 public:
 	std::shared_ptr<CommandBuffer> AllocatePrimaryCommandBuffer();
@@ -21,10 +21,12 @@ public:
 	VkCommandPool GetDeviceHandle() const { return m_commandPool; }
 	void Reset(const std::shared_ptr<Fence>& pFence);
 	std::weak_ptr<PerFrameResource> GetPerFrameResource() const { return m_pPerFrameRes; }
+	const VkCommandPoolCreateInfo& GetInfo() const { return m_info; }
 
 public:
 	static std::shared_ptr<CommandPool> Create(const std::shared_ptr<Device>& pDevice);
 	static std::shared_ptr<CommandPool> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes);
+	static std::shared_ptr<CommandPool> CreateTransientCBPool(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes);
 
 protected:
 	VkCommandPool					m_commandPool;

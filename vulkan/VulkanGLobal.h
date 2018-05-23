@@ -184,6 +184,8 @@ public:
 
 	std::shared_ptr<BaseObject>			m_pRootObject;
 
+	std::vector<std::shared_ptr<CommandBuffer>> m_commandBufferList;
+
 #if defined(_WIN32)
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;

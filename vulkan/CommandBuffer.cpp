@@ -632,7 +632,7 @@ void CommandBuffer::StartPrimaryRecording()
 {
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	beginInfo.flags = m_pCommandPool->GetInfo().flags & VK_COMMAND_POOL_CREATE_TRANSIENT_BIT ? VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT : VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 	CHECK_VK_ERROR(vkBeginCommandBuffer(m_commandBuffer, &beginInfo));
 }
 
@@ -651,7 +651,7 @@ void CommandBuffer::StartSecondaryRecording(const std::shared_ptr<RenderPass>& p
 
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT | (m_pCommandPool->GetInfo().flags & VK_COMMAND_POOL_CREATE_TRANSIENT_BIT ? VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT : VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
 	beginInfo.pInheritanceInfo = &inheritanceInfo;
 	CHECK_VK_ERROR(vkBeginCommandBuffer(m_commandBuffer, &beginInfo));
 }

@@ -154,6 +154,7 @@ void GlobalTextures::InitIrradianceTexture()
 		SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 		UniformData::GetInstance()->SyncDataBuffer();
 
+		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameBegin();
 		pDrawCmdBuffer->StartPrimaryRecording();
 
 		SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer);
@@ -163,6 +164,7 @@ void GlobalTextures::InitIrradianceTexture()
 		SceneGenerator::GetInstance()->GetMaterial0()->AfterRenderPass(pDrawCmdBuffer);
 
 		pDrawCmdBuffer->EndPrimaryRecording();
+		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
 
 		GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
@@ -235,6 +237,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 			SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 			UniformData::GetInstance()->SyncDataBuffer();
 
+			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameBegin();
 			pDrawCmdBuffer->StartPrimaryRecording();
 
 			SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer);
@@ -244,6 +247,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 			SceneGenerator::GetInstance()->GetMaterial0()->AfterRenderPass(pDrawCmdBuffer);
 
 			pDrawCmdBuffer->EndPrimaryRecording();
+			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
 
 			GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
@@ -279,14 +283,15 @@ void GlobalTextures::InitBRDFLUTTexture()
 		UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 	};
 
-	pDrawCmdBuffer->StartPrimaryRecording();
-
 	GetGlobalVulkanStates()->SetViewport(viewport);
 	GetGlobalVulkanStates()->SetScissorRect(scissorRect);
 
 	SceneGenerator::GetInstance()->GetRootObject()->Update();
 	SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();
+
+	SceneGenerator::GetInstance()->GetMaterial0()->OnFrameBegin();
+	pDrawCmdBuffer->StartPrimaryRecording();
 
 	SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer);
 	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]);
@@ -295,6 +300,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 	SceneGenerator::GetInstance()->GetMaterial0()->AfterRenderPass(pDrawCmdBuffer);
 
 	pDrawCmdBuffer->EndPrimaryRecording();
+	SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
 
 	GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 

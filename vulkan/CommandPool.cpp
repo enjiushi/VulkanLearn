@@ -9,7 +9,7 @@ CommandPool::~CommandPool()
 	vkDestroyCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, nullptr);
 }
 
-bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes, const std::shared_ptr<CommandPool>& pSelf)
+bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes, const std::shared_ptr<CommandPool>& pSelf, VkCommandPoolCreateFlags flags)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
@@ -17,8 +17,7 @@ bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 	m_info = {};
 	m_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	m_info.queueFamilyIndex = m_pDevice->GetPhysicalDevice()->GetGraphicQueueIndex();
-	m_info.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
+	m_info.flags = flags;
 	CHECK_VK_ERROR(vkCreateCommandPool(pDevice->GetDeviceHandle(), &m_info, nullptr, &m_commandPool));
 
 	m_pPerFrameRes = pPerFrameRes;
@@ -60,6 +59,14 @@ std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& 
 {
 	std::shared_ptr<CommandPool> pCommandPool = std::make_shared<CommandPool>();
 	if (pCommandPool.get() && pCommandPool->Init(pDevice, pPerFrameRes, pCommandPool))
+		return pCommandPool;
+	return nullptr;
+}
+
+std::shared_ptr<CommandPool> CommandPool::CreateTransientCBPool(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+{
+	std::shared_ptr<CommandPool> pCommandPool = std::make_shared<CommandPool>();
+	if (pCommandPool.get() && pCommandPool->Init(pDevice, pPerFrameRes, pCommandPool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT))
 		return pCommandPool;
 	return nullptr;
 }

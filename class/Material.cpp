@@ -376,6 +376,15 @@ void Material::BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 
 void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
 {
+}
+
+void Material::OnFrameBegin()
+{
+
+}
+
+void Material::OnFrameEnd()
+{
 	m_indirectIndex = 0;
 }
 

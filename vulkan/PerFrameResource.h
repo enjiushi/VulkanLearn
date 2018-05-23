@@ -12,10 +12,10 @@ class DescriptorSetLayout;
 class PerFrameResource : public DeviceObjectBase<PerFrameResource>
 {
 public:
-	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex, const std::shared_ptr<PerFrameResource>& pSelf);
+	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex, const std::shared_ptr<PerFrameResource>& pSelf, bool transientCBPool);
 
 public:
-	static std::shared_ptr<PerFrameResource> Create(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex);
+	static std::shared_ptr<PerFrameResource> Create(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex, bool transientCBPool = false);
 
 public:
 	std::shared_ptr<CommandBuffer> AllocatePrimaryCommandBuffer();

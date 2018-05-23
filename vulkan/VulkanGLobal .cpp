@@ -34,6 +34,8 @@
 #include "../class/GBufferPass.h"
 #include "../class/DeferredShadingPass.h"
 
+bool PREBAKE_CB = true;
+
 void VulkanGlobal::InitVulkanInstance()
 {
 	VkApplicationInfo appInfo = {};
@@ -539,7 +541,7 @@ void VulkanGlobal::InitDescriptorSet()
 void VulkanGlobal::InitDrawCmdBuffers()
 {
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-		m_perFrameRes.push_back(FrameMgr()->AllocatePerFrameResource(i));
+		m_perFrameRes.push_back(FrameMgr()->AllocatePerFrameResource(i, !PREBAKE_CB));
 }
 
 void VulkanGlobal::InitSemaphore()
@@ -727,6 +729,7 @@ void VulkanGlobal::InitScene()
 void VulkanGlobal::EndSetup()
 {
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
+	m_commandBufferList.resize(GetSwapChain()->GetSwapChainImageCount());
 }
 
 void VulkanGlobal::Draw()
@@ -746,13 +749,23 @@ void VulkanGlobal::Draw()
 	UniformData::GetInstance()->SyncDataBuffer();
 	RenderWorkManager::GetInstance()->SyncMaterialData();
 
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
-	pDrawCmdBuffer->StartPrimaryRecording();
+	RenderWorkManager::GetInstance()->OnFrameBegin();
 
-	RenderWorkManager::GetInstance()->Draw(pDrawCmdBuffer);
+	if (!PREBAKE_CB || m_commandBufferList[frameIndex] == nullptr)
+	{
+		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
+		pDrawCmdBuffer->StartPrimaryRecording();
 
-	pDrawCmdBuffer->EndPrimaryRecording();
-	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { pDrawCmdBuffer }, {}, false);
+		RenderWorkManager::GetInstance()->Draw(pDrawCmdBuffer);
+
+		pDrawCmdBuffer->EndPrimaryRecording();
+
+		m_commandBufferList[frameIndex] = pDrawCmdBuffer;
+	}
+
+	RenderWorkManager::GetInstance()->OnFrameEnd();
+
+	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { m_commandBufferList[frameIndex] }, {}, false);
 	
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 }

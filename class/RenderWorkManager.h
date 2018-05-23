@@ -48,6 +48,9 @@ public:
 	void SyncMaterialData();
 	void Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffer);
 
+	void OnFrameBegin();
+	void OnFrameEnd();
+
 protected:
 	uint32_t m_renderStateMask;
 	

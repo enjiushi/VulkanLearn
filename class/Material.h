@@ -113,6 +113,9 @@ public:
 	virtual void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) = 0;
 	virtual void AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf);
 
+	virtual void OnFrameBegin();
+	virtual void OnFrameEnd();
+
 protected:
 	bool Init
 	(

@@ -171,3 +171,17 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing)->EndRenderPass(pDrawCmdBuffer);
 	m_pPostProcessMaterial->AfterRenderPass(pDrawCmdBuffer);
 }
+
+void RenderWorkManager::OnFrameBegin()
+{
+	m_PBRGbufferMaterial->OnFrameBegin();
+	m_pShadowMapMaterial->OnFrameBegin();
+	m_pSkyBoxMaterial->OnFrameBegin();
+}
+
+void RenderWorkManager::OnFrameEnd()
+{
+	m_PBRGbufferMaterial->OnFrameEnd();
+	m_pShadowMapMaterial->OnFrameEnd();
+	m_pSkyBoxMaterial->OnFrameEnd();
+}
