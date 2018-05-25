@@ -397,6 +397,14 @@ void DeferredShadingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 	materialLayout.push_back(
 	{
 		CombinedSampler,
+		"MotionVector",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
+
+	materialLayout.push_back(
+	{
+		CombinedSampler,
 		"DepthBuffer",
 		{},
 		GetSwapChain()->GetSwapChainImageCount()
