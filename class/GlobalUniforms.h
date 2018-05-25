@@ -6,7 +6,7 @@ class DescriptorSetLayout;
 class DescriptorSet;
 class GlobalTextures;
 
-const static uint32_t SSAO_SAMPLE_COUNT = 16;
+const static uint32_t SSAO_SAMPLE_COUNT = 64;
 
 typedef struct _GlobalVariables
 {

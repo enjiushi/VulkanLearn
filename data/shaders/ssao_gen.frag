@@ -15,7 +15,7 @@ layout (location = 0) out vec4 outFragColor0;
 
 int index = int(perFrameData.camDir.a);
 
-float SSAO_RADIUS = 10.0f;
+float SSAO_RADIUS = 15.0f;
 
 vec3 UnpackNormal(ivec2 coord)
 {
@@ -42,7 +42,7 @@ void main()
 
 	float occlusion = 0.0f;
 
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < 64; i++)
 	{
 		vec3 sampleDir = TBN * globalData.SSAOSamples[i].xyz;
 		vec3 samplePos = position + sampleDir * SSAO_RADIUS;
@@ -61,8 +61,7 @@ void main()
 		occlusion += (sampledDepth < textureDepth ? 1.0f : 0.0f) * rangeCheck;    
 	}
 
-	occlusion /= 16.0f;
-	occlusion = pow(occlusion, 2.0f);
+	occlusion /= 64.0f;
 
 	outFragColor0 = vec4(vec3(occlusion), 1.0);
 }

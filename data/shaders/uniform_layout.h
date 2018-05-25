@@ -24,7 +24,7 @@ struct GlobalData
 	vec4 GEW;		//Gamma, exposure, white scale
 
 	// SSAO Settings
-	vec4 SSAOSamples[16];
+	vec4 SSAOSamples[64];
 };
 
 struct PerFrameData
