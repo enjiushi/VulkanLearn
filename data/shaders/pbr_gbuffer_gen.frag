@@ -8,10 +8,14 @@ layout (location = 1) in vec3 inNormal;
 layout (location = 2) in vec3 inTangent;
 layout (location = 3) in vec3 inBitangent;
 layout (location = 4) flat in int perMaterialIndex;
+layout (location = 5) flat in int perObjectIndex;
+layout (location = 6) in vec3 inWorldPos;
+layout (location = 7) noperspective in vec2 inScreenPos;
 
 layout (location = 0) out vec4 outGBuffer0;
 layout (location = 1) out vec4 outGBuffer1;
 layout (location = 2) out vec4 outGBuffer2;
+layout (location = 3) out vec4 outMotionVec;
 
 #include "uniform_layout.h"
 
@@ -63,4 +67,9 @@ void main()
 
 	outGBuffer1 = vec4(albedo_roughness.rgb, 0);
 	outGBuffer2 = vec4(vec3(albedo_roughness.w, metalic, 0), normal_ao.a);
+
+	vec4 prevNDCPos = perFrameData.prevVPN * vec4(inWorldPos, 1.0f);
+	vec2 prevTexCoord = (prevNDCPos.xy / prevNDCPos.w);
+
+	outMotionVec.rg = prevTexCoord - inScreenPos;
 }
