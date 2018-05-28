@@ -32,6 +32,8 @@ struct PerFrameData
 	mat4 view;
 	mat4 viewCoordSystem;
 	mat4 VPN;
+	mat4 prevView;
+	mat4 prevVPN;
 	vec4 camPos;
 	vec4 camDir;
 	vec4 eyeSpaceSize;

@@ -10,6 +10,8 @@ typedef struct _PerFrameVariables
 	Matrix4f	viewMatrix;
 	Matrix4f	viewCoordSystem;	// view coord system, i.e. viewMatrix inverse
 	Matrix4f	VPN;	// vulkanNDC * view * projection
+	Matrix4f	prevView;
+	Matrix4f	prevVPN;
 	Vector3f	cameraPosition;
 	float		padding0;
 	Vector3f	cameraDirection;

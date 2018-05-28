@@ -13,12 +13,14 @@ layout (location = 1) out vec3 outNormal;
 layout (location = 2) out vec3 outTangent;
 layout (location = 3) out vec3 outBitangent;
 layout (location = 4) flat out int perMaterialIndex;
+layout (location = 5) flat out int perObjectIndex;
+layout (location = 6) out vec3 outWorldPos;
 
 #include "uniform_layout.h"
 
 void main() 
 {
-	int perObjectIndex = objectDataIndex[gl_DrawID].perObjectIndex;
+	perObjectIndex = objectDataIndex[gl_DrawID].perObjectIndex;
 
 	gl_Position = perObjectData[perObjectIndex].MVPN * vec4(inPos.xyz, 1.0);
 

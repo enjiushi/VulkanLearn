@@ -24,6 +24,7 @@ std::shared_ptr<PerFrameUniforms> PerFrameUniforms::Create()
 
 void PerFrameUniforms::SetViewMatrix(const Matrix4f& viewMatrix)
 {
+	m_perFrameVariables.prevView = m_perFrameVariables.viewMatrix;
 	m_perFrameVariables.viewMatrix = viewMatrix;
 	m_perFrameVariables.viewCoordSystem = viewMatrix;
 	m_perFrameVariables.viewCoordSystem.Inverse();
@@ -56,6 +57,7 @@ void PerFrameUniforms::SetNearFarAB(const Vector4f& nearFarAB)
 
 void PerFrameUniforms::SyncBufferDataInternal()
 {
+	m_perFrameVariables.prevVPN = m_perFrameVariables.VPN;
 	m_perFrameVariables.VPN = UniformData::GetInstance()->GetGlobalUniforms()->GetPNMatrix() * m_perFrameVariables.viewMatrix;
 
 	GetBuffer()->UpdateByteStream(&m_perFrameVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perFrameVariables));
