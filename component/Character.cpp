@@ -38,13 +38,13 @@ void Character::Move(const Vector3f& v, float delta)
 void Character::Move(uint32_t dir, float delta)
 {
 	Vector3f move_dir;
-	if (dir & Forward)
+	if (dir & CharMoveDir::Forward)
 		move_dir += Vector3f::Forward();
-	if (dir & Backward)
+	if (dir & CharMoveDir::Backward)
 		move_dir -= Vector3f::Forward();
-	if (dir & Leftward)
+	if (dir & CharMoveDir::Leftward)
 		move_dir += Vector3f::Left();
-	if (dir & Rightward)
+	if (dir & CharMoveDir::Rightward)
 		move_dir -= Vector3f::Left();
 	Move(move_dir, delta);
 }
@@ -96,6 +96,21 @@ void Character::OnRotateEnd(const Vector2f& v)
 	m_rotationStartPos = Vector2f();
 	m_rotationStartMatrix = Matrix3f();
 	m_startTargetToH = 0.0f;
+}
+
+void Character::OnRotate(uint32_t dir, float delta)
+{
+	if (m_pObject.expired())
+		return;
+
+	Matrix3f rotate_around_up;
+
+	if (dir & CharMoveDir::Leftward)
+		rotate_around_up = Matrix3f::Rotation(delta, Vector3f::Upward());
+	if (dir & CharMoveDir::Rightward)
+		rotate_around_up = Matrix3f::Rotation(-delta, Vector3f::Upward());
+
+	m_pObject.lock()->SetRotation(rotate_around_up * m_pObject.lock()->GetLocalRotationM());
 }
 
 void Character::Rotate(const Vector2f& v)

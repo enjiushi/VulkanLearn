@@ -210,6 +210,8 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 #define KEY_F3 VK_F3
 #define KEY_F4 VK_F4
 #define KEY_F5 VK_F5
+#define KEY_Q 0x51
+#define KEY_E 0x45
 #define KEY_W 0x57
 #define KEY_A 0x41
 #define KEY_S 0x53
@@ -243,7 +245,7 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			break;
 		}
-
+		
 		switch (wParam)
 		{
 		case KEY_W:
@@ -257,6 +259,12 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		case KEY_D:
 			m_moveFlag |= CharMoveDir::Rightward;
+			break;
+		case KEY_Q:
+			m_rotateFlag |= CharMoveDir::Leftward;
+			break;
+		case KEY_E:
+			m_rotateFlag |= CharMoveDir::Rightward;
 			break;
 		}
 		break;
@@ -275,6 +283,10 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case KEY_D:
 			m_moveFlag &= ~(CharMoveDir::Rightward);
 			break;
+		case KEY_Q:
+			m_rotateFlag &= ~(CharMoveDir::Leftward);
+		case KEY_E:
+			m_rotateFlag &= ~(CharMoveDir::Rightward);
 		}
 		break;
 	case WM_RBUTTONDOWN:
@@ -740,6 +752,7 @@ void VulkanGlobal::Draw()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(FrameMgr()->FrameIndex());
 
 	m_pCharacter->Move(m_moveFlag, 0.0015f);
+	m_pCharacter->OnRotate(m_rotateFlag, 0.001f);
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 

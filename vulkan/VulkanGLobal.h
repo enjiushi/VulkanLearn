@@ -130,6 +130,7 @@ public:
 	std::shared_ptr<Camera>				m_pCameraComp;
 	std::shared_ptr<Character>			m_pCharacter;
 	uint32_t							m_moveFlag = 0;
+	uint32_t							m_rotateFlag = 0;
 
 	std::shared_ptr<BaseObject>			m_pDirLightObj;
 	std::shared_ptr<DirectionLight>		m_pDirLight;

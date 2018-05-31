@@ -28,6 +28,8 @@ public:
 	void OnRotateStart(const Vector2f& v);
 
 	void OnRotate(const Vector2f& v, bool started);
+	void OnRotate(uint32_t dir, float delta);
+
 	void OnRotateEnd(const Vector2f& v);
 
 	//input para v needs to be the ratio compared to camera size
