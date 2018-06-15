@@ -89,7 +89,7 @@ public:
 	void InitScene();
 	void EndSetup();
 
-	void Draw();
+	void Draw(double elapsedTime);
 	void Update();
 
 	void InitShaderModule();

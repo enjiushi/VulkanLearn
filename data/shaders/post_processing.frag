@@ -7,6 +7,7 @@
 
 layout (set = 3, binding = 2) uniform sampler2D ShadingResults[3];
 layout (set = 3, binding = 3) uniform sampler2D BloomTextures[3];
+layout (set = 3, binding = 4) uniform sampler2D MotionVector[3];
 
 layout (location = 0) in vec2 inUv;
 
@@ -17,13 +18,31 @@ int index = int(perFrameData.camDir.a);
 const float bloomMagnitude = 0.2f;
 const float bloomExposure = 1.3f;
 
+const float MOTION_VEC_AMP = 10.0f;
+const float MOTION_VEC_SAMPLE_COUNT = 16;
 
 void main() 
 {
 	ivec2 coord = ivec2(floor(inUv * globalData.gameWindowSize.xy));
 
-	vec3 final = texelFetch(ShadingResults[index], coord, 0).rgb;
-	final += pow(texture(BloomTextures[index], inUv).rgb * bloomMagnitude, vec3(bloomExposure));
+	vec3 final = vec3(0);
+
+	vec2 motionVec = texelFetch(MotionVector[index], coord, 0).rg;
+	vec2 step = motionVec / MOTION_VEC_SAMPLE_COUNT * MOTION_VEC_AMP;
+	ivec2 istep = ivec2(floor(step * globalData.gameWindowSize.xy));
+	ivec2 offset;
+	for (int i = int(-MOTION_VEC_SAMPLE_COUNT / 2.0f); i <= int(MOTION_VEC_SAMPLE_COUNT / 2.0f); i++)
+	{
+		final += texelFetch(ShadingResults[index], coord + ivec2(i * step * globalData.gameWindowSize.xy), 0).rgb;
+		final += pow(texture(BloomTextures[index], inUv + float(i) * step).rgb * bloomMagnitude, vec3(bloomExposure));
+	}
+
+	final /= MOTION_VEC_SAMPLE_COUNT;
+
+	//final = vec3(step * 512.0f, 0);
+
+	//vec3 final = texelFetch(ShadingResults[index], coord, 0).rgb;
+	//final += pow(texture(BloomTextures[index], inUv).rgb * bloomMagnitude, vec3(bloomExposure));
 
 	final = Uncharted2Tonemap(final * globalData.GEW.y);
 	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));

@@ -5,6 +5,10 @@
 #include <math.h>
 #include "../Maths/Vector.h"
 #include "../Maths/MathUtil.h"
+#include "../common/Macros.h"
+#include "../vulkan/GlobalDeviceObjects.h"
+#include "../vulkan/PhysicalDevice.h"
+#include "../class/Timer.h"
 
 std::shared_ptr<Character> Character::Create(const CharacterVariable& charVar, const std::shared_ptr<Camera>& pCamera)
 {
@@ -13,9 +17,98 @@ std::shared_ptr<Character> Character::Create(const CharacterVariable& charVar, c
 	{
 		pChar->m_charVars = charVar;
 		pChar->SetCamera(pCamera);
+		InputHub::GetInstance()->Register(pChar);
 		return pChar;
 	}
 	return nullptr;
+}
+
+void Character::ProcessKey(KeyState keyState, uint8_t keyCode)
+{
+	switch (keyState)
+	{
+	case KEY_DOWN:
+		switch (keyCode)
+		{
+		case 'W':
+			m_moveFlag |= CharMoveDir::Forward;
+			break;
+		case 'S':
+			m_moveFlag |= CharMoveDir::Backward;
+			break;
+		case 'A':
+			m_moveFlag |= CharMoveDir::Leftward;
+			break;
+		case 'D':
+			m_moveFlag |= CharMoveDir::Rightward;
+			break;
+		case 'Q':
+			m_rotateFlag |= CharMoveDir::Leftward;
+			break;
+		case 'E':
+			m_rotateFlag |= CharMoveDir::Rightward;
+			break;
+		default:
+			ASSERTION(false);
+			break;
+		}
+		break;
+	case KEY_UP:
+		switch (keyCode)
+		{
+		case 'W':
+			m_moveFlag &= ~(CharMoveDir::Forward);
+			break;
+		case 'S':
+			m_moveFlag &= ~(CharMoveDir::Backward);
+			break;
+		case 'A':
+			m_moveFlag &= ~(CharMoveDir::Leftward);
+			break;
+		case 'D':
+			m_moveFlag &= ~(CharMoveDir::Rightward);
+			break;
+		case 'Q':
+			m_rotateFlag &= ~(CharMoveDir::Leftward);
+			break;
+		case 'E':
+			m_rotateFlag &= ~(CharMoveDir::Rightward);
+			break;
+		default:
+			ASSERTION(false);
+			break;
+		}
+		break;
+	default:
+		ASSERTION(false);
+		break;
+	}
+}
+
+void Character::ProcessMouse(KeyState keyState, const Vector2f& mousePosition)
+{
+	switch (keyState)
+	{
+	case KEY_DOWN:
+		m_isControlInRotation = true;
+		m_rotationStartPosition = mousePosition;
+		m_currentTargetPosition = mousePosition;
+		break;
+	case KEY_UP:
+		m_isControlInRotation = false;
+		m_lastSampleCursorPosition = mousePosition;
+		break;
+	default:
+		break;
+	}
+}
+
+void Character::ProcessMouse(const Vector2f& mousePosition)
+{
+	if (!m_isControlInRotation)
+		return;
+
+	m_lastSampleCursorPosition = mousePosition;
 }
 
 void Character::Move(const Vector3f& v, float delta)
@@ -37,6 +130,9 @@ void Character::Move(const Vector3f& v, float delta)
 
 void Character::Move(uint32_t dir, float delta)
 {
+	if (dir == 0)
+		return;
+
 	Vector3f move_dir;
 	if (dir & CharMoveDir::Forward)
 		move_dir += Vector3f::Forward();
@@ -103,12 +199,15 @@ void Character::OnRotate(uint32_t dir, float delta)
 	if (m_pObject.expired())
 		return;
 
+	if (dir == 0)
+		return;
+
 	Matrix3f rotate_around_up;
 
 	if (dir & CharMoveDir::Leftward)
-		rotate_around_up = Matrix3f::Rotation(delta, Vector3f::Upward());
+		rotate_around_up = Matrix3f::Rotation(delta * m_charVars.rotateSpeed, Vector3f::Upward());
 	if (dir & CharMoveDir::Rightward)
-		rotate_around_up = Matrix3f::Rotation(-delta, Vector3f::Upward());
+		rotate_around_up = Matrix3f::Rotation(-delta * m_charVars.rotateSpeed, Vector3f::Upward());
 
 	m_pObject.lock()->SetRotation(rotate_around_up * m_pObject.lock()->GetLocalRotationM());
 }
@@ -141,4 +240,39 @@ void Character::Rotate(const Vector2f& v)
 	//here we first rotate around axis x, then y
 	//or we can't guarentee x to keep horizontal
 	m_pObject.lock()->SetRotation(rotate_around_y * rotate_around_x * m_rotationStartMatrix);
+}
+
+void Character::Update()
+{
+	if (m_isControlInRotation || m_isOperationInRotation)
+	{
+		m_isOperationInRotation = true;
+
+		Vector2f interpolate_position;
+		if (m_elapsedSinceLastSample >= m_sampleInterval)
+		{
+			m_elapsedSinceLastSample = 0;
+
+			interpolate_position = m_currentTargetPosition;
+			m_rotationStartPosition = interpolate_position;
+
+			if (m_isControlInRotation)
+				m_currentTargetPosition = m_lastSampleCursorPosition;
+			else
+				m_isOperationInRotation = false;
+		}
+		else
+		{
+			double step = m_elapsedSinceLastSample / m_sampleInterval;
+			interpolate_position = m_rotationStartPosition * (1.0 - step) + m_currentTargetPosition * step;
+			m_elapsedSinceLastSample += Timer::ElapsedTime;
+		}
+
+		float width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
+		float height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
+		OnRotate({ interpolate_position.x / width, (height - interpolate_position.y) / height }, m_isOperationInRotation);
+	}
+
+	Move(m_moveFlag, Timer::ElapsedTime);
+	OnRotate(m_rotateFlag, Timer::ElapsedTime);
 }

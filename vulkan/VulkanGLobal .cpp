@@ -33,6 +33,8 @@
 #include "../class/ForwardRenderPass.h"
 #include "../class/GBufferPass.h"
 #include "../class/DeferredShadingPass.h"
+#include "../class/InputHub.h"
+#include "../class/Timer.h"
 
 bool PREBAKE_CB = true;
 
@@ -228,9 +230,10 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 #define KEY_T 0x54
 #endif
 
+Vector2f prev_pos;
+
 void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	float x, y, width, height;
 	switch (uMsg)
 	{
 	case WM_CLOSE:
@@ -244,74 +247,22 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case KEY_ESCAPE:
 			PostQuitMessage(0);
 			break;
-		}
-		
-		switch (wParam)
-		{
-		case KEY_W:
-			m_moveFlag |= CharMoveDir::Forward;
-			break;
-		case KEY_S:
-			m_moveFlag |= CharMoveDir::Backward;
-			break;
-		case KEY_A:
-			m_moveFlag |= CharMoveDir::Leftward;
-			break;
-		case KEY_D:
-			m_moveFlag |= CharMoveDir::Rightward;
-			break;
-		case KEY_Q:
-			m_rotateFlag |= CharMoveDir::Leftward;
-			break;
-		case KEY_E:
-			m_rotateFlag |= CharMoveDir::Rightward;
+		default:
+			InputHub::GetInstance()->ProcessKey(KEY_DOWN, wParam);
 			break;
 		}
 		break;
 	case WM_KEYUP:
-		switch (wParam)
-		{
-		case KEY_W:
-			m_moveFlag &= ~(CharMoveDir::Forward);
-			break;
-		case KEY_S:
-			m_moveFlag &= ~(CharMoveDir::Backward);
-			break;
-		case KEY_A:
-			m_moveFlag &= ~(CharMoveDir::Leftward);
-			break;
-		case KEY_D:
-			m_moveFlag &= ~(CharMoveDir::Rightward);
-			break;
-		case KEY_Q:
-			m_rotateFlag &= ~(CharMoveDir::Leftward);
-		case KEY_E:
-			m_rotateFlag &= ~(CharMoveDir::Rightward);
-		}
+		InputHub::GetInstance()->ProcessKey(KEY_UP, wParam);
 		break;
 	case WM_RBUTTONDOWN:
-		x = (float)LOWORD(lParam);
-		y = (float)HIWORD(lParam);
-		width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
-		height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
-		m_pCharacter->OnRotate({ x / width, (height - y) / height }, true);
+		InputHub::GetInstance()->ProcessMouse(KEY_DOWN, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
 		break;
 	case WM_RBUTTONUP:
-		x = (float)LOWORD(lParam);
-		y = (float)HIWORD(lParam);
-		width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
-		height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
-		m_pCharacter->OnRotate({ x / width, (height - y) / height }, false);
+		InputHub::GetInstance()->ProcessMouse(KEY_UP, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
 		break;
 	case WM_MOUSEMOVE:
-		if (wParam & MK_RBUTTON)
-		{
-			x = (float)LOWORD(lParam);
-			y = (float)HIWORD(lParam);
-			width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
-			height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
-			m_pCharacter->OnRotate({ x / width, (height - y) / height }, true);
-		}
+		InputHub::GetInstance()->ProcessMouse({ (float)LOWORD(lParam), (float)HIWORD(lParam) });
 		break;
 	}
 }
@@ -335,6 +286,7 @@ void VulkanGlobal::Update()
 #if defined(_WIN32)
 	static uint32_t frameCount = 0;
 	static float fpsTimer = 0;
+	static double elapsedTime = 0;
 	MSG msg;
 	bool quitMessageReceived = false;
 	while (!quitMessageReceived)
@@ -352,12 +304,14 @@ void VulkanGlobal::Update()
 				return;
 			}
 		}
-		Draw();
+		Timer::ElapsedTime = elapsedTime;
+		Draw(elapsedTime);
 		frameCount++;
 		auto tEnd = std::chrono::high_resolution_clock::now();
-		auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
+		elapsedTime = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
 
-		fpsTimer += (float)tDiff;
+		fpsTimer += (float)elapsedTime;
+
 		if (fpsTimer > 1000.0f)
 		{
 			std::stringstream ss;
@@ -652,7 +606,7 @@ void VulkanGlobal::InitScene()
 		2000.0f,
 	};
 
-	m_pCharacter = Character::Create({ 100.0f }, m_pCameraComp);
+	m_pCharacter = Character::Create({ 0.3f, 0.002f }, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
 
 	m_pCameraObj->SetPos({ 0, 100, 120 });
@@ -744,15 +698,12 @@ void VulkanGlobal::EndSetup()
 	m_commandBufferList.resize(GetSwapChain()->GetSwapChainImageCount());
 }
 
-void VulkanGlobal::Draw()
+void VulkanGlobal::Draw(double elapsedTime)
 {
 	GetSwapChain()->AcquireNextImage();
 
 	uint32_t frameIndex = FrameMgr()->FrameIndex();
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(FrameMgr()->FrameIndex());
-
-	m_pCharacter->Move(m_moveFlag, 0.0015f);
-	m_pCharacter->OnRotate(m_rotateFlag, 0.001f);
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
