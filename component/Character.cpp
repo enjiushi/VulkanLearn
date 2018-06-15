@@ -48,9 +48,6 @@ void Character::ProcessKey(KeyState keyState, uint8_t keyCode)
 		case 'E':
 			m_rotateFlag |= CharMoveDir::Rightward;
 			break;
-		default:
-			ASSERTION(false);
-			break;
 		}
 		break;
 	case KEY_UP:
@@ -74,13 +71,7 @@ void Character::ProcessKey(KeyState keyState, uint8_t keyCode)
 		case 'E':
 			m_rotateFlag &= ~(CharMoveDir::Rightward);
 			break;
-		default:
-			ASSERTION(false);
-			break;
 		}
-		break;
-	default:
-		ASSERTION(false);
 		break;
 	}
 }
