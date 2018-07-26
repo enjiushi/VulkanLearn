@@ -284,12 +284,12 @@ void VulkanGlobal::Update()
 #if defined(_WIN32)
 	static uint32_t frameCount = 0;
 	static float fpsTimer = 0;
-	static double elapsedTime = 0;
+	static std::chrono::time_point<std::chrono::steady_clock> startTime, endTime;
+	startTime = std::chrono::high_resolution_clock::now();
 	MSG msg;
 	bool quitMessageReceived = false;
 	while (!quitMessageReceived)
 	{
-		auto tStart = std::chrono::high_resolution_clock::now();
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
@@ -302,13 +302,13 @@ void VulkanGlobal::Update()
 				return;
 			}
 		}
-		Timer::ElapsedTime = elapsedTime;
-		Draw(elapsedTime);
+		auto endTime = std::chrono::high_resolution_clock::now();
+		Timer::ElapsedTime = std::chrono::duration<double, std::milli>(endTime - startTime).count();
+		startTime = endTime;
+		Draw(Timer::ElapsedTime);
 		frameCount++;
-		auto tEnd = std::chrono::high_resolution_clock::now();
-		elapsedTime = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
 
-		fpsTimer += (float)elapsedTime;
+		fpsTimer += (float)Timer::ElapsedTime;
 
 		if (fpsTimer > 1000.0f)
 		{
