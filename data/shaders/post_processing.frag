@@ -18,7 +18,7 @@ int index = int(perFrameData.camDir.a);
 const float bloomMagnitude = 0.2f;
 const float bloomExposure = 1.3f;
 
-const float MOTION_VEC_AMP = 10.0f;
+const float MOTION_VEC_AMP = 5.0f;
 const float MOTION_VEC_SAMPLE_COUNT = 16;
 
 void main() 
