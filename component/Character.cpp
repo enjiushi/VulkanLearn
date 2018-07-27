@@ -10,6 +10,8 @@
 #include "../vulkan/PhysicalDevice.h"
 #include "../class/Timer.h"
 
+DEFINITE_CLASS_RTTI(Character, BaseComponent);
+
 std::shared_ptr<Character> Character::Create(const CharacterVariable& charVar, const std::shared_ptr<Camera>& pCamera)
 {
 	std::shared_ptr<Character> pChar = std::make_shared<Character>();

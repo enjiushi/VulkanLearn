@@ -52,4 +52,7 @@ protected:
 
 	//float		m_viewDirty;
 	float		m_projDirty;
+
+	// Halton 2x3 for camera view frustom jittering
+	float		m_jitterPattern[16 * 2];
 };

@@ -9,6 +9,8 @@ class DescriptorPool;
 
 class MeshRenderer : public BaseComponent
 {
+	DECLARE_CLASS_RTTI(MeshRenderer);
+
 public:
 	static std::shared_ptr<MeshRenderer> Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance);
 	static std::shared_ptr<MeshRenderer> Create(const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances);

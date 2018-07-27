@@ -4,6 +4,8 @@
 
 class DirectionLight : public BaseComponent
 {
+	DECLARE_CLASS_RTTI(DirectionLight);
+
 public:
 	static const uint32_t DEFAULT_SHADOWMAP_SIZE = 512;
 	static const uint32_t DEFAULT_FRUSTUM_SIZE = 256;

@@ -21,6 +21,8 @@ typedef struct _CharacterVariable
 
 class Character : public BaseComponent, public IInputListener
 {
+	DECLARE_CLASS_RTTI(Character);
+
 public:
 	static std::shared_ptr<Character> Create(const CharacterVariable& charVar, const std::shared_ptr<Camera>& pCamera);
 

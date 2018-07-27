@@ -14,6 +14,8 @@
 
 #define UINT64_MAX       0xffffffffffffffffui64
 
+#define TO_STRING(x) #x
+
 #if defined(_WIN32)
 #if defined(_DEBUG)
 #define CHECK_VK_ERROR(vkExpress) { \

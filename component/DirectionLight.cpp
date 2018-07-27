@@ -7,6 +7,8 @@
 #include "../Maths/MathUtil.h"
 #include "../class/UniformData.h"
 
+DEFINITE_CLASS_RTTI(DirectionLight, BaseComponent);
+
 bool DirectionLight::Init(const std::shared_ptr<DirectionLight>& pLight, const Vector3f& lightColor, const Vector3f& frustumSize, const Vector2ui& shadowMapSize)
 {
 	if (!BaseComponent::Init(pLight))

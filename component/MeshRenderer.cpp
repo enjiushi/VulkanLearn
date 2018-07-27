@@ -24,6 +24,8 @@
 #include "../class/UniformData.h"
 #include "../class/Material.h"
 
+DEFINITE_CLASS_RTTI(MeshRenderer, BaseComponent);
+
 std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance)
 {
 	std::shared_ptr<MeshRenderer> pMeshRenderer = std::make_shared<MeshRenderer>();
