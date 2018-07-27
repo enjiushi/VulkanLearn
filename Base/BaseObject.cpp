@@ -19,30 +19,6 @@ std::shared_ptr<BaseObject> BaseObject::Create()
 	return nullptr;
 }
 
-void BaseObject::AddComponent(const std::shared_ptr<BaseComponent>& pComp)
-{
-	if (ContainComponent(pComp))
-		return;
-
-	m_components.push_back(pComp);
-	pComp->OnAddedToObject(GetSelfSharedPtr());
-}
-
-void BaseObject::DelComponent(uint32_t index)
-{
-	if (index < 0 || index >= m_components.size())
-		return;
-
-	m_components.erase(m_components.begin() + index);
-}
-
-std::shared_ptr<BaseComponent> BaseObject::GetComponent(uint32_t index)
-{
-	if (index < 0 || index >= m_components.size())
-		return nullptr;
-	return m_components[index];
-}
-
 void BaseObject::AddChild(const std::shared_ptr<BaseObject>& pObj)
 {
 	if (ContainObject(pObj))
@@ -63,11 +39,6 @@ std::shared_ptr<BaseObject> BaseObject::GetChild(uint32_t index)
 	if (index < 0 || index >= m_children.size())
 		return nullptr;
 	return m_children[index];
-}
-
-bool BaseObject::ContainComponent(const std::shared_ptr<BaseComponent>& pComp) const
-{
-	return std::find(m_components.begin(), m_components.end(), pComp) != m_components.end();
 }
 
 bool BaseObject::ContainObject(const std::shared_ptr<BaseObject>& pObj) const

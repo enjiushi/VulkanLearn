@@ -10,15 +10,106 @@ protected:
 	bool Init(const std::shared_ptr<BaseObject>& pObj);
 
 public:
-	void AddComponent(const std::shared_ptr<BaseComponent>& pComp);
-	void DelComponent(uint32_t index);
-	std::shared_ptr<BaseComponent> GetComponent(uint32_t index);
+	template <typename T>
+	void AddComponent(const std::shared_ptr<T>& pComp)
+	{
+		if (ContainComponent(pComp))
+			return;
+
+		m_components.push_back(pComp);
+		pComp->OnAddedToObject(GetSelfSharedPtr());
+	}
+
+	template <typename T>
+	std::vector<std::shared_ptr<BaseComponent>>::const_iterator GetComponentIter(uint32_t index) const
+	{
+		uint32_t currentIndex = 0;
+		auto iter = std::find_if(m_components.begin(), m_components.end(), [&currentIndex, index, classHashCode = T::ClassHashCode](auto & pComp)
+		{
+			return (currentIndex == index) && pComp->IsSameClass(classHashCode);
+		});
+
+		return iter;
+	}
+
+	template <typename T>
+	std::shared_ptr<T> GetComponent(uint32_t index = 0) const
+	{
+		auto iter = GetComponentIter<T>(index);
+
+		if (iter != m_components.end())
+		{
+			return std::static_pointer_cast<T>(*iter);
+		}
+
+		return nullptr;
+	}
+
+	template <typename T>
+	std::vector<std::shared_ptr<T>> GetComponents() const
+	{
+		std::vector<std::shared_ptr<T>> resultVector;
+		
+		for (auto & pComp : m_components)
+		{
+			if (pComp->IsSameClass(T::ClassHashCode))
+				resultVector.push_back(std::static_pointer_cast<T>(pComp));
+		}
+
+		return resultVector;
+	}
+
+	template <typename T>
+	bool DelComponent(uint32_t index = 0)
+	{
+		auto iter = GetComponentIter<T>(index);
+
+		if (iter != m_components.end())
+		{
+			m_components.erase(iter);
+			return true;
+		}
+
+		return false;
+	}
+
+	template <typename T>
+	uint32_t DelComponents()
+	{
+		uint32_t count = 0;
+		bool removed;
+		do
+		{
+			removed = false;
+
+			auto iter = std::find_if(m_components.begin(), m_components.end(), [classHashCode = T::ClassHashCode](auto & pComp)
+			{
+				return pComp->IsSameClass(classHashCode);
+			});
+
+			if (iter != m_components.end())
+			{
+				m_components.erase(iter);
+				removed = true;
+				count++;
+			}
+
+		} while (removed);
+
+		return count;
+	}
+
+	template <typename T>
+	bool ContainComponent(const std::shared_ptr<T>& pComp) const
+	{
+		auto vec = GetComponents<T>();
+		return std::find(vec.begin(), vec.end(), pComp) != vec.end();
+	}
 
 	void AddChild(const std::shared_ptr<BaseObject>& pObj);
 	void DelChild(uint32_t index);
 	std::shared_ptr<BaseObject> GetChild(uint32_t index);
 
-	bool ContainComponent(const std::shared_ptr<BaseComponent>& pComp) const;
 	bool ContainObject(const std::shared_ptr<BaseObject>& pObj) const;
 
 	void SetPos(const Vector3f& v) { m_localPosition = v; UpdateLocalTransform(); }
