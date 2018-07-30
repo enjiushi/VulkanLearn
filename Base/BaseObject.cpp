@@ -87,11 +87,13 @@ void BaseObject::Draw()
 void BaseObject::Awake()
 {
 	std::for_each(m_components.begin(), m_components.end(), [](auto & pComp) { pComp->Awake(); });
+	std::for_each(m_children.begin(), m_children.end(), [](auto & pChild) { pChild->Awake(); });
 }
 
 void BaseObject::Start()
 {
 	std::for_each(m_components.begin(), m_components.end(), [](auto & pComp) { pComp->Start(); });
+	std::for_each(m_children.begin(), m_children.end(), [](auto & pChild) { pChild->Start(); });
 }
 
 void BaseObject::SetRotation(const Matrix3f& m)
