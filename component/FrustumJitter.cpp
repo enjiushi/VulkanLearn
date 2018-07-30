@@ -59,11 +59,13 @@ bool FrustumJitter::Init(const std::shared_ptr<FrustumJitter>& pJitter)
 
 void FrustumJitter::Awake()
 {
-
+	BaseComponent::Awake();
 }
 
 void FrustumJitter::Start()
 {
-	m_pCamera = GetBaseObject()->GetComponent<Camera>();
+	BaseComponent::Start();
+
+	m_pCamera = GetComponent<Camera>();
 	ASSERTION(m_pCamera != nullptr);
 }

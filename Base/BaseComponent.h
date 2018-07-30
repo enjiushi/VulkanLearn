@@ -47,6 +47,36 @@ public:
 		return ClassHashCode == classHashCode;
 	}
 
+	template <typename T>
+	std::shared_ptr<T> GetComponent(uint32_t index = 0) const
+	{
+		return GetBaseObject()->GetComponent<T>(index);
+	}
+
+	template <typename T>
+	std::vector<std::shared_ptr<T>> GetComponents() const
+	{
+		return GetBaseObject()->GetComponents<T>();
+	}
+
+	template <typename T>
+	bool DelComponent(uint32_t index = 0)
+	{
+		return GetBaseObject()->DelComponent<T>(index);
+	}
+
+	template <typename T>
+	uint32_t DelComponents()
+	{
+		GetBaseObject()->DelComponents<T>();
+	}
+
+	template <typename T>
+	bool ContainComponent(const std::shared_ptr<T>& pComp) const
+	{
+		return GetBaseObject()->ContainComponent<T>();
+	}
+
 protected:
 	virtual bool Init(const std::shared_ptr<BaseComponent>& pSelf)
 	{
