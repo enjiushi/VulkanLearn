@@ -84,6 +84,16 @@ void BaseObject::Draw()
 		m_children[i]->Draw();
 }
 
+void BaseObject::Awake()
+{
+	std::for_each(m_components.begin(), m_components.end(), [](auto & pComp) { pComp->Awake(); });
+}
+
+void BaseObject::Start()
+{
+	std::for_each(m_components.begin(), m_components.end(), [](auto & pComp) { pComp->Start(); });
+}
+
 void BaseObject::SetRotation(const Matrix3f& m)
 {
 	m_localRotationM = m;

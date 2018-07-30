@@ -133,6 +133,9 @@ public:
 	virtual void LateUpdate();
 	virtual void Draw();
 
+	virtual void Awake();
+	virtual void Start();
+
 	Vector3f GetLocalPosition() const { return m_localPosition; }
 	Vector3f GetWorldPosition() const;
 
