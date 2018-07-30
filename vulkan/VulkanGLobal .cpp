@@ -35,6 +35,7 @@
 #include "../class/DeferredShadingPass.h"
 #include "../class/InputHub.h"
 #include "../class/Timer.h"
+#include "../component/FrustumJitter.h"
 
 bool PREBAKE_CB = true;
 
@@ -606,6 +607,7 @@ void VulkanGlobal::InitScene()
 
 	m_pCharacter = Character::Create({ 0.3f, 0.002f }, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
+	m_pCameraObj->AddComponent(FrustumJitter::Create());
 
 	m_pCameraObj->SetPos({ 0, 100, 120 });
 	m_pCameraObj->SetRotation(Matrix3f::EulerAngle(-0.78f, 0, 0));
