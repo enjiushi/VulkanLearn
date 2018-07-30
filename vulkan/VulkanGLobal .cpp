@@ -694,6 +694,9 @@ void VulkanGlobal::EndSetup()
 {
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
 	m_commandBufferList.resize(GetSwapChain()->GetSwapChainImageCount());
+
+	m_pRootObject->Awake();
+	m_pRootObject->Start();
 }
 
 void VulkanGlobal::Draw(double elapsedTime)
