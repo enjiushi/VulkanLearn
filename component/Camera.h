@@ -16,6 +16,8 @@ typedef struct _CameraInfo
 
 class Camera : public BaseComponent
 {
+	DECLARE_CLASS_RTTI(Camera);
+
 public:
 	void Update() override;
 	void LateUpdate() override;
