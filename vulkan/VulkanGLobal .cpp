@@ -611,7 +611,6 @@ void VulkanGlobal::InitScene()
 
 	m_pCameraObj->SetPos({ 0, 100, 120 });
 	m_pCameraObj->SetRotation(Matrix3f::EulerAngle(-0.78f, 0, 0));
-	m_pCameraObj->Update();
 
 	m_pDirLightObj = BaseObject::Create();
 	m_pDirLightObj->SetPos(64, 64, -64);

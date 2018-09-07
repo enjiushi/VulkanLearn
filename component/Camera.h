@@ -12,6 +12,8 @@ typedef struct _CameraInfo
 	float		aspect;
 	float		near;
 	float		far;
+
+	Vector2f	jitterOffset;
 }CameraInfo;
 
 class Camera : public BaseComponent
@@ -26,6 +28,7 @@ public:
 	void SetAspect(float new_aspect);
 	void SetNearPlane(float new_near_plane);
 	void SetFarPlane(float new_far_plane) { m_cameraInfo.far = new_far_plane; m_projDirty = true; }
+	void SetJitterOffset(Vector2f jitterOffset);
 
 	void SetCameraInfo(const CameraInfo& info);
 

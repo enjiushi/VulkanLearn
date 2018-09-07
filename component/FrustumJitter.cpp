@@ -3,10 +3,24 @@
 #include "../class/UniformData.h"
 #include "Camera.h"
 
-static uint32_t PatternLength = 32;
-static float PatternScale = 1.0f;
+bool FrustumJitter::Initialized = false;
+uint32_t FrustumJitter::PatternLength = 32;
+float FrustumJitter::PatternScale = 1.0f;
 
-static Vector2f Sample(float* pattern, int index)
+float FrustumJitter::POINTS_HALTON_2_3_X8[8 * 2];
+float FrustumJitter::POINTS_HALTON_2_3_X16[16 * 2];
+float FrustumJitter::POINTS_HALTON_2_3_X32[32 * 2];
+float FrustumJitter::POINTS_HALTON_2_3_X256[256 * 2];
+
+std::pair<float*, uint32_t> FrustumJitter::POINTS_HALTON_2_3[HaltonModeCount] =
+{
+	{ POINTS_HALTON_2_3_X8, 8 * 2 },
+	{ POINTS_HALTON_2_3_X16, 16 * 2 },
+	{ POINTS_HALTON_2_3_X32, 32 * 2 },
+	{ POINTS_HALTON_2_3_X256, 256 * 2 }
+};
+
+Vector2f FrustumJitter::Sample(float* pattern, int index)
 {
 	int n = PatternLength / 2;
 	int i = index % n;
@@ -14,7 +28,7 @@ static Vector2f Sample(float* pattern, int index)
 	return { PatternScale * pattern[2 * i + 0],  PatternScale * pattern[2 * i + 1] };
 }
 
-static float HaltonSeq(uint32_t prime, uint32_t index)
+float FrustumJitter::HaltonSeq(uint32_t prime, uint32_t index)
 {
 	float r = 0.0f;
 	float f = 1.0f;
@@ -28,14 +42,20 @@ static float HaltonSeq(uint32_t prime, uint32_t index)
 	return r;
 }
 
-static void InitializeHalton_2_3(float* seq, uint32_t width, uint32_t height)
+void FrustumJitter::InitializeHalton_2_3()
 {
-	for (int i = 0, n = width / 2; i != n; i++)
+	if (Initialized)
+		return;
+
+	for (uint32_t mode = 0; mode < HaltonModeCount; mode++)
 	{
-		float u = HaltonSeq(2, i + 1) - 0.5f;
-		float v = HaltonSeq(3, i + 1) - 0.5f;
-		seq[2 * i + 0] = u;
-		seq[2 * i + 1] = v;
+		for (int i = 0, n = POINTS_HALTON_2_3[mode].second / 2; i != n; i++)
+		{
+			float u = HaltonSeq(2, i + 1) - 0.5f;
+			float v = HaltonSeq(3, i + 1) - 0.5f;
+			POINTS_HALTON_2_3[mode].first[2 * i + 0] = u;
+			POINTS_HALTON_2_3[mode].first[2 * i + 1] = v;
+		}
 	}
 }
 
@@ -68,4 +88,20 @@ void FrustumJitter::Start()
 
 	m_pCamera = GetComponent<Camera>();
 	ASSERTION(m_pCamera != nullptr);
+
+	InitializeHalton_2_3();
+}
+
+void FrustumJitter::Update()
+{
+	if (!m_jitterEnabled)
+		return;
+
+	m_pCamera->SetJitterOffset({ POINTS_HALTON_2_3[m_haltonMode].first[m_currentIndex], POINTS_HALTON_2_3[m_haltonMode].first[m_currentIndex + 1] });
+	m_currentIndex = (m_currentIndex + 2) % POINTS_HALTON_2_3[m_haltonMode].second;
+}
+
+void FrustumJitter::SetHaltonMode(HaltonMode mode)
+{
+	m_haltonMode = mode;
 }

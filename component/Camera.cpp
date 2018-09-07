@@ -63,6 +63,21 @@ void Camera::UpdateProjMatrix()
 	float height = 2.0f * tanFOV2 * m_cameraInfo.near;
 	float width = m_cameraInfo.aspect * height;
 
+	// Prepare jitter offset
+	//if (m_cameraInfo.jitterOffset != 0)
+	{
+		proj.x0 = 2.0f * m_cameraInfo.near / width;	//	2 * n / (right - left)
+
+		// 1). x2 = ((right + jitter_offset_near_plane) + (left + jitter_offset_near_plane)) / ((right + jitter_offset_near_plane) - (left + jitter_offset_near_plane))
+		// 2). x2 = (2 * jitter_offset_near_plane) / near_plane_width
+		// 3). jitter_offset_near_plane = jitter_offset / window_width * near_plane_width
+		// 4). x2 = 2 * jitter_offset / window_width
+		proj.z0 = 2.0f * m_cameraInfo.jitterOffset.x / 1536.0f;	// FIXME: hard-coded window width 1536
+
+		proj.y1 = 2.0f * m_cameraInfo.near / height;
+		proj.z1 = 2.0f * m_cameraInfo.jitterOffset.y / 1024.0f;	// FIXME: hard-coded window height 1024
+	}
+
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetEyeSpaceSize({ width, height });
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetNearFarAB({ m_cameraInfo.near, m_cameraInfo.far, A, B });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetProjectionMatrix(proj);
@@ -96,6 +111,12 @@ void Camera::SetNearPlane(float new_near_plane)
 	m_cameraInfo.near = new_near_plane; 
 	UpdateCameraSupplementInfo();
 
+	m_projDirty = true;
+}
+
+void Camera::SetJitterOffset(Vector2f jitterOffset)
+{
+	m_cameraInfo.jitterOffset = jitterOffset;
 	m_projDirty = true;
 }
 
