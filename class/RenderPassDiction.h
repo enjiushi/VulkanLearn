@@ -19,6 +19,7 @@ public:
 		PipelineRenderPassSSAOBlurV,
 		PipelineRenderPassSSAOBlurH,
 		PipelineRenderPassShading,
+		PipelineRenderPassTemporal,
 		PipelineRenderPassBloom,
 		PipelineRenderPassBloomBlurV,
 		PipelineRenderPassBloomBlurH,
