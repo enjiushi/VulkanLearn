@@ -34,6 +34,7 @@ public:
 		FrameBufferType_SSAOBlurV,
 		FrameBufferType_SSAOBlurH,
 		FrameBufferType_Shading,
+		FrameBufferType_Temporal,
 		FrameBufferType_BloomBlurV,
 		FrameBufferType_BloomBlurH,
 		FrameBufferType_PostProcessing,

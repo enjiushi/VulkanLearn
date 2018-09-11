@@ -24,32 +24,34 @@ bool FrameBufferDiction::Init()
 	if (!Singleton<FrameBufferDiction>::Init())
 		return false;
 
+	m_frameBuffers.resize(PipelineRenderPassCount);
+
 	for (uint32_t i = 0; i < PipelineRenderPassCount; i++)
 	{
 		switch ((FrameBufferType)i)
 		{
 		case  FrameBufferType_GBuffer:
-			m_frameBuffers.push_back(CreateGBufferFrameBuffer()); break;
+			m_frameBuffers[FrameBufferType_GBuffer] = CreateGBufferFrameBuffer(); break;
 		case  FrameBufferType_ShadowMap:
-			m_frameBuffers.push_back(CreateShadowMapFrameBuffer()); break;
+			m_frameBuffers[FrameBufferType_ShadowMap] = CreateShadowMapFrameBuffer(); break;
 		case FrameBufferType_SSAO:
-			m_frameBuffers.push_back(CreateSSAOFrameBuffer()); break;
+			m_frameBuffers[FrameBufferType_SSAO] = CreateSSAOFrameBuffer(); break;
 		case FrameBufferType_SSAOBlurV:
-			m_frameBuffers.push_back(CreateSSAOBlurFrameBufferV()); break;
+			m_frameBuffers[FrameBufferType_SSAOBlurV] = CreateSSAOBlurFrameBufferV(); break;
 		case FrameBufferType_SSAOBlurH:
-			m_frameBuffers.push_back(CreateSSAOBlurFrameBufferH()); break;
+			m_frameBuffers[FrameBufferType_SSAOBlurH] = CreateSSAOBlurFrameBufferH(); break;
 		case FrameBufferType_Shading:
-			m_frameBuffers.push_back(CreateShadingFrameBuffer()); break;
+			m_frameBuffers[FrameBufferType_Shading] = CreateShadingFrameBuffer(); break;
 		case FrameBufferType_BloomBlurV:
-			m_frameBuffers.push_back(CreateBloomFrameBufferV()); break;
+			m_frameBuffers[FrameBufferType_BloomBlurV] = CreateBloomFrameBufferV(); break;
 		case FrameBufferType_BloomBlurH:
-			m_frameBuffers.push_back(CreateBloomFrameBufferH()); break;
+			m_frameBuffers[FrameBufferType_BloomBlurH] = CreateBloomFrameBufferH(); break;
 		case FrameBufferType_PostProcessing:
-			m_frameBuffers.push_back(CreatePostProcessingFrameBuffer()); break;
+			m_frameBuffers[FrameBufferType_PostProcessing] = CreatePostProcessingFrameBuffer(); break;
 		case FrameBufferType_EnvGenOffScreen:
-			m_frameBuffers.push_back(CreateForwardEnvGenOffScreenFrameBuffer()); break;
+			m_frameBuffers[FrameBufferType_EnvGenOffScreen] = CreateForwardEnvGenOffScreenFrameBuffer(); break;
 		case FrameBufferType_ForwardScreen:
-			m_frameBuffers.push_back(CreateForwardScreenFrameBuffer()); break;
+			m_frameBuffers[FrameBufferType_ForwardScreen] = CreateForwardScreenFrameBuffer(); break;
 		default:
 			break;
 		}
