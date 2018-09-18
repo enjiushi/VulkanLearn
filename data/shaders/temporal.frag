@@ -20,7 +20,7 @@ void main()
 {
 	int index = int(perFrameData.camDir.a);
 
-	vec3 final = texture(TemporalHistory, inUv).rgb;
+	vec3 final = texture(TemporalHistory, inUv).rgb * 0.9f + texture(ShadingResult[index], inUv - perFrameData.cameraJitterOffset).rgb * 0.1f;
 
 	outFragColor0 = vec4(final, 1.0);
 }

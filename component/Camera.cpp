@@ -72,10 +72,12 @@ void Camera::UpdateProjMatrix()
 		// 2). x2 = (2 * jitter_offset_near_plane) / near_plane_width
 		// 3). jitter_offset_near_plane = jitter_offset / window_width * near_plane_width
 		// 4). x2 = 2 * jitter_offset / window_width
-		proj.z0 = 2.0f * m_cameraInfo.jitterOffset.x / 1536.0f;	// FIXME: hard-coded window width 1536
+		proj.z0 = 2.0f * m_cameraInfo.jitterOffset.x;	// FIXME: hard-coded window width 1536
 
 		proj.y1 = 2.0f * m_cameraInfo.near / height;
-		proj.z1 = 2.0f * m_cameraInfo.jitterOffset.y / 1024.0f;	// FIXME: hard-coded window height 1024
+		proj.z1 = 2.0f * m_cameraInfo.jitterOffset.y;	// FIXME: hard-coded window height 1024
+
+		UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraJitterOffset(m_cameraInfo.jitterOffset);
 	}
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetEyeSpaceSize({ width, height });
@@ -117,6 +119,8 @@ void Camera::SetNearPlane(float new_near_plane)
 void Camera::SetJitterOffset(Vector2f jitterOffset)
 {
 	m_cameraInfo.jitterOffset = jitterOffset;
+	m_cameraInfo.jitterOffset.x /= 1536.0f;
+	m_cameraInfo.jitterOffset.y /= 1024.0f;
 	m_projDirty = true;
 }
 
