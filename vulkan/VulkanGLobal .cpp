@@ -694,7 +694,7 @@ void VulkanGlobal::InitScene()
 void VulkanGlobal::EndSetup()
 {
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
-	m_commandBufferList.resize(GetSwapChain()->GetSwapChainImageCount());
+	m_commandBufferList.resize(GetSwapChain()->GetSwapChainImageCount() * 2);
 
 	m_pRootObject->Awake();
 	m_pRootObject->Start();
@@ -702,9 +702,13 @@ void VulkanGlobal::EndSetup()
 
 void VulkanGlobal::Draw(double elapsedTime)
 {
+	static uint32_t pingpong = 0;
+
+
 	GetSwapChain()->AcquireNextImage();
 
 	uint32_t frameIndex = FrameMgr()->FrameIndex();
+	uint32_t cbIndex = frameIndex * 2 + pingpong;
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(FrameMgr()->FrameIndex());
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
@@ -717,23 +721,25 @@ void VulkanGlobal::Draw(double elapsedTime)
 
 	RenderWorkManager::GetInstance()->OnFrameBegin();
 
-	if (!PREBAKE_CB || m_commandBufferList[frameIndex] == nullptr)
+	if (!PREBAKE_CB || m_commandBufferList[cbIndex] == nullptr)
 	{
 		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
 		pDrawCmdBuffer->StartPrimaryRecording();
 
-		RenderWorkManager::GetInstance()->Draw(pDrawCmdBuffer);
+		RenderWorkManager::GetInstance()->Draw(pDrawCmdBuffer, pingpong);
 
 		pDrawCmdBuffer->EndPrimaryRecording();
 
-		m_commandBufferList[frameIndex] = pDrawCmdBuffer;
+		m_commandBufferList[cbIndex] = pDrawCmdBuffer;
 	}
 
 	RenderWorkManager::GetInstance()->OnFrameEnd();
 
-	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { m_commandBufferList[frameIndex] }, {}, false);
+	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { m_commandBufferList[cbIndex] }, {}, false);
 	
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
+
+	pingpong = (pingpong + 1) % 2;
 }
 
 void VulkanGlobal::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)
