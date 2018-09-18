@@ -38,6 +38,7 @@ struct PerFrameData
 	vec4 camDir;
 	vec4 eyeSpaceSize;
 	vec4 nearFarAB;
+	vec2 camerJitterOffset;
 };
 
 struct PerObjectData
