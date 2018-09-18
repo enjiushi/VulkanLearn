@@ -21,7 +21,7 @@
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMaterial()
+std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMaterial(uint32_t pingpong)
 {
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/post_processing.frag.spv", L"" };
@@ -133,6 +133,8 @@ std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMat
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
+	pPostProcessMaterial->m_pingPong = pingpong;
+
 	if (pPostProcessMaterial.get() && pPostProcessMaterial->Init(pPostProcessMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pPostProcessMaterial;
 
@@ -151,19 +153,10 @@ bool PostProcessingMaterial::Init(const std::shared_ptr<PostProcessingMaterial>&
 
 	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
 
-	std::vector<CombinedImage> shadingResults;
 	std::vector<CombinedImage> bloomTextures;
 	std::vector<CombinedImage> motionVectors;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		std::shared_ptr<FrameBuffer> pShadingFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
-
-		shadingResults.push_back({
-			pShadingFrameBuffer->GetColorTarget(0),
-			pShadingFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-			pShadingFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
-		});
-
 		std::shared_ptr<FrameBuffer> pBloomFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_BloomBlurH)[j];
 
 		bloomTextures.push_back({
@@ -181,7 +174,14 @@ bool PostProcessingMaterial::Init(const std::shared_ptr<PostProcessingMaterial>&
 		});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, shadingResults);
+	std::vector<CombinedImage> temporalBuffers;
+	temporalBuffers.push_back({
+		FrameBufferDiction::GetInstance()->GetFrameBuffers((FrameBufferDiction::FrameBufferType)(FrameBufferDiction::FrameBufferType_Temporal0 + m_pingPong))[0]->GetColorTarget(0),
+		FrameBufferDiction::GetInstance()->GetFrameBuffers((FrameBufferDiction::FrameBufferType)(FrameBufferDiction::FrameBufferType_Temporal0 + m_pingPong))[0]->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+		FrameBufferDiction::GetInstance()->GetFrameBuffers((FrameBufferDiction::FrameBufferType)(FrameBufferDiction::FrameBufferType_Temporal0 + m_pingPong))[0]->GetColorTarget(0)->CreateDefaultImageView()
+		});
+
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, temporalBuffers);
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, bloomTextures);
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 2, motionVectors);
 
@@ -193,9 +193,8 @@ void PostProcessingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>
 		m_materialVariableLayout.push_back(
 			{
 				CombinedSampler,
-				"Shading Result",
+				"Temporal Pass Result",
 				{},
-				GetSwapChain()->GetSwapChainImageCount()
 			});
 
 		m_materialVariableLayout.push_back(
@@ -254,19 +253,19 @@ void PostProcessingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf,
 
 void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
+	std::shared_ptr<Image> pTemporalHistory = FrameBufferDiction::GetInstance()->GetFrameBuffers((FrameBufferDiction::FrameBufferType)(FrameBufferDiction::FrameBufferType_Temporal0 + m_pingPong))[0]->GetColorTarget(0);
 	std::shared_ptr<Image> pBloomTex = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_BloomBlurH)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 	std::shared_ptr<Image> pMotionVector = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::MotionVector);
 
 	VkImageSubresourceRange subresourceRange0 = {};
 	subresourceRange0.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange0.baseMipLevel = 0;
-	subresourceRange0.levelCount = pShadingResult->GetImageInfo().mipLevels;
-	subresourceRange0.layerCount = pShadingResult->GetImageInfo().arrayLayers;
+	subresourceRange0.levelCount = pTemporalHistory->GetImageInfo().mipLevels;
+	subresourceRange0.layerCount = pTemporalHistory->GetImageInfo().arrayLayers;
 
 	VkImageMemoryBarrier imgBarrier0 = {};
 	imgBarrier0.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier0.image = pShadingResult->GetDeviceHandle();
+	imgBarrier0.image = pTemporalHistory->GetDeviceHandle();
 	imgBarrier0.subresourceRange = subresourceRange0;
 	imgBarrier0.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier0.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;

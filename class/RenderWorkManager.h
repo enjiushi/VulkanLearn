@@ -61,10 +61,10 @@ protected:
 	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurVMaterial;
 	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurHMaterial;
 	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
-	std::vector<std::shared_ptr<TemporalMaterial>>	m_pTemporalMaterials;
+	std::vector<std::shared_ptr<TemporalMaterial>>	m_temporalMaterials;
 	std::shared_ptr<ForwardMaterial>			m_pSkyBoxMaterial;
 	std::shared_ptr<BloomMaterial>				m_pBloomMaterial;
 	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurVMaterial;
 	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurHMaterial;
-	std::shared_ptr<PostProcessingMaterial>		m_pPostProcessMaterial;
+	std::vector<std::shared_ptr<PostProcessingMaterial>> m_postProcessMaterials;
 };

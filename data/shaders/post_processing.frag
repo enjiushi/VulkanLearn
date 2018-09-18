@@ -5,7 +5,7 @@
 
 #include "uniform_layout.h"
 
-layout (set = 3, binding = 2) uniform sampler2D ShadingResults[3];
+layout (set = 3, binding = 2) uniform sampler2D TemporalHistory;
 layout (set = 3, binding = 3) uniform sampler2D BloomTextures[3];
 layout (set = 3, binding = 4) uniform sampler2D MotionVector[3];
 
@@ -33,7 +33,7 @@ void main()
 	ivec2 offset;
 	for (int i = int(-MOTION_VEC_SAMPLE_COUNT / 2.0f); i <= int(MOTION_VEC_SAMPLE_COUNT / 2.0f); i++)
 	{
-		final += texelFetch(ShadingResults[index], coord + ivec2(i * step * globalData.gameWindowSize.xy), 0).rgb;
+		final += texelFetch(TemporalHistory, coord + ivec2(i * step * globalData.gameWindowSize.xy), 0).rgb;
 		final += pow(texture(BloomTextures[index], inUv + float(i) * step).rgb * bloomMagnitude, vec3(bloomExposure));
 	}
 
@@ -41,7 +41,7 @@ void main()
 
 	//final = vec3(step * 512.0f, 0);
 
-	//vec3 final = texelFetch(ShadingResults[index], coord, 0).rgb;
+	//vec3 final = texelFetch(TemporalHistory, coord, 0).rgb;
 	//final += pow(texture(BloomTextures[index], inUv).rgb * bloomMagnitude, vec3(bloomExposure));
 
 	final = Uncharted2Tonemap(final * globalData.GEW.y);

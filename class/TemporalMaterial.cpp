@@ -226,8 +226,6 @@ void TemporalMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 
 void TemporalMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	static bool asdf = false;
-
 	std::vector<VkImageMemoryBarrier> barriers;
 
 	std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
@@ -258,13 +256,7 @@ void TemporalMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffe
 	imgBarrier1.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	imgBarrier1.image = pTemporalHistory->GetDeviceHandle();
 	imgBarrier1.subresourceRange = subresourceRange0;
-	//if (!asdf)
-	//{
-	//	imgBarrier0.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	//	asdf = true;
-	//}
-	//else
-		imgBarrier1.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier1.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier1.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	imgBarrier1.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier1.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
