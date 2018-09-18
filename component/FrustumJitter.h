@@ -36,7 +36,7 @@ protected:
 	std::shared_ptr<Camera>	m_pCamera;
 	HaltonMode				m_haltonMode = x8;
 	uint32_t				m_currentIndex = 0;
-	bool					m_jitterEnabled = false;
+	bool					m_jitterEnabled = true;
 
 	static bool Initialized;
 	static uint32_t PatternLength;

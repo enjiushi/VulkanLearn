@@ -18,6 +18,7 @@ typedef struct _PerFrameVariables
 	float		frameIndex;
 	Vector4f	eyeSpaceSize;	// xy: eye space size, zw: inverted eye space size
 	Vector4f	nearFarAB;
+	Vector2f	cameraJitterOffset;
 }PerFrameVariables;
 
 class PerFrameUniforms : public UniformDataStorage
@@ -32,6 +33,8 @@ public:
 	void SetViewMatrix(const Matrix4f& viewMatrix);
 	Matrix4f GetViewMatrix() const { return m_perFrameVariables.viewMatrix; }
 	Matrix4f GetVPNMatrix() const { return m_perFrameVariables.VPN; }
+	Matrix4f GetPrevViewMatrix() const { return m_perFrameVariables.prevView; }
+	Matrix4f GetPrevVPNMatrix() const { return m_perFrameVariables.prevVPN; }
 	void SetCameraPosition(const Vector3f& camPos);
 	Vector3f GetCameraPosition() const { return m_perFrameVariables.cameraPosition; }
 	void SetCameraDirection(const Vector3f& camDir);
@@ -41,10 +44,12 @@ public:
 	Vector2f GetEyeSpaceSizeInv() const { return { m_perFrameVariables.eyeSpaceSize.z, m_perFrameVariables.eyeSpaceSize.w }; }
 	void SetNearFarAB(const Vector4f& nearFarAB);
 	Vector4f GetNearFarAB() const { return m_perFrameVariables.nearFarAB; }
-	void SetPadding0(float val) { m_perFrameVariables.padding0 = val; }
+	void SetPadding0(float val);
 	float GetPadding0() const { return m_perFrameVariables.padding0; }
-	void SetFrameIndex(float frameIndex) { m_perFrameVariables.frameIndex = frameIndex; }
+	void SetFrameIndex(float frameIndex);
 	float GetFrameIndex() const { return m_perFrameVariables.frameIndex; }
+	void SetCameraJitterOffset(const Vector2f& jitterOffset);
+	Vector2f GetCameraJitterOffset() const { return m_perFrameVariables.cameraJitterOffset; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;

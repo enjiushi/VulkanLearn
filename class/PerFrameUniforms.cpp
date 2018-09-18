@@ -55,9 +55,28 @@ void PerFrameUniforms::SetNearFarAB(const Vector4f& nearFarAB)
 	SetDirty();
 }
 
+void PerFrameUniforms::SetPadding0(float val) 
+{
+	m_perFrameVariables.padding0 = val; 
+	SetDirty();
+}
+
+void PerFrameUniforms::SetFrameIndex(float frameIndex)
+{
+	m_perFrameVariables.frameIndex = frameIndex;
+	SetDirty();
+}
+
+void PerFrameUniforms::SetCameraJitterOffset(const Vector2f& jitterOffset)
+{ 
+	m_perFrameVariables.cameraJitterOffset = jitterOffset; 
+	SetDirty();
+}
+
 void PerFrameUniforms::SyncBufferDataInternal()
 {
-	m_perFrameVariables.prevVPN = m_perFrameVariables.VPN;
+	// Using curr proj matrix here, to get rid of camera jitter effect
+	m_perFrameVariables.prevVPN = UniformData::GetInstance()->GetGlobalUniforms()->GetPNMatrix() * m_perFrameVariables.prevView;
 	m_perFrameVariables.VPN = UniformData::GetInstance()->GetGlobalUniforms()->GetPNMatrix() * m_perFrameVariables.viewMatrix;
 
 	GetBuffer()->UpdateByteStream(&m_perFrameVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perFrameVariables));
@@ -77,8 +96,15 @@ std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList() const
 			"PerFrameUniforms",
 			{
 				{ Mat4Unit, "ViewMatrix" },
+				{ Mat4Unit, "ViewCoordSystem" },
 				{ Mat4Unit, "ViewProjMatrix" },
-				{ Vec3Unit, "CameraPosition" }
+				{ Mat4Unit, "prevViewMatrix" },
+				{ Mat4Unit, "prevVPN" },
+				{ Vec4Unit, "CameraPosition_Padding" },
+				{ Vec4Unit, "CameraDirection_FrameIndex" },
+				{ Vec4Unit, "EyeSpaceSize" },
+				{ Vec4Unit, "NearFarAB" },
+				{ Vec2Unit, "CameraJitterOffset" }
 			}
 		}
 	};

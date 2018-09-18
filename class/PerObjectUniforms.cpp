@@ -35,7 +35,7 @@ void PerObjectUniforms::SyncBufferDataInternal()
 {
 	for (auto index : m_dirtyChunks)
 	{
-		m_perObjectVariables[index].prevMVPN = m_perObjectVariables[index].MVPN;
+		m_perObjectVariables[index].prevMVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetPrevVPNMatrix() * m_perObjectVariables[index].prevModelMatrix;
 		m_perObjectVariables[index].MVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPNMatrix() * m_perObjectVariables[index].modelMatrix;
 	}
 	m_dirtyChunks.clear();

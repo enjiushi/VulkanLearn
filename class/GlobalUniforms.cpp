@@ -44,7 +44,10 @@ std::shared_ptr<GlobalUniforms> GlobalUniforms::Create()
 
 void GlobalUniforms::SetProjectionMatrix(const Matrix4f& proj) 
 { 
-	m_globalVariables.prevProjectionMatrix = m_globalVariables.projectionMatrix;
+	// Since prev proj matrix is used to calculate per-pixel vocelity buffer,
+	// we need to handle the impact of camera jitter for temporal.
+	// Using the same proj matrix for both prev and curr, which behaves exactly what we want here
+	m_globalVariables.prevProjectionMatrix = proj;
 	m_globalVariables.projectionMatrix = proj;
 	SetDirty();
 }
@@ -156,12 +159,48 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 					"VulkanNDCMatrix"
 				},
 				{
+					Mat4Unit,
+					"ProjectionVulkanNDC"
+				},
+				{
+					Mat4Unit,
+					"PrevProjectionMatrix"
+				},
+				{
+					Mat4Unit,
+					"PrevPN"
+				},
+				{
 					Vec4Unit,
-					"MainLightDirection"
+					"GameWindowSize"
+				},
+				{
+					Vec4Unit,
+					"EnvGenWindowSize"
+				},
+				{
+					Vec4Unit,
+					"ShadowGenWindowSize"
+				},
+				{
+					Vec4Unit,
+					"SSAOWindowSize"
+				},
+				{
+					Vec4Unit,
+					"BloomWindowSize"
+				},
+				{
+					Vec4Unit,
+					"MainLightDir"
 				},
 				{
 					Vec4Unit,
 					"MainLightColor"
+				},
+				{
+					Mat4Unit,
+					"MainLightVPN"
 				},
 				{
 					Vec4Unit,
