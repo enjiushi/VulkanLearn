@@ -119,6 +119,21 @@ std::shared_ptr<Texture2D> Texture2D::CreateOffscreenTexture(const std::shared_p
 	return nullptr;
 }
 
+std::shared_ptr<Texture2D> Texture2D::CreateOffscreenTexture(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format, VkImageLayout layout)
+{
+	std::shared_ptr<Texture2D> pTexture = std::make_shared<Texture2D>();
+
+	if (pTexture.get())
+	{
+		pTexture->m_accessStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		pTexture->m_accessFlags = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	}
+
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT, layout))
+		return pTexture;
+	return nullptr;
+}
+
 std::shared_ptr<StagingBuffer> Texture2D::PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, gliTex.textures[0].size());
