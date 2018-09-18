@@ -42,6 +42,10 @@ bool FrameBufferDiction::Init()
 			m_frameBuffers[FrameBufferType_SSAOBlurH] = CreateSSAOBlurFrameBufferH(); break;
 		case FrameBufferType_Shading:
 			m_frameBuffers[FrameBufferType_Shading] = CreateShadingFrameBuffer(); break;
+		case FrameBufferType_Temporal0:
+			m_frameBuffers[FrameBufferType_Temporal0] = CreateShadingTemporalFrameBuffer(); break;
+		case FrameBufferType_Temporal1:
+			m_frameBuffers[FrameBufferType_Temporal1] = CreateShadingTemporalFrameBuffer(); break;
 		case FrameBufferType_BloomBlurV:
 			m_frameBuffers[FrameBufferType_BloomBlurV] = CreateBloomFrameBufferV(); break;
 		case FrameBufferType_BloomBlurH:
@@ -63,6 +67,11 @@ bool FrameBufferDiction::Init()
 std::shared_ptr<FrameBuffer> FrameBufferDiction::GetFrameBuffer(FrameBufferType type)
 {
 	return m_frameBuffers[type][FrameMgr()->FrameIndex()];
+}
+
+std::shared_ptr<FrameBuffer> FrameBufferDiction::GetFrameBuffer(FrameBufferType type, uint32_t index)
+{
+	return m_frameBuffers[type][index];
 }
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffer()
@@ -164,6 +173,18 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffe
 		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = m_frameBuffers[FrameBufferType_GBuffer][i]->GetDepthStencilTarget();
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()));
 	}
+
+	return frameBuffers;
+}
+
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingTemporalFrameBuffer()
+{
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+
+	FrameBufferCombo frameBuffers;
+
+	std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporal)->GetRenderPass()));
 
 	return frameBuffers;
 }

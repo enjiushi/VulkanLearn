@@ -34,7 +34,8 @@ public:
 		FrameBufferType_SSAOBlurV,
 		FrameBufferType_SSAOBlurH,
 		FrameBufferType_Shading,
-		FrameBufferType_Temporal,
+		FrameBufferType_Temporal0,
+		FrameBufferType_Temporal1,
 		FrameBufferType_BloomBlurV,
 		FrameBufferType_BloomBlurH,
 		FrameBufferType_PostProcessing,
@@ -58,6 +59,7 @@ public:
 public:
 	FrameBufferCombo GetFrameBuffers(FrameBufferType type) { return m_frameBuffers[type]; }
 	std::shared_ptr<FrameBuffer> GetFrameBuffer(FrameBufferType type);
+	std::shared_ptr<FrameBuffer> GetFrameBuffer(FrameBufferType type, uint32_t index);
 
 	static VkFormat GetGBufferFormat(GBuffer gbuffer) { return m_GBufferFormatTable[gbuffer]; }
 
@@ -67,6 +69,7 @@ public:
 	FrameBufferCombo CreateSSAOBlurFrameBufferV();
 	FrameBufferCombo CreateSSAOBlurFrameBufferH();
 	FrameBufferCombo CreateShadingFrameBuffer();
+	FrameBufferCombo CreateShadingTemporalFrameBuffer();
 	FrameBufferCombo CreateBloomFrameBufferV();
 	FrameBufferCombo CreateBloomFrameBufferH();
 	FrameBufferCombo CreatePostProcessingFrameBuffer();
