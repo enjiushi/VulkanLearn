@@ -31,18 +31,9 @@ void main()
 	vec2 step = motionVec / MOTION_VEC_SAMPLE_COUNT * MOTION_VEC_AMP;
 	ivec2 istep = ivec2(floor(step * globalData.gameWindowSize.xy));
 	ivec2 offset;
-	for (int i = int(-MOTION_VEC_SAMPLE_COUNT / 2.0f); i <= int(MOTION_VEC_SAMPLE_COUNT / 2.0f); i++)
-	{
-		final += texelFetch(TemporalHistory, coord + ivec2(i * step * globalData.gameWindowSize.xy), 0).rgb;
-		final += pow(texture(BloomTextures[index], inUv + float(i) * step).rgb * bloomMagnitude, vec3(bloomExposure));
-	}
 
-	final /= MOTION_VEC_SAMPLE_COUNT;
-
-	//final = vec3(step * 512.0f, 0);
-
-	//vec3 final = texelFetch(TemporalHistory, coord, 0).rgb;
-	//final += pow(texture(BloomTextures[index], inUv).rgb * bloomMagnitude, vec3(bloomExposure));
+	final = texelFetch(TemporalHistory, coord, 0).rgb;
+	final += pow(texture(BloomTextures[index], inUv).rgb * bloomMagnitude, vec3(bloomExposure));
 
 	final = Uncharted2Tonemap(final * globalData.GEW.y);
 	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
