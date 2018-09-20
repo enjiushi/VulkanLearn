@@ -72,4 +72,5 @@ void main()
 	vec2 prevTexCoord = (prevNDCPos.xy / prevNDCPos.w);
 
 	outMotionVec.rg = prevTexCoord - inScreenPos;
+	outMotionVec.rg = outMotionVec.rg * 0.5f;
 }
