@@ -27,11 +27,6 @@ void main()
 
 	vec3 final = vec3(0);
 
-	vec2 motionVec = texelFetch(MotionVector[index], coord, 0).rg;
-	vec2 step = motionVec / MOTION_VEC_SAMPLE_COUNT * MOTION_VEC_AMP;
-	ivec2 istep = ivec2(floor(step * globalData.gameWindowSize.xy));
-	ivec2 offset;
-
 	final = texelFetch(TemporalHistory, coord, 0).rgb;
 	final += pow(texture(BloomTextures[index], inUv).rgb * bloomMagnitude, vec3(bloomExposure));
 
