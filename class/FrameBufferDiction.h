@@ -5,6 +5,7 @@
 #include <map>
 
 class FrameBuffer;
+class Texture2D;
 
 class FrameBufferDiction : public Singleton<FrameBufferDiction>
 {
@@ -59,7 +60,8 @@ public:
 public:
 	FrameBufferCombo GetFrameBuffers(FrameBufferType type) { return m_frameBuffers[type]; }
 	std::shared_ptr<FrameBuffer> GetFrameBuffer(FrameBufferType type);
-	std::shared_ptr<FrameBuffer> GetFrameBuffer(FrameBufferType type, uint32_t index);
+	std::shared_ptr<FrameBuffer> GetFrameBuffer(FrameBufferType type, uint32_t pingPongIndex);
+	std::shared_ptr<FrameBuffer> GetFrameBuffer(FrameBufferType type, uint32_t frameIndex, uint32_t pingPongIndex);
 
 	static VkFormat GetGBufferFormat(GBuffer gbuffer) { return m_GBufferFormatTable[gbuffer]; }
 
@@ -77,6 +79,7 @@ public:
 	FrameBufferCombo CreateForwardScreenFrameBuffer();
 
 protected:
-	std::vector<FrameBufferCombo>	m_frameBuffers;
-	static VkFormat					m_GBufferFormatTable[GBufferCount];
+	std::vector<FrameBufferCombo>				m_frameBuffers;
+	std::vector<std::shared_ptr<Texture2D>>		m_temporalTexture;
+	static VkFormat								m_GBufferFormatTable[GBufferCount];
 };

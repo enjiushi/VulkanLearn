@@ -2,9 +2,9 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/CommandBuffer.h"
 
-bool PostProcessingPass::Init(const std::shared_ptr<PostProcessingPass>& pSelf)
+bool PostProcessingPass::Init(const std::shared_ptr<PostProcessingPass>& pSelf, VkFormat format, VkImageLayout layout)
 {
-	std::vector<VkAttachmentDescription> attachmentDescs(1);
+	std::vector<VkAttachmentDescription> attachmentDescs(2);
 
 	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -15,9 +15,21 @@ bool PostProcessingPass::Init(const std::shared_ptr<PostProcessingPass>& pSelf)
 	attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
 
-	std::vector<VkAttachmentReference> postProcessPassColorAttach(1);
+	// Temporal history attachment
+	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachmentDescs[1].finalLayout = layout;
+	attachmentDescs[1].format = format;
+	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachmentDescs[1].samples = VK_SAMPLE_COUNT_1_BIT;
+
+	std::vector<VkAttachmentReference> postProcessPassColorAttach(2);
 	postProcessPassColorAttach[0].attachment = 0;
 	postProcessPassColorAttach[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	postProcessPassColorAttach[1].attachment = 1;
+	postProcessPassColorAttach[1].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription postProcessSubPass = {};
 	postProcessSubPass.colorAttachmentCount = postProcessPassColorAttach.size();
@@ -60,10 +72,10 @@ bool PostProcessingPass::Init(const std::shared_ptr<PostProcessingPass>& pSelf)
 	return true;
 }
 
-std::shared_ptr<PostProcessingPass> PostProcessingPass::Create()
+std::shared_ptr<PostProcessingPass> PostProcessingPass::Create(VkFormat temporalFormat, VkImageLayout temporalLayout)
 {
 	std::shared_ptr<PostProcessingPass> pPostProcessingPass = std::make_shared<PostProcessingPass>();
-	if (pPostProcessingPass != nullptr && pPostProcessingPass->Init(pPostProcessingPass))
+	if (pPostProcessingPass != nullptr && pPostProcessingPass->Init(pPostProcessingPass, temporalFormat, temporalLayout))
 		return pPostProcessingPass;
 	return nullptr;
 }
@@ -72,6 +84,7 @@ std::vector<VkClearValue> PostProcessingPass::GetClearValue()
 {
 	return
 	{
+		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 0.0f, 0.0f, 0.0f, 0.0f }
 	};
 }

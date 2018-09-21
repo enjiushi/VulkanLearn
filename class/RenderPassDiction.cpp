@@ -49,7 +49,7 @@ bool RenderPassDiction::Init()
 		case PipelineRenderPassBloomBlurH:
 			m_pipelineRenderPasses[PipelineRenderPassBloomBlurH] = GaussianBlurPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT); break;
 		case PipelineRenderPassPostProcessing:
-			m_pipelineRenderPasses[PipelineRenderPassPostProcessing] = PostProcessingPass::Create(); break;
+			m_pipelineRenderPasses[PipelineRenderPassPostProcessing] = PostProcessingPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); break;
 		default:
 			break;
 		}
