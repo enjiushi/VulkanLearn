@@ -9,7 +9,6 @@
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
 #include "DeferredMaterial.h"
-#include "TemporalMaterial.h"
 #include "ShadowMapMaterial.h"
 #include "SSAOMaterial.h"
 #include "GaussianBlurMaterial.h"
@@ -25,8 +24,6 @@ bool RenderWorkManager::Init()
 
 	m_PBRGbufferMaterial = GBufferMaterial::CreateDefaultMaterial();
 	m_pShadingMaterial = DeferredShadingMaterial::CreateDefaultMaterial();
-	m_temporalMaterials.push_back(TemporalMaterial::CreateDefaultMaterial(0));
-	m_temporalMaterials.push_back(TemporalMaterial::CreateDefaultMaterial(1));
 	m_pShadowMapMaterial = ShadowMapMaterial::CreateDefaultMaterial();
 	m_pSSAOMaterial = SSAOMaterial::CreateDefaultMaterial();
 	m_pBloomMaterial = BloomMaterial::CreateDefaultMaterial();

@@ -12,7 +12,6 @@ class ShadowMapMaterial;
 class SSAOMaterial;
 class GaussianBlurMaterial;
 class DeferredShadingMaterial;
-class TemporalMaterial;
 class ForwardMaterial;
 class BloomMaterial;
 class PostProcessingMaterial;
@@ -61,7 +60,6 @@ protected:
 	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurVMaterial;
 	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurHMaterial;
 	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
-	std::vector<std::shared_ptr<TemporalMaterial>>	m_temporalMaterials;
 	std::shared_ptr<ForwardMaterial>			m_pSkyBoxMaterial;
 	std::shared_ptr<BloomMaterial>				m_pBloomMaterial;
 	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurVMaterial;

@@ -11,7 +11,6 @@
 #include "ShadowMapPass.h"
 #include "GaussianBlurPass.h"
 #include "BloomPass.h"
-#include "TemporalPass.h"
 #include "FrameBufferDiction.h"
 
 bool RenderPassDiction::Init()
@@ -40,8 +39,6 @@ bool RenderPassDiction::Init()
 			m_pipelineRenderPasses[PipelineRenderPassSSAOBlurH] = GaussianBlurPass::Create(FrameBufferDiction::SSAO_FORMAT); break;
 		case PipelineRenderPassShading:
 			m_pipelineRenderPasses[PipelineRenderPassShading] = DeferredShadingPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); break;
-		case PipelineRenderPassTemporal:
-			m_pipelineRenderPasses[PipelineRenderPassTemporal] = TemporalPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); break;
 		case PipelineRenderPassBloom:
 			m_pipelineRenderPasses[PipelineRenderPassBloom] = BloomPass::Create(); break;
 		case PipelineRenderPassBloomBlurV:

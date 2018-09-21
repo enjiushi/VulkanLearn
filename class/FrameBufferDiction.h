@@ -35,8 +35,6 @@ public:
 		FrameBufferType_SSAOBlurV,
 		FrameBufferType_SSAOBlurH,
 		FrameBufferType_Shading,
-		FrameBufferType_Temporal0,
-		FrameBufferType_Temporal1,
 		FrameBufferType_BloomBlurV,
 		FrameBufferType_BloomBlurH,
 		FrameBufferType_PostProcessing,
@@ -71,7 +69,6 @@ public:
 	FrameBufferCombo CreateSSAOBlurFrameBufferV();
 	FrameBufferCombo CreateSSAOBlurFrameBufferH();
 	FrameBufferCombo CreateShadingFrameBuffer();
-	FrameBufferCombo CreateShadingTemporalFrameBuffer();
 	FrameBufferCombo CreateBloomFrameBufferV();
 	FrameBufferCombo CreateBloomFrameBufferH();
 	FrameBufferCombo CreatePostProcessingFrameBuffer();
