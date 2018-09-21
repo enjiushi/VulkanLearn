@@ -95,7 +95,7 @@ public:
 	void InitShaderModule();
 
 public:
-	static const uint32_t				WINDOW_WIDTH = 1536;
+	static const uint32_t				WINDOW_WIDTH = 1440;
 	static const uint32_t				WINDOW_HEIGHT = 1024;
 
 public:
