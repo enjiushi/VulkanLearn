@@ -227,3 +227,43 @@ vec3 AcquireBlurredSSAO(sampler2D tex, vec2 uv, int direction, float scale, floa
 
 	return result * strength;
 }
+
+float PDnrand(vec2 n) 
+{
+	return fract(sin(dot(n.xy, vec2(12.9898f, 78.233f)))* 43758.5453f);
+}
+
+vec2 PDnrand2(vec2 n)
+{
+	return fract(sin(dot(n.xy, vec2(12.9898f, 78.233f)))* vec2(43758.5453f, 28001.8384f));
+}
+
+vec3 PDnrand3(vec2 n)
+{
+	return fract(sin(dot(n.xy, vec2(12.9898f, 78.233f)))* vec3(43758.5453f, 28001.8384f, 50849.4141f));
+}
+
+vec4 PDnrand4(vec2 n)
+{
+	return fract(sin(dot(n.xy, vec2(12.9898f, 78.233f)))* vec4(43758.5453f, 28001.8384f, 50849.4141f, 12996.89f));
+}
+
+
+float PDsrand(vec2 n) 
+{
+	return PDnrand(n) * 2 - 1;
+}
+vec2 PDsrand2(vec2 n)
+{
+	return PDnrand2(n) * 2 - 1;
+}
+
+vec3 PDsrand3(vec2 n)
+{
+	return PDnrand3(n) * 2 - 1;
+}
+
+vec4 PDsrand4(vec2 n)
+{
+	return PDnrand4(n) * 2 - 1;
+}
