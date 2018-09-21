@@ -9,4 +9,5 @@ class Timer
 {
 public:
 	static double ElapsedTime;
+	static double TotalTime;
 };

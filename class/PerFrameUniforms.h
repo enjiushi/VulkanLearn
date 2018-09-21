@@ -19,6 +19,7 @@ typedef struct _PerFrameVariables
 	Vector4f	eyeSpaceSize;	// xy: eye space size, zw: inverted eye space size
 	Vector4f	nearFarAB;
 	Vector2f	cameraJitterOffset;
+	Vector2f	time;		//x: delta time, y: SineTime
 }PerFrameVariables;
 
 class PerFrameUniforms : public UniformDataStorage
@@ -50,6 +51,10 @@ public:
 	float GetFrameIndex() const { return m_perFrameVariables.frameIndex; }
 	void SetCameraJitterOffset(const Vector2f& jitterOffset);
 	Vector2f GetCameraJitterOffset() const { return m_perFrameVariables.cameraJitterOffset; }
+	void SetDeltaTime(float deltaTime);
+	float GetDeltaTime() const { return m_perFrameVariables.time.x; }
+	void SetSinTime(float sinTime);
+	float GetSinTime() const { return m_perFrameVariables.time.y; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;

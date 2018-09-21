@@ -73,6 +73,18 @@ void PerFrameUniforms::SetCameraJitterOffset(const Vector2f& jitterOffset)
 	SetDirty();
 }
 
+void PerFrameUniforms::SetDeltaTime(float deltaTime)
+{
+	m_perFrameVariables.time.x = deltaTime;
+	SetDirty();
+}
+
+void PerFrameUniforms::SetSinTime(float sinTime)
+{
+	m_perFrameVariables.time.y = sinTime;
+	SetDirty();
+}
+
 void PerFrameUniforms::SyncBufferDataInternal()
 {
 	// Using curr proj matrix here, to get rid of camera jitter effect
