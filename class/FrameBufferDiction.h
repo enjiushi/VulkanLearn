@@ -24,7 +24,7 @@ public:
 	static const uint32_t SHADOW_GEN_WINDOW_SIZE = 1024;
 	static const uint32_t SSAO_WINDOW_SIZE = 512;
 	static const uint32_t BLOOM_WINDOW_SIZE = 256;
-	static const uint32_t MOTION_TILE_SIZE = 32;
+	static const uint32_t MOTION_TILE_SIZE = 16;
 
 	typedef std::vector<std::shared_ptr<FrameBuffer>> FrameBufferCombo;
 
