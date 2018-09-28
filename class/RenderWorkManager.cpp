@@ -9,6 +9,8 @@
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
 #include "DeferredMaterial.h"
+#include "MotionTileMaxMaterial.h"
+#include "MotionNeighborMaxMaterial.h"
 #include "ShadowMapMaterial.h"
 #include "SSAOMaterial.h"
 #include "GaussianBlurMaterial.h"
@@ -22,15 +24,17 @@ bool RenderWorkManager::Init()
 	if (!Singleton<RenderWorkManager>::Init())
 		return false;
 
-	m_PBRGbufferMaterial = GBufferMaterial::CreateDefaultMaterial();
-	m_pShadingMaterial = DeferredShadingMaterial::CreateDefaultMaterial();
-	m_pShadowMapMaterial = ShadowMapMaterial::CreateDefaultMaterial();
-	m_pSSAOMaterial = SSAOMaterial::CreateDefaultMaterial();
-	m_pBloomMaterial = BloomMaterial::CreateDefaultMaterial();
-	m_pSSAOBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAO, FrameBufferDiction::FrameBufferType_SSAOBlurV, RenderPassDiction::PipelineRenderPassSSAOBlurV, { true, 1, 1 });
-	m_pSSAOBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOBlurV, FrameBufferDiction::FrameBufferType_SSAOBlurH, RenderPassDiction::PipelineRenderPassSSAOBlurH, { false, 1, 1 });
-	m_pBloomBlurVMaterial = GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_BloomBlurH, FrameBufferDiction::FrameBufferType_BloomBlurV, RenderPassDiction::PipelineRenderPassBloomBlurV, { true, 1.2f, 1.0f });
-	m_pBloomBlurHMaterial = GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_BloomBlurV, FrameBufferDiction::FrameBufferType_BloomBlurH, RenderPassDiction::PipelineRenderPassBloomBlurH, { false, 1.2f, 1.0f });
+	m_PBRGbufferMaterial			= GBufferMaterial::CreateDefaultMaterial();
+	m_pMotionTileMaxMaterial		= MotionTileMaxMaterial::CreateDefaultMaterial();
+	m_pMotionNeighborMaxMaterial	= MotionNeighborMaxMaterial::CreateDefaultMaterial();
+	m_pShadingMaterial				= DeferredShadingMaterial::CreateDefaultMaterial();
+	m_pShadowMapMaterial			= ShadowMapMaterial::CreateDefaultMaterial();
+	m_pSSAOMaterial					= SSAOMaterial::CreateDefaultMaterial();
+	m_pBloomMaterial				= BloomMaterial::CreateDefaultMaterial();
+	m_pSSAOBlurVMaterial			= GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAO, FrameBufferDiction::FrameBufferType_SSAOBlurV, RenderPassDiction::PipelineRenderPassSSAOBlurV, { true, 1, 1 });
+	m_pSSAOBlurHMaterial			= GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOBlurV, FrameBufferDiction::FrameBufferType_SSAOBlurH, RenderPassDiction::PipelineRenderPassSSAOBlurH, { false, 1, 1 });
+	m_pBloomBlurVMaterial			= GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_BloomBlurH, FrameBufferDiction::FrameBufferType_BloomBlurV, RenderPassDiction::PipelineRenderPassBloomBlurV, { true, 1.2f, 1.0f });
+	m_pBloomBlurHMaterial			= GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_BloomBlurV, FrameBufferDiction::FrameBufferType_BloomBlurH, RenderPassDiction::PipelineRenderPassBloomBlurH, { false, 1.2f, 1.0f });
 	m_postProcessMaterials.push_back(PostProcessingMaterial::CreateDefaultMaterial(0));
 	m_postProcessMaterials.push_back(PostProcessingMaterial::CreateDefaultMaterial(1));
 
@@ -84,6 +88,20 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	m_PBRGbufferMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer));
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->EndRenderPass(pDrawCmdBuffer);
 	m_PBRGbufferMaterial->AfterRenderPass(pDrawCmdBuffer);
+
+
+	m_pMotionTileMaxMaterial->BeforeRenderPass(pDrawCmdBuffer);
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionTileMax)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_MotionTileMax));
+	m_pMotionTileMaxMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_MotionTileMax));
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionTileMax)->EndRenderPass(pDrawCmdBuffer);
+	m_pMotionTileMaxMaterial->AfterRenderPass(pDrawCmdBuffer);
+
+
+	m_pMotionNeighborMaxMaterial->BeforeRenderPass(pDrawCmdBuffer);
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionNeighborMax)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_MotionNeighborMax));
+	m_pMotionNeighborMaxMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_MotionNeighborMax));
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionNeighborMax)->EndRenderPass(pDrawCmdBuffer);
+	m_pMotionNeighborMaxMaterial->AfterRenderPass(pDrawCmdBuffer);
 
 
 	m_pShadowMapMaterial->BeforeRenderPass(pDrawCmdBuffer);

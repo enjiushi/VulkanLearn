@@ -8,6 +8,8 @@ class FrameBuffer;
 class Texture2D;
 class DepthStencilBuffer;
 class GBufferMaterial;
+class MotionTileMaxMaterial;
+class MotionNeighborMaxMaterial;
 class ShadowMapMaterial;
 class SSAOMaterial;
 class GaussianBlurMaterial;
@@ -55,6 +57,8 @@ protected:
 	uint32_t m_renderStateMask;
 	
 	std::shared_ptr<GBufferMaterial>			m_PBRGbufferMaterial;
+	std::shared_ptr<MotionTileMaxMaterial>		m_pMotionTileMaxMaterial;
+	std::shared_ptr<MotionNeighborMaxMaterial>	m_pMotionNeighborMaxMaterial;
 	std::shared_ptr<ShadowMapMaterial>			m_pShadowMapMaterial;
 	std::shared_ptr<SSAOMaterial>				m_pSSAOMaterial;
 	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurVMaterial;

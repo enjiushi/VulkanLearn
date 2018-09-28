@@ -24,6 +24,7 @@ typedef struct _GlobalVariables
 	Vector4f	shadowGenWindowSize;
 	Vector4f	SSAOWindowSize;
 	Vector4f	bloomWindowSize;
+	Vector4f	motionTileWindowSize;	// xy: tile size, zw: window size
 
 	// Scene settings
 	Vector4f	mainLightDir;		// Main directional light		w: empty for padding
@@ -56,6 +57,9 @@ public:
 	Vector2f GetSSAOWindowSize() const { return { m_globalVariables.SSAOWindowSize.x, m_globalVariables.SSAOWindowSize.y }; }
 	void SetBloomWindowSize(const Vector2f& size);
 	Vector2f GetBloomWindowSize() const { return { m_globalVariables.bloomWindowSize.x, m_globalVariables.bloomWindowSize.y }; }
+	void SetMotionTileSize(const Vector2f& size);
+	Vector2f GetMotionTileSize() const { return { m_globalVariables.motionTileWindowSize.x, m_globalVariables.motionTileWindowSize.y }; }
+	Vector2f GetMotionTileWindowSize() const { return { m_globalVariables.motionTileWindowSize.z, m_globalVariables.motionTileWindowSize.w }; }
 
 	void SetMainLightDir(const Vector3f& dir);
 	Vector4f GetMainLightDir() const { return m_globalVariables.mainLightDir; }

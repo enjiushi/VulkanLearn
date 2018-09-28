@@ -14,6 +14,8 @@ public:
 	enum PipelineRenderPass
 	{
 		PipelineRenderPassGBuffer,
+		PipelineRenderPassMotionTileMax,
+		PipelineRenderPassMotionNeighborMax,
 		PipelineRenderPassShadowMap,
 		PipelineRenderPassSSAO,
 		PipelineRenderPassSSAOBlurV,

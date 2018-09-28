@@ -14,6 +14,7 @@ struct GlobalData
 	vec4 shadowGenWindowSize;
 	vec4 SSAOWindowSize;
 	vec4 bloomWindowSize;
+	vec4 motionTileWindowSize;
 
 	// Scene Settings
 	vec4 mainLightDir;

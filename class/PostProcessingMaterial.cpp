@@ -151,11 +151,10 @@ bool PostProcessingMaterial::Init(const std::shared_ptr<PostProcessingMaterial>&
 	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
 		return false;
 
-	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
-
 	std::vector<CombinedImage> shadingResults;
 	std::vector<CombinedImage> bloomTextures;
 	std::vector<CombinedImage> motionVectors;
+	std::vector<CombinedImage> motionNeighborMaxs;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
 		std::shared_ptr<FrameBuffer> pShadingResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
@@ -181,6 +180,14 @@ bool PostProcessingMaterial::Init(const std::shared_ptr<PostProcessingMaterial>&
 			pMotionVector->GetColorTarget(FrameBufferDiction::MotionVector)->CreateLinearClampToEdgeSampler(),
 			pMotionVector->GetColorTarget(FrameBufferDiction::MotionVector)->CreateDefaultImageView()
 		});
+
+		std::shared_ptr<FrameBuffer> pMotionNeighborMax = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionNeighborMax)[j];
+
+		motionNeighborMaxs.push_back({
+			pMotionNeighborMax->GetColorTarget(0),
+			pMotionNeighborMax->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pMotionNeighborMax->GetColorTarget(0)->CreateDefaultImageView()
+			});
 	}
 
 	std::vector<CombinedImage> temporalBuffers;
@@ -193,7 +200,8 @@ bool PostProcessingMaterial::Init(const std::shared_ptr<PostProcessingMaterial>&
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, shadingResults);
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, bloomTextures);
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 2, motionVectors);
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 3, temporalBuffers);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 3, motionNeighborMaxs);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 4, temporalBuffers);
 
 	return true;
 }
@@ -220,6 +228,14 @@ void PostProcessingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>
 			{
 				CombinedSampler,
 				"Motion Vector",
+				{},
+				GetSwapChain()->GetSwapChainImageCount()
+			});
+
+		m_materialVariableLayout.push_back(
+			{
+				CombinedSampler,
+				"Motion Neighbor Max",
 				{},
 				GetSwapChain()->GetSwapChainImageCount()
 			});
@@ -261,6 +277,7 @@ void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<Comman
 	std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 	std::shared_ptr<Image> pBloomTex = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_BloomBlurH)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 	std::shared_ptr<Image> pMotionVector = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::MotionVector);
+	std::shared_ptr<Image> pMotionNeighborMax = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionNeighborMax)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 	std::shared_ptr<Image> pTemporalHistory = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_PostProcessing, m_pingPong)->GetColorTarget(1);
 
 	VkImageSubresourceRange subresourceRange0 = {};
@@ -311,17 +328,32 @@ void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<Comman
 	VkImageSubresourceRange subresourceRange3 = {};
 	subresourceRange3.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange3.baseMipLevel = 0;
-	subresourceRange3.levelCount = pTemporalHistory->GetImageInfo().mipLevels;
-	subresourceRange3.layerCount = pTemporalHistory->GetImageInfo().arrayLayers;
+	subresourceRange3.levelCount = pMotionNeighborMax->GetImageInfo().mipLevels;
+	subresourceRange3.layerCount = pMotionNeighborMax->GetImageInfo().arrayLayers;
 
 	VkImageMemoryBarrier imgBarrier3 = {};
 	imgBarrier3.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier3.image = pTemporalHistory->GetDeviceHandle();
+	imgBarrier3.image = pMotionNeighborMax->GetDeviceHandle();
 	imgBarrier3.subresourceRange = subresourceRange3;
 	imgBarrier3.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier3.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	imgBarrier3.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier3.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	VkImageSubresourceRange subresourceRange4 = {};
+	subresourceRange4.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange4.baseMipLevel = 0;
+	subresourceRange4.levelCount = pTemporalHistory->GetImageInfo().mipLevels;
+	subresourceRange4.layerCount = pTemporalHistory->GetImageInfo().arrayLayers;
+
+	VkImageMemoryBarrier imgBarrier4 = {};
+	imgBarrier4.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier4.image = pTemporalHistory->GetDeviceHandle();
+	imgBarrier4.subresourceRange = subresourceRange4;
+	imgBarrier4.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier4.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	imgBarrier4.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier4.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	pCmdBuffer->AttachBarriers
 	(
@@ -329,6 +361,6 @@ void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<Comman
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 		{},
 		{},
-		{ imgBarrier0, imgBarrier1, imgBarrier2, imgBarrier3 }
+		{ imgBarrier0, imgBarrier1, imgBarrier2, imgBarrier3, imgBarrier4 }
 	);
 }

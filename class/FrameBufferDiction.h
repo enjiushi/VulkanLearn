@@ -16,6 +16,7 @@ public:
 	static const VkFormat OFFSCREEN_DEPTH_STENCIL_FORMAT = VK_FORMAT_D32_SFLOAT_S8_UINT;
 	static const VkFormat OFFSCREEN_DEPTH_FORMAT = VK_FORMAT_D32_SFLOAT;
 	static const VkFormat GBUFFER0_COLOR_FORMAT = VK_FORMAT_A2R10G10B10_UNORM_PACK32;
+	static const VkFormat OFFSCREEN_MOTION_TILE_FORMAT = VK_FORMAT_R16G16_SFLOAT;
 	static const VkFormat SSAO_FORMAT = VK_FORMAT_R16_SFLOAT;
 	static const VkFormat BLUR_FORMAT = VK_FORMAT_R16_SFLOAT;
 
@@ -23,6 +24,7 @@ public:
 	static const uint32_t SHADOW_GEN_WINDOW_SIZE = 1024;
 	static const uint32_t SSAO_WINDOW_SIZE = 512;
 	static const uint32_t BLOOM_WINDOW_SIZE = 256;
+	static const uint32_t MOTION_TILE_SIZE = 32;
 
 	typedef std::vector<std::shared_ptr<FrameBuffer>> FrameBufferCombo;
 
@@ -30,6 +32,8 @@ public:
 	enum FrameBufferType
 	{
 		FrameBufferType_GBuffer,
+		FrameBufferType_MotionTileMax,
+		FrameBufferType_MotionNeighborMax,
 		FrameBufferType_ShadowMap,
 		FrameBufferType_SSAO,
 		FrameBufferType_SSAOBlurV,
@@ -64,6 +68,8 @@ public:
 	static VkFormat GetGBufferFormat(GBuffer gbuffer) { return m_GBufferFormatTable[gbuffer]; }
 
 	FrameBufferCombo CreateGBufferFrameBuffer();
+	FrameBufferCombo CreateMotionTileMaxFrameBuffer();
+	FrameBufferCombo CreateMotionNeighborMaxFrameBuffer();
 	FrameBufferCombo CreateShadowMapFrameBuffer();
 	FrameBufferCombo CreateSSAOFrameBuffer();
 	FrameBufferCombo CreateSSAOBlurFrameBufferV();

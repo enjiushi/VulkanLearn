@@ -28,6 +28,7 @@ bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 	SetShadowGenWindowSize({ (float)FrameBufferDiction::SHADOW_GEN_WINDOW_SIZE, (float)FrameBufferDiction::SHADOW_GEN_WINDOW_SIZE });
 	SetSSAOWindowSize({ (float)FrameBufferDiction::SSAO_WINDOW_SIZE, (float)FrameBufferDiction::SSAO_WINDOW_SIZE });
 	SetBloomWindowSize({ (float)FrameBufferDiction::BLOOM_WINDOW_SIZE, (float)FrameBufferDiction::BLOOM_WINDOW_SIZE });
+	SetMotionTileSize({ (float)FrameBufferDiction::MOTION_TILE_SIZE, (float)FrameBufferDiction::MOTION_TILE_SIZE });
 
 	InitSSAORandomSample();
 
@@ -102,6 +103,14 @@ void GlobalUniforms::SetBloomWindowSize(const Vector2f& size)
 	m_globalVariables.bloomWindowSize.z = 1.0f / size.x;
 	m_globalVariables.bloomWindowSize.w = 1.0f / size.y;
 	SetDirty();
+}
+
+void GlobalUniforms::SetMotionTileSize(const Vector2f& size)
+{
+	m_globalVariables.motionTileWindowSize.x = size.x;
+	m_globalVariables.motionTileWindowSize.y = size.y;
+	m_globalVariables.motionTileWindowSize.z = (uint32_t)m_globalVariables.gameWindowSize.x / (uint32_t)size.x + (((uint32_t)m_globalVariables.gameWindowSize.x % (uint32_t)size.x) > 0 ? 1 : 0);
+	m_globalVariables.motionTileWindowSize.w = (uint32_t)m_globalVariables.gameWindowSize.y / (uint32_t)size.y + (((uint32_t)m_globalVariables.gameWindowSize.y % (uint32_t)size.y) > 0 ? 1 : 0);
 }
 
 void GlobalUniforms::SyncBufferDataInternal()

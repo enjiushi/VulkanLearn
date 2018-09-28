@@ -11,6 +11,7 @@
 #include "ShadowMapPass.h"
 #include "GaussianBlurPass.h"
 #include "BloomPass.h"
+#include "MotionTilePass.h"
 #include "FrameBufferDiction.h"
 
 bool RenderPassDiction::Init()
@@ -29,6 +30,10 @@ bool RenderPassDiction::Init()
 		{
 		case  PipelineRenderPassGBuffer:
 			m_pipelineRenderPasses[PipelineRenderPassGBuffer] = GBufferPass::Create(); break;
+		case  PipelineRenderPassMotionTileMax:
+			m_pipelineRenderPasses[PipelineRenderPassMotionTileMax] = MotionTilePass::Create(); break;
+		case  PipelineRenderPassMotionNeighborMax:
+			m_pipelineRenderPasses[PipelineRenderPassMotionNeighborMax] = MotionTilePass::Create(); break;
 		case  PipelineRenderPassShadowMap:
 			m_pipelineRenderPasses[PipelineRenderPassShadowMap] = ShadowMapPass::Create(); break;
 		case PipelineRenderPassSSAO:

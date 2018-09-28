@@ -32,6 +32,10 @@ bool FrameBufferDiction::Init()
 		{
 		case  FrameBufferType_GBuffer:
 			m_frameBuffers[FrameBufferType_GBuffer] = CreateGBufferFrameBuffer(); break;
+		case  FrameBufferType_MotionTileMax:
+			m_frameBuffers[FrameBufferType_MotionTileMax] = CreateMotionTileMaxFrameBuffer(); break;
+		case  FrameBufferType_MotionNeighborMax:
+			m_frameBuffers[FrameBufferType_MotionNeighborMax] = CreateMotionNeighborMaxFrameBuffer(); break;
 		case  FrameBufferType_ShadowMap:
 			m_frameBuffers[FrameBufferType_ShadowMap] = CreateShadowMapFrameBuffer(); break;
 		case FrameBufferType_SSAO:
@@ -102,6 +106,36 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffe
 		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, windowSize.x, windowSize.y);
 
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), gbuffer_vec, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->GetRenderPass()));
+	}
+
+	return frameBuffers;
+}
+
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionTileMaxFrameBuffer()
+{
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize();
+
+	FrameBufferCombo frameBuffers;
+
+	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+	{
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, OFFSCREEN_MOTION_TILE_FORMAT);
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionTileMax)->GetRenderPass()));
+	}
+
+	return frameBuffers;
+}
+
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionNeighborMaxFrameBuffer()
+{
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize();
+
+	FrameBufferCombo frameBuffers;
+
+	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+	{
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, OFFSCREEN_MOTION_TILE_FORMAT);
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionNeighborMax)->GetRenderPass()));
 	}
 
 	return frameBuffers;
