@@ -21,7 +21,7 @@ int index = int(perFrameData.camDir.a);
 const float bloomMagnitude = 0.2f;
 const float bloomExposure = 1.3f;
 
-const float MOTION_VEC_AMP = 10.0f;
+const float MOTION_VEC_AMP = 13.0f;
 const float MOTION_VEC_SAMPLE_COUNT = 16;
 
 const float FLT_EPS = 0.00000001f;
@@ -92,14 +92,13 @@ void main()
 
 	vec3 fullMotionColor = vec3(0);
 	vec2 motionNeighborMax = texture(MotionNeighborMax[index], unjitteredUV).rg;
-	vec2 step = motionNeighborMax / MOTION_VEC_SAMPLE_COUNT * PDsrand(inUv + vec2(perFrameData.time.x)) * MOTION_VEC_AMP;	// either side samples a pre-defined amount of colors
-	//vec2 step = motionNeighborMax / MOTION_VEC_SAMPLE_COUNT * MOTION_VEC_AMP;	// either side samples a pre-defined amount of colors
-	ivec2 istep = ivec2(floor(step * globalData.gameWindowSize.xy));
+	vec2 step = motionNeighborMax / MOTION_VEC_SAMPLE_COUNT * MOTION_VEC_AMP;	// either side samples a pre-defined amount of colors
+	vec2 startPos = inUv + step * 0.5f * PDsrand(inUv + vec2(perFrameData.time.x));	// Randomize starting position
 
 	for (int i = int(-MOTION_VEC_SAMPLE_COUNT / 2.0f); i <= int(MOTION_VEC_SAMPLE_COUNT / 2.0f); i++)
 	{
-		fullMotionColor += texture(ShadingResult[index], inUv + step * i).rgb;
-		fullMotionColor += pow(texture(BloomTextures[index], inUv + step * i).rgb * bloomMagnitude, vec3(bloomExposure));
+		fullMotionColor += texture(ShadingResult[index], startPos + step * i).rgb;
+		fullMotionColor += pow(texture(BloomTextures[index], startPos + step * i).rgb * bloomMagnitude, vec3(bloomExposure));
 	}
 
 	fullMotionColor /= MOTION_VEC_SAMPLE_COUNT;
