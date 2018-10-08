@@ -49,6 +49,17 @@ bool RenderWorkManager::Init()
 
 	m_pSkyBoxMaterial = ForwardMaterial::CreateDefaultMaterial(info);
 
+	info = {};
+	info.shaderPaths = { L"../data/shaders/background_motion_gen.vert.spv", L"", L"", L"", L"../data/shaders/background_motion_gen.frag.spv", L"" };
+	info.materialUniformVars = {};
+	info.vertexFormat = VertexFormatP;
+	info.subpassIndex = 1;
+	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
+	info.depthWriteEnable = false;
+	info.frameBufferType = FrameBufferDiction::FrameBufferType_GBuffer;
+
+	m_pBackgroundMotionMaterial = ForwardMaterial::CreateDefaultMaterial(info);
+
 	return true;
 }
 
@@ -82,11 +93,15 @@ void RenderWorkManager::SyncMaterialData()
 void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffer, uint32_t pingpong)
 {
 	m_PBRGbufferMaterial->BeforeRenderPass(pDrawCmdBuffer);
+	m_pBackgroundMotionMaterial->BeforeRenderPass(pDrawCmdBuffer);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer));
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y, 0, 1 });
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y });
 	m_PBRGbufferMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer));
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->NextSubpass(pDrawCmdBuffer);
+	m_pBackgroundMotionMaterial->DrawScreenQuad(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer));
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->EndRenderPass(pDrawCmdBuffer);
+	m_pBackgroundMotionMaterial->AfterRenderPass(pDrawCmdBuffer);
 	m_PBRGbufferMaterial->AfterRenderPass(pDrawCmdBuffer);
 
 

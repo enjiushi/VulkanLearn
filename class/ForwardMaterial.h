@@ -9,6 +9,7 @@ public:
 
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) override;
+	void DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer);
 
 protected:
 	FrameBufferDiction::FrameBufferType	m_frameBufferType;

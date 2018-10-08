@@ -66,17 +66,27 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 	GBufferPassColorAttach[3].attachment = 3;
 	GBufferPassColorAttach[3].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	VkAttachmentReference GBufferPassDSAttach = {};
-	GBufferPassDSAttach.attachment = 4;
-	GBufferPassDSAttach.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	VkAttachmentReference depthAttachment = {};
+	depthAttachment.attachment = 4;
+	depthAttachment.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription GBufferSubPass = {};
 	GBufferSubPass.colorAttachmentCount = GBufferPassColorAttach.size();
 	GBufferSubPass.pColorAttachments = GBufferPassColorAttach.data();
-	GBufferSubPass.pDepthStencilAttachment = &GBufferPassDSAttach;
+	GBufferSubPass.pDepthStencilAttachment = &depthAttachment;
 	GBufferSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
-	std::vector<VkSubpassDependency> dependencies(2);
+	std::vector<VkAttachmentReference> backgroundMotionAttach(1);
+	backgroundMotionAttach[0].attachment = 3;
+	backgroundMotionAttach[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription backgroundMotionSubPass = {};
+	backgroundMotionSubPass.colorAttachmentCount = backgroundMotionAttach.size();
+	backgroundMotionSubPass.pColorAttachments = backgroundMotionAttach.data();
+	backgroundMotionSubPass.pDepthStencilAttachment = &depthAttachment;
+	backgroundMotionSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+	std::vector<VkSubpassDependency> dependencies(3);
 
 	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 	dependencies[0].dstSubpass = 0;
@@ -86,16 +96,32 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 	dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-	// This one can be generated implicitly without definition
 	dependencies[1].srcSubpass = 0;
-	dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-	dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	dependencies[1].dstAccessMask = 0;
-	dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependencies[1].dstSubpass = 1;
+	dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+	dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 	dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-	std::vector<VkSubpassDescription> subPasses = { GBufferSubPass };
+	// This one can be generated implicitly without definition
+	dependencies[2].srcSubpass = 0;
+	dependencies[2].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[2].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[2].dstAccessMask = 0;
+	dependencies[2].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[2].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependencies[2].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	//dependencies[1].srcSubpass = 0;
+	//dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+	//dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	//dependencies[1].dstAccessMask = 0;
+	//dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	//dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	//dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	std::vector<VkSubpassDescription> subPasses = { GBufferSubPass, backgroundMotionSubPass };
 
 	VkRenderPassCreateInfo renderpassCreateInfo = {};
 	renderpassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;

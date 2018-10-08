@@ -22,7 +22,7 @@ std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const Si
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(pForwardMaterial->m_frameBufferType)->GetColorTargets().size();
+	uint32_t colorTargetCount = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetSubpassDef()[simpleMaterialInfo.subpassIndex].m_colorAttachmentRefs.size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -127,7 +127,6 @@ void ForwardMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const 
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	// FIXME: Subpass index hard-coded
 	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pFrameBuffer);
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
@@ -138,6 +137,26 @@ void ForwardMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const 
 	BindMeshData(pDrawCmdBuffer);
 
 	pDrawCmdBuffer->DrawIndexedIndirect(m_pIndirectBuffer, 0, m_indirectIndex);
+
+	pDrawCmdBuffer->EndSecondaryRecording();
+
+	pCmdBuf->Execute({ pDrawCmdBuffer });
+}
+
+void ForwardMaterial::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
+{
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
+
+	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pFrameBuffer);
+
+	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
+	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
+
+	BindPipeline(pDrawCmdBuffer);
+	BindDescriptorSet(pDrawCmdBuffer);
+	BindMeshData(pDrawCmdBuffer);
+
+	pDrawCmdBuffer->Draw(3, 1, 0, 0);
 
 	pDrawCmdBuffer->EndSecondaryRecording();
 

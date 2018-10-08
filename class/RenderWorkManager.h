@@ -57,6 +57,7 @@ protected:
 	uint32_t m_renderStateMask;
 	
 	std::shared_ptr<GBufferMaterial>			m_PBRGbufferMaterial;
+	std::shared_ptr<ForwardMaterial>			m_pBackgroundMotionMaterial;
 	std::shared_ptr<MotionTileMaxMaterial>		m_pMotionTileMaxMaterial;
 	std::shared_ptr<MotionNeighborMaxMaterial>	m_pMotionNeighborMaxMaterial;
 	std::shared_ptr<ShadowMapMaterial>			m_pShadowMapMaterial;
