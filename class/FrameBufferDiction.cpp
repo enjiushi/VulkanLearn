@@ -16,7 +16,7 @@ VkFormat FrameBufferDiction::m_GBufferFormatTable[FrameBufferDiction::GBufferCou
 	VK_FORMAT_A2R10G10B10_UNORM_PACK32,
 	VK_FORMAT_R8G8B8A8_UNORM,
 	VK_FORMAT_R8G8B8A8_UNORM,
-	VK_FORMAT_R16G16_SNORM
+	VK_FORMAT_R16G16_SFLOAT
 };
 
 bool FrameBufferDiction::Init()
