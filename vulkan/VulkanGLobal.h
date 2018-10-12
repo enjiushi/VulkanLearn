@@ -46,8 +46,6 @@
 #include "../class/SSAOMaterial.h"
 #include "../class/GaussianBlurMaterial.h"
 #include "../class/BloomMaterial.h"
-#include "../class/BloomPass.h"
-#include "../class/PostProcessingPass.h"
 #include "../class/PostProcessingMaterial.h"
 
 class VulkanGlobal : public Singleton<VulkanGlobal>

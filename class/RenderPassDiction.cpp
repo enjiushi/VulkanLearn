@@ -5,14 +5,9 @@
 #include "../Maths/Vector.h"
 #include "ForwardRenderPass.h"
 #include "GBufferPass.h"
-#include "SSAOPass.h"
 #include "DeferredShadingPass.h"
-#include "PostProcessingPass.h"
-#include "ShadowMapPass.h"
-#include "GaussianBlurPass.h"
-#include "BloomPass.h"
-#include "MotionTilePass.h"
 #include "FrameBufferDiction.h"
+#include "CustomizedRenderPass.h"
 
 bool RenderPassDiction::Init()
 {
@@ -31,27 +26,31 @@ bool RenderPassDiction::Init()
 		case  PipelineRenderPassGBuffer:
 			m_pipelineRenderPasses[PipelineRenderPassGBuffer] = GBufferPass::Create(); break;
 		case  PipelineRenderPassMotionTileMax:
-			m_pipelineRenderPasses[PipelineRenderPassMotionTileMax] = MotionTilePass::Create(); break;
+			m_pipelineRenderPasses[PipelineRenderPassMotionTileMax] = CustomizedRenderPass::Create({ { FrameBufferDiction::OFFSCREEN_MOTION_TILE_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0 } } }); break;
 		case  PipelineRenderPassMotionNeighborMax:
-			m_pipelineRenderPasses[PipelineRenderPassMotionNeighborMax] = MotionTilePass::Create(); break;
+			m_pipelineRenderPasses[PipelineRenderPassMotionNeighborMax] = CustomizedRenderPass::Create({ { FrameBufferDiction::OFFSCREEN_MOTION_TILE_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0 } } }); break;
 		case  PipelineRenderPassShadowMap:
-			m_pipelineRenderPasses[PipelineRenderPassShadowMap] = ShadowMapPass::Create(); break;
+			m_pipelineRenderPasses[PipelineRenderPassShadowMap] = CustomizedRenderPass::Create({ { FrameBufferDiction::OFFSCREEN_DEPTH_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 1 } } }); break;
 		case PipelineRenderPassSSAO:
-			m_pipelineRenderPasses[PipelineRenderPassSSAO] = SSAOPass::Create(FrameBufferDiction::SSAO_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); break;
+			m_pipelineRenderPasses[PipelineRenderPassSSAO] = CustomizedRenderPass::Create({ { FrameBufferDiction::SSAO_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0 } } }); break;
 		case PipelineRenderPassSSAOBlurV:
-			m_pipelineRenderPasses[PipelineRenderPassSSAOBlurV] = GaussianBlurPass::Create(FrameBufferDiction::SSAO_FORMAT); break;
+			m_pipelineRenderPasses[PipelineRenderPassSSAOBlurV] = CustomizedRenderPass::Create({ { FrameBufferDiction::SSAO_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0, 0, 0, 0 } } }); break;
 		case PipelineRenderPassSSAOBlurH:
-			m_pipelineRenderPasses[PipelineRenderPassSSAOBlurH] = GaussianBlurPass::Create(FrameBufferDiction::SSAO_FORMAT); break;
+			m_pipelineRenderPasses[PipelineRenderPassSSAOBlurH] = CustomizedRenderPass::Create({ { FrameBufferDiction::SSAO_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0, 0, 0, 0 } } }); break;
 		case PipelineRenderPassShading:
 			m_pipelineRenderPasses[PipelineRenderPassShading] = DeferredShadingPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); break;
 		case PipelineRenderPassBloom:
-			m_pipelineRenderPasses[PipelineRenderPassBloom] = BloomPass::Create(); break;
+			m_pipelineRenderPasses[PipelineRenderPassBloom] = CustomizedRenderPass::Create({ { FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, { 0, 0, 0, 0} } }); break;
 		case PipelineRenderPassBloomBlurV:
-			m_pipelineRenderPasses[PipelineRenderPassBloomBlurV] = GaussianBlurPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT); break;
+			m_pipelineRenderPasses[PipelineRenderPassBloomBlurV] = CustomizedRenderPass::Create({ { FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0, 0, 0, 0 } } }); break;
 		case PipelineRenderPassBloomBlurH:
-			m_pipelineRenderPasses[PipelineRenderPassBloomBlurH] = GaussianBlurPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT); break;
+			m_pipelineRenderPasses[PipelineRenderPassBloomBlurH] = CustomizedRenderPass::Create({ { FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, { 0, 0, 0, 0} } }); break;
 		case PipelineRenderPassPostProcessing:
-			m_pipelineRenderPasses[PipelineRenderPassPostProcessing] = PostProcessingPass::Create(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); break;
+			m_pipelineRenderPasses[PipelineRenderPassPostProcessing] = CustomizedRenderPass::Create(
+				{
+					{ GetDevice()->GetPhysicalDevice()->GetSurfaceFormat().format, VK_IMAGE_LAYOUT_UNDEFINED , VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, {0, 0, 0, 0} },
+					{ FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0, 0, 0, 0 } }
+				}); break;
 		default:
 			break;
 		}
