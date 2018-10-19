@@ -21,7 +21,7 @@ int index = int(perFrameData.camDir.a);
 const float bloomMagnitude = 0.2f;
 const float bloomExposure = 1.3f;
 
-const float MOTION_VEC_AMP = 3.0f;
+const float MOTION_VEC_AMP = 10.0f;
 const float MOTION_VEC_SAMPLE_COUNT = 16;
 
 const float FLT_EPS = 0.00000001f;
@@ -74,7 +74,8 @@ void main()
 	vec3 maxColor = max(bl, max(bm, max(br, max(ml, max(mr, max(tl, max(tm, max(tr, curr))))))));
 
 	// min max suppress to reduce temporal ghosting effect
-	prev = clip_aabb(minColor, maxColor, prev);
+	vec3 clippedPrev = clip_aabb(minColor, maxColor, prev);
+	prev = mix(clippedPrev, prev, 0.8f);
 
 	float currLum = Luminance(curr);
 	float prevLum = Luminance(prev);
@@ -84,7 +85,7 @@ void main()
 	float unbiasedWeightSQR = unbiasedWeight * unbiasedWeight;
 	float feedback = mix(0.87f, 0.97f, unbiasedWeightSQR);
 
-	vec3 noneMotionColor = mix(curr, prev, feedback);
+	vec3 noneMotionColor = mix(curr, prev, 0.97f);
 
 	outTemporalHistory = vec4(noneMotionColor, 1.0f);
 
@@ -93,11 +94,11 @@ void main()
 	vec3 fullMotionColor = vec3(0);
 	vec2 motionNeighborMax = texture(MotionNeighborMax[index], unjitteredUV).rg;
 	vec2 step = motionNeighborMax / MOTION_VEC_SAMPLE_COUNT * MOTION_VEC_AMP;	// either side samples a pre-defined amount of colors
-	vec2 startPos = inUv + step * 0.5f * PDsrand(inUv + vec2(perFrameData.time.x));	// Randomize starting position
+	vec2 startPos = inUv + motionVec + step * 0.5f * PDsrand(inUv + vec2(perFrameData.time.x));	// Randomize starting position
 
 	for (int i = int(-MOTION_VEC_SAMPLE_COUNT / 2.0f); i <= int(MOTION_VEC_SAMPLE_COUNT / 2.0f); i++)
 	{
-		fullMotionColor += texture(ShadingResult[index], startPos + step * i).rgb;
+		fullMotionColor += texture(TemporalHistory, startPos + step * i).rgb;
 		fullMotionColor += pow(texture(BloomTextures[index], startPos + step * i).rgb * bloomMagnitude, vec3(bloomExposure));
 	}
 
