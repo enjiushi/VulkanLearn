@@ -15,7 +15,7 @@ layout (location = 0) out vec4 outFragColor0;
 
 int index = int(perFrameData.camDir.a);
 
-float SSAO_RADIUS = 15.0f;
+float SSAO_RADIUS = 30.0f;
 
 vec3 UnpackNormal(ivec2 coord)
 {
