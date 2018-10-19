@@ -112,7 +112,8 @@ void Character::Move(const Vector3f& v, float delta)
 	if (m_pObject.expired())
 		return;
 
-	Vector3f move_dir = v.Normal() * delta * m_charVars.moveSpeed;
+	//Vector3f move_dir = v.Normal() * delta * m_charVars.moveSpeed;
+	Vector3f move_dir = v.Normal() * 3.5 * m_charVars.moveSpeed;	// FIXME: use fixed delta time since frame is unstable right now, and I don't have a gpu profiler for my nvidia card
 	move_dir.x = -move_dir.x;	//reverse x axis, because camera left direction is opposite to x axis
 	move_dir.z = -move_dir.z;	//reverse z axis, because camera looking direction is opposite to z axis
 
@@ -198,9 +199,9 @@ void Character::OnRotate(uint32_t dir, float delta)
 	Matrix3f rotate_around_up;
 
 	if (dir & CharMoveDir::Leftward)
-		rotate_around_up = Matrix3f::Rotation(delta * m_charVars.rotateSpeed, Vector3f::Upward());
+		rotate_around_up = Matrix3f::Rotation(3.5f * m_charVars.rotateSpeed, Vector3f::Upward());		//FIXME: Need profiler to replace hard-code delta
 	if (dir & CharMoveDir::Rightward)
-		rotate_around_up = Matrix3f::Rotation(-delta * m_charVars.rotateSpeed, Vector3f::Upward());
+		rotate_around_up = Matrix3f::Rotation(-3.5f * m_charVars.rotateSpeed, Vector3f::Upward());		//FIXME: Need profiler to replace hard-code delta
 
 	m_pObject.lock()->SetRotation(rotate_around_up * m_pObject.lock()->GetLocalRotationM());
 }
