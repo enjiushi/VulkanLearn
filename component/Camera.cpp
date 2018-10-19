@@ -72,10 +72,10 @@ void Camera::UpdateProjMatrix()
 		// 2). x2 = (2 * jitter_offset_near_plane) / near_plane_width
 		// 3). jitter_offset_near_plane = jitter_offset / window_width * near_plane_width
 		// 4). x2 = 2 * jitter_offset / window_width
-		proj.z0 = 2.0f * m_cameraInfo.jitterOffset.x;	// FIXME: hard-coded window width 1536
+		proj.z0 = 2.0f * m_cameraInfo.jitterOffset.x * width;	// FIXME: hard-coded window width 1536
 
 		proj.y1 = 2.0f * m_cameraInfo.near / height;
-		proj.z1 = 2.0f * m_cameraInfo.jitterOffset.y;	// FIXME: hard-coded window height 1024
+		proj.z1 = 2.0f * m_cameraInfo.jitterOffset.y * height;	// FIXME: hard-coded window height 1024
 
 		UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraJitterOffset(m_cameraInfo.jitterOffset);
 	}
