@@ -17,7 +17,6 @@
 #include "RenderPassDiction.h"
 #include "RenderWorkManager.h"
 #include "GBufferPass.h"
-#include "ShadowMapPass.h"
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 
