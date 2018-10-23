@@ -148,8 +148,6 @@ bool SSAOMaterial::Init(const std::shared_ptr<SSAOMaterial>& pSelf,
 	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
 		return false;
 
-	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
-
 	std::vector<CombinedImage> gbuffer0;
 	std::vector<CombinedImage> depthBuffer;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
@@ -157,9 +155,9 @@ bool SSAOMaterial::Init(const std::shared_ptr<SSAOMaterial>& pSelf,
 		std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
 
 		gbuffer0.push_back({
-			pGBufferFrameBuffer->GetColorTarget(0),
-			pGBufferFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-			pGBufferFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer0),
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer0)->CreateLinearClampToEdgeSampler(),
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer0)->CreateDefaultImageView()
 		});
 
 		depthBuffer.push_back({
@@ -233,28 +231,45 @@ void SSAOMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std
 
 void SSAOMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	std::shared_ptr<Image> pGBuffer0 = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
-	VkImageSubresourceRange subresourceRange = {};
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pGBuffer0->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pGBuffer0->GetImageInfo().arrayLayers;
+	std::shared_ptr<Image> pGBuffer0 = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::GBuffer0);
+	std::shared_ptr<Image> pDepth = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetDepthStencilTarget();
 
-	VkImageMemoryBarrier imgBarrier = {};
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pGBuffer0->GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	VkImageSubresourceRange subresourceRange0 = {};
+	subresourceRange0.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange0.baseMipLevel = 0;
+	subresourceRange0.levelCount = pGBuffer0->GetImageInfo().mipLevels;
+	subresourceRange0.layerCount = pGBuffer0->GetImageInfo().arrayLayers;
+
+	VkImageMemoryBarrier imgBarrier0 = {};
+	imgBarrier0.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier0.image = pGBuffer0->GetDeviceHandle();
+	imgBarrier0.subresourceRange = subresourceRange0;
+	imgBarrier0.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier0.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	imgBarrier0.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier0.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	VkImageSubresourceRange subresourceRange1 = {};
+	subresourceRange1.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange1.baseMipLevel = 0;
+	subresourceRange1.levelCount = pGBuffer0->GetImageInfo().mipLevels;
+	subresourceRange1.layerCount = pGBuffer0->GetImageInfo().arrayLayers;
+
+	VkImageMemoryBarrier imgBarrier1 = {};
+	imgBarrier1.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier1.image = pDepth->GetDeviceHandle();
+	imgBarrier1.subresourceRange = subresourceRange1;
+	imgBarrier1.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier1.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	imgBarrier1.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier1.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	pCmdBuffer->AttachBarriers
 	(
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 		{},
 		{},
-		{ imgBarrier }
+		{ imgBarrier0, imgBarrier1 }
 	);
 }
