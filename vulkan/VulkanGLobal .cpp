@@ -131,7 +131,7 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 		dmScreenSettings.dmBitsPerPel = 32;
 		dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
-		if ((WINDOW_WIDTH != screenWidth) && (WINDOW_HEIGHT != screenHeight))
+		if ((FrameBufferDiction::WINDOW_WIDTH != screenWidth) && (FrameBufferDiction::WINDOW_HEIGHT != screenHeight))
 		{
 			if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
 			{
@@ -165,8 +165,8 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 	RECT windowRect;
 	windowRect.left = 0L;
 	windowRect.top = 0L;
-	windowRect.right = fullscreen ? (long)screenWidth : (long)WINDOW_WIDTH;
-	windowRect.bottom = fullscreen ? (long)screenHeight : (long)WINDOW_HEIGHT;
+	windowRect.right = fullscreen ? (long)screenWidth : (long)FrameBufferDiction::WINDOW_WIDTH;
+	windowRect.bottom = fullscreen ? (long)screenHeight : (long)FrameBufferDiction::WINDOW_HEIGHT;
 
 	AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle);
 

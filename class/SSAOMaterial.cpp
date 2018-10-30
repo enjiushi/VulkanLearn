@@ -26,8 +26,8 @@ std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial()
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon.vert.spv", L"", L"", L"", L"../data/shaders/ssao_gen.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
-	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_SSAO;
-	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO);
+	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOSSR;
+	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOSSR);
 	simpleMaterialInfo.depthTestEnable = false;
 	simpleMaterialInfo.depthWriteEnable = false;
 

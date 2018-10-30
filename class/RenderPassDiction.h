@@ -17,7 +17,7 @@ public:
 		PipelineRenderPassMotionTileMax,
 		PipelineRenderPassMotionNeighborMax,
 		PipelineRenderPassShadowMap,
-		PipelineRenderPassSSAO,
+		PipelineRenderPassSSAOSSR,
 		PipelineRenderPassSSAOBlurV,
 		PipelineRenderPassSSAOBlurH,
 		PipelineRenderPassShading,

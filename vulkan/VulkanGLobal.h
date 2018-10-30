@@ -93,10 +93,6 @@ public:
 	void InitShaderModule();
 
 public:
-	static const uint32_t				WINDOW_WIDTH = 1440;
-	static const uint32_t				WINDOW_HEIGHT = 1024;
-
-public:
 	std::shared_ptr<Instance>			m_pVulkanInstance;
 	std::shared_ptr<PhysicalDevice>		m_pPhysicalDevice;
 	std::shared_ptr<Device>				m_pDevice;

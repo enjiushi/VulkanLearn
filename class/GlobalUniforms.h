@@ -22,7 +22,7 @@ typedef struct _GlobalVariables
 	Vector4f	gameWindowSize;
 	Vector4f	envGenWindowSize;
 	Vector4f	shadowGenWindowSize;
-	Vector4f	SSAOWindowSize;
+	Vector4f	SSAOSSRWindowSize;
 	Vector4f	bloomWindowSize;
 	Vector4f	motionTileWindowSize;	// xy: tile size, zw: window size
 
@@ -53,8 +53,8 @@ public:
 	Vector2f GetEnvGenWindowSize() const { return { m_globalVariables.envGenWindowSize.x, m_globalVariables.envGenWindowSize.y }; }
 	void SetShadowGenWindowSize(const Vector2f& size);
 	Vector2f GetShadowGenWindowSize() const { return { m_globalVariables.shadowGenWindowSize.x, m_globalVariables.shadowGenWindowSize.y }; }
-	void SetSSAOWindowSize(const Vector2f& size);
-	Vector2f GetSSAOWindowSize() const { return { m_globalVariables.SSAOWindowSize.x, m_globalVariables.SSAOWindowSize.y }; }
+	void SetSSAOSSRWindowSize(const Vector2f& size);
+	Vector2f GetSSAOSSRWindowSize() const { return { m_globalVariables.SSAOSSRWindowSize.x, m_globalVariables.SSAOSSRWindowSize.y }; }
 	void SetBloomWindowSize(const Vector2f& size);
 	Vector2f GetBloomWindowSize() const { return { m_globalVariables.bloomWindowSize.x, m_globalVariables.bloomWindowSize.y }; }
 	void SetMotionTileSize(const Vector2f& size);

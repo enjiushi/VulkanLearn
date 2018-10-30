@@ -18,11 +18,15 @@ public:
 	static const VkFormat GBUFFER0_COLOR_FORMAT = VK_FORMAT_A2R10G10B10_UNORM_PACK32;
 	static const VkFormat OFFSCREEN_MOTION_TILE_FORMAT = VK_FORMAT_R16G16_SFLOAT;
 	static const VkFormat SSAO_FORMAT = VK_FORMAT_R16_SFLOAT;
+	static const VkFormat SSR_FORMAT = VK_FORMAT_R16G16B16A16_SFLOAT;
 	static const VkFormat BLUR_FORMAT = VK_FORMAT_R16_SFLOAT;
 
+	static const uint32_t WINDOW_WIDTH = 1440;
+	static const uint32_t WINDOW_HEIGHT = 1024;
 	static const uint32_t ENV_GEN_WINDOW_SIZE = 512;
 	static const uint32_t SHADOW_GEN_WINDOW_SIZE = 1024;
-	static const uint32_t SSAO_WINDOW_SIZE = 512;
+	static const uint32_t SSAO_SSR_WINDOW_WIDTH = WINDOW_WIDTH / 2;
+	static const uint32_t SSAO_SSR_WINDOW_HEIGHT = WINDOW_HEIGHT / 2;
 	static const uint32_t BLOOM_WINDOW_SIZE = 256;
 	static const uint32_t MOTION_TILE_SIZE = 16;
 
@@ -35,7 +39,7 @@ public:
 		FrameBufferType_MotionTileMax,
 		FrameBufferType_MotionNeighborMax,
 		FrameBufferType_ShadowMap,
-		FrameBufferType_SSAO,
+		FrameBufferType_SSAOSSR,
 		FrameBufferType_SSAOBlurV,
 		FrameBufferType_SSAOBlurH,
 		FrameBufferType_Shading,
@@ -71,7 +75,7 @@ public:
 	FrameBufferCombo CreateMotionTileMaxFrameBuffer();
 	FrameBufferCombo CreateMotionNeighborMaxFrameBuffer();
 	FrameBufferCombo CreateShadowMapFrameBuffer();
-	FrameBufferCombo CreateSSAOFrameBuffer();
+	FrameBufferCombo CreateSSAOSSRFrameBuffer();
 	FrameBufferCombo CreateSSAOBlurFrameBufferV();
 	FrameBufferCombo CreateSSAOBlurFrameBufferH();
 	FrameBufferCombo CreateShadingFrameBuffer();

@@ -38,8 +38,8 @@ bool FrameBufferDiction::Init()
 			m_frameBuffers[FrameBufferType_MotionNeighborMax] = CreateMotionNeighborMaxFrameBuffer(); break;
 		case  FrameBufferType_ShadowMap:
 			m_frameBuffers[FrameBufferType_ShadowMap] = CreateShadowMapFrameBuffer(); break;
-		case FrameBufferType_SSAO:
-			m_frameBuffers[FrameBufferType_SSAO] = CreateSSAOFrameBuffer(); break;
+		case FrameBufferType_SSAOSSR:
+			m_frameBuffers[FrameBufferType_SSAOSSR] = CreateSSAOSSRFrameBuffer(); break;
 		case FrameBufferType_SSAOBlurV:
 			m_frameBuffers[FrameBufferType_SSAOBlurV] = CreateSSAOBlurFrameBufferV(); break;
 		case FrameBufferType_SSAOBlurH:
@@ -157,16 +157,16 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadowMapFrameBuf
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOSSRFrameBuffer()
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
 		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, SSAO_FORMAT);
-		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAO)->GetRenderPass()));
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOSSR)->GetRenderPass()));
 	}
 
 	return frameBuffers;
@@ -174,7 +174,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOFrameBuffer()
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferV()
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
@@ -190,7 +190,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBuff
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferH()
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
