@@ -250,7 +250,7 @@ void SSAOMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& 
 	imgBarrier0.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	VkImageSubresourceRange subresourceRange1 = {};
-	subresourceRange1.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange1.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 	subresourceRange1.baseMipLevel = 0;
 	subresourceRange1.levelCount = pGBuffer0->GetImageInfo().mipLevels;
 	subresourceRange1.layerCount = pGBuffer0->GetImageInfo().arrayLayers;
