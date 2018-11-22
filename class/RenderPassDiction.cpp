@@ -32,7 +32,10 @@ bool RenderPassDiction::Init()
 		case  PipelineRenderPassShadowMap:
 			m_pipelineRenderPasses[PipelineRenderPassShadowMap] = CustomizedRenderPass::Create({ { FrameBufferDiction::OFFSCREEN_DEPTH_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 1 } } }); break;
 		case PipelineRenderPassSSAOSSR:
-			m_pipelineRenderPasses[PipelineRenderPassSSAOSSR] = CustomizedRenderPass::Create({ { FrameBufferDiction::SSAO_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0 } } }); break;
+			m_pipelineRenderPasses[PipelineRenderPassSSAOSSR] = CustomizedRenderPass::Create({ 
+				{ FrameBufferDiction::SSAO_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0 } },
+				{ FrameBufferDiction::SSR_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0, 0, 0, 0 } },
+				}); break;
 		case PipelineRenderPassSSAOBlurV:
 			m_pipelineRenderPasses[PipelineRenderPassSSAOBlurV] = CustomizedRenderPass::Create({ { FrameBufferDiction::SSAO_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0, 0, 0, 0 } } }); break;
 		case PipelineRenderPassSSAOBlurH:
@@ -48,8 +51,9 @@ bool RenderPassDiction::Init()
 		case PipelineRenderPassPostProcessing:
 			m_pipelineRenderPasses[PipelineRenderPassPostProcessing] = CustomizedRenderPass::Create(
 				{
-					{ GetDevice()->GetPhysicalDevice()->GetSurfaceFormat().format, VK_IMAGE_LAYOUT_UNDEFINED , VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, {0, 0, 0, 0} },
-					{ FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0, 0, 0, 0 } }
+					{ FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0, 0, 0, 0 } },
+					{ FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0, 0, 0, 0 } },
+					{ GetDevice()->GetPhysicalDevice()->GetSurfaceFormat().format, VK_IMAGE_LAYOUT_UNDEFINED , VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,{ 0, 0, 0, 0 } }
 				}); break;
 		default:
 			break;

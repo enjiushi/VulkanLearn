@@ -345,7 +345,7 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 			pShadowPassFrameBuffer->GetDepthStencilTarget(),
 			pShadowPassFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToEdgeSampler(),
 			pShadowPassFrameBuffer->GetDepthStencilTarget()->CreateDepthSampleImageView()
-			});
+		});
 	}
 
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 1, depthBuffers);

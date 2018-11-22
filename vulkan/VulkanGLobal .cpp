@@ -409,15 +409,22 @@ void CombineRGBA8_R8_RGBA8(gli::texture2d& rgbaTex, gli::texture2d rTex)
 	ASSERTION(rgbaTex.extent().x == rTex.extent().x && rgbaTex.extent().y == rTex.extent().y);
 	ASSERTION(rgbaTex.layers() == rTex.layers() && rgbaTex.levels() == rTex.levels());
 
-	std::vector<uint8_t> buffer;
-	buffer.resize(rgbaTex.size());
-
 	uint8_t* rgbaTexData = (uint8_t*)rgbaTex.data();
 	uint8_t* rTexData = (uint8_t*)rTex.data();
 
 	for (uint32_t i = 0; i < rTex.size(); i++)
 	{
 		rgbaTexData[i * 4 + 3] = rTexData[i];
+	}
+}
+
+void SetAlphaChannel(gli::texture2d& rgbaTex, uint8_t alpha)
+{
+	uint8_t* rgbaTexData = (uint8_t*)rgbaTex.data();
+
+	for (uint32_t i = 0; i < rgbaTex.size() / 4; i++)
+	{
+		rgbaTexData[i * 4 + 3] = alpha;
 	}
 }
 
@@ -431,6 +438,11 @@ void VulkanGlobal::InitUniforms()
 	gli::texture2d gliAOTex(gli::load("../data/textures/cerberus/ao_1024.ktx"));
 	CombineRGBA8_R8_RGBA8(gliNormalTex, gliAOTex);
 
+	gli::texture2d texCheckerTex(gli::load("../data/textures/tex_checker.ktx"));
+	SetAlphaChannel(texCheckerTex, 0.9f * 255);
+
+	gli::texture2d blueNoise(gli::load("../data/textures/blue_noise_1024.ktx"));
+
 	gli::texture2d gliMetalic(gli::load("../data/textures/cerberus/metallic_1024.ktx"));
 
 	m_pAlbedoRoughness = Texture2D::Create(m_pDevice, { {gliAlbedoTex} }, VK_FORMAT_R8G8B8A8_UNORM);
@@ -439,6 +451,8 @@ void VulkanGlobal::InitUniforms()
 
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunAlbedoRoughness", "", "RGB:Albedo, A:Roughness" }, gliAlbedoTex);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunNormalAO", "", "RGB:Normal, A:AO" }, gliNormalTex);
+	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "TexChecker", "", "Texture checker board" }, texCheckerTex);
+	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "BlueNoise", "", "Blue Noise" }, blueNoise);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "GunMetallic", "", "R:Metalic" }, gliMetalic);
 
 	gli::texture_cube gliSkyBox(gli::load("../data/textures/hdr/gcanyon_cube.ktx"));
@@ -549,8 +563,8 @@ void VulkanGlobal::InitMaterials()
 
 	m_pQuadMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 	m_pQuadMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 0.9f));
-	m_pQuadMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, 0.92f));
+	m_pQuadMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.99f));
 	m_pQuadMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
 	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
@@ -559,7 +573,7 @@ void VulkanGlobal::InitMaterials()
 	m_pBoxMaterialInstance0->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pBoxMaterialInstance0->SetParameter("AlbedoRoughness", Vector4f(0.0f, 1.0f, 0.0f, 0.9f));
 	m_pBoxMaterialInstance0->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
-	m_pBoxMaterialInstance0->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance0->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, "TexChecker");
 	m_pBoxMaterialInstance0->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pBoxMaterialInstance0->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
@@ -691,6 +705,32 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetRenderSettings({ 1.0f / 2.2f, 4.5f, 11.2f, 0.0f });
 }
 
+class RoughnessChanger : public IInputListener
+{
+public:
+	void ProcessKey(KeyState keyState, uint8_t keyCode) override;
+	void ProcessMouse(KeyState keyState, const Vector2f& mousePosition) override {}
+	void ProcessMouse(const Vector2f& mousePosition) override {}
+	float roughness = 0.5f;
+};
+
+void RoughnessChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
+{
+	static float interval = 0.01f;
+	if (keyCode == KEY_F)
+	{
+		roughness += interval;
+		roughness = roughness > 1.0f ? 1.0f : roughness;
+	}
+	if (keyCode == KEY_L)
+	{
+		roughness -= interval;
+		roughness = roughness < 0.05f ? 0.05f : roughness;
+	}
+}
+
+std::shared_ptr<RoughnessChanger> c;
+
 void VulkanGlobal::EndSetup()
 {
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
@@ -698,6 +738,9 @@ void VulkanGlobal::EndSetup()
 
 	m_pRootObject->Awake();
 	m_pRootObject->Start();
+
+	c = std::make_shared<RoughnessChanger>();
+	InputHub::GetInstance()->Register(c);
 }
 
 void VulkanGlobal::Draw()
@@ -713,6 +756,8 @@ void VulkanGlobal::Draw()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::TotalTime));
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
+
+	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, c->roughness));
 
 	m_pRootObject->Update();
 	m_pRootObject->LateUpdate();

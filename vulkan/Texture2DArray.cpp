@@ -179,6 +179,7 @@ void Texture2DArray::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, 
 
 		bufferCopyRegions.push_back(bufferCopyRegion);
 
+		uint32_t size = tex2d[level].size();
 		offset += static_cast<uint32_t>(tex2d[level].size());
 	}
 

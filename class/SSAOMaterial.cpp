@@ -145,10 +145,13 @@ bool SSAOMaterial::Init(const std::shared_ptr<SSAOMaterial>& pSelf,
 	const std::vector<UniformVar>& materialUniformVars,
 	uint32_t vertexFormat)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
+	VkPushConstantRange pushConstantRange = { VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(float) };
+
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, { pushConstantRange }, materialUniformVars, vertexFormat))
 		return false;
 
 	std::vector<CombinedImage> gbuffer0;
+	std::vector<CombinedImage> gbuffer2;
 	std::vector<CombinedImage> depthBuffer;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
@@ -160,6 +163,12 @@ bool SSAOMaterial::Init(const std::shared_ptr<SSAOMaterial>& pSelf,
 			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer0)->CreateDefaultImageView()
 		});
 
+		gbuffer2.push_back({
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer2),
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer2)->CreateLinearClampToEdgeSampler(),
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer2)->CreateDefaultImageView()
+		});
+
 		depthBuffer.push_back({
 			pGBufferFrameBuffer->GetDepthStencilTarget(),
 			pGBufferFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToEdgeSampler(),
@@ -168,28 +177,41 @@ bool SSAOMaterial::Init(const std::shared_ptr<SSAOMaterial>& pSelf,
 	}
 
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, gbuffer0);
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, depthBuffer);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, gbuffer2);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 2, depthBuffer);
+
+	uint32_t index;
+	UniformData::GetInstance()->GetGlobalTextures()->GetTextureIndex(RGBA8_1024, "BlueNoise", index);
+	m_blueNoiseTexIndex = index;
 
 	return true;
 }
 
 void SSAOMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
 {
-		m_materialVariableLayout.push_back(
-			{
-				CombinedSampler,
-				"GBuffer0",
-				{},
-				GetSwapChain()->GetSwapChainImageCount()
-			});
+	m_materialVariableLayout.push_back(
+	{
+		CombinedSampler,
+		"GBuffer0",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
 
-		m_materialVariableLayout.push_back(
-			{
-				CombinedSampler,
-				"DepthBuffer",
-				{},
-				GetSwapChain()->GetSwapChainImageCount()
-			});
+	m_materialVariableLayout.push_back(
+	{
+		CombinedSampler,
+		"GBuffer2",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
+
+	m_materialVariableLayout.push_back(
+	{
+		CombinedSampler,
+		"DepthBuffer",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
 }
 
 void SSAOMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
@@ -222,6 +244,8 @@ void SSAOMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std
 	BindPipeline(pDrawCmdBuffer);
 	BindDescriptorSet(pDrawCmdBuffer);
 
+	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(float), &m_blueNoiseTexIndex);
+
 	pDrawCmdBuffer->Draw(3, 1, 0, 0);
 
 	pDrawCmdBuffer->EndSecondaryRecording();
@@ -232,6 +256,7 @@ void SSAOMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std
 void SSAOMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	std::shared_ptr<Image> pGBuffer0 = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::GBuffer0);
+	std::shared_ptr<Image> pGBuffer2 = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::GBuffer2);
 	std::shared_ptr<Image> pDepth = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetDepthStencilTarget();
 
 	VkImageSubresourceRange subresourceRange0 = {};
@@ -250,19 +275,34 @@ void SSAOMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& 
 	imgBarrier0.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	VkImageSubresourceRange subresourceRange1 = {};
-	subresourceRange1.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	subresourceRange1.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange1.baseMipLevel = 0;
-	subresourceRange1.levelCount = pGBuffer0->GetImageInfo().mipLevels;
-	subresourceRange1.layerCount = pGBuffer0->GetImageInfo().arrayLayers;
+	subresourceRange1.levelCount = pGBuffer2->GetImageInfo().mipLevels;
+	subresourceRange1.layerCount = pGBuffer2->GetImageInfo().arrayLayers;
 
 	VkImageMemoryBarrier imgBarrier1 = {};
 	imgBarrier1.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier1.image = pDepth->GetDeviceHandle();
+	imgBarrier1.image = pGBuffer2->GetDeviceHandle();
 	imgBarrier1.subresourceRange = subresourceRange1;
 	imgBarrier1.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier1.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	imgBarrier1.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	imgBarrier1.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier1.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	VkImageSubresourceRange subresourceRange2 = {};
+	subresourceRange2.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	subresourceRange2.baseMipLevel = 0;
+	subresourceRange2.levelCount = pDepth->GetImageInfo().mipLevels;
+	subresourceRange2.layerCount = pDepth->GetImageInfo().arrayLayers;
+
+	VkImageMemoryBarrier imgBarrier2 = {};
+	imgBarrier2.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier2.image = pDepth->GetDeviceHandle();
+	imgBarrier2.subresourceRange = subresourceRange2;
+	imgBarrier2.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier2.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	imgBarrier2.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier2.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	pCmdBuffer->AttachBarriers
 	(
@@ -270,6 +310,6 @@ void SSAOMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& 
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 		{},
 		{},
-		{ imgBarrier0, imgBarrier1 }
+		{ imgBarrier0, imgBarrier1, imgBarrier2 }
 	);
 }

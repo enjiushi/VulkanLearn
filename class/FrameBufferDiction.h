@@ -60,6 +60,15 @@ public:
 		GBufferCount
 	};
 
+	enum PostProcessBuffer
+	{
+		TemporalShading,
+		TemporalSSR,
+		TemporalBufferCount,
+		Swapchain = TemporalBufferCount,
+		PostProcessBufferCount
+	};
+
 public:
 	bool Init() override;
 
@@ -86,7 +95,7 @@ public:
 	FrameBufferCombo CreateForwardScreenFrameBuffer();
 
 protected:
-	std::vector<FrameBufferCombo>				m_frameBuffers;
-	std::vector<std::shared_ptr<Texture2D>>		m_temporalTexture;
-	static VkFormat								m_GBufferFormatTable[GBufferCount];
+	std::vector<FrameBufferCombo>								m_frameBuffers;
+	std::vector<std::vector<std::shared_ptr<Texture2D>>>		m_temporalTexture;
+	static VkFormat												m_GBufferFormatTable[GBufferCount];
 };

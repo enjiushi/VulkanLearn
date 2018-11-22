@@ -64,6 +64,7 @@ void main()
 		albedo_roughness = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].albedoRoughnessIndex), 0.0);
 
 	outGBuffer0.xyz = normal_ao.xyz * 0.5f + 0.5f;
+	outGBuffer0.w = albedo_roughness.w;
 
 	outGBuffer1 = vec4(albedo_roughness.rgb, 0);
 	outGBuffer2 = vec4(vec3(albedo_roughness.w, metalic, 0), normal_ao.a);

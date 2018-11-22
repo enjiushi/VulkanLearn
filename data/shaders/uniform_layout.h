@@ -86,7 +86,7 @@ layout(set = 3, binding = 0) buffer PerMaterialIndirectUniforms
 	ObjectDataIndex objectDataIndex[];
 };
 
-const float PI = 3.14159265;
+const float PI = 3.1415926535897932384626433832795;
 vec3 F0 = vec3(0.04);
 const vec3 up = { 0.0, 1.0, 0.0 };
 
@@ -123,6 +123,28 @@ float G_SchlicksmithGGX(float NdotL, float NdotV, float roughness)
 	float GL = NdotL / (NdotL * (1.0 - k) + k);
 	float GV = NdotV / (NdotV * (1.0 - k) + k);
 	return GL * GV;
+}
+
+vec4 ImportanceSampleGGX(vec2 Xi, float Roughness)
+{
+	float m = Roughness * Roughness;
+	float m2 = m * m;
+
+	float Phi = 2 * PI * Xi.x;
+
+	float CosTheta = sqrt((1.0 - Xi.y) / (1.0 + (m2 - 1.0) * Xi.y));
+	float SinTheta = sqrt(max(1e-5, 1.0 - CosTheta * CosTheta));
+
+	vec3 H;
+	H.x = SinTheta * cos(Phi);
+	H.y = SinTheta * sin(Phi);
+	H.z = CosTheta;
+
+	float d = (CosTheta * m2 - CosTheta) * CosTheta + 1;
+	float D = m2 / (PI * d * d);
+	float pdf = D * CosTheta;
+
+	return vec4(H, pdf);
 }
 
 // https://learnopengl.com/#!PBR/IBL/Specular-IBL

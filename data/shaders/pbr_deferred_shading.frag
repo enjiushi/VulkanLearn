@@ -15,8 +15,10 @@ layout (set = 3, binding = 8) uniform sampler2D BlurredSSAOBuffer[3];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inViewRay;
+layout (location = 2) in vec2 inOneNearPosition;
 
-layout (location = 0) out vec4 outFragColor0;
+layout (location = 0) out vec4 outShadingColor;
+layout (location = 1) out vec4 outEnvReflColor;
 
 struct GBufferVariables
 {
@@ -81,7 +83,7 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord)
 	vars.albedo_roughness.rgb = gbuffer1.rgb;
 	vars.albedo_roughness.a = gbuffer2.r;
 
-	vars.normal_ao.xyz = normalize(gbuffer0.xyz * 2.0f - 1.0f);
+	vars.normal_ao.xyz = gbuffer0.xyz * 2.0f - 1.0f;
 	vars.normal_ao.w = gbuffer2.a;
 
 	float linearDepth;
@@ -104,7 +106,10 @@ void main()
 
 	GBufferVariables vars = UnpackGBuffers(coord, inUv);
 
-	vec3 n = vars.normal_ao.xyz;
+	if (length(vars.normal_ao.xyz) > 1.1f)
+		discard;
+
+	vec3 n = normalize(vars.normal_ao.xyz);
 	vec3 v = normalize(perFrameData.camPos.xyz - vars.world_position.xyz);
 	vec3 l = globalData.mainLightDir.xyz;
 	vec3 h = normalize(l + v);
@@ -131,17 +136,20 @@ void main()
 	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
 	float lod = vars.albedo_roughness.a * MAX_REFLECTION_LOD;
 	vec3 reflect = textureLod(RGBA16_512_CUBE_PREFILTERENV, reflectSampleDir, lod).rgb;
+	//vec4 reflectSSRInfo = texture(SSRInfo[index], inUv);
+	//reflect = mix(reflect, vec3(0, 0, 0), reflectSSRInfo.w);outEnvReflColor
+
 	vec2 brdf_lut = texture(RGBA16_512_2D_BRDFLUT, vec2(NdotV, vars.albedo_roughness.a)).rg;
 
 	// Here we use NdotV rather than LdotH, since L's direction is based on punctual light, and here ambient reflection calculation
 	// requires reflection vector dot with N, which is RdotN, equals NdotV
-	vec3 ambient = (reflect * (brdf_lut.x * fresnel_roughness + brdf_lut.y) + irradiance * kD_roughness) * min(vars.normal_ao.a, 1.0f - vars.ssaoFactor);
+	outEnvReflColor.rgb = reflect * (brdf_lut.x * fresnel_roughness + brdf_lut.y);
+	outEnvReflColor.a = min(vars.normal_ao.a, 1.0f - vars.ssaoFactor);
+	vec3 ambient = (irradiance * kD_roughness) * outEnvReflColor.a;
 	//----------------------------------------------
 
-	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * GGX_D(NdotH, vars.albedo_roughness.a) / (4.0f * NdotL * NdotV + 0.001f);
+	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * min(1.0f, GGX_D(NdotH, vars.albedo_roughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
 	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
-	vec3 final = punctualRadiance + ambient;
-
-	outFragColor0 = vec4(final, 1.0);
+	outShadingColor = vec4(punctualRadiance + ambient, 1.0f);
 }

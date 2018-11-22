@@ -5,6 +5,7 @@
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outViewRay;
+layout (location = 2) out vec2 outOneNearPosition;
 
 #include "uniform_layout.h"
 
@@ -19,6 +20,8 @@ void main()
 
 	// Transform ray from eye space to world space
 	outViewRay = (perFrameData.viewCoordSystem * vec4(viewSpaceRay, 0.0)).xyz;
+
+	outOneNearPosition = vec2(perFrameData.eyeSpaceSize.xy / 2.0f * gl_Position.xy / -perFrameData.nearFarAB.x);
 
 	gl_Position.y *= -1.0f;
 	outUv.y = 1.0f - outUv.y;
