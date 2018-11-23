@@ -21,9 +21,11 @@ public:
 		PipelineRenderPassSSAOBlurV,
 		PipelineRenderPassSSAOBlurH,
 		PipelineRenderPassShading,
+		PipelineRenderPassTemporalResolve,
 		PipelineRenderPassBloom,
 		PipelineRenderPassBloomBlurV,
 		PipelineRenderPassBloomBlurH,
+		PipelineRenderPassCombine,
 		PipelineRenderPassPostProcessing,
 		PipelineRenderPassCount
 	};

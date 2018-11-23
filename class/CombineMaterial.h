@@ -3,10 +3,10 @@
 
 class RenderPassBase;
 
-class PostProcessingMaterial : public Material
+class CombineMaterial : public Material
 {
 protected:
-	bool Init(const std::shared_ptr<PostProcessingMaterial>& pSelf,
+	bool Init(const std::shared_ptr<CombineMaterial>& pSelf,
 		const std::vector<std::wstring>	shaderPaths,
 		const std::shared_ptr<RenderPassBase>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
@@ -17,7 +17,7 @@ protected:
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;
 
 public:
-	static std::shared_ptr<PostProcessingMaterial> CreateDefaultMaterial();
+	static std::shared_ptr<CombineMaterial> CreateDefaultMaterial();
 
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) override;
