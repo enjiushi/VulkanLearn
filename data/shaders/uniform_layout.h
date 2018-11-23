@@ -87,6 +87,7 @@ layout(set = 3, binding = 0) buffer PerMaterialIndirectUniforms
 };
 
 const float PI = 3.1415926535897932384626433832795;
+const float FLT_EPS = 0.00000001f;
 vec3 F0 = vec3(0.04);
 const vec3 up = { 0.0, 1.0, 0.0 };
 
@@ -323,4 +324,126 @@ vec3 PDsrand3(vec2 n)
 vec4 PDsrand4(vec2 n)
 {
 	return PDnrand4(n) * 2 - 1;
+}
+
+struct GBufferVariables
+{
+	vec4 albedo_roughness;
+	vec4 normal_ao;
+	vec4 world_position;
+	float metalic;
+	float shadowFactor;
+	float ssaoFactor;
+};
+
+float AcquireShadowFactor(vec4 world_position, sampler2D ShadowMapDepthBuffer)
+{
+	vec4 light_space_pos = globalData.mainLightVPN * world_position;
+	light_space_pos /= light_space_pos.w;
+	light_space_pos.xy = light_space_pos.xy * 0.5f + 0.5f;	// NOTE: Don't do this to z, as it's already within [0, 1] after vulkan ndc transform
+
+	vec2 texelSize = 1.0f / textureSize(ShadowMapDepthBuffer, 0);
+	float shadowFactor = 0.0f;
+	float pcfDepth;
+
+	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(-1, -1) * texelSize).r;
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
+
+	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, -1) * texelSize).r;
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+
+	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(1, -1) * texelSize).r;
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
+
+	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(-1, 0) * texelSize).r;
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+
+	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, 0) * texelSize).r;
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.195346;
+
+	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(1, 0) * texelSize).r;
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+
+	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(-1, 1) * texelSize).r;
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
+
+	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, 1) * texelSize).r;
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+
+	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(1, 1) * texelSize).r;
+	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
+
+	return 1.0f - shadowFactor;
+}
+
+GBufferVariables UnpackGBuffers(ivec2 coord, vec2 oneNearPosition, sampler2D GBuffer0, sampler2D GBuffer1, sampler2D GBuffer2, sampler2D DepthStencilBuffer)
+{
+	GBufferVariables vars;
+
+	vec4 gbuffer0 = texelFetch(GBuffer0, coord, 0);
+	vec4 gbuffer1 = texelFetch(GBuffer1, coord, 0);
+	vec4 gbuffer2 = texelFetch(GBuffer2, coord, 0);
+
+	vars.albedo_roughness.rgb = gbuffer1.rgb;
+	vars.albedo_roughness.a = gbuffer2.r;
+
+	vars.normal_ao.xyz = normalize(gbuffer0.xyz * 2.0f - 1.0f);
+	vars.normal_ao.w = gbuffer2.a;
+
+	float linearDepth;
+	vars.world_position = vec4(ReconstructWSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0f);
+
+	vars.metalic = gbuffer2.g;
+
+	return vars;
+}
+
+GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord, vec2 oneNearPosition, sampler2D GBuffer0, sampler2D GBuffer1, sampler2D GBuffer2, sampler2D DepthStencilBuffer, sampler2D BlurredSSAOBuffer, sampler2D ShadowMapDepthBuffer)
+{
+	GBufferVariables vars;
+
+	vec4 gbuffer0 = texelFetch(GBuffer0, coord, 0);
+	vec4 gbuffer1 = texelFetch(GBuffer1, coord, 0);
+	vec4 gbuffer2 = texelFetch(GBuffer2, coord, 0);
+
+	vars.albedo_roughness.rgb = gbuffer1.rgb;
+	vars.albedo_roughness.a = gbuffer2.r;
+
+	vars.normal_ao.xyz = gbuffer0.xyz * 2.0f - 1.0f;
+	vars.normal_ao.w = gbuffer2.a;
+
+	float linearDepth;
+	vars.world_position = vec4(ReconstructWSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0);
+
+	vars.metalic = gbuffer2.g;
+
+	vars.shadowFactor = AcquireShadowFactor(vars.world_position, ShadowMapDepthBuffer);
+
+	vars.ssaoFactor = texture(BlurredSSAOBuffer, texcoord).r;
+	vars.ssaoFactor = min(1.0f, vars.ssaoFactor);
+	vars.ssaoFactor = pow(vars.ssaoFactor, 0.6f) * 1.1f;
+
+	return vars;
+}
+
+float Luminance(in vec3 color)
+{
+	return dot(color, vec3(0.2126f, 0.7152f, 0.0722f));
+}
+
+vec3 clip_aabb(vec3 aabb_min, vec3 aabb_max, vec3 p)
+{
+	// note: only clips towards aabb center (but fast!)
+	vec3 p_clip = 0.5f * (aabb_max + aabb_min);
+	vec3 e_clip = 0.5f * (aabb_max - aabb_min) + FLT_EPS;
+
+	vec3 v_clip = p - p_clip;
+	vec3 v_unit = v_clip / e_clip;
+	vec3 a_unit = abs(v_unit);
+	float ma_unit = max(a_unit.x, max(a_unit.y, a_unit.z));
+
+	if (ma_unit > 1.0f)
+		return p_clip + v_clip / ma_unit;
+	else
+		return p;// point inside aabb
 }

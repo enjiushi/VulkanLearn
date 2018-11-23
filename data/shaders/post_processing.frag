@@ -33,62 +33,6 @@ const float bloomExposure = 1.3f;
 const float MOTION_VEC_AMP = 10.0f;
 const float MOTION_VEC_SAMPLE_COUNT = 16;
 
-const float FLT_EPS = 0.00000001f;
-
-float Luminance(in vec3 color)
-{
-    return dot(color, vec3(0.2126f, 0.7152f, 0.0722f));
-}
-
-vec3 clip_aabb(vec3 aabb_min, vec3 aabb_max, vec3 p)
-{
-	// note: only clips towards aabb center (but fast!)
-	vec3 p_clip = 0.5f * (aabb_max + aabb_min);
-	vec3 e_clip = 0.5f * (aabb_max - aabb_min) + FLT_EPS;
-
-	vec3 v_clip = p - p_clip;
-	vec3 v_unit = v_clip / e_clip;
-	vec3 a_unit = abs(v_unit);
-	float ma_unit = max(a_unit.x, max(a_unit.y, a_unit.z));
-
-	if (ma_unit > 1.0f)
-		return p_clip + v_clip / ma_unit;
-	else
-		return p;// point inside aabb
-}
-
-struct GBufferVariables
-{
-	vec4 albedo_roughness;
-	vec4 normal_ao;
-	vec4 world_position;
-	float metalic;
-	float shadowFactor;
-	float ssaoFactor;
-};
-
-GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord)
-{
-	GBufferVariables vars;
-
-	vec4 gbuffer0 = texelFetch(GBuffer0[index], coord, 0);
-	vec4 gbuffer1 = texelFetch(GBuffer1[index], coord, 0);
-	vec4 gbuffer2 = texelFetch(GBuffer2[index], coord, 0);
-
-	vars.albedo_roughness.rgb = gbuffer1.rgb;
-	vars.albedo_roughness.a = gbuffer2.r;
-
-	vars.normal_ao.xyz = normalize(gbuffer0.xyz * 2.0f - 1.0f);
-	vars.normal_ao.w = gbuffer2.a;
-
-	float linearDepth;
-	vars.world_position = vec4(ReconstructWSPosition(coord, inOneNearPosition, DepthStencilBuffer[index], linearDepth), 1.0f);
-
-	vars.metalic = gbuffer2.g;
-
-	return vars;
-}
-
 const vec2 offset[4] =
 {
 	vec2(0, 0),
@@ -100,7 +44,7 @@ const vec2 offset[4] =
 vec4 CalculateSSR(vec2 texcoord)
 {
 	ivec2 coord = ivec2(texcoord * globalData.gameWindowSize.xy);
-	GBufferVariables vars = UnpackGBuffers(coord, texcoord);
+	GBufferVariables vars = UnpackGBuffers(coord, inOneNearPosition, GBuffer0[index], GBuffer1[index], GBuffer2[index], DepthStencilBuffer[index]);
 
 	vec3 n = vars.normal_ao.xyz;
 	vec3 v = normalize(perFrameData.camPos.xyz - vars.world_position.xyz);

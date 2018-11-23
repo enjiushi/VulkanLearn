@@ -19,91 +19,13 @@ layout (location = 1) in vec2 inOneNearPosition;
 layout (location = 0) out vec4 outShadingColor;
 layout (location = 1) out vec4 outEnvReflColor;
 
-struct GBufferVariables
-{
-	vec4 albedo_roughness;
-	vec4 normal_ao;
-	vec4 world_position;
-	float metalic;
-	float shadowFactor;
-	float ssaoFactor;
-};
-
 int index = int(perFrameData.camDir.a);
-
-float AcquireShadowFactor(vec4 world_position)
-{
-	vec4 light_space_pos = globalData.mainLightVPN * world_position;
-	light_space_pos /= light_space_pos.w;
-	light_space_pos.xy = light_space_pos.xy * 0.5f + 0.5f;	// NOTE: Don't do this to z, as it's already within [0, 1] after vulkan ndc transform
-
-	vec2 texelSize = 1.0f / textureSize(ShadowMapDepthBuffer[index], 0);
-	float shadowFactor = 0.0f;
-	float pcfDepth;
-
-	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(-1, -1) * texelSize).r; 
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
-
-	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(0, -1) * texelSize).r; 
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
-
-	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(1, -1) * texelSize).r; 
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
-
-	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(-1, 0) * texelSize).r; 
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
-
-	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(0, 0) * texelSize).r; 
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.195346;
-
-	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(1, 0) * texelSize).r; 
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
-
-	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(-1, 1) * texelSize).r; 
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
-
-	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(0, 1) * texelSize).r; 
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
-
-	pcfDepth = texture(ShadowMapDepthBuffer[index], light_space_pos.xy + vec2(1, 1) * texelSize).r; 
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847; 
-
-	return 1.0f - shadowFactor;
-}
-
-GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord)
-{
-	GBufferVariables vars;
-
-	vec4 gbuffer0 = texelFetch(GBuffer0[index], coord, 0);
-	vec4 gbuffer1 = texelFetch(GBuffer1[index], coord, 0);
-	vec4 gbuffer2 = texelFetch(GBuffer2[index], coord, 0);
-
-	vars.albedo_roughness.rgb = gbuffer1.rgb;
-	vars.albedo_roughness.a = gbuffer2.r;
-
-	vars.normal_ao.xyz = gbuffer0.xyz * 2.0f - 1.0f;
-	vars.normal_ao.w = gbuffer2.a;
-
-	float linearDepth;
-	vars.world_position = vec4(ReconstructWSPosition(coord, inOneNearPosition, DepthStencilBuffer[index], linearDepth), 1.0);
-
-	vars.metalic = gbuffer2.g;
-
-	vars.shadowFactor = AcquireShadowFactor(vars.world_position);
-
-	vars.ssaoFactor = texture(BlurredSSAOBuffer[index], texcoord).r;
-	vars.ssaoFactor = min(1.0f, vars.ssaoFactor);
-	vars.ssaoFactor = pow(vars.ssaoFactor, 0.6f) * 1.1f;
-
-	return vars;
-}
 
 void main() 
 {
 	ivec2 coord = ivec2(floor(inUv * globalData.gameWindowSize.xy));
 
-	GBufferVariables vars = UnpackGBuffers(coord, inUv);
+	GBufferVariables vars = UnpackGBuffers(coord, inUv, inOneNearPosition, GBuffer0[index], GBuffer1[index], GBuffer2[index], DepthStencilBuffer[index], BlurredSSAOBuffer[index], ShadowMapDepthBuffer[index]);
 
 	if (length(vars.normal_ao.xyz) > 1.1f)
 		discard;
