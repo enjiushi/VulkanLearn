@@ -10,7 +10,8 @@ layout (set = 3, binding = 3) uniform sampler2D GBuffer2[3];
 layout (set = 3, binding = 4) uniform sampler2D DepthStencilBuffer[3];
 
 layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec3 inViewRay;
+layout (location = 1) in vec2 inOneNearPosition;
+layout (location = 2) in vec3 inWsView;
 
 layout (location = 0) out vec4 outSSAOFactor;
 layout (location = 1) out vec4 outSSRInfo;
@@ -156,7 +157,7 @@ void main()
 	UnpackNormalRoughness(coord, normal, roughness);
 
 	float linearDepth;
-	vec3 position = ReconstructPosition(coord, inViewRay, DepthStencilBuffer[index], linearDepth);
+	vec3 position = ReconstructWSPosition(coord, inOneNearPosition, DepthStencilBuffer[index], linearDepth);
 
 	vec3 tangent = texture(SSAO_RANDOM_ROTATIONS, inUv * globalData.SSAOWindowSize.xy / textureSize(SSAO_RANDOM_ROTATIONS, 0)).xyz * 2.0f - 1.0f;
 	tangent = normalize(tangent - dot(normal, tangent) * normal);
@@ -194,7 +195,7 @@ void main()
 	vec2 randomOffset = PDsrand2(vec2(perFrameData.time.x)) * 0.5f + 0.5f;
 	vec2 noiseUV = (inUv + randomOffset) * globalData.gameWindowSize.xy * 0.5f;
 
-	vec3 wsViewRay = normalize(inViewRay);
+	vec3 wsViewRay = normalize(inWsView);
 	vec4 H;
 	float RdotN = 0.0f;
 	int regenCount = 0;

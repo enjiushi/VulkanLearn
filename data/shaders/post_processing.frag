@@ -19,8 +19,7 @@ layout (set = 3, binding = 12) uniform sampler2D TemporalShading;
 layout (set = 3, binding = 13) uniform sampler2D TemporalSSR;
 
 layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec3 inViewRay;
-layout (location = 2) in vec2 inOneNearPosition;
+layout (location = 1) in vec2 inOneNearPosition;
 
 layout (location = 0) out vec4 outTemporalShading;
 layout (location = 1) out vec4 outTemporalSSR;
@@ -83,7 +82,7 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord)
 	vars.normal_ao.w = gbuffer2.a;
 
 	float linearDepth;
-	vars.world_position = vec4(ReconstructPosition(coord, inViewRay, DepthStencilBuffer[index], linearDepth), 1.0);
+	vars.world_position = vec4(ReconstructWSPosition(coord, inOneNearPosition, DepthStencilBuffer[index], linearDepth), 1.0f);
 
 	vars.metalic = gbuffer2.g;
 
@@ -122,13 +121,9 @@ vec4 CalculateSSR(vec2 texcoord)
 		vec4 SSRInfo = texelFetch(SSRInfo[index], (coord + ivec2(offsetRotation * offset[i])) / 2, 0);
 		float hitFlag = sign(SSRInfo.a) * 0.5f + 0.5f;
 		vec3 SSRSurfColor = ((texelFetch(ShadingResult[index], ivec2(SSRInfo.xy), 0).rgb) + (texelFetch(EnvReflResult[index], ivec2(SSRInfo.xy), 0).rgb)) * hitFlag;
-		float window_z = texelFetch(DepthStencilBuffer[index], ivec2(SSRInfo.xy), 0).r;
-		float SSRSurfDepth = ReconstructLinearDepth(window_z);
 
-		vec2 oneHalfSize = perFrameData.eyeSpaceSize.xy * 0.5f / -perFrameData.nearFarAB.x;
-		vec2 reflectUV = SSRInfo.xy / globalData.gameWindowSize.xy;
-		vec2 reflectOneNearPosition = vec2(mix(-oneHalfSize.x, oneHalfSize.x, reflectUV.x), mix(-oneHalfSize.y, oneHalfSize.y, (1.0f - reflectUV.y)));
-		vec4 SSRSurfPosition = perFrameData.viewCoordSystem * vec4(reflectOneNearPosition * SSRSurfDepth, SSRSurfDepth, 1.0f);
+		float SSRSurfDepth;
+		vec3 SSRSurfPosition = ReconstructWSPosition(coord, DepthStencilBuffer[index], SSRSurfDepth);
 
 		vec3 l = normalize(SSRSurfPosition.xyz - vars.world_position.xyz);
 		vec3 h = normalize(l + v);

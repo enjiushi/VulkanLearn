@@ -221,6 +221,40 @@ vec3 ReconstructPosition(in ivec2 coord, in vec3 worldSpaceViewRay, in sampler2D
 	return viewRay * abs(linearDepth) / cos_viewRay_camDir + perFrameData.camPos.xyz;
 }
 
+vec3 ReconstructWSPosition(in ivec2 coord, in vec2 oneNearPosition, in sampler2D DepthBuffer, out float linearDepth)
+{
+	float window_z = texelFetch(DepthBuffer, coord, 0).r;
+	float csLinearDepth = ReconstructLinearDepth(window_z);
+
+	// Acquire half camera space size of near plane of view frustum, with ratio of near plane length 1
+	vec2 oneHalfSize = perFrameData.eyeSpaceSize.xy * 0.5f / -perFrameData.nearFarAB.x;
+	// Get uv
+	vec2 uv = coord / globalData.gameWindowSize.xy;
+	// 1. Let interpolated position multiplied with camera space linear depth to reconstruct camera space position
+	// 2. Multiply with camera space coord system matrix, we have world space position reconstructed
+	vec4 wsPosition = perFrameData.viewCoordSystem * vec4(oneNearPosition * csLinearDepth, csLinearDepth, 1.0f);
+
+	return wsPosition.xyz;
+}
+
+vec3 ReconstructWSPosition(in ivec2 coord, in sampler2D DepthBuffer, out float linearDepth)
+{
+	float window_z = texelFetch(DepthBuffer, coord, 0).r;
+	float csLinearDepth = ReconstructLinearDepth(window_z);
+
+	// Acquire half camera space size of near plane of view frustum, with ratio of near plane length 1
+	vec2 oneHalfSize = perFrameData.eyeSpaceSize.xy * 0.5f / -perFrameData.nearFarAB.x;
+	// Get uv
+	vec2 uv = coord / globalData.gameWindowSize.xy;
+	// Acquire interpolated position of that camera space size(ratio: near plane length 1)
+	vec2 oneNearPosition = vec2(mix(-oneHalfSize.x, oneHalfSize.x, uv.x), mix(-oneHalfSize.y, oneHalfSize.y, (1.0f - uv.y)));
+	// 1. Let interpolated position multiplied with camera space linear depth to reconstruct camera space position
+	// 2. Multiply with camera space coord system matrix, we have world space position reconstructed
+	vec4 wsPosition = perFrameData.viewCoordSystem * vec4(oneNearPosition * csLinearDepth, csLinearDepth, 1.0f);
+
+	return wsPosition.xyz;
+}
+
 const int sampleCount = 5;
 const float weight[sampleCount] =
 {

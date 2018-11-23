@@ -14,8 +14,7 @@ layout (set = 3, binding = 7) uniform sampler2D ShadowMapDepthBuffer[3];
 layout (set = 3, binding = 8) uniform sampler2D BlurredSSAOBuffer[3];
 
 layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec3 inViewRay;
-layout (location = 2) in vec2 inOneNearPosition;
+layout (location = 1) in vec2 inOneNearPosition;
 
 layout (location = 0) out vec4 outShadingColor;
 layout (location = 1) out vec4 outEnvReflColor;
@@ -87,7 +86,7 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord)
 	vars.normal_ao.w = gbuffer2.a;
 
 	float linearDepth;
-	vars.world_position = vec4(ReconstructPosition(coord, inViewRay, DepthStencilBuffer[index], linearDepth), 1.0);
+	vars.world_position = vec4(ReconstructWSPosition(coord, inOneNearPosition, DepthStencilBuffer[index], linearDepth), 1.0);
 
 	vars.metalic = gbuffer2.g;
 
