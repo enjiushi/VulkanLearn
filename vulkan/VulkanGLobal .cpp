@@ -303,13 +303,12 @@ void VulkanGlobal::Update()
 			}
 		}
 		auto endTime = std::chrono::high_resolution_clock::now();
-		Timer::ElapsedTime = std::chrono::duration<double, std::milli>(endTime - startTime).count();
-		Timer::TotalTime = std::chrono::duration<double, std::milli>(endTime - initTime).count();
+		Timer::SetElapsedTime(std::chrono::duration<double, std::milli>(endTime - startTime).count());
 		startTime = endTime;
 		Draw();
 		frameCount++;
 
-		fpsTimer += (float)Timer::ElapsedTime;
+		fpsTimer += (float)Timer::GetElapsedTime();
 
 		if (fpsTimer > 1000.0f)
 		{
@@ -619,7 +618,7 @@ void VulkanGlobal::InitScene()
 		2000.0f,
 	};
 
-	m_pCharacter = Character::Create({ 0.3f, 0.002f }, m_pCameraComp);
+	m_pCharacter = Character::Create({ 0.7f, 0.005f }, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
 	m_pCameraObj->AddComponent(FrustumJitter::Create());
 
@@ -752,8 +751,9 @@ void VulkanGlobal::Draw()
 
 	uint32_t frameIndex = FrameMgr()->FrameIndex();
 	uint32_t cbIndex = frameIndex * 2 + pingpong;
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetDeltaTime(Timer::ElapsedTime);
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::TotalTime));
+
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetDeltaTime(Timer::GetElapsedTime());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::GetTotalTime()));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));

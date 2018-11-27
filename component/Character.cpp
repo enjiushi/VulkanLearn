@@ -112,8 +112,7 @@ void Character::Move(const Vector3f& v, float delta)
 	if (m_pObject.expired())
 		return;
 
-	//Vector3f move_dir = v.Normal() * delta * m_charVars.moveSpeed;
-	Vector3f move_dir = v.Normal() * 3.5 * m_charVars.moveSpeed;	// FIXME: use fixed delta time since frame is unstable right now, and I don't have a gpu profiler for my nvidia card
+	Vector3f move_dir = v.Normal() * delta * m_charVars.moveSpeed;
 	move_dir.x = -move_dir.x;	//reverse x axis, because camera left direction is opposite to x axis
 	move_dir.z = -move_dir.z;	//reverse z axis, because camera looking direction is opposite to z axis
 
@@ -259,7 +258,7 @@ void Character::Update()
 		{
 			double step = m_elapsedSinceLastSample / m_sampleInterval;
 			interpolate_position = m_rotationStartPosition * (1.0 - step) + m_currentTargetPosition * step;
-			m_elapsedSinceLastSample += Timer::ElapsedTime;
+			m_elapsedSinceLastSample += Timer::GetElapsedTime();
 		}
 
 		float width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
@@ -267,6 +266,6 @@ void Character::Update()
 		OnRotate({ interpolate_position.x / width, (height - interpolate_position.y) / height }, m_isOperationInRotation);
 	}
 
-	Move(m_moveFlag, Timer::ElapsedTime);
-	OnRotate(m_rotateFlag, Timer::ElapsedTime);
+	Move(m_moveFlag, Timer::GetEverageElapsedTime());
+	OnRotate(m_rotateFlag, Timer::GetEverageElapsedTime());
 }
