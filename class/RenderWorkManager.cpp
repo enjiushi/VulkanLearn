@@ -16,8 +16,6 @@
 #include "GaussianBlurMaterial.h"
 #include "BloomMaterial.h"
 #include "ForwardMaterial.h"
-#include "TemporalResolveMaterial.h"
-#include "CombineMaterial.h"
 #include "PostProcessingMaterial.h"
 #include "MaterialInstance.h"
 
@@ -30,8 +28,6 @@ bool RenderWorkManager::Init()
 	m_pMotionTileMaxMaterial		= MotionTileMaxMaterial::CreateDefaultMaterial();
 	m_pMotionNeighborMaxMaterial	= MotionNeighborMaxMaterial::CreateDefaultMaterial();
 	m_pShadingMaterial				= DeferredShadingMaterial::CreateDefaultMaterial();
-	m_temporalResolveMaterials.push_back(TemporalResolveMaterial::CreateDefaultMaterial(0));
-	m_temporalResolveMaterials.push_back(TemporalResolveMaterial::CreateDefaultMaterial(1));
 	m_pShadowMapMaterial			= ShadowMapMaterial::CreateDefaultMaterial();
 	m_pSSAOMaterial					= SSAOMaterial::CreateDefaultMaterial();
 	m_pBloomMaterial				= BloomMaterial::CreateDefaultMaterial();
@@ -39,8 +35,8 @@ bool RenderWorkManager::Init()
 	m_pSSAOBlurHMaterial			= GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOBlurV, FrameBufferDiction::FrameBufferType_SSAOBlurH, RenderPassDiction::PipelineRenderPassSSAOBlurH, { false, 1, 1 });
 	m_pBloomBlurVMaterial			= GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_BloomBlurH, FrameBufferDiction::FrameBufferType_BloomBlurV, RenderPassDiction::PipelineRenderPassBloomBlurV, { true, 1.2f, 1.0f });
 	m_pBloomBlurHMaterial			= GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_BloomBlurV, FrameBufferDiction::FrameBufferType_BloomBlurH, RenderPassDiction::PipelineRenderPassBloomBlurH, { false, 1.2f, 1.0f });
-	m_pCombineMaterial				= CombineMaterial::CreateDefaultMaterial();
-	m_pPostProcessMaterial			= PostProcessingMaterial::CreateDefaultMaterial();
+	m_postProcessMaterials.push_back(PostProcessingMaterial::CreateDefaultMaterial(0));
+	m_postProcessMaterials.push_back(PostProcessingMaterial::CreateDefaultMaterial(1));
 
 	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" };
@@ -174,15 +170,6 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	m_pShadingMaterial->AfterRenderPass(pDrawCmdBuffer);
 
 
-	m_temporalResolveMaterials[pingpong]->BeforeRenderPass(pDrawCmdBuffer);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong));
-	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y, 0, 1 });
-	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y });
-	m_temporalResolveMaterials[pingpong]->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong));
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->EndRenderPass(pDrawCmdBuffer);
-	m_temporalResolveMaterials[pingpong]->AfterRenderPass(pDrawCmdBuffer);
-
-
 	m_pBloomMaterial->BeforeRenderPass(pDrawCmdBuffer);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_BloomBlurH));
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize().y, 0, 1 });
@@ -209,22 +196,14 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloomBlurH)->EndRenderPass(pDrawCmdBuffer);
 	m_pBloomBlurHMaterial->AfterRenderPass(pDrawCmdBuffer);
 
-	m_pCombineMaterial->BeforeRenderPass(pDrawCmdBuffer);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassCombine)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_CombineResult));
+
+	m_postProcessMaterials[pingpong]->BeforeRenderPass(pDrawCmdBuffer);
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_PostProcessing, pingpong));
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y, 0, 1 });
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y });
-	m_pCombineMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_CombineResult));
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassCombine)->EndRenderPass(pDrawCmdBuffer);
-	m_pCombineMaterial->AfterRenderPass(pDrawCmdBuffer);
-
-
-	m_pPostProcessMaterial->BeforeRenderPass(pDrawCmdBuffer);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_PostProcessing));
-	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y, 0, 1 });
-	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y });
-	m_pPostProcessMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_PostProcessing));
+	m_postProcessMaterials[pingpong]->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_PostProcessing, pingpong));
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing)->EndRenderPass(pDrawCmdBuffer);
-	m_pPostProcessMaterial->AfterRenderPass(pDrawCmdBuffer);
+	m_postProcessMaterials[pingpong]->AfterRenderPass(pDrawCmdBuffer);
 }
 
 void RenderWorkManager::OnFrameBegin()

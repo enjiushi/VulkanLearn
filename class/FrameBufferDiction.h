@@ -43,10 +43,8 @@ public:
 		FrameBufferType_SSAOBlurV,
 		FrameBufferType_SSAOBlurH,
 		FrameBufferType_Shading,
-		FrameBufferType_TemporalResolve,
 		FrameBufferType_BloomBlurV,
 		FrameBufferType_BloomBlurH,
-		FrameBufferType_CombineResult,
 		FrameBufferType_PostProcessing,
 		FrameBufferType_EnvGenOffScreen,
 		FrameBufferType_ForwardScreen,
@@ -62,13 +60,13 @@ public:
 		GBufferCount
 	};
 
-	enum TemporalResolveBuffer
+	enum PostProcessBuffer
 	{
 		TemporalShading,
 		TemporalSSR,
 		TemporalBufferCount,
-		TemporalResult = TemporalBufferCount,
-		TemporalResolveBufferCount
+		Swapchain = TemporalBufferCount,
+		PostProcessBufferCount
 	};
 
 public:
@@ -90,10 +88,8 @@ public:
 	FrameBufferCombo CreateSSAOBlurFrameBufferV();
 	FrameBufferCombo CreateSSAOBlurFrameBufferH();
 	FrameBufferCombo CreateShadingFrameBuffer();
-	FrameBufferCombo CreateTemporalResolveFrameBuffer();
 	FrameBufferCombo CreateBloomFrameBufferV();
 	FrameBufferCombo CreateBloomFrameBufferH();
-	FrameBufferCombo CreateCombineResultFrameBuffer();
 	FrameBufferCombo CreatePostProcessingFrameBuffer();
 	FrameBufferCombo CreateForwardEnvGenOffScreenFrameBuffer();
 	FrameBufferCombo CreateForwardScreenFrameBuffer();

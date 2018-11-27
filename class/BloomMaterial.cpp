@@ -148,32 +148,34 @@ bool BloomMaterial::Init(const std::shared_ptr<BloomMaterial>& pSelf,
 	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
 		return false;
 
-	std::vector<CombinedImage> temporalResults;
+	std::shared_ptr<RenderPassBase> pGBufferPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
+
+	std::vector<CombinedImage> shadingImages;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
+		std::shared_ptr<FrameBuffer> pShadingFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
 
-		temporalResults.push_back({
-			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult),
-			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult)->CreateLinearClampToEdgeSampler(),
-			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult)->CreateDefaultImageView()
+		shadingImages.push_back({
+			pShadingFrameBuffer->GetColorTarget(0),
+			pShadingFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pShadingFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
 		});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, temporalResults);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, shadingImages);
 
 	return true;
 }
 
 void BloomMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
 {
-	m_materialVariableLayout.push_back(
-	{
-		CombinedSampler,
-		"Temporal result",
-		{},
-		GetSwapChain()->GetSwapChainImageCount()
-	});
+		m_materialVariableLayout.push_back(
+			{
+				CombinedSampler,
+				"ShadingResult",
+				{},
+				GetSwapChain()->GetSwapChainImageCount()
+			});
 }
 
 void BloomMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
@@ -215,17 +217,17 @@ void BloomMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const st
 
 void BloomMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::TemporalResult);
+	std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 
 	VkImageSubresourceRange subresourceRange = {};
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pTemporalResult->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pTemporalResult->GetImageInfo().arrayLayers;
+	subresourceRange.levelCount = pShadingResult->GetImageInfo().mipLevels;
+	subresourceRange.layerCount = pShadingResult->GetImageInfo().arrayLayers;
 
 	VkImageMemoryBarrier imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pTemporalResult->GetDeviceHandle();
+	imgBarrier.image = pShadingResult->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;

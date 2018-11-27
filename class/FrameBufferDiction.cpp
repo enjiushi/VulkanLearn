@@ -47,14 +47,10 @@ bool FrameBufferDiction::Init()
 			m_frameBuffers[FrameBufferType_SSAOBlurH] = CreateSSAOBlurFrameBufferH(); break;
 		case FrameBufferType_Shading:
 			m_frameBuffers[FrameBufferType_Shading] = CreateShadingFrameBuffer(); break;
-		case FrameBufferType_TemporalResolve:
-			m_frameBuffers[FrameBufferType_TemporalResolve] = CreateTemporalResolveFrameBuffer(); break;
 		case FrameBufferType_BloomBlurV:
 			m_frameBuffers[FrameBufferType_BloomBlurV] = CreateBloomFrameBufferV(); break;
 		case FrameBufferType_BloomBlurH:
 			m_frameBuffers[FrameBufferType_BloomBlurH] = CreateBloomFrameBufferH(); break;
-		case FrameBufferType_CombineResult:
-			m_frameBuffers[FrameBufferType_CombineResult] = CreateCombineResultFrameBuffer(); break;
 		case FrameBufferType_PostProcessing:
 			m_frameBuffers[FrameBufferType_PostProcessing] = CreatePostProcessingFrameBuffer(); break;
 		case FrameBufferType_EnvGenOffScreen:
@@ -84,7 +80,7 @@ std::shared_ptr<FrameBuffer> FrameBufferDiction::GetFrameBuffer(FrameBufferType 
 	if (frameIndex >= GetSwapChain()->GetSwapChainImageCount())
 		return nullptr;
 
-	if (type != FrameBufferType_TemporalResolve)
+	if (type != FrameBufferType_PostProcessing)
 		return m_frameBuffers[type][frameIndex];
 
 	if (frameIndex % 2 != pingPongIndex)
@@ -228,38 +224,6 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffe
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFrameBuffer()
-{
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
-
-	m_temporalTexture[TemporalShading].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-	m_temporalTexture[TemporalShading].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-
-	m_temporalTexture[TemporalSSR].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-	m_temporalTexture[TemporalSSR].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-
-	std::vector<std::shared_ptr<Image>> resultTargets = 
-	{
-		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
-		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
-		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-	};
-
-	FrameBufferCombo frameBuffers;
-
-	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount() * 2; i++)
-	{
-		frameBuffers.push_back(FrameBuffer::Create(GetDevice(),
-			{
-				m_temporalTexture[TemporalShading][i % 2],
-				m_temporalTexture[TemporalSSR][i % 2],
-				resultTargets[i % GetSwapChain()->GetSwapChainImageCount()],
-			}, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->GetRenderPass()));
-	}
-
-	return frameBuffers;
-}
-
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBufferV()
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize();
@@ -290,29 +254,26 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBufferH
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateCombineResultFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreatePostProcessingFrameBuffer()
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
+	m_temporalTexture[TemporalShading].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+	m_temporalTexture[TemporalShading].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+
+	m_temporalTexture[TemporalSSR].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+	m_temporalTexture[TemporalSSR].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+
 	FrameBufferCombo frameBuffers;
 
-	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount() * 2; i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
-		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassCombine)->GetRenderPass()));
-	}
-
-	return frameBuffers;
-}
-
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreatePostProcessingFrameBuffer()
-{
-	FrameBufferCombo frameBuffers;
-
-	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-	{
-		std::shared_ptr<Image> pImg = GetSwapChain()->GetSwapChainImage(i);
-		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pImg }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing)->GetRenderPass()));
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), 
+			{ 
+				m_temporalTexture[TemporalShading][i % 2],
+				m_temporalTexture[TemporalSSR][i % 2],
+				GetSwapChain()->GetSwapChainImage(i % GetSwapChain()->GetSwapChainImageCount()),
+			}, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing)->GetRenderPass()));
 	}
 
 	return frameBuffers;
