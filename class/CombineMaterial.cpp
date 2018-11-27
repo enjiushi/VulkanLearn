@@ -1,4 +1,4 @@
-#include "PostProcessingMaterial.h"
+#include "CombineMaterial.h"
 #include "../vulkan/RenderPass.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/CommandBuffer.h"
@@ -20,18 +20,18 @@
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMaterial()
+std::shared_ptr<CombineMaterial> CombineMaterial::CreateDefaultMaterial()
 {
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
-	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/post_processing.frag.spv", L"" };
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/combine.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
-	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_PostProcessing;
-	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing);
+	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_CombineResult;
+	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassCombine);
 	simpleMaterialInfo.depthTestEnable = false;
 	simpleMaterialInfo.depthWriteEnable = false;
 
-	std::shared_ptr<PostProcessingMaterial> pPostProcessMaterial = std::make_shared<PostProcessingMaterial>();
+	std::shared_ptr<CombineMaterial> pCombineMaterial = std::make_shared<CombineMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
@@ -132,13 +132,13 @@ std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMat
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	if (pPostProcessMaterial.get() && pPostProcessMaterial->Init(pPostProcessMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
-		return pPostProcessMaterial;
+	if (pCombineMaterial.get() && pCombineMaterial->Init(pCombineMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+		return pCombineMaterial;
 
 	return nullptr;
 }
 
-bool PostProcessingMaterial::Init(const std::shared_ptr<PostProcessingMaterial>& pSelf,
+bool CombineMaterial::Init(const std::shared_ptr<CombineMaterial>& pSelf,
 	const std::vector<std::wstring>	shaderPaths,
 	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
@@ -148,39 +148,40 @@ bool PostProcessingMaterial::Init(const std::shared_ptr<PostProcessingMaterial>&
 	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
 		return false;
 
-	std::vector<CombinedImage> resultTargets;
-	std::vector<CombinedImage> motionNeighborMaxs;
+	std::vector<CombinedImage> temporalResult;
+	std::vector<CombinedImage> bloomTextures;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		std::shared_ptr<FrameBuffer> pCombineResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_CombineResult)[j];
+		std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
 
-		resultTargets.push_back({
-			pCombineResult->GetColorTarget(0),
-			pCombineResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-			pCombineResult->GetColorTarget(0)->CreateDefaultImageView()
+		temporalResult.push_back({
+			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult),
+			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult)->CreateLinearClampToEdgeSampler(),
+			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult)->CreateDefaultImageView()
 			});
 
-		std::shared_ptr<FrameBuffer> pMotionNeighborMax = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionNeighborMax)[j];
 
-		motionNeighborMaxs.push_back({
-			pMotionNeighborMax->GetColorTarget(0),
-			pMotionNeighborMax->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-			pMotionNeighborMax->GetColorTarget(0)->CreateDefaultImageView()
-		});
+		std::shared_ptr<FrameBuffer> pBloomFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_BloomBlurH)[j];
+
+		bloomTextures.push_back({
+			pBloomFrameBuffer->GetColorTarget(0),
+			pBloomFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pBloomFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
+			});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount , resultTargets);
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, motionNeighborMaxs);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount , temporalResult);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, bloomTextures);
 
 	return true;
 }
 
-void PostProcessingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
+void CombineMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
 {
 	m_materialVariableLayout.push_back(
 	{
 		CombinedSampler,
-		"Combine Result",
+		"Temporal result",
 		{},
 		GetSwapChain()->GetSwapChainImageCount()
 	});
@@ -188,18 +189,18 @@ void PostProcessingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>
 	m_materialVariableLayout.push_back(
 	{
 		CombinedSampler,
-		"Motion Neighbor Max",
+		"Bloom",
 		{},
 		GetSwapChain()->GetSwapChainImageCount()
 	});
 }
 
-void PostProcessingMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
+void CombineMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 {
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * 2);
 }
 
-void PostProcessingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
+void CombineMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
@@ -218,22 +219,22 @@ void PostProcessingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf,
 	pCmdBuf->Execute({ pDrawCmdBuffer });
 }
 
-void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+void CombineMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	std::vector<VkImageMemoryBarrier> barriers;
 
-	std::shared_ptr<Image> pCombineResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
-	std::shared_ptr<Image> pMotionNeighborMax = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionNeighborMax)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
+	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::TemporalResult);
+	std::shared_ptr<Image> pBloomTex = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_BloomBlurH)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 
 	VkImageSubresourceRange subresourceRange = {};
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pCombineResult->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pCombineResult->GetImageInfo().arrayLayers;
+	subresourceRange.levelCount = pTemporalResult->GetImageInfo().mipLevels;
+	subresourceRange.layerCount = pTemporalResult->GetImageInfo().arrayLayers;
 
 	VkImageMemoryBarrier imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pCombineResult->GetDeviceHandle();
+	imgBarrier.image = pTemporalResult->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
@@ -244,11 +245,11 @@ void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<Comman
 
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pMotionNeighborMax->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pMotionNeighborMax->GetImageInfo().arrayLayers;
+	subresourceRange.levelCount = pBloomTex->GetImageInfo().mipLevels;
+	subresourceRange.layerCount = pBloomTex->GetImageInfo().arrayLayers;
 
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pMotionNeighborMax->GetDeviceHandle();
+	imgBarrier.image = pBloomTex->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;

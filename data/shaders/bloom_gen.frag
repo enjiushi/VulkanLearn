@@ -5,7 +5,7 @@
 
 #include "uniform_layout.h"
 
-layout (set = 3, binding = 2) uniform sampler2D ShadingResult[3];
+layout (set = 3, binding = 2) uniform sampler2D TemporalResult[3];
 
 layout (location = 0) in vec2 inUv;
 
@@ -15,6 +15,6 @@ int index = int(perFrameData.camDir.a);
 
 void main() 
 {
-	outBloomFrag.rgb = texture(ShadingResult[index], inUv).rgb;
+	outBloomFrag.rgb = texture(TemporalResult[index], inUv).rgb;
 	outBloomFrag.rgb = clamp(outBloomFrag.rgb, 0.0f, 1.0f);
 }
