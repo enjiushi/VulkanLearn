@@ -754,6 +754,7 @@ void VulkanGlobal::Draw()
 	uint32_t cbIndex = frameIndex * 2 + pingpong;
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetDeltaTime(Timer::ElapsedTime);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::TotalTime));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
