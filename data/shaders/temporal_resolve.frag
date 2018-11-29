@@ -96,22 +96,10 @@ vec4 CalculateSSR(vec2 texcoord)
 	return SSRRadiance;
 }
 
-void main() 
+vec3 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec)
 {
-	vec2 unjitteredUV = inUv - perFrameData.cameraJitterOffset;
-	
-	vec2 motionVec = texture(MotionVector[index], unjitteredUV).rg;
-
-	vec4 SSRRadiance = CalculateSSR(unjitteredUV);
-	vec4 envReflect = texture(EnvReflResult[index], unjitteredUV).rgba;
-	vec4 prevSSR = texture(TemporalSSR, inUv + motionVec).rgba;
-
-	// 1. SSR, EnvReflection resolve
-	// 2. SSR temporal filter
-	outTemporalSSR = mix(vec4(mix(envReflect.rgb, SSRRadiance.rgb, SSRRadiance.a), SSRRadiance.a), prevSSR, 0.98f);
-
-	vec3 curr = texture(ShadingResult[index], unjitteredUV).rgb;
-	vec3 prev = texture(TemporalShading, inUv + motionVec).rgb;
+	vec3 curr = texture(currSampler, unjitteredUV).rgb;
+	vec3 prev = texture(prevSampler, inUv + motionVec).rgb;
 
 	vec2 u = vec2(globalData.gameWindowSize.z, 0);
 	vec2 v = vec2(0, globalData.gameWindowSize.w);
@@ -140,7 +128,24 @@ void main()
 	float unbiasedWeightSQR = unbiasedWeight * unbiasedWeight;
 	float feedback = mix(0.87f, 0.97f, unbiasedWeightSQR);
 
-	vec3 result = mix(curr, prev, 0.97f);
+	return mix(curr, prev, 0.97f);
+}
+
+void main() 
+{
+	vec2 unjitteredUV = inUv - perFrameData.cameraJitterOffset;
+	
+	vec2 motionVec = texture(MotionVector[index], unjitteredUV).rg;
+
+	vec4 SSRRadiance = CalculateSSR(unjitteredUV);
+	vec4 envReflect = texture(EnvReflResult[index], unjitteredUV).rgba;
+	vec4 prevSSR = texture(TemporalSSR, inUv + motionVec).rgba;
+
+	// 1. SSR, EnvReflection resolve
+	// 2. SSR temporal filter
+	outTemporalSSR = mix(vec4(mix(envReflect.rgb, SSRRadiance.rgb, SSRRadiance.a), SSRRadiance.a), prevSSR, 0.98f);
+
+	vec3 result = resolve(ShadingResult[index], TemporalShading, unjitteredUV, motionVec);
 
 	outTemporalShading = vec4(result, 1.0f);
 
