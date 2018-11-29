@@ -200,8 +200,8 @@ void main()
 	float RdotN = 0.0f;
 	int regenCount = 0;
 	int maxRegenCount = 15;
-
-	for (; RdotN <= 0.000f && regenCount < maxRegenCount; regenCount++)
+	float surfaceMargin = 0.03;
+	for (; RdotN <= surfaceMargin && regenCount < maxRegenCount; regenCount++)
 	{
 		ivec3 inoiseUV = ivec3(ivec2(noiseUV + regenCount) % 1024, pushConsts.blueNoiseTexIndex);
 
