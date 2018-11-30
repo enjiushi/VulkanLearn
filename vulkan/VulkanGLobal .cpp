@@ -417,6 +417,21 @@ void CombineRGBA8_R8_RGBA8(gli::texture2d& rgbaTex, gli::texture2d rTex)
 	}
 }
 
+void CombinecRGBcA8_RGBcAc8_RGBA8(gli::texture2d& rgba_rgbTex, gli::texture2d rgba_aTex)
+{
+
+	ASSERTION(rgba_rgbTex.extent().x == rgba_aTex.extent().x && rgba_rgbTex.extent().y == rgba_aTex.extent().y);
+	ASSERTION(rgba_rgbTex.layers() == rgba_aTex.layers() && rgba_rgbTex.levels() == rgba_aTex.levels());
+
+	uint8_t* rgba_rgbTexData = (uint8_t*)rgba_rgbTex.data();
+	uint8_t* rgba_aTexData = (uint8_t*)rgba_aTex.data();
+
+	for (uint32_t i = 0; i < rgba_aTex.size() / 4; i++)
+	{
+		rgba_rgbTexData[i * 4 + 3] = rgba_aTexData[i * 4 + 3];
+	}
+}
+
 void SetAlphaChannel(gli::texture2d& rgbaTex, uint8_t alpha)
 {
 	uint8_t* rgbaTexData = (uint8_t*)rgbaTex.data();
@@ -425,6 +440,20 @@ void SetAlphaChannel(gli::texture2d& rgbaTex, uint8_t alpha)
 	{
 		rgbaTexData[i * 4 + 3] = alpha;
 	}
+}
+
+gli::texture2d ExtractAlphaChannel(gli::texture2d rgbaTex)
+{
+	gli::texture2d alphaTex(gli::FORMAT_R8_UNORM_PACK8, rgbaTex.extent(), rgbaTex.levels());
+
+	uint8_t* rTexData = (uint8_t*)alphaTex.data();
+	uint8_t* rgbaTexData = (uint8_t*)rgbaTex.data();
+
+	for (uint32_t i = 0; i < alphaTex.size(); i++)
+	{
+		rTexData[i] = rgbaTexData[i * 4 + 3];
+	}
+	return alphaTex;
 }
 
 void VulkanGlobal::InitUniforms()
@@ -444,6 +473,11 @@ void VulkanGlobal::InitUniforms()
 
 	gli::texture2d gliMetalic(gli::load("../data/textures/cerberus/metallic_1024.ktx"));
 
+	gli::texture2d gliTempTex(gli::load("../data/textures/aluminum_metalness_1024.ktx"));
+	gli::texture2d gliAluminumMetalic = ExtractAlphaChannel(gliTempTex);
+	gli::texture2d gliAluminumNormalAO(gli::load("../data/textures/aluminum_normal_1024.ktx"));
+	SetAlphaChannel(gliAluminumNormalAO, 1.0f);
+
 	m_pAlbedoRoughness = Texture2D::Create(m_pDevice, { {gliAlbedoTex} }, VK_FORMAT_R8G8B8A8_UNORM);
 	m_pMetalic = Texture2D::Create(m_pDevice, { {gliMetalic} }, VK_FORMAT_R8_UNORM);
 	m_pNormalAO = Texture2D::Create(m_pDevice, { {gliNormalTex} }, VK_FORMAT_R8G8B8A8_UNORM);
@@ -452,7 +486,9 @@ void VulkanGlobal::InitUniforms()
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunNormalAO", "", "RGB:Normal, A:AO" }, gliNormalTex);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "TexChecker", "", "Texture checker board" }, texCheckerTex);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "BlueNoise", "", "Blue Noise" }, blueNoise);
+	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "AluminumNormalAO", "", "Aluminum plate normal ao map" }, gliAluminumNormalAO);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "GunMetallic", "", "R:Metalic" }, gliMetalic);
+	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "AluminumMetalic", "", "Aluminum plate metalic map" }, gliAluminumMetalic);
 
 	gli::texture_cube gliSkyBox(gli::load("../data/textures/hdr/gcanyon_cube.ktx"));
 	UniformData::GetInstance()->GetGlobalTextures()->InitIBLTextures(gliSkyBox);
@@ -565,12 +601,12 @@ void VulkanGlobal::InitMaterials()
 	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, 0.92f));
 	m_pQuadMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.99f));
 	m_pQuadMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
-	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
-	m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "AluminumNormalAO");
+	m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, "AluminumMetalic");
 
 	m_pBoxMaterialInstance0 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 	m_pBoxMaterialInstance0->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pBoxMaterialInstance0->SetParameter("AlbedoRoughness", Vector4f(0.0f, 1.0f, 0.0f, 0.9f));
+	m_pBoxMaterialInstance0->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 0.9f));
 	m_pBoxMaterialInstance0->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
 	m_pBoxMaterialInstance0->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, "TexChecker");
 	m_pBoxMaterialInstance0->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
