@@ -60,7 +60,7 @@ vec4 CalculateSSR(vec2 texcoord)
 		vec3 SSRSurfColor = ((texelFetch(ShadingResult[index], ivec2(SSRInfo.xy), 0).rgb) + (texelFetch(EnvReflResult[index], ivec2(SSRInfo.xy), 0).rgb)) * hitFlag;
 
 		float SSRSurfDepth;
-		vec3 SSRSurfPosition = ReconstructWSPosition(coord, DepthStencilBuffer[index], SSRSurfDepth);
+		vec3 SSRSurfPosition = ReconstructWSPosition(ivec2(SSRInfo.xy), DepthStencilBuffer[index], SSRSurfDepth);
 
 		vec3 l = normalize(SSRSurfPosition.xyz - vars.world_position.xyz);
 		vec3 h = normalize(l + v);
