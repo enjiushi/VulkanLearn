@@ -36,17 +36,14 @@ layout(set = 3, binding = 1) buffer MaterialUniforms
 
 void main() 
 {
-	float metalic = 1.0f;
-	if (textures[perMaterialIndex].metallicIndex < 0)
-		metalic *= textures[perMaterialIndex].AOMetalic.g;
-	else
-		metalic = texture(R8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].metallicIndex), 0.0).r;
+	float metalic = textures[perMaterialIndex].AOMetalic.g;
+	if (textures[perMaterialIndex].metallicIndex >= 0)
+		metalic *= texture(R8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].metallicIndex), 0.0).r * textures[perMaterialIndex].AOMetalic.g;
 
-	vec4 normal_ao = vec4(vec3(0), 1);
+	vec4 normal_ao = vec4(vec3(0), textures[perMaterialIndex].AOMetalic.x);
 	if (textures[perMaterialIndex].normalAOIndex < 0)
 	{
 		normal_ao.xyz = normalize(inNormal);
-		normal_ao.w = textures[perMaterialIndex].AOMetalic.x;
 	}
 	else
 	{
@@ -57,11 +54,12 @@ void main()
 		pertNormal = TBN * pertNormal;
 
 		normal_ao.xyz = pertNormal.xyz;
+		normal_ao.w *= textures[perMaterialIndex].AOMetalic.x;
 	}
 
 	vec4 albedo_roughness = textures[perMaterialIndex].albedoRougness;
 	if (textures[perMaterialIndex].albedoRoughnessIndex >= 0)
-		albedo_roughness = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].albedoRoughnessIndex), 0.0);
+		albedo_roughness *= texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].albedoRoughnessIndex), 0.0);
 
 	outGBuffer0.xyz = normal_ao.xyz * 0.5f + 0.5f;
 	outGBuffer0.w = albedo_roughness.w;
