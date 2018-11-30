@@ -194,7 +194,7 @@ void GaussianBlurMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount());
 }
 
-void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
+void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
@@ -215,7 +215,7 @@ void GaussianBlurMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, c
 	pCmdBuf->Execute({ pDrawCmdBuffer });
 }
 
-void GaussianBlurMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+void GaussianBlurMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
 {
 	std::shared_ptr<Image> pImg = FrameBufferDiction::GetInstance()->GetFrameBuffers(m_inputFrameBufferType)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 	VkImageSubresourceRange subresourceRange = {};

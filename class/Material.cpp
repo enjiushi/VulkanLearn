@@ -369,12 +369,12 @@ void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, ui
 	m_indirectIndex += 1;
 }
 
-void Material::BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+void Material::BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
 {
-	AttachResourceBarriers(pCmdBuf);
+	AttachResourceBarriers(pCmdBuf, pingpong);
 }
 
-void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf)
+void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
 {
 }
 

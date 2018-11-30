@@ -75,7 +75,7 @@ public:
 	virtual void SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture);
 	virtual void BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
-	virtual void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer) {}
+	virtual void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong = 0) {}
 
 	template <typename T>
 	void SetParameter(uint32_t chunkIndex, uint32_t parameterIndex, T val)
@@ -109,9 +109,9 @@ public:
 
 	virtual void SyncBufferData();
 
-	virtual void BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf);
-	virtual void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) = 0;
-	virtual void AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf);
+	virtual void BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
+	virtual void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) = 0;
+	virtual void AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
 
 	virtual void OnFrameBegin();
 	virtual void OnFrameEnd();

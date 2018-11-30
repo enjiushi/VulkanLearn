@@ -20,6 +20,6 @@ public:
 	static std::shared_ptr<CombineMaterial> CreateDefaultMaterial();
 
 public:
-	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer) override;
-	void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer) override;
+	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) override;
+	void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong = 0) override;
 };

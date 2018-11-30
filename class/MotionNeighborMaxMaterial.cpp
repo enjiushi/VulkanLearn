@@ -181,7 +181,7 @@ void MotionNeighborMaxMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount());
 }
 
-void MotionNeighborMaxMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
+void MotionNeighborMaxMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
@@ -213,7 +213,7 @@ void MotionNeighborMaxMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdB
 	pCmdBuf->Execute({ pDrawCmdBuffer });
 }
 
-void MotionNeighborMaxMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+void MotionNeighborMaxMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
 {
 	std::shared_ptr<Image> pMotionTileMax = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionTileMax)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 
