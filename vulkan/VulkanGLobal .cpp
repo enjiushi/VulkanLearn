@@ -791,7 +791,7 @@ void VulkanGlobal::Draw()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetDeltaTime(Timer::GetElapsedTime());
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::GetTotalTime()));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0((pingpong + 1) % 2);
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(pingpong);
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
