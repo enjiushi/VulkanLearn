@@ -17,12 +17,9 @@ protected:
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;
 
 public:
-	static std::shared_ptr<TemporalResolveMaterial> CreateDefaultMaterial(uint32_t pingpong);
+	static std::shared_ptr<TemporalResolveMaterial> CreateDefaultMaterial();
 
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) override;
 	void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong = 0) override;
-
-protected:
-	uint32_t	m_pingPong;
 };

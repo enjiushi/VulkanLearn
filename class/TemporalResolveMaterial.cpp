@@ -20,7 +20,7 @@
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<TemporalResolveMaterial> TemporalResolveMaterial::CreateDefaultMaterial(uint32_t pingpong)
+std::shared_ptr<TemporalResolveMaterial> TemporalResolveMaterial::CreateDefaultMaterial()
 {
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon.vert.spv", L"", L"", L"", L"../data/shaders/temporal_resolve.frag.spv", L"" };
@@ -132,8 +132,6 @@ std::shared_ptr<TemporalResolveMaterial> TemporalResolveMaterial::CreateDefaultM
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	pResolveMaterial->m_pingPong = (pingpong + 1) % 2;
-
 	if (pResolveMaterial.get() && pResolveMaterial->Init(pResolveMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pResolveMaterial;
 
@@ -206,18 +204,22 @@ bool TemporalResolveMaterial::Init(const std::shared_ptr<TemporalResolveMaterial
 	}
 
 	std::vector<CombinedImage> temporalShading;
-	temporalShading.push_back({
-		FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, m_pingPong)->GetColorTarget(FrameBufferDiction::TemporalShading),
-		FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, m_pingPong)->GetColorTarget(FrameBufferDiction::TemporalShading)->CreateLinearClampToEdgeSampler(),
-		FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, m_pingPong)->GetColorTarget(FrameBufferDiction::TemporalShading)->CreateDefaultImageView()
-		});
-
 	std::vector<CombinedImage> temporalSSR;
-	temporalSSR.push_back({
-		FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, m_pingPong)->GetColorTarget(FrameBufferDiction::TemporalSSR),
-		FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, m_pingPong)->GetColorTarget(FrameBufferDiction::TemporalSSR)->CreateLinearClampToEdgeSampler(),
-		FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, m_pingPong)->GetColorTarget(FrameBufferDiction::TemporalSSR)->CreateDefaultImageView()
-		});
+
+	for (uint32_t pingpong = 0; pingpong < 2; pingpong++)
+	{
+		temporalShading.push_back({
+			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalShading),
+			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalShading)->CreateLinearClampToEdgeSampler(),
+			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalShading)->CreateDefaultImageView()
+			});
+
+		temporalSSR.push_back({
+			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalSSR),
+			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalSSR)->CreateLinearClampToEdgeSampler(),
+			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalSSR)->CreateDefaultImageView()
+			});
+	}
 
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 1, shadingResults);
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 2, EnvReflResults);
@@ -299,6 +301,7 @@ void TemporalResolveMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 		CombinedSampler,
 		"Temporal Shading",
 		{},
+		2
 	});
 
 	m_materialVariableLayout.push_back(
@@ -306,6 +309,7 @@ void TemporalResolveMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 		CombinedSampler,
 		"Temporal SSR",
 		{},
+		2
 	});
 }
 
@@ -362,8 +366,8 @@ void TemporalResolveMaterial::AttachResourceBarriers(const std::shared_ptr<Comma
 	std::shared_ptr<Image> pSSRResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(1);
 	std::shared_ptr<Image> pMotionVector = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::MotionVector);
 	std::shared_ptr<Image> pSSRInfo = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOSSR)[FrameMgr()->FrameIndex()]->GetColorTarget(1);
-	std::shared_ptr<Image> pTemporalShading = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, m_pingPong)->GetColorTarget(FrameBufferDiction::TemporalShading);
-	std::shared_ptr<Image> pTemporalSSR = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, m_pingPong)->GetColorTarget(FrameBufferDiction::TemporalSSR);
+	std::shared_ptr<Image> pTemporalShading = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalShading);
+	std::shared_ptr<Image> pTemporalSSR = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalSSR);
 
 	VkImageSubresourceRange subresourceRange = {};
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

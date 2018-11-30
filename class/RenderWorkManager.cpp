@@ -30,8 +30,7 @@ bool RenderWorkManager::Init()
 	m_pMotionTileMaxMaterial		= MotionTileMaxMaterial::CreateDefaultMaterial();
 	m_pMotionNeighborMaxMaterial	= MotionNeighborMaxMaterial::CreateDefaultMaterial();
 	m_pShadingMaterial				= DeferredShadingMaterial::CreateDefaultMaterial();
-	m_temporalResolveMaterials.push_back(TemporalResolveMaterial::CreateDefaultMaterial(0));
-	m_temporalResolveMaterials.push_back(TemporalResolveMaterial::CreateDefaultMaterial(1));
+	m_pTemporalResolveMaterial		= TemporalResolveMaterial::CreateDefaultMaterial();
 	m_pShadowMapMaterial			= ShadowMapMaterial::CreateDefaultMaterial();
 	m_pSSAOMaterial					= SSAOMaterial::CreateDefaultMaterial();
 	m_pBloomMaterial				= BloomMaterial::CreateDefaultMaterial();
@@ -174,13 +173,13 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	m_pShadingMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	m_temporalResolveMaterials[pingpong]->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	m_pTemporalResolveMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong));
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y, 0, 1 });
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y });
-	m_temporalResolveMaterials[pingpong]->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong));
+	m_pTemporalResolveMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong));
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->EndRenderPass(pDrawCmdBuffer);
-	m_temporalResolveMaterials[pingpong]->AfterRenderPass(pDrawCmdBuffer, pingpong);
+	m_pTemporalResolveMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
 	m_pBloomMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);

@@ -13,8 +13,8 @@ layout (set = 3, binding = 6) uniform sampler2D DepthStencilBuffer[3];
 layout (set = 3, binding = 7) uniform sampler2D ShadingResult[3];
 layout (set = 3, binding = 8) uniform sampler2D EnvReflResult[3];
 layout (set = 3, binding = 9) uniform sampler2D SSRInfo[3];
-layout (set = 3, binding = 10) uniform sampler2D TemporalShading;
-layout (set = 3, binding = 11) uniform sampler2D TemporalSSR;
+layout (set = 3, binding = 10) uniform sampler2D TemporalShading[2];
+layout (set = 3, binding = 11) uniform sampler2D TemporalSSR[2];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
@@ -24,6 +24,7 @@ layout (location = 1) out vec4 outTemporalSSR;
 layout (location = 2) out vec4 outFinal;
 
 int index = int(perFrameData.camDir.a);
+int pingpong = int(perFrameData.camPos.a);
 
 const vec2 offset[4] =
 {
@@ -139,13 +140,13 @@ void main()
 
 	vec4 SSRRadiance = CalculateSSR(unjitteredUV);
 	vec4 envReflect = texture(EnvReflResult[index], unjitteredUV).rgba;
-	vec4 prevSSR = texture(TemporalSSR, inUv + motionVec).rgba;
+	vec4 prevSSR = texture(TemporalSSR[pingpong], inUv + motionVec).rgba;
 
 	// 1. SSR, EnvReflection resolve
 	// 2. SSR temporal filter
 	outTemporalSSR = mix(vec4(mix(envReflect.rgb, SSRRadiance.rgb, SSRRadiance.a), SSRRadiance.a), prevSSR, 0.98f);
 
-	vec3 result = resolve(ShadingResult[index], TemporalShading, unjitteredUV, motionVec);
+	vec3 result = resolve(ShadingResult[index], TemporalShading[pingpong], unjitteredUV, motionVec);
 
 	outTemporalShading = vec4(result, 1.0f);
 

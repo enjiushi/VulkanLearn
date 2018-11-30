@@ -228,6 +228,39 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffe
 	return frameBuffers;
 }
 
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSRResolveFrameBuffer()
+{
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+
+	m_temporalTexture[TemporalShading].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+	m_temporalTexture[TemporalShading].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+
+	m_temporalTexture[TemporalSSR].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+	m_temporalTexture[TemporalSSR].push_back(Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+
+	std::vector<std::shared_ptr<Image>> resultTargets =
+	{
+		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
+		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
+		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	};
+
+	FrameBufferCombo frameBuffers;
+
+	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount() * 2; i++)
+	{
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(),
+			{
+				m_temporalTexture[TemporalShading][i % 2],
+				m_temporalTexture[TemporalSSR][i % 2],
+				resultTargets[i % GetSwapChain()->GetSwapChainImageCount()],
+			}, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->GetRenderPass()));
+	}
+
+	return frameBuffers;
+}
+
+
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFrameBuffer()
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
