@@ -47,7 +47,10 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 	{
 		vec4 SSRHitInfo = texelFetch(SSRInfo[index], (coord + ivec2(offsetRotation * offset[i])) / 2, 0);
 		float hitFlag = sign(SSRHitInfo.a) * 0.5f + 0.5f;
-		vec3 SSRSurfColor = (texelFetch(TemporalResult[pingpong], ivec2(SSRHitInfo.xy), 0).rgb) * hitFlag;
+
+		vec2 motionVec = texelFetch(MotionVector[index], ivec2(SSRHitInfo.xy + perFrameData.cameraJitterOffset * globalData.gameWindowSize.xy), 0).rg;
+
+		vec3 SSRSurfColor = (texelFetch(TemporalResult[pingpong], ivec2(SSRHitInfo.xy + motionVec * globalData.gameWindowSize.xy), 0).rgb) * hitFlag;
 
 		float SSRSurfDepth;
 		vec3 SSRSurfPosition = ReconstructWSPosition(ivec2(SSRHitInfo.xy), DepthStencilBuffer[index], SSRSurfDepth);
@@ -73,13 +76,6 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 	}
 
 	SSRRadiance /= weightSum;	// normalize
-	
-	// Pre-integrated FG
-	//F0 = mix(F0, vars.albedo_roughness.rgb, vars.metalic);
-	//vec2 brdf_lut = texture(RGBA16_512_2D_BRDFLUT, vec2(NdotV, vars.albedo_roughness.a)).rg;
-	//vec3 fresnel_roughness = Fresnel_Schlick_Roughness(F0, NdotV, vars.albedo_roughness.a);
-
-	//SSRRadiance.rgb = SSRRadiance.rgb * (brdf_lut.x * fresnel_roughness + brdf_lut.y);
 
 	return SSRRadiance;
 }
@@ -136,10 +132,4 @@ void main()
 	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
 	outShadingColor = vec4(punctualRadiance + ambient, 1.0f);
-
-
-
-	//vec2 motionVec = texture(MotionVector[index], inUv).rg;
-
-	//vec4 SSRRadiance = CalculateSSR(n, v, NdotV, albedo, F0, fresnel_roughness, brdf_lut);
 }
