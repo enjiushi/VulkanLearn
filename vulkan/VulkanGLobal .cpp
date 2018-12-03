@@ -476,7 +476,7 @@ void VulkanGlobal::InitUniforms()
 	gli::texture2d gliTempTex(gli::load("../data/textures/aluminum_metalness_1024.ktx"));
 	gli::texture2d gliAluminumMetalic = ExtractAlphaChannel(gliTempTex);
 	gli::texture2d gliAluminumNormalAO(gli::load("../data/textures/aluminum_normal_1024.ktx"));
-	SetAlphaChannel(gliAluminumNormalAO, 1.0f);
+	SetAlphaChannel(gliAluminumNormalAO, 1.0f * 255);
 
 	m_pAlbedoRoughness = Texture2D::Create(m_pDevice, { {gliAlbedoTex} }, VK_FORMAT_R8G8B8A8_UNORM);
 	m_pMetalic = Texture2D::Create(m_pDevice, { {gliMetalic} }, VK_FORMAT_R8_UNORM);

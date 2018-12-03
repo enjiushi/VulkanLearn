@@ -149,14 +149,14 @@ bool BloomMaterial::Init(const std::shared_ptr<BloomMaterial>& pSelf,
 		return false;
 
 	std::vector<CombinedImage> temporalResults;
-	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	for (uint32_t j = 0; j < 2; j++)
 	{
 		std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
 
 		temporalResults.push_back({
-			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult),
-			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult)->CreateLinearClampToEdgeSampler(),
-			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult)->CreateDefaultImageView()
+			pTemporalResult->GetColorTarget(0),
+			pTemporalResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pTemporalResult->GetColorTarget(0)->CreateDefaultImageView()
 		});
 	}
 
@@ -172,7 +172,7 @@ void BloomMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materia
 		CombinedSampler,
 		"Temporal result",
 		{},
-		GetSwapChain()->GetSwapChainImageCount()
+		2
 	});
 }
 
@@ -215,7 +215,7 @@ void BloomMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const st
 
 void BloomMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
 {
-	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::TemporalResult);
+	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(0);
 
 	VkImageSubresourceRange subresourceRange = {};
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

@@ -148,114 +148,50 @@ bool TemporalResolveMaterial::Init(const std::shared_ptr<TemporalResolveMaterial
 	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
 		return false;
 
-	for (uint32_t i = 0; i < FrameBufferDiction::GBufferCount + 1; i++)
-	{
-		std::vector<CombinedImage> gbuffers;
-		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
-		{
-			std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
-
-			if (i < FrameBufferDiction::GBufferCount)
-				gbuffers.push_back({
-					pGBufferFrameBuffer->GetColorTarget(i),
-					pGBufferFrameBuffer->GetColorTarget(i)->CreateLinearClampToEdgeSampler(),
-					pGBufferFrameBuffer->GetColorTarget(i)->CreateDefaultImageView()
-				});
-			else
-				gbuffers.push_back({
-					pGBufferFrameBuffer->GetDepthStencilTarget(),
-					pGBufferFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToEdgeSampler(),
-					pGBufferFrameBuffer->GetDepthStencilTarget()->CreateDepthSampleImageView()
-				});
-		}
-
-		m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + i, gbuffers);
-	}
-
-	std::vector<CombinedImage> shadingResults;
-	std::vector<CombinedImage> EnvReflResults;
 	std::vector<CombinedImage> motionVectors;
-	std::vector<CombinedImage> SSRInfo;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		std::shared_ptr<FrameBuffer> pShadingResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
+		std::shared_ptr<FrameBuffer> pGBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
 
-		shadingResults.push_back({
-			pShadingResult->GetColorTarget(0),
-			pShadingResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-			pShadingResult->GetColorTarget(0)->CreateDefaultImageView()
-			});
-
-		std::shared_ptr<FrameBuffer> pEnvReflResults = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
-
-		EnvReflResults.push_back({
-			pEnvReflResults->GetColorTarget(1),
-			pEnvReflResults->GetColorTarget(1)->CreateLinearClampToEdgeSampler(),
-			pEnvReflResults->GetColorTarget(1)->CreateDefaultImageView()
-			});
-
-		std::shared_ptr<FrameBuffer> pSSRInfo = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOSSR)[j];
-
-		SSRInfo.push_back({
-			pSSRInfo->GetColorTarget(1),
-			pSSRInfo->GetColorTarget(1)->CreateLinearClampToEdgeSampler(),
-			pSSRInfo->GetColorTarget(1)->CreateDefaultImageView()
+		motionVectors.push_back({
+			pGBuffer->GetColorTarget(FrameBufferDiction::MotionVector),
+			pGBuffer->GetColorTarget(FrameBufferDiction::MotionVector)->CreateLinearClampToEdgeSampler(),
+			pGBuffer->GetColorTarget(FrameBufferDiction::MotionVector)->CreateDefaultImageView()
 		});
 	}
 
-	std::vector<CombinedImage> temporalShading;
-	std::vector<CombinedImage> temporalSSR;
-
-	for (uint32_t pingpong = 0; pingpong < 2; pingpong++)
+	std::vector<CombinedImage> shadingResults;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		temporalShading.push_back({
-			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalShading),
-			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalShading)->CreateLinearClampToEdgeSampler(),
-			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalShading)->CreateDefaultImageView()
-			});
+		std::shared_ptr<FrameBuffer> pShadingResultBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
 
-		temporalSSR.push_back({
-			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalSSR),
-			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalSSR)->CreateLinearClampToEdgeSampler(),
-			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalSSR)->CreateDefaultImageView()
+		shadingResults.push_back({
+			pShadingResultBuffer->GetColorTarget(0),
+			pShadingResultBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pShadingResultBuffer->GetColorTarget(0)->CreateDefaultImageView()
 			});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 1, shadingResults);
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 2, EnvReflResults);
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 3, SSRInfo);
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 4, temporalShading);
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 5, temporalSSR);
+	std::vector<CombinedImage> temporalResults;
+
+	for (uint32_t pingpong = 0; pingpong < 2; pingpong++)
+	{
+		temporalResults.push_back({
+			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(0),
+			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(0)->CreateDefaultImageView()
+			});
+	}
+
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, motionVectors);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, shadingResults);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 2, temporalResults);
 
 	return true;
 }
 
 void TemporalResolveMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
 {
-	m_materialVariableLayout.push_back(
-	{
-		CombinedSampler,
-		"GBuffer0",
-		{},
-		GetSwapChain()->GetSwapChainImageCount()
-	});
-
-	m_materialVariableLayout.push_back(
-	{
-		CombinedSampler,
-		"GBuffer1",
-		{},
-		GetSwapChain()->GetSwapChainImageCount()
-	});
-
-	m_materialVariableLayout.push_back(
-	{
-		CombinedSampler,
-		"GBuffer2",
-		{},
-		GetSwapChain()->GetSwapChainImageCount()
-	});
-
 	m_materialVariableLayout.push_back(
 	{
 		CombinedSampler,
@@ -267,7 +203,7 @@ void TemporalResolveMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 	m_materialVariableLayout.push_back(
 	{
 		CombinedSampler,
-		"DepthBuffer",
+		"ShadingResult",
 		{},
 		GetSwapChain()->GetSwapChainImageCount()
 	});
@@ -275,39 +211,7 @@ void TemporalResolveMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 	m_materialVariableLayout.push_back(
 	{
 		CombinedSampler,
-		"Shading Result",
-		{},
-		GetSwapChain()->GetSwapChainImageCount()
-	});
-
-	m_materialVariableLayout.push_back(
-	{
-		CombinedSampler,
-		"SSR Result",
-		{},
-		GetSwapChain()->GetSwapChainImageCount()
-	});
-
-	m_materialVariableLayout.push_back(
-	{
-		CombinedSampler,
-		"SSR Info",
-		{},
-		GetSwapChain()->GetSwapChainImageCount()
-	});
-
-	m_materialVariableLayout.push_back(
-	{
-		CombinedSampler,
-		"Temporal Shading",
-		{},
-		2
-	});
-
-	m_materialVariableLayout.push_back(
-	{
-		CombinedSampler,
-		"Temporal SSR",
+		"Temporal Result",
 		{},
 		2
 	});
@@ -340,72 +244,18 @@ void TemporalResolveMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf
 void TemporalResolveMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
 {
 	std::vector<VkImageMemoryBarrier> barriers;
-	for (uint32_t i = 0; i < FrameBufferDiction::GBufferCount; i++)
-	{
-		std::shared_ptr<Image> pGBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(i);
 
-		VkImageSubresourceRange subresourceRange = {};
-		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		subresourceRange.baseMipLevel = 0;
-		subresourceRange.levelCount = pGBuffer->GetImageInfo().mipLevels;
-		subresourceRange.layerCount = pGBuffer->GetImageInfo().arrayLayers;
-
-		VkImageMemoryBarrier imgBarrier = {};
-		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		imgBarrier.image = pGBuffer->GetDeviceHandle();
-		imgBarrier.subresourceRange = subresourceRange;
-		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-		barriers.push_back(imgBarrier);
-	}
-
-	std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
-	std::shared_ptr<Image> pSSRResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(1);
 	std::shared_ptr<Image> pMotionVector = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::MotionVector);
-	std::shared_ptr<Image> pSSRInfo = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOSSR)[FrameMgr()->FrameIndex()]->GetColorTarget(1);
-	std::shared_ptr<Image> pTemporalShading = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalShading);
-	std::shared_ptr<Image> pTemporalSSR = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(FrameBufferDiction::TemporalSSR);
+	std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
+	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(0);
 
 	VkImageSubresourceRange subresourceRange = {};
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pShadingResult->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pShadingResult->GetImageInfo().arrayLayers;
-
-	VkImageMemoryBarrier imgBarrier = {};
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pShadingResult->GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-	barriers.push_back(imgBarrier);
-
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pSSRResult->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pSSRResult->GetImageInfo().arrayLayers;
-
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pSSRResult->GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-	barriers.push_back(imgBarrier);
-
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange.baseMipLevel = 0;
 	subresourceRange.levelCount = pMotionVector->GetImageInfo().mipLevels;
 	subresourceRange.layerCount = pMotionVector->GetImageInfo().arrayLayers;
 
+	VkImageMemoryBarrier imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	imgBarrier.image = pMotionVector->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
@@ -418,41 +268,11 @@ void TemporalResolveMaterial::AttachResourceBarriers(const std::shared_ptr<Comma
 
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pSSRInfo->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pSSRInfo->GetImageInfo().arrayLayers;
+	subresourceRange.levelCount = pTemporalResult->GetImageInfo().mipLevels;
+	subresourceRange.layerCount = pTemporalResult->GetImageInfo().arrayLayers;
 
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pSSRInfo->GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-	barriers.push_back(imgBarrier);
-
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pTemporalShading->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pTemporalShading->GetImageInfo().arrayLayers;
-
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pTemporalShading->GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-	barriers.push_back(imgBarrier);
-
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pTemporalSSR->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pTemporalSSR->GetImageInfo().arrayLayers;
-
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pTemporalSSR->GetDeviceHandle();
+	imgBarrier.image = pTemporalResult->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
@@ -464,36 +284,6 @@ void TemporalResolveMaterial::AttachResourceBarriers(const std::shared_ptr<Comma
 	pCmdBuffer->AttachBarriers
 	(
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-		{},
-		{},
-		barriers
-	);
-
-	barriers.clear();
-
-	std::shared_ptr<Image> pDepthTarget = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetDepthStencilTarget();
-
-	subresourceRange = {};
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pDepthTarget->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pDepthTarget->GetImageInfo().arrayLayers;
-
-	imgBarrier = {};
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pDepthTarget->GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-	barriers.push_back(imgBarrier);
-
-	pCmdBuffer->AttachBarriers
-	(
-		VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 		{},
 		{},

@@ -149,18 +149,20 @@ bool CombineMaterial::Init(const std::shared_ptr<CombineMaterial>& pSelf,
 		return false;
 
 	std::vector<CombinedImage> temporalResult;
-	std::vector<CombinedImage> bloomTextures;
-	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	for (uint32_t j = 0; j < 2; j++)
 	{
 		std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
 
 		temporalResult.push_back({
-			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult),
-			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult)->CreateLinearClampToEdgeSampler(),
-			pTemporalResult->GetColorTarget(FrameBufferDiction::TemporalResult)->CreateDefaultImageView()
+			pTemporalResult->GetColorTarget(0),
+			pTemporalResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pTemporalResult->GetColorTarget(0)->CreateDefaultImageView()
 			});
+	}
 
-
+	std::vector<CombinedImage> bloomTextures;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
 		std::shared_ptr<FrameBuffer> pBloomFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_BloomBlurH)[j];
 
 		bloomTextures.push_back({
@@ -183,7 +185,7 @@ void CombineMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& mater
 		CombinedSampler,
 		"Temporal result",
 		{},
-		GetSwapChain()->GetSwapChainImageCount()
+		2
 	});
 
 	m_materialVariableLayout.push_back(
@@ -223,7 +225,7 @@ void CombineMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer
 {
 	std::vector<VkImageMemoryBarrier> barriers;
 
-	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::TemporalResult);
+	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(0);
 	std::shared_ptr<Image> pBloomTex = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_BloomBlurH)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 
 	VkImageSubresourceRange subresourceRange = {};
