@@ -14,7 +14,7 @@ layout (location = 0) out vec4 outScreen;
 
 int index = int(perFrameData.camDir.a);
 
-const float MOTION_VEC_AMP = 5.0f;
+const float MOTION_VEC_AMP = 8.0f;
 const float MOTION_VEC_SAMPLE_COUNT = 16;
 
 void main() 
