@@ -187,6 +187,8 @@ bool TemporalResolveMaterial::Init(const std::shared_ptr<TemporalResolveMaterial
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, shadingResults);
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 2, temporalResults);
 
+	UniformData::GetInstance()->GetGlobalTextures()->InsertScreenSizeTexture({ "MipmapTemporalResult", "", "Mip map temporal result, used for next frame ssr" });
+
 	return true;
 }
 
@@ -239,6 +241,39 @@ void TemporalResolveMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf
 	pDrawCmdBuffer->EndSecondaryRecording();
 
 	pCmdBuf->Execute({ pDrawCmdBuffer });
+}
+
+void TemporalResolveMaterial::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
+{
+	Material::AfterRenderPass(pCmdBuf, pingpong);
+
+	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(0);
+	std::shared_ptr<Image> pTextureArray = UniformData::GetInstance()->GetGlobalTextures()->GetScreenSizeTextureArray();
+
+	uint32_t index;
+	assert(UniformData::GetInstance()->GetGlobalTextures()->GetScreenSizeTextureIndex("MipmapTemporalResult", index) && pTextureArray != nullptr);
+
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	VkImageBlit blit =
+	{
+		{
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			0,
+			index,
+			1
+		},
+		{ { 0, 0, 0 },{ windowSize.x, windowSize.y, 1 } },
+
+		{
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			0,
+			index,
+			1
+		},
+		{ { 0, 0, 0 },{ windowSize.x, windowSize.y, 1 } }
+	};
+	pCmdBuf->BlitImage(pTemporalResult, pTextureArray, blit);
+	pCmdBuf->GenerateMipmaps(pTextureArray, index);
 }
 
 void TemporalResolveMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)

@@ -39,6 +39,8 @@ public:
 	virtual std::shared_ptr<Sampler> CreateNearestRepeatSampler() const;
 	virtual std::shared_ptr<Sampler> CreateLinearClampToEdgeSampler() const;
 
+	virtual void InsertTexture(const gli::texture2d& texture, uint32_t layer) {}
+
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;
 

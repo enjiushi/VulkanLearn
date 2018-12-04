@@ -31,6 +31,7 @@ bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 		return false;
 
 	InitTextureDiction();
+	InitScreenSizeTextureDiction();
 	InitIBLTextures();
 	InitSSAORandomRotationTexture();
 
@@ -53,6 +54,20 @@ void GlobalTextures::InitTextureDiction()
 	m_textureDiction[R8_1024].pTextureArray = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 1024, 1024, std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_SINGLE_COLOR_FORMAT);
 	m_textureDiction[R8_1024].maxSlotIndex = 0;
 	m_textureDiction[R8_1024].currentEmptySlot = 0;
+}
+
+void GlobalTextures::InitScreenSizeTextureDiction()
+{
+	m_textureDiction.resize(InGameTextureTypeCount);
+
+	m_screenSizeTextureDiction.textureArrayName = "RGBA16ScreenSizeTextureArray";
+	m_screenSizeTextureDiction.textureArrayDescription = "Mostly used to store intermedia data of current frames";
+
+	Vector2f size = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	uint32_t smaller = size.x < size.y ? size.x : size.y;
+	m_screenSizeTextureDiction.pTextureArray = Texture2DArray::CreateMipmapOffscreenTexture(GetDevice(), size.x, size.y, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
+	m_screenSizeTextureDiction.maxSlotIndex = 0;
+	m_screenSizeTextureDiction.currentEmptySlot = 0;
 }
 
 void GlobalTextures::InitIBLTextures()
@@ -350,20 +365,25 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 	};
 }
 
-void GlobalTextures::InsertTexture(InGameTextureType type, const TextureDesc& desc, const gli::texture2d& gliTexture2d)
+void GlobalTextures::InsertScreenSizeTexture(const TextureDesc& desc)
 {
-	uint32_t emptySlot = m_textureDiction[type].currentEmptySlot;
-	m_textureDiction[type].textureDescriptions[emptySlot] = desc;
-	m_textureDiction[type].pTextureArray->InsertTexture(gliTexture2d, emptySlot);
-	m_textureDiction[type].lookupTable[desc.textureName] = emptySlot;	// Record lookup table
+	uint32_t emptySlot;
+	InsertTextureDesc(desc, m_screenSizeTextureDiction, emptySlot);
+}
+
+void GlobalTextures::InsertTextureDesc(const TextureDesc& desc, TextureArrayDesc& textureArr, uint32_t& emptySlot)
+{
+	emptySlot = textureArr.currentEmptySlot;
+	textureArr.textureDescriptions[emptySlot] = desc;
+	textureArr.lookupTable[desc.textureName] = emptySlot;	// Record lookup table
 
 	// Find if there's an available slot within the pool
 	bool found = false;
-	for (uint32_t i = 0; i < m_textureDiction[type].maxSlotIndex; i++)
+	for (uint32_t i = 0; i < textureArr.maxSlotIndex; i++)
 	{
-		if (m_textureDiction[type].textureDescriptions.find(i) == m_textureDiction[type].textureDescriptions.end())
+		if (textureArr.textureDescriptions.find(i) == textureArr.textureDescriptions.end())
 		{
-			m_textureDiction[type].currentEmptySlot = i;
+			textureArr.currentEmptySlot = i;
 			found = true;
 			break;
 		}
@@ -372,19 +392,36 @@ void GlobalTextures::InsertTexture(InGameTextureType type, const TextureDesc& de
 	// If there's no available slot within, then increase slot count by 1 and assign empty slot to it
 	if (!found)
 	{
-		m_textureDiction[type].currentEmptySlot = m_textureDiction[type].maxSlotIndex + 1;
-		m_textureDiction[type].maxSlotIndex = m_textureDiction[type].currentEmptySlot;
+		textureArr.currentEmptySlot = textureArr.maxSlotIndex + 1;
+		textureArr.maxSlotIndex = textureArr.currentEmptySlot;
 	}
 }
 
-bool GlobalTextures::GetTextureIndex(InGameTextureType type, const std::string& textureName, uint32_t& textureIndex)
+void GlobalTextures::InsertTexture(InGameTextureType type, const TextureDesc& desc, const gli::texture2d& gliTexture2d)
 {
-	auto it = m_textureDiction[type].lookupTable.find(textureName);
-	if (it == m_textureDiction[type].lookupTable.end())
+	uint32_t emptySlot;
+	InsertTextureDesc(desc, m_textureDiction[type], emptySlot);
+	m_textureDiction[type].pTextureArray->InsertTexture(gliTexture2d, emptySlot);
+}
+
+bool GlobalTextures::GetTextureIndex(const TextureArrayDesc& textureArr, const std::string& textureName, uint32_t& textureIndex)
+{
+	auto it = textureArr.lookupTable.find(textureName);
+	if (it == textureArr.lookupTable.end())
 		return false;
 
 	textureIndex = it->second;
 	return true;
+}
+
+bool GlobalTextures::GetTextureIndex(InGameTextureType type, const std::string& textureName, uint32_t& textureIndex)
+{
+	return GetTextureIndex(m_textureDiction[type], textureName, textureIndex);
+}
+
+bool GlobalTextures::GetScreenSizeTextureIndex(const std::string& textureName, uint32_t& textureIndex)
+{
+	return GetTextureIndex(m_screenSizeTextureDiction, textureName, textureIndex);
 }
 
 uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
@@ -392,25 +429,25 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	// Bind global texture array
 	for (uint32_t i = 0; i < InGameTextureTypeCount; i++)
 	{
-		std::shared_ptr<Texture2DArray> pTexArray = GetTextureArray((InGameTextureType)i);
-		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTexArray), pTexArray->CreateLinearRepeatSampler(), pTexArray->CreateDefaultImageView());
+		std::shared_ptr<Image> pTexArray = GetTextureArray((InGameTextureType)i);
+		pDescriptorSet->UpdateImage(bindingIndex++, pTexArray, pTexArray->CreateLinearRepeatSampler(), pTexArray->CreateDefaultImageView());
 	}
 
 	// Binding global IBL texture cube
 	for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
 	{
-		std::shared_ptr<TextureCube> pTextureCube = GetIBLTextureCube((IBLTextureType)i);
-		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTextureCube), pTextureCube->CreateLinearRepeatSampler(), pTextureCube->CreateDefaultImageView());
+		std::shared_ptr<Image> pTextureCube = GetIBLTextureCube((IBLTextureType)i);
+		pDescriptorSet->UpdateImage(bindingIndex++, pTextureCube, pTextureCube->CreateLinearRepeatSampler(), pTextureCube->CreateDefaultImageView());
 	}
 
 	// Binding global IBL texture2d
 	for (uint32_t i = 0; i < IBL2DTextureTypeCount; i++)
 	{
-		std::shared_ptr<Texture2D> pTexture2D = GetIBLTexture2D((IBLTextureType)i);
-		pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(pTexture2D), pTexture2D->CreateLinearClampToEdgeSampler(), pTexture2D->CreateDefaultImageView());
+		std::shared_ptr<Image> pTexture2D = GetIBLTexture2D((IBLTextureType)i);
+		pDescriptorSet->UpdateImage(bindingIndex++, pTexture2D, pTexture2D->CreateLinearClampToEdgeSampler(), pTexture2D->CreateDefaultImageView());
 	}
 
-	pDescriptorSet->UpdateImage(bindingIndex++, std::static_pointer_cast<Image>(m_pSSAORandomRotations), m_pSSAORandomRotations->CreateNearestRepeatSampler(), m_pSSAORandomRotations->CreateDefaultImageView());
+	pDescriptorSet->UpdateImage(bindingIndex++, m_pSSAORandomRotations, m_pSSAORandomRotations->CreateNearestRepeatSampler(), m_pSSAORandomRotations->CreateDefaultImageView());
 
 	return bindingIndex;
 }

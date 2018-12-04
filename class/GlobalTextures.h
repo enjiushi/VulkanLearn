@@ -7,6 +7,7 @@
 class Texture2D;
 class TextureCube;
 class Texture2DArray;
+class Image;
 class DescriptorSet;
 
 enum InGameTextureType
@@ -41,7 +42,7 @@ typedef struct _TextureArrayDesc
 	std::map<uint32_t, TextureDesc>	textureDescriptions;	// Key: index in texture array
 	uint32_t						maxSlotIndex;
 	uint32_t						currentEmptySlot;		// Empty slot is available for new texture, and is updated everytime when textureDescriptions changed
-	std::shared_ptr<Texture2DArray> pTextureArray;
+	std::shared_ptr<Image>			pTextureArray;
 	std::map<std::string, uint32_t> lookupTable;
 }TextureArrayDesc;
 
@@ -55,11 +56,14 @@ public:
 
 public:
 	void InsertTexture(InGameTextureType type, const TextureDesc& desc, const gli::texture2d& gliTexture2d);
-	std::shared_ptr<Texture2DArray>	GetTextureArray(InGameTextureType type) const { return m_textureDiction[type].pTextureArray; }
-	std::shared_ptr<TextureCube> GetIBLTextureCube(IBLTextureType type) const { return m_IBLCubeTextures[type]; }
-	std::shared_ptr<Texture2D> GetIBLTexture2D(IBLTextureType type) const { return m_IBL2DTextures[type]; }
+	void InsertScreenSizeTexture(const TextureDesc& desc);
+	std::shared_ptr<Image>	GetTextureArray(InGameTextureType type) const { return m_textureDiction[type].pTextureArray; }
+	std::shared_ptr<Image>	GetScreenSizeTextureArray() const { return m_screenSizeTextureDiction.pTextureArray; }
+	std::shared_ptr<Image> GetIBLTextureCube(IBLTextureType type) const { return m_IBLCubeTextures[type]; }
+	std::shared_ptr<Image> GetIBLTexture2D(IBLTextureType type) const { return m_IBL2DTextures[type]; }
 	void InitIBLTextures(const gli::texture_cube& skyBoxTex);
 	bool GetTextureIndex(InGameTextureType type, const std::string& textureName, uint32_t& textureIndex);
+	bool GetScreenSizeTextureIndex(const std::string& textureName, uint32_t& textureIndex);
 
 	virtual std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
@@ -67,15 +71,19 @@ public:
 protected:
 	bool Init(const std::shared_ptr<GlobalTextures>& pSelf);
 	void InitTextureDiction();
+	void InitScreenSizeTextureDiction();
 	void InitIBLTextures();
 	void InitIrradianceTexture();
 	void InitPrefilterEnvTexture();
 	void InitBRDFLUTTexture();
 	void InitSSAORandomRotationTexture();
+	void InsertTextureDesc(const TextureDesc& desc, TextureArrayDesc& textureArr, uint32_t& emptySlot);
+	bool GetTextureIndex(const TextureArrayDesc& textureArr, const std::string& textureName, uint32_t& textureIndex);
 
 protected:
 	std::vector<TextureArrayDesc>				m_textureDiction;
-	std::vector<std::shared_ptr<TextureCube>>	m_IBLCubeTextures;
-	std::vector<std::shared_ptr<Texture2D>>		m_IBL2DTextures;
-	std::shared_ptr<Texture2D>					m_pSSAORandomRotations;
+	TextureArrayDesc							m_screenSizeTextureDiction;
+	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures;
+	std::vector<std::shared_ptr<Image>>			m_IBL2DTextures;
+	std::shared_ptr<Image>						m_pSSAORandomRotations;
 };
