@@ -42,6 +42,9 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 	vec2 rand2 = normalize(PDsrand2(inUv + vec2(perFrameData.time.x)));
 	mat2 offsetRotation = mat2(rand2.x, rand2.y, -rand2.y, rand2.x);
 
+	float coneTangent = mix(0.0, albedoRoughness.a * (1.0f - globalData.BRDFBias.x), NdotV * sqrt(albedoRoughness.a));
+	float maxMipLevel = 10;
+
 	int count = 4;
 	for (int i = 0; i < count; i++)
 	{
@@ -50,7 +53,10 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 
 		vec2 motionVec = texelFetch(MotionVector[index], ivec2(SSRHitInfo.xy + perFrameData.cameraJitterOffset * globalData.gameWindowSize.xy), 0).rg;
 
-		vec3 SSRSurfColor = (texelFetch(TemporalResult[pingpong], ivec2(SSRHitInfo.xy + motionVec * globalData.gameWindowSize.xy), 0).rgb) * hitFlag;
+		float intersectionCircleRadius = coneTangent * length(SSRHitInfo.xy * globalData.gameWindowSize.zw - inUv);
+		float mip = clamp(log2(intersectionCircleRadius * max(globalData.gameWindowSize.x, globalData.gameWindowSize.y)), 0.0, maxMipLevel);
+
+		vec3 SSRSurfColor = (texture(TemporalResult[pingpong], SSRHitInfo.xy * globalData.gameWindowSize.zw + motionVec, 0).rgb) * hitFlag;
 
 		float SSRSurfDepth;
 		vec3 SSRSurfPosition = ReconstructWSPosition(ivec2(SSRHitInfo.xy), DepthStencilBuffer[index], SSRSurfDepth);

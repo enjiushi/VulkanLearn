@@ -206,7 +206,7 @@ void main()
 		ivec3 inoiseUV = ivec3(ivec2(noiseUV + regenCount) % 1024, pushConsts.blueNoiseTexIndex);
 
 		vec2 Xi = texelFetch(RGBA8_1024_MIP_2DARRAY, inoiseUV, 0).rg;
-		Xi.y = mix(Xi.y, 0.0f, 0.4f);	// Add a bias
+		Xi.y = mix(Xi.y, 0.0f, globalData.BRDFBias.x);	// Add a bias
 		H = ImportanceSampleGGX(Xi, roughness);
 		H.xyz = normalize(H.xyz);
 		H.xyz = TBN * H.xyz;

@@ -33,6 +33,7 @@ typedef struct _GlobalVariables
 
 	// Render settings
 	Vector4f	GEW;	// x: Gamma, y: Exposure, z: White Scale, w: empty for padding
+	Vector4f	BRDFBias;	// x: BRDFBias, rest: reserved
 
 	// SSAO settings
 	Vector4f	SSAOSamples[SSAO_SAMPLE_COUNT];
@@ -70,6 +71,8 @@ public:
 
 	void SetRenderSettings(const Vector4f& setting);
 	Vector4f GetRenderSettings() const { return m_globalVariables.GEW; }
+	void SetBRDFBias(float BRDFBias);
+	float GetBRDFBias() const { return m_globalVariables.BRDFBias.x; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

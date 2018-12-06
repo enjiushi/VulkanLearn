@@ -224,6 +224,8 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 #define KEY_B 0x42
 #define KEY_F 0x46
 #define KEY_L 0x4C
+#define KEY_G 0x47
+#define KEY_K 0x4B
 #define KEY_N 0x4E
 #define KEY_O 0x4F
 #define KEY_T 0x54
@@ -601,8 +603,10 @@ void VulkanGlobal::InitMaterials()
 	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, 0.92f));
 	m_pQuadMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.99f));
 	m_pQuadMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
-	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "AluminumNormalAO");
-	m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, "AluminumMetalic");
+	//m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "AluminumNormalAO");
+	//m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, "AluminumMetalic");
+	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
 	m_pBoxMaterialInstance0 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 	m_pBoxMaterialInstance0->SetRenderMask(1 << RenderWorkManager::Scene);
@@ -738,6 +742,7 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor({ 1, 1, 1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ 1, 1, -1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetRenderSettings({ 1.0f / 2.2f, 4.5f, 11.2f, 0.0f });
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBRDFBias(0.7f);
 }
 
 class RoughnessChanger : public IInputListener
@@ -747,6 +752,7 @@ public:
 	void ProcessMouse(KeyState keyState, const Vector2f& mousePosition) override {}
 	void ProcessMouse(const Vector2f& mousePosition) override {}
 	float roughness = 0.5f;
+	float BRDFBias = 0.7f;
 };
 
 void RoughnessChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
@@ -761,6 +767,17 @@ void RoughnessChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 	{
 		roughness -= interval;
 		roughness = roughness < 0.05f ? 0.05f : roughness;
+	}
+
+	if (keyCode == KEY_G)
+	{
+		BRDFBias += interval;
+		BRDFBias = BRDFBias > 1.0f ? 1.0f : BRDFBias;
+	}
+	if (keyCode == KEY_K)
+	{
+		BRDFBias -= interval;
+		BRDFBias = BRDFBias < 0.05f ? 0.05f : BRDFBias;
 	}
 }
 
@@ -792,6 +809,7 @@ void VulkanGlobal::Draw()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::GetTotalTime()));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(pingpong);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBRDFBias(c->BRDFBias);
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 

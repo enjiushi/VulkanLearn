@@ -151,6 +151,12 @@ void GlobalUniforms::SetRenderSettings(const Vector4f& setting)
 	UniformDataStorage::SetDirty();
 }
 
+void GlobalUniforms::SetBRDFBias(float BRDFBias)
+{
+	m_globalVariables.BRDFBias.x = BRDFBias;
+	UniformDataStorage::SetDirty();
+}
+
 std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 {
 	std::vector<UniformVarList> list = 

@@ -336,11 +336,15 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 	{
 		{
 			CombinedSampler,
-			"RGBA8_1024_Texture_Array"
+			"RGBA8_1024_Mip_Texture_Array"
 		},
 		{
 			CombinedSampler,
-			"R8_1024_Texture_Array"
+			"R8_1024_Mip_Texture_Array"
+		},
+		{
+			CombinedSampler,
+			"RGBA16_Screen_Size_Mip_Texture_Array"
 		},
 		{
 			CombinedSampler,
@@ -432,6 +436,8 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 		std::shared_ptr<Image> pTexArray = GetTextureArray((InGameTextureType)i);
 		pDescriptorSet->UpdateImage(bindingIndex++, pTexArray, pTexArray->CreateLinearRepeatSampler(), pTexArray->CreateDefaultImageView());
 	}
+
+	pDescriptorSet->UpdateImage(bindingIndex++, m_screenSizeTextureDiction.pTextureArray, m_screenSizeTextureDiction.pTextureArray->CreateLinearRepeatSampler(), m_screenSizeTextureDiction.pTextureArray->CreateDefaultImageView());
 
 	// Binding global IBL texture cube
 	for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
