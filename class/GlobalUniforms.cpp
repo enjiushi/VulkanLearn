@@ -111,6 +111,35 @@ void GlobalUniforms::SetMotionTileSize(const Vector2f& size)
 	m_globalVariables.motionTileWindowSize.y = size.y;
 	m_globalVariables.motionTileWindowSize.z = (uint32_t)m_globalVariables.gameWindowSize.x / (uint32_t)size.x + (((uint32_t)m_globalVariables.gameWindowSize.x % (uint32_t)size.x) > 0 ? 1 : 0);
 	m_globalVariables.motionTileWindowSize.w = (uint32_t)m_globalVariables.gameWindowSize.y / (uint32_t)size.y + (((uint32_t)m_globalVariables.gameWindowSize.y % (uint32_t)size.y) > 0 ? 1 : 0);
+	SetDirty();
+}
+
+void GlobalUniforms::SetHaltonSequenceX8(const float* pData)
+{
+	for (uint32_t i = 0; i < 8 * 2; i++)
+		m_globalVariables.HaltonSequenceX8[i] = pData[i];
+	SetDirty();
+}
+
+void GlobalUniforms::SetHaltonSequenceX16(const float* pData)
+{
+	for (uint32_t i = 0; i < 16 * 2; i++)
+		m_globalVariables.HaltonSequenceX16[i] = pData[i];
+	SetDirty();
+}
+
+void GlobalUniforms::SetHaltonSequenceX32(const float* pData)
+{
+	for (uint32_t i = 0; i < 32 * 2; i++)
+		m_globalVariables.HaltonSequenceX32[i] = pData[i];
+	SetDirty();
+}
+
+void GlobalUniforms::SetHaltonSequenceX256(const float* pData)
+{
+	for (uint32_t i = 0; i < 256 * 2; i++)
+		m_globalVariables.HaltonSequenceX256[i] = pData[i];
+	SetDirty();
 }
 
 void GlobalUniforms::SyncBufferDataInternal()

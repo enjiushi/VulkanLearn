@@ -85,6 +85,15 @@ void PerFrameUniforms::SetSinTime(float sinTime)
 	SetDirty();
 }
 
+void PerFrameUniforms::SetHaltonIndex(uint32_t frameCount)
+{
+	m_perFrameVariables.haltonIndex.x = frameCount % 8;
+	m_perFrameVariables.haltonIndex.y = frameCount % 16;
+	m_perFrameVariables.haltonIndex.z = frameCount % 32;
+	m_perFrameVariables.haltonIndex.w = frameCount % 256;
+	SetDirty();
+}
+
 void PerFrameUniforms::SyncBufferDataInternal()
 {
 	// Using curr proj matrix here, to get rid of camera jitter effect

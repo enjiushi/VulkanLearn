@@ -753,6 +753,7 @@ public:
 	void ProcessMouse(const Vector2f& mousePosition) override {}
 	float roughness = 0.5f;
 	float BRDFBias = 0.7f;
+	uint32_t frameCount = 0;
 };
 
 void RoughnessChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
@@ -810,6 +811,7 @@ void VulkanGlobal::Draw()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(pingpong);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBRDFBias(c->BRDFBias);
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndex(c->frameCount);
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
@@ -842,6 +844,7 @@ void VulkanGlobal::Draw()
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 
 	pingpong = (pingpong + 1) % 2;
+	c->frameCount++;
 }
 
 void VulkanGlobal::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)

@@ -27,6 +27,12 @@ struct GlobalData
 
 	// SSAO Settings
 	vec4 SSAOSamples[64];
+
+	// Random
+	float HaltonSequenceX8[8 * 2];
+	float HaltonSequenceX16[16 * 2];
+	float HaltonSequenceX32[32 * 2];
+	float HaltonSequenceX256[256 * 2];
 };
 
 struct PerFrameData
@@ -42,6 +48,7 @@ struct PerFrameData
 	vec4 nearFarAB;
 	vec2 cameraJitterOffset;
 	vec2 time;
+	vec4 haltonIndex;
 };
 
 struct PerObjectData
