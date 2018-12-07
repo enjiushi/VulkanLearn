@@ -182,7 +182,13 @@ void GlobalUniforms::SetRenderSettings(const Vector4f& setting)
 
 void GlobalUniforms::SetBRDFBias(float BRDFBias)
 {
-	m_globalVariables.BRDFBias.x = BRDFBias;
+	m_globalVariables.SSRSettings.x = BRDFBias;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetSSRMip(float SSRMip)
+{
+	m_globalVariables.SSRSettings.y = SSRMip;
 	UniformDataStorage::SetDirty();
 }
 

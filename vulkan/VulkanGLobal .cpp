@@ -752,7 +752,7 @@ public:
 	void ProcessMouse(KeyState keyState, const Vector2f& mousePosition) override {}
 	void ProcessMouse(const Vector2f& mousePosition) override {}
 	float roughness = 0.5f;
-	float BRDFBias = 0.7f;
+	float SSRVar = 0.0f;
 	uint32_t frameCount = 0;
 };
 
@@ -772,13 +772,13 @@ void RoughnessChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 
 	if (keyCode == KEY_G)
 	{
-		BRDFBias += interval;
-		BRDFBias = BRDFBias > 1.0f ? 1.0f : BRDFBias;
+		SSRVar += interval;
+		SSRVar = SSRVar > 1.0f ? 1.0f : SSRVar;
 	}
 	if (keyCode == KEY_K)
 	{
-		BRDFBias -= interval;
-		BRDFBias = BRDFBias < 0.05f ? 0.05f : BRDFBias;
+		SSRVar -= interval;
+		SSRVar = SSRVar < 0.05f ? 0.05f : SSRVar;
 	}
 }
 
@@ -810,7 +810,7 @@ void VulkanGlobal::Draw()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::GetTotalTime()));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(pingpong);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBRDFBias(c->BRDFBias);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRMip(c->SSRVar);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndex(c->frameCount);
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));

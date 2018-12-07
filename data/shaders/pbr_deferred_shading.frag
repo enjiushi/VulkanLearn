@@ -42,7 +42,7 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 	vec2 rand2 = normalize(PDsrand2(inUv + vec2(perFrameData.time.x)));
 	mat2 offsetRotation = mat2(rand2.x, rand2.y, -rand2.y, rand2.x);
 
-	float coneTangent = mix(0.0, albedoRoughness.a * (1.0f - globalData.BRDFBias.x), NdotV * sqrt(albedoRoughness.a));
+	float coneTangent = mix(0.0, albedoRoughness.a * (1.0f - globalData.SSRSettings.x), NdotV * sqrt(albedoRoughness.a));
 	float maxMipLevel = 10;
 
 	int count = 4;
@@ -54,9 +54,9 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 		vec2 motionVec = texelFetch(MotionVector[index], ivec2(SSRHitInfo.xy + perFrameData.cameraJitterOffset * globalData.gameWindowSize.xy), 0).rg;
 
 		float intersectionCircleRadius = coneTangent * length(SSRHitInfo.xy * globalData.gameWindowSize.zw - inUv);
-		float mip = clamp(log2(intersectionCircleRadius * max(globalData.gameWindowSize.x, globalData.gameWindowSize.y)), 0.0, maxMipLevel);
+		float mip = clamp(log2(intersectionCircleRadius * max(globalData.gameWindowSize.x, globalData.gameWindowSize.y)), 0.0, maxMipLevel) * globalData.SSRSettings.y;
 
-		vec3 SSRSurfColor = (texture(TemporalResult[pingpong], SSRHitInfo.xy * globalData.gameWindowSize.zw + motionVec, 0).rgb) * hitFlag;
+		vec3 SSRSurfColor = textureLod(RGBA16_SCREEN_SIZE_MIP_2DARRAY, vec3(SSRHitInfo.xy * globalData.gameWindowSize.zw + motionVec, 0), mip).rgb * hitFlag;
 
 		float SSRSurfDepth;
 		vec3 SSRSurfPosition = ReconstructWSPosition(ivec2(SSRHitInfo.xy), DepthStencilBuffer[index], SSRSurfDepth);
@@ -137,5 +137,5 @@ void main()
 	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * min(1.0f, GGX_D(NdotH, vars.albedo_roughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
 	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
-	outShadingColor = vec4(punctualRadiance + ambient, 1.0f);
+	outShadingColor = vec4(punctualRadiance + ambient, outShadingColor.a);
 }

@@ -22,8 +22,8 @@ struct GlobalData
 	mat4 mainLightVPN;
 
 	// Render Settings
-	vec4 GEW;		//Gamma, exposure, white scale
-	vec4 BRDFBias;	//BRDFBias
+	vec4 GEW;			//Gamma, exposure, white scale
+	vec4 SSRSettings;
 
 	// SSAO Settings
 	vec4 SSAOSamples[64];

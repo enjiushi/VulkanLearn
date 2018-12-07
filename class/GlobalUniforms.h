@@ -32,8 +32,8 @@ typedef struct _GlobalVariables
 	Matrix4f	mainLightVPN;
 
 	// Render settings
-	Vector4f	GEW;	// x: Gamma, y: Exposure, z: White Scale, w: empty for padding
-	Vector4f	BRDFBias;	// x: BRDFBias, rest: reserved
+	Vector4f	GEW;				// x: Gamma, y: Exposure, z: White Scale, w: empty for padding
+	Vector4f	SSRSettings;		// x: BRDFBias, y: SSR mip toggle, rest: reserved
 
 	// SSAO settings
 	Vector4f	SSAOSamples[SSAO_SAMPLE_COUNT];
@@ -78,7 +78,9 @@ public:
 	void SetRenderSettings(const Vector4f& setting);
 	Vector4f GetRenderSettings() const { return m_globalVariables.GEW; }
 	void SetBRDFBias(float BRDFBias);
-	float GetBRDFBias() const { return m_globalVariables.BRDFBias.x; }
+	float GetBRDFBias() const { return m_globalVariables.SSRSettings.x; }
+	void SetSSRMip(float SSRMip);
+	float GetSSRMip() const { return m_globalVariables.SSRSettings.y; }
 
 	void SetHaltonSequenceX8(const float* pData);
 	void SetHaltonSequenceX16(const float* pData);
