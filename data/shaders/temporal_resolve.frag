@@ -18,23 +18,17 @@ layout (location = 0) out vec4 outTemporalResult;
 int index = int(perFrameData.camDir.a);
 int pingpong = int(perFrameData.camPos.a);
 
-//float prevMotionImpactAmp = 6.7f;
-	//float currMotionImpactAmp = 50.0f;
-	//float maxClippedPrevRatio = 0.8f;
-	//float motionImpactLowerBound = 0.0005f;
-	//float motionImpactUpperBound = 0.001f;
-
-	float prevMotionImpactAmp = globalData.TemporalSettings0.x;
-	float currMotionImpactAmp = globalData.TemporalSettings0.y;
-	float maxClippedPrevRatio = globalData.TemporalSettings0.z;
-	float motionImpactLowerBound = globalData.TemporalSettings1.x;	// FIXME: This should be impact by frame rate
-	float motionImpactUpperBound = globalData.TemporalSettings1.y;	// FIXME: This should be impact by frame rate
+float prevMotionImpactAmp = globalData.TemporalSettings0.x;
+float currMotionImpactAmp = globalData.TemporalSettings0.y;
+float maxClippedPrevRatio = globalData.TemporalSettings0.z;
+float motionImpactLowerBound = globalData.TemporalSettings1.x;	// FIXME: This should be impact by frame rate
+float motionImpactUpperBound = globalData.TemporalSettings1.y;	// FIXME: This should be impact by frame rate
 
 vec4 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec, float motionNeighborMaxLength)
 {
 	float prevMotionLen = texture(prevSampler, unjitteredUV).a;
 	float currMaxMotionLen = max(motionNeighborMaxLength, prevMotionLen);
-	float prevMotionImpact = clamp(0.0f, 999.0f, prevMotionLen - motionNeighborMaxLength);
+	float prevMotionImpact = clamp(0.0f, 999.0f, abs(prevMotionLen - motionNeighborMaxLength));
 
 	vec3 curr = texture(currSampler, unjitteredUV).rgb;
 	vec3 prev = texture(prevSampler, inUv + motionVec).rgb;
@@ -57,7 +51,7 @@ vec4 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, ve
 	// min max suppress to reduce temporal ghosting effect
 	vec3 clippedPrev = clip_aabb(minColor, maxColor, prev);
 
-	float prevMix = 1.0f - smoothstep(motionImpactLowerBound, motionImpactUpperBound, currMaxMotionLen);
+	float prevMix = clamp(0.0f, 1.0f, 1.0f - smoothstep(motionImpactLowerBound, motionImpactUpperBound, currMaxMotionLen));
 	prev = mix(clippedPrev, prev, mix(max(0.0f, maxClippedPrevRatio - prevMotionImpact * prevMotionImpactAmp), 1.0f, prevMix));
 
 	float currLum = Luminance(curr);
@@ -77,8 +71,8 @@ void main()
 	vec2 unjitteredUV = inUv - perFrameData.cameraJitterOffset;
 	
 	vec2 motionVec = texture(MotionVector[index], unjitteredUV).rg;
-	vec2 motionNeighborMaxFetch = texelFetch(MotionNeighborMax[index], ivec2(unjitteredUV * globalData.motionTileWindowSize.zw), 0).rg;
-	vec2 motionNeighborMaxSample = texture(MotionNeighborMax[index], unjitteredUV).rg;
+	vec2 motionNeighborMaxFetch = abs(texelFetch(MotionNeighborMax[index], ivec2(unjitteredUV * globalData.motionTileWindowSize.zw), 0).rg);
+	vec2 motionNeighborMaxSample = abs(texture(MotionNeighborMax[index], unjitteredUV).rg);
 	vec2 diff = abs(motionNeighborMaxFetch - motionNeighborMaxSample);
 
 	// Using sampled value to expend tile area by hardware interpolation, so that ghosting will be reduced due to edge precision in tile boundary
