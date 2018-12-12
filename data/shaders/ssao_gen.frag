@@ -24,6 +24,13 @@ int index = int(perFrameData.camDir.a);
 
 float SSAO_RADIUS = 30.0f;
 
+float maxRegenCount = globalData.SSRSettings0.z;
+float surfaceMargin = globalData.SSRSettings0.w;
+float rayTraceStride = globalData.SSRSettings1.x;
+float rayTraceInitOffset = globalData.SSRSettings1.y;
+float rayTraceMaxStep = globalData.SSRSettings1.z;
+float rayTraceHitThickness = globalData.SSRSettings1.w;
+
 void UnpackNormalRoughness(ivec2 coord, out vec3 normal, out float roughness)
 {
 	vec4 gbuffer0 = texelFetch(GBuffer0[index], coord, 0);
@@ -83,14 +90,13 @@ vec4 RayMarch(vec3 sampleNormal, vec3 normal, vec3 position, vec3 wsViewRay)
 
 	float stepDirection = sign(screenOffset.x);
 	float stepInterval = stepDirection / screenOffset.x;
-	float stride = 3.7f;
 
-	vec3 dQ = (Q1 - Q0) * stepInterval * stride;
-	float dk = (k1 - k0) * stepInterval * stride;
-	vec2 dP = vec2(stepDirection, screenOffset.y * stepInterval) * stride;
+	vec3 dQ = (Q1 - Q0) * stepInterval * rayTraceStride;
+	float dk = (k1 - k0) * stepInterval * rayTraceStride;
+	vec2 dP = vec2(stepDirection, screenOffset.y * stepInterval) * rayTraceStride;
 
 	float jitter = PDsrand(inUv + vec2(perFrameData.time.x));
-	float init = 2 + jitter;
+	float init = rayTraceInitOffset + jitter;
 
 	vec3 Q = Q0 + dQ * init;
 	float k = k0 + dk * init;
@@ -99,21 +105,18 @@ vec4 RayMarch(vec3 sampleNormal, vec3 normal, vec3 position, vec3 wsViewRay)
 	float end = P1.x * stepDirection;
 
 	float stepCount = 0.0f;
-	float MaxStepCount = 200;
 
 	float prevZMax = csRayOrigin.z;
 	float ZMin = prevZMax;
 	float ZMax = prevZMax;
 	float sampleZ = prevZMax - 100000;
 
-	float thickness = 5.5f;
-
 	vec2 hit;
 
 	for (;((P.x * stepDirection) <= end) &&
-			(stepCount <= MaxStepCount) &&
-			//(ZMax > (sampleZ - thickness)) &&
-			((ZMax > sampleZ) || (ZMin < sampleZ - thickness)) && 
+			(stepCount <= rayTraceMaxStep - 1) &&
+			//(ZMax > (sampleZ - rayTraceHitThickness)) &&
+			((ZMax > sampleZ) || (ZMin < sampleZ - rayTraceHitThickness)) && 
 			sampleZ != 0.0f;
 			P += dP, Q.z += dQ.z, k += dk, stepCount++)
 	{
@@ -143,7 +146,7 @@ vec4 RayMarch(vec3 sampleNormal, vec3 normal, vec3 position, vec3 wsViewRay)
 	float roughness;
 	UnpackNormalRoughness(ivec2(hit), hitNormal, roughness);
 
-	rayHitInfo.a = float((ZMax < sampleZ) && (ZMin > sampleZ - thickness) && (dot(hitNormal, wsReflectDir) < 0));
+	rayHitInfo.a = float((ZMax < sampleZ) && (ZMin > sampleZ - rayTraceHitThickness) && (dot(hitNormal, wsReflectDir) < 0));
 
 	return rayHitInfo;
 }
@@ -198,15 +201,14 @@ void main()
 	vec3 wsViewRay = normalize(inWsView);
 	vec4 H;
 	float RdotN = 0.0f;
-	int regenCount = 0;
-	int maxRegenCount = 15;
-	float surfaceMargin = 0.19f;
+
+	float regenCount = 0;
 	for (; RdotN <= surfaceMargin && regenCount < maxRegenCount; regenCount++)
 	{
-		ivec3 inoiseUV = ivec3(ivec2(noiseUV + regenCount) % 1024, pushConsts.blueNoiseTexIndex);
+		ivec3 inoiseUV = ivec3(ivec2(noiseUV + int(regenCount)) % 1024, pushConsts.blueNoiseTexIndex);
 		vec2 Xi = texelFetch(RGBA8_1024_MIP_2DARRAY, inoiseUV, 0).rg;
 
-		Xi.y = mix(Xi.y, 0.0f, globalData.SSRSettings.x);	// Add a bias
+		Xi.y = mix(Xi.y, 0.0f, globalData.SSRSettings0.x);	// Add a bias
 		H = ImportanceSampleGGX(Xi, roughness);
 		H.xyz = normalize(H.xyz);
 		H.xyz = TBN * H.xyz;

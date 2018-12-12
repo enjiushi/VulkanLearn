@@ -152,15 +152,87 @@ void GlobalUniforms::SetRenderSettings(const Vector4f& setting)
 	UniformDataStorage::SetDirty();
 }
 
+void GlobalUniforms::SetSSRSettings0(const Vector4f& setting)
+{
+	m_globalVariables.SSRSettings0 = setting;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetSSRSettings1(const Vector4f& setting)
+{
+	m_globalVariables.SSRSettings1 = setting;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetSSRSettings2(const Vector4f& setting)
+{
+	m_globalVariables.SSRSettings2 = setting;
+	UniformDataStorage::SetDirty();
+}
+
 void GlobalUniforms::SetBRDFBias(float BRDFBias)
 {
-	m_globalVariables.SSRSettings.x = BRDFBias;
+	m_globalVariables.SSRSettings0.x = BRDFBias;
 	UniformDataStorage::SetDirty();
 }
 
 void GlobalUniforms::SetSSRMip(float SSRMip)
 {
-	m_globalVariables.SSRSettings.y = SSRMip;
+	m_globalVariables.SSRSettings0.y = SSRMip;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetSampleNormalRegenCount(float count)
+{
+	m_globalVariables.SSRSettings0.z = count;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetSampleNormalRegenMargin(float margin)
+{
+	m_globalVariables.SSRSettings0.w = margin;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetSSRTStride(float stride)
+{
+	m_globalVariables.SSRSettings1.x = stride;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetSSRTInitOffset(float offset)
+{
+	m_globalVariables.SSRSettings1.y = offset;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMaxSSRTStepCount(float count)
+{
+	m_globalVariables.SSRSettings1.z = count;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetSSRTThickness(float thickness)
+{
+	m_globalVariables.SSRSettings1.w = thickness;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetSSRTBorderFadingDist(float dist)
+{
+	m_globalVariables.SSRSettings2.x = dist;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetSSRTStepCountFadingDist(float dist)
+{
+	m_globalVariables.SSRSettings2.y = dist;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetScreenSizeMipLevel(float mipLevel)
+{
+	m_globalVariables.SSRSettings2.z = mipLevel;
 	UniformDataStorage::SetDirty();
 }
 
@@ -276,15 +348,23 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				},
 				{
 					Vec4Unit,
-					"SSR Settings: BRDFBias, SSR Mipmap"
+					"SSR Settings0"
 				},
 				{
 					Vec4Unit,
-					"Temporal settings: X/Y: Prev/Curr Motion Impact, Z: Max Clipped Prev Ratio"
+					"SSR Settings1"
 				},
 				{
 					Vec4Unit,
-					"Temporal Settings: X/Y: Motion Impact Lower/Upper Bound"
+					"SSR Settings2"
+				},
+				{
+					Vec4Unit,
+					"Temporal Settings0"
+				},
+				{
+					Vec4Unit,
+					"Temporal Settings1"
 				},
 				{
 					Vec4Unit,

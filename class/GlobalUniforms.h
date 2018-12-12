@@ -32,10 +32,66 @@ typedef struct _GlobalVariables
 	Matrix4f	mainLightVPN;
 
 	// Render settings
-	Vector4f	GEW;				// x: Gamma, y: Exposure, z: White Scale, w: empty for padding
-	Vector4f	SSRSettings;		// x: BRDFBias, y: SSR mip toggle, rest: reserved
+
+	/*******************************************************************
+	* DESCRIPTION: Parameters for tone mapping
+	*
+	* X: Gamma
+	* Y: Exposure
+	* Z: White scale
+	* W: Reserved
+	*/
+	Vector4f	GEW;
+
+	/*******************************************************************
+	* DESCRIPTION: Parameters for stochastic screen space reflection
+	*
+	* X: BRDFBias
+	* Y: SSR mip toggle
+	* Z: Sample normal max regen count
+	* W: How near reflected vector to surface tangent that normal has to be resampled
+	*/
+	Vector4f	SSRSettings0;
+
+	/*******************************************************************
+	* DESCRIPTION: Parameters for stochastic screen space reflection
+	*
+	* X: Pixel stride for screen space ray trace
+	* Y: Init offset at the beginning of ray trace
+	* Z: Max count of ray trace steps
+	* W: Thickness of a surface that you can consider it a hit
+	*/
+	Vector4f	SSRSettings1;
+
+	/*******************************************************************
+	* DESCRIPTION: Parameters for stochastic screen space reflection
+	*
+	* X: How far a hit to the edge of screen that it needs to be fade, to prevent from hard boundary
+	* Y: How many steps that a hit starts to fade, to prevent from hard boundary
+	* Z: Screen sized mipmap level count
+	* W: Reserved
+	*/
+	Vector4f	SSRSettings2;
+
+	/*******************************************************************
+	* DESCRIPTION: Parameters for temporal filter
+	*
+	* X: Prev motion impact
+	* Y: Curr motion impact
+	* Z: Max clipped prev ratio
+	* W: Reserved
+	*/
 	Vector4f	TemporalSettings0;	// x: Prev motion impact, y: Curr motion impac, z: Max clipped prev ratio, w: Reserved
-	Vector4f    TemporalSettings1;	// x: Motion impact lower bound, y: Motion impact upper bound, zw: Reserved
+
+	/*******************************************************************
+	* DESCRIPTION: Parameters for temporal filter
+	*
+	* X: Motion impact lower bound
+	* Y: Motion impact upper bound
+	* Z: Reserved
+	* W: Reserved
+	*/
+	Vector4f    TemporalSettings1;
 
 	// SSAO settings
 	Vector4f	SSAOSamples[SSAO_SAMPLE_COUNT];
@@ -73,10 +129,35 @@ public:
 
 	void SetRenderSettings(const Vector4f& setting);
 	Vector4f GetRenderSettings() const { return m_globalVariables.GEW; }
+
+	void SetSSRSettings0(const Vector4f& setting);
+	Vector4f GetSSRSettings0() const { return m_globalVariables.SSRSettings0; }
+	void SetSSRSettings1(const Vector4f& setting);
+	Vector4f GetSSRSettings1() const { return m_globalVariables.SSRSettings1; }
+	void SetSSRSettings2(const Vector4f& setting);
+	Vector4f GetSSRSettings2() const { return m_globalVariables.SSRSettings2; }
 	void SetBRDFBias(float BRDFBias);
-	float GetBRDFBias() const { return m_globalVariables.SSRSettings.x; }
+	float GetBRDFBias() const { return m_globalVariables.SSRSettings0.x; }
 	void SetSSRMip(float SSRMip);
-	float GetSSRMip() const { return m_globalVariables.SSRSettings.y; }
+	float GetSSRMip() const { return m_globalVariables.SSRSettings0.y; }
+	void SetSampleNormalRegenCount(float count);
+	float GetSampleNormalRegenCount() const { return m_globalVariables.SSRSettings0.z; }
+	void SetSampleNormalRegenMargin(float margin);
+	float GetSampleNormalRegenMargin() const { return m_globalVariables.SSRSettings0.w; }
+	void SetSSRTStride(float stride);
+	float GetSSRTStride() const { return m_globalVariables.SSRSettings1.x; }
+	void SetSSRTInitOffset(float offset);
+	float GetSSRTInitOffset() const { return m_globalVariables.SSRSettings1.y; }
+	void SetMaxSSRTStepCount(float count);
+	float GetMaxSSRTStepCount() const { return m_globalVariables.SSRSettings1.z; }
+	void SetSSRTThickness(float thickness);
+	float GetSSRTThickness() const { return m_globalVariables.SSRSettings1.w; }
+	void SetSSRTBorderFadingDist(float dist);
+	float GetSSRTBorderFadingDist() const { return m_globalVariables.SSRSettings2.x; }
+	void SetSSRTStepCountFadingDist(float dist);
+	float GetSSRTStepCountFadingDist() const { return m_globalVariables.SSRSettings2.y; }
+	void SetScreenSizeMipLevel(float mipLevel);
+	float GetScreenSizeMipLevel() const { return m_globalVariables.SSRSettings2.z; }
 
 	void SetTemporalSettings0(const Vector4f& setting);
 	Vector4f GetTemporalSettings0() const { return m_globalVariables.TemporalSettings0; }

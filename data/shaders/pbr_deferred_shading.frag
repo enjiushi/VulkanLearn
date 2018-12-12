@@ -24,6 +24,11 @@ layout (location = 1) out vec4 outDebugColor;
 int index = int(perFrameData.camDir.a);
 int pingpong = int(perFrameData.camPos.a);
 
+float rayTraceMaxStep = 200.0f;
+float rayTraceBorderFadeDist = globalData.SSRSettings2.x;
+float rayTraceMaxStepFadeDist = globalData.SSRSettings2.y;
+float screenSizeMiplevel = globalData.SSRSettings2.z;
+
 const vec2 offset[4] =
 {
 	vec2(0, 0),
@@ -37,7 +42,7 @@ float BorderFading(vec2 hitUV)
 {
 	float borderDist = min(1.0 - max(hitUV.x, hitUV.y), min(hitUV.x, hitUV.y));
 	//return 1.0f - pow(borderDist, 10.1f);
-	return smoothstep(0.0f, 0.05f, borderDist);
+	return smoothstep(0.0f, rayTraceBorderFadeDist, borderDist);
 }
 
 vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosition, float metalic)
@@ -50,11 +55,7 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 	vec2 rand2 = normalize(PDsrand2(inUv + vec2(perFrameData.time.x)));
 	mat2 offsetRotation = mat2(rand2.x, rand2.y, -rand2.y, rand2.x);
 
-	float coneTangent = mix(0.0, albedoRoughness.a * (1.0f - globalData.SSRSettings.x), NdotV * sqrt(albedoRoughness.a));
-	float maxMipLevel = 10;
-
-	float stepFadeBias = 0.4f;
-	float stepFadeAmp = 4.072f;
+	float coneTangent = mix(0.0, albedoRoughness.a * (1.0f - globalData.SSRSettings0.x), NdotV * sqrt(albedoRoughness.a));
 
 	int count = 4;
 	for (int i = 0; i < count; i++)
@@ -66,7 +67,7 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 		vec2 motionVec = texelFetch(MotionVector[index], ivec2(SSRHitInfo.xy + perFrameData.cameraJitterOffset * globalData.gameWindowSize.xy), 0).rg;
 
 		float intersectionCircleRadius = coneTangent * length(hitUV - inUv);
-		float mip = clamp(log2(intersectionCircleRadius * max(globalData.gameWindowSize.x, globalData.gameWindowSize.y)), 0.0, maxMipLevel) * globalData.SSRSettings.y;
+		float mip = clamp(log2(intersectionCircleRadius * max(globalData.gameWindowSize.x, globalData.gameWindowSize.y)), 0.0, screenSizeMiplevel) * globalData.SSRSettings0.y;
 
 		vec3 SSRSurfColor = textureLod(RGBA16_SCREEN_SIZE_MIP_2DARRAY, vec3(hitUV + motionVec, 0), mip).rgb * hitFlag;
 
@@ -98,7 +99,7 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 
 		SSRRadiance.rgb += SSRSurfColor * weight;
 		//SSRRadiance.a += hitFlag * weight;
-		SSRRadiance.a += hitFlag * weight * (1.0f - smoothstep(0.9f, 1.0f, abs(SSRHitInfo.a) / 201.0f)) * BorderFading(hitUV);
+		SSRRadiance.a += hitFlag * weight * (1.0f - smoothstep(1.0f - rayTraceMaxStepFadeDist, 1.0f, abs(SSRHitInfo.a) / rayTraceMaxStep)) * BorderFading(hitUV);
 
 		weightSum += weight;
 	}

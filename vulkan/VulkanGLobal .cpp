@@ -744,7 +744,20 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor({ 1, 1, 1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ 1, 1, -1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetRenderSettings({ 1.0f / 2.2f, 4.5f, 11.2f, 0.0f });
+
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBRDFBias(0.7f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRMip(1.0f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSampleNormalRegenCount(15.0f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSampleNormalRegenMargin(0.19f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStride(3.7f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTInitOffset(2.0f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxSSRTStepCount(200.0f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTThickness(5.5f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTBorderFadingDist(0.05f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStepCountFadingDist(0.1f);
+
+	uint32_t smaller = FrameBufferDiction::WINDOW_HEIGHT < FrameBufferDiction::WINDOW_WIDTH ? FrameBufferDiction::WINDOW_HEIGHT : FrameBufferDiction::WINDOW_WIDTH;
+	UniformData::GetInstance()->GetGlobalUniforms()->SetScreenSizeMipLevel(log2(smaller) + 1);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPrevMotionImpact(6.7f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetCurrMotionImpact(50.0f);

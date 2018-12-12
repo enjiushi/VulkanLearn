@@ -23,7 +23,9 @@ struct GlobalData
 
 	// Render Settings
 	vec4 GEW;			//Gamma, exposure, white scale
-	vec4 SSRSettings;
+	vec4 SSRSettings0;
+	vec4 SSRSettings1;
+	vec4 SSRSettings2;
 	vec4 TemporalSettings0;
 	vec4 TemporalSettings1;
 
