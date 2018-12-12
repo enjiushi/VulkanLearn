@@ -7,7 +7,8 @@
 
 layout (set = 3, binding = 2) uniform sampler2D MotionVector[3];
 layout (set = 3, binding = 3) uniform sampler2D ShadingResult[3];
-layout (set = 3, binding = 4) uniform sampler2D TemporalResult[2];
+layout (set = 3, binding = 4) uniform sampler2D MotionNeighborMax[3];
+layout (set = 3, binding = 5) uniform sampler2D TemporalResult[2];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
@@ -17,8 +18,13 @@ layout (location = 0) out vec4 outTemporalResult;
 int index = int(perFrameData.camDir.a);
 int pingpong = int(perFrameData.camPos.a);
 
-vec3 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec)
+vec4 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec, float motionNeighborMaxLength)
 {
+	float prevMotionLen = texture(prevSampler, unjitteredUV).a;
+	float currMaxMotionLen = max(motionNeighborMaxLength, prevMotionLen);
+	float prevMotionImpact = clamp(0.0f, 999.0f, prevMotionLen - motionNeighborMaxLength);
+	float prevMotionImpactAmp = 6.7f;
+
 	vec3 curr = texture(currSampler, unjitteredUV).rgb;
 	vec3 prev = texture(prevSampler, inUv + motionVec).rgb;
 
@@ -39,7 +45,9 @@ vec3 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, ve
 
 	// min max suppress to reduce temporal ghosting effect
 	vec3 clippedPrev = clip_aabb(minColor, maxColor, prev);
-	prev = mix(clippedPrev, prev, 0.8f);
+
+	float prevMix = 1.0f - smoothstep(0.0005f, 0.001f, currMaxMotionLen);
+	prev = mix(clippedPrev, prev, mix(max(0.0f, 0.8f - prevMotionImpact * prevMotionImpactAmp), 1.0f, prevMix));
 
 	float currLum = Luminance(curr);
 	float prevLum = Luminance(prev);
@@ -49,7 +57,7 @@ vec3 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, ve
 	float unbiasedWeightSQR = unbiasedWeight * unbiasedWeight;
 	float feedback = mix(0.87f, 0.97f, unbiasedWeightSQR);
 
-	return mix(curr, prev, 0.97f);
+	return vec4(mix(curr, prev, 0.98f), motionNeighborMaxLength);
 }
 
 void main() 
@@ -57,6 +65,11 @@ void main()
 	vec2 unjitteredUV = inUv - perFrameData.cameraJitterOffset;
 	
 	vec2 motionVec = texture(MotionVector[index], unjitteredUV).rg;
+	vec2 motionNeighborMaxFetch = texelFetch(MotionNeighborMax[index], ivec2(unjitteredUV * globalData.motionTileWindowSize.zw), 0).rg;
+	vec2 motionNeighborMaxSample = texture(MotionNeighborMax[index], unjitteredUV).rg;
+	vec2 diff = abs(motionNeighborMaxFetch - motionNeighborMaxSample);
 
-	outTemporalResult = vec4(resolve(ShadingResult[index], TemporalResult[pingpong], unjitteredUV, motionVec), 1.0f);
+	float motionNeighborMaxLength = length(motionNeighborMaxFetch + diff) * 50.0f;
+
+	outTemporalResult = resolve(ShadingResult[index], TemporalResult[pingpong], unjitteredUV, motionVec, motionNeighborMaxLength);
 }

@@ -20,7 +20,11 @@ typedef struct _PerFrameVariables
 	Vector4f	nearFarAB;
 	Vector2f	cameraJitterOffset;
 	Vector2f	time;		//x: delta time, y: SineTime
-	Vector4f	haltonIndex;	// x: x8, y: x16, z: x32, w: x256
+
+	Vector2f	haltonX8Jitter;
+	Vector2f	haltonX16Jitter;
+	Vector2f	haltonX32Jitter;
+	Vector2f	haltonX256Jitter;
 }PerFrameVariables;
 
 class PerFrameUniforms : public UniformDataStorage
@@ -56,8 +60,10 @@ public:
 	float GetDeltaTime() const { return m_perFrameVariables.time.x; }
 	void SetSinTime(float sinTime);
 	float GetSinTime() const { return m_perFrameVariables.time.y; }
-	void SetHaltonIndex(uint32_t frameCount);
-	Vector4f GetHaltonIndex() const { return m_perFrameVariables.haltonIndex; }
+	void SetHaltonIndexX8Jitter(const Vector2f& haltonX8Jitter);
+	void SetHaltonIndexX16Jitter(const Vector2f& haltonX16Jitter);
+	void SetHaltonIndexX32Jitter(const Vector2f& haltonX32Jitter);
+	void SetHaltonIndexX256Jitter(const Vector2f& haltonX256Jitter);
 
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;

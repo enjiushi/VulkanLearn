@@ -19,6 +19,7 @@ layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
 
 layout (location = 0) out vec4 outShadingColor;
+layout (location = 1) out vec4 outDebugColor;
 
 int index = int(perFrameData.camDir.a);
 int pingpong = int(perFrameData.camPos.a);
@@ -31,6 +32,13 @@ const vec2 offset[4] =
 	vec2(0, 2)
 };
 
+
+float BorderFading(vec2 hitUV)
+{
+	float borderDist = min(1.0 - max(hitUV.x, hitUV.y), min(hitUV.x, hitUV.y));
+	//return 1.0f - pow(borderDist, 10.1f);
+	return smoothstep(0.0f, 0.05f, borderDist);
+}
 
 vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosition, float metalic)
 {
@@ -45,18 +53,22 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 	float coneTangent = mix(0.0, albedoRoughness.a * (1.0f - globalData.SSRSettings.x), NdotV * sqrt(albedoRoughness.a));
 	float maxMipLevel = 10;
 
+	float stepFadeBias = 0.4f;
+	float stepFadeAmp = 4.072f;
+
 	int count = 4;
 	for (int i = 0; i < count; i++)
 	{
 		vec4 SSRHitInfo = texelFetch(SSRInfo[index], (coord + ivec2(offsetRotation * offset[i])) / 2, 0);
 		float hitFlag = sign(SSRHitInfo.a) * 0.5f + 0.5f;
+		vec2 hitUV = SSRHitInfo.xy * globalData.gameWindowSize.zw;
 
 		vec2 motionVec = texelFetch(MotionVector[index], ivec2(SSRHitInfo.xy + perFrameData.cameraJitterOffset * globalData.gameWindowSize.xy), 0).rg;
 
-		float intersectionCircleRadius = coneTangent * length(SSRHitInfo.xy * globalData.gameWindowSize.zw - inUv);
+		float intersectionCircleRadius = coneTangent * length(hitUV - inUv);
 		float mip = clamp(log2(intersectionCircleRadius * max(globalData.gameWindowSize.x, globalData.gameWindowSize.y)), 0.0, maxMipLevel) * globalData.SSRSettings.y;
 
-		vec3 SSRSurfColor = textureLod(RGBA16_SCREEN_SIZE_MIP_2DARRAY, vec3(SSRHitInfo.xy * globalData.gameWindowSize.zw + motionVec, 0), mip).rgb * hitFlag;
+		vec3 SSRSurfColor = textureLod(RGBA16_SCREEN_SIZE_MIP_2DARRAY, vec3(hitUV + motionVec, 0), mip).rgb * hitFlag;
 
 		float SSRSurfDepth;
 		vec3 SSRSurfPosition = ReconstructWSPosition(ivec2(SSRHitInfo.xy), DepthStencilBuffer[index], SSRSurfDepth);
@@ -68,15 +80,25 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 		float NdotL = max(0.0f, dot(n, l));
 		float LdotH = max(0.0f, dot(l, h));
 
-		float weight;
-		if (hitFlag > 0.5f)
-			weight = GGX_D(NdotH, albedoRoughness.a) * G_SchlicksmithGGX(NdotL, NdotV, albedoRoughness.a) / (4.0f * NdotL * NdotV + 0.001f) / max(SSRHitInfo.b, 1e-5);
-		else
-			weight = 0.5f;	// FIXME?
+		float weight = 1.0f;
+		if (hitFlag < 0.5f)
+			SSRSurfColor = vec3(0);
+
+		// Reenable this when I figure how to deal with none-hit pixels
+		//if (hitFlag > 0.5f)
+			//weight = GGX_D(NdotH, albedoRoughness.a) * G_SchlicksmithGGX(NdotL, NdotV, albedoRoughness.a) / (4.0f * NdotL * NdotV + 0.001f) / max(SSRHitInfo.b, 1e-5);
+		//else
+		//{
+			//weight = 0.5f;	// FIXME?
+			//SSRSurfColor = vec3(0);
+		//}
 		weight = max(weight, 0.001f);
 
+		SSRSurfColor /= 1.0f + Luminance(SSRSurfColor);
+
 		SSRRadiance.rgb += SSRSurfColor * weight;
-		SSRRadiance.a += hitFlag * weight;
+		//SSRRadiance.a += hitFlag * weight;
+		SSRRadiance.a += hitFlag * weight * (1.0f - smoothstep(0.9f, 1.0f, abs(SSRHitInfo.a) / 201.0f)) * BorderFading(hitUV);
 
 		weightSum += weight;
 	}
@@ -137,5 +159,7 @@ void main()
 	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * min(1.0f, GGX_D(NdotH, vars.albedo_roughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
 	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
-	outShadingColor = vec4(punctualRadiance + ambient, outShadingColor.a);
+	outShadingColor = vec4(punctualRadiance + ambient, fresnel_roughness.r);
+
+	outDebugColor = vec4(irradiance, SSRRadiance.a);
 }

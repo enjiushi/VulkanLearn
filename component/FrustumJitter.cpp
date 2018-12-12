@@ -57,17 +57,11 @@ void HaltonSequence::InitializeHalton_2_3()
 			POINTS_HALTON_2_3[mode].first[2 * i + 1] = v;
 		}
 	}
-
-	UniformData::GetInstance()->GetGlobalUniforms()->SetHaltonSequenceX8(POINTS_HALTON_2_3_X8);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetHaltonSequenceX16(POINTS_HALTON_2_3_X16);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetHaltonSequenceX32(POINTS_HALTON_2_3_X32);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetHaltonSequenceX256(POINTS_HALTON_2_3_X256);
 }
 
-bool HaltonSequence::Init()
+Vector2f HaltonSequence::GetHaltonJitter(HaltonMode mode, uint64_t index)
 {
-	InitializeHalton_2_3();
-	return true;
+	return { POINTS_HALTON_2_3[mode].first[index % (POINTS_HALTON_2_3[mode].second / 2)], POINTS_HALTON_2_3[mode].first[(index % (POINTS_HALTON_2_3[mode].second / 2)) + 1] };
 }
 
 DEFINITE_CLASS_RTTI(FrustumJitter, BaseComponent);
@@ -84,6 +78,8 @@ bool FrustumJitter::Init(const std::shared_ptr<FrustumJitter>& pJitter)
 {
 	if (!BaseComponent::Init(pJitter))
 		return false;
+
+	HaltonSequence::InitializeHalton_2_3();
 
 	return true;
 }
@@ -106,8 +102,8 @@ void FrustumJitter::Update()
 	if (!m_jitterEnabled)
 		return;
 
-	m_pCamera->SetJitterOffset({ HaltonSequence::GetInstance()->POINTS_HALTON_2_3[m_haltonMode].first[m_currentIndex], HaltonSequence::GetInstance()->POINTS_HALTON_2_3[m_haltonMode].first[m_currentIndex + 1] });
-	m_currentIndex = (m_currentIndex + 2) % HaltonSequence::GetInstance()->POINTS_HALTON_2_3[m_haltonMode].second;
+	m_pCamera->SetJitterOffset({ HaltonSequence::POINTS_HALTON_2_3[m_haltonMode].first[m_currentIndex], HaltonSequence::POINTS_HALTON_2_3[m_haltonMode].first[m_currentIndex + 1] });
+	m_currentIndex = (m_currentIndex + 2) % HaltonSequence::POINTS_HALTON_2_3[m_haltonMode].second;
 }
 
 void FrustumJitter::SetHaltonMode(HaltonSequence::HaltonMode mode)

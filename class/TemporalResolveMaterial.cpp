@@ -172,6 +172,18 @@ bool TemporalResolveMaterial::Init(const std::shared_ptr<TemporalResolveMaterial
 			});
 	}
 
+	std::vector<CombinedImage> motionNeighborMax;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pMotionNeighborMax = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionNeighborMax)[j];
+
+		motionNeighborMax.push_back({
+			pMotionNeighborMax->GetColorTarget(0),
+			pMotionNeighborMax->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pMotionNeighborMax->GetColorTarget(0)->CreateDefaultImageView()
+			});
+	}
+
 	std::vector<CombinedImage> temporalResults;
 
 	for (uint32_t pingpong = 0; pingpong < 2; pingpong++)
@@ -185,7 +197,8 @@ bool TemporalResolveMaterial::Init(const std::shared_ptr<TemporalResolveMaterial
 
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, motionVectors);
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, shadingResults);
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 2, temporalResults);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 2, motionNeighborMax);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 3, temporalResults);
 
 	UniformData::GetInstance()->GetGlobalTextures()->InsertScreenSizeTexture({ "MipmapTemporalResult", "", "Mip map temporal result, used for next frame ssr" });
 
@@ -209,6 +222,15 @@ void TemporalResolveMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 		{},
 		GetSwapChain()->GetSwapChainImageCount()
 	});
+
+	materialLayout.push_back(
+	{
+		CombinedSampler,
+		"MotionNeighborMax",
+		{},
+		GetSwapChain()->GetSwapChainImageCount()
+	});
+
 
 	m_materialVariableLayout.push_back(
 	{
@@ -282,6 +304,7 @@ void TemporalResolveMaterial::AttachResourceBarriers(const std::shared_ptr<Comma
 
 	std::shared_ptr<Image> pMotionVector = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::MotionVector);
 	std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
+	std::shared_ptr<Image> pMotionNeighborMax = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionNeighborMax)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(0);
 
 	VkImageSubresourceRange subresourceRange = {};
@@ -293,6 +316,21 @@ void TemporalResolveMaterial::AttachResourceBarriers(const std::shared_ptr<Comma
 	VkImageMemoryBarrier imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	imgBarrier.image = pMotionVector->GetDeviceHandle();
+	imgBarrier.subresourceRange = subresourceRange;
+	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	barriers.push_back(imgBarrier);
+
+	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange.baseMipLevel = 0;
+	subresourceRange.levelCount = pMotionNeighborMax->GetImageInfo().mipLevels;
+	subresourceRange.layerCount = pMotionNeighborMax->GetImageInfo().arrayLayers;
+
+	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier.image = pMotionNeighborMax->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;

@@ -83,14 +83,14 @@ vec4 RayMarch(vec3 sampleNormal, vec3 normal, vec3 position, vec3 wsViewRay)
 
 	float stepDirection = sign(screenOffset.x);
 	float stepInterval = stepDirection / screenOffset.x;
-	float stride = 1.7f;
+	float stride = 3.7f;
 
 	vec3 dQ = (Q1 - Q0) * stepInterval * stride;
 	float dk = (k1 - k0) * stepInterval * stride;
 	vec2 dP = vec2(stepDirection, screenOffset.y * stepInterval) * stride;
 
 	float jitter = PDsrand(inUv + vec2(perFrameData.time.x));
-	float init = 3.0f + jitter;
+	float init = 2 + jitter;
 
 	vec3 Q = Q0 + dQ * init;
 	float k = k0 + dk * init;
@@ -99,7 +99,7 @@ vec4 RayMarch(vec3 sampleNormal, vec3 normal, vec3 position, vec3 wsViewRay)
 	float end = P1.x * stepDirection;
 
 	float stepCount = 0.0f;
-	float MaxStepCount = 300;
+	float MaxStepCount = 200;
 
 	float prevZMax = csRayOrigin.z;
 	float ZMin = prevZMax;
@@ -200,12 +200,12 @@ void main()
 	float RdotN = 0.0f;
 	int regenCount = 0;
 	int maxRegenCount = 15;
-	float surfaceMargin = 0.03;
+	float surfaceMargin = 0.19f;
 	for (; RdotN <= surfaceMargin && regenCount < maxRegenCount; regenCount++)
 	{
 		ivec3 inoiseUV = ivec3(ivec2(noiseUV + regenCount) % 1024, pushConsts.blueNoiseTexIndex);
-
 		vec2 Xi = texelFetch(RGBA8_1024_MIP_2DARRAY, inoiseUV, 0).rg;
+
 		Xi.y = mix(Xi.y, 0.0f, globalData.SSRSettings.x);	// Add a bias
 		H = ImportanceSampleGGX(Xi, roughness);
 		H.xyz = normalize(H.xyz);

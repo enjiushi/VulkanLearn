@@ -475,10 +475,13 @@ void VulkanGlobal::InitUniforms()
 
 	gli::texture2d gliMetalic(gli::load("../data/textures/cerberus/metallic_1024.ktx"));
 
+	gli::texture2d gliAluminumAlbedo(gli::load("../data/textures/aluminum_albedo_1024.ktx"));
+
 	gli::texture2d gliTempTex(gli::load("../data/textures/aluminum_metalness_1024.ktx"));
 	gli::texture2d gliAluminumMetalic = ExtractAlphaChannel(gliTempTex);
 	gli::texture2d gliAluminumNormalAO(gli::load("../data/textures/aluminum_normal_1024.ktx"));
 	SetAlphaChannel(gliAluminumNormalAO, 1.0f * 255);
+	CombineRGBA8_R8_RGBA8(gliAluminumAlbedo, gliAluminumMetalic);
 
 	m_pAlbedoRoughness = Texture2D::Create(m_pDevice, { {gliAlbedoTex} }, VK_FORMAT_R8G8B8A8_UNORM);
 	m_pMetalic = Texture2D::Create(m_pDevice, { {gliMetalic} }, VK_FORMAT_R8_UNORM);
@@ -491,6 +494,7 @@ void VulkanGlobal::InitUniforms()
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "AluminumNormalAO", "", "Aluminum plate normal ao map" }, gliAluminumNormalAO);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "GunMetallic", "", "R:Metalic" }, gliMetalic);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "AluminumMetalic", "", "Aluminum plate metalic map" }, gliAluminumMetalic);
+	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "AluminumAlbedoRoughness", "", "Aluminum plate albedo roughness" }, gliAluminumAlbedo);
 
 	gli::texture_cube gliSkyBox(gli::load("../data/textures/hdr/gcanyon_cube.ktx"));
 	UniformData::GetInstance()->GetGlobalTextures()->InitIBLTextures(gliSkyBox);
@@ -602,11 +606,9 @@ void VulkanGlobal::InitMaterials()
 	m_pQuadMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, 0.92f));
 	m_pQuadMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.99f));
-	m_pQuadMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
-	//m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "AluminumNormalAO");
-	//m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, "AluminumMetalic");
-	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
-	m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+	m_pQuadMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, "AluminumAlbedoRoughness");
+	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "AluminumNormalAO");
+	m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, "AluminumMetalic");
 
 	m_pBoxMaterialInstance0 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 	m_pBoxMaterialInstance0->SetRenderMask(1 << RenderWorkManager::Scene);
@@ -752,8 +754,8 @@ public:
 	void ProcessMouse(KeyState keyState, const Vector2f& mousePosition) override {}
 	void ProcessMouse(const Vector2f& mousePosition) override {}
 	float roughness = 0.5f;
-	float SSRVar = 0.0f;
-	uint32_t frameCount = 0;
+	float SSRVar = 1.0f;
+	uint64_t frameCount = 0;
 };
 
 void RoughnessChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
@@ -811,7 +813,10 @@ void VulkanGlobal::Draw()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(pingpong);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRMip(c->SSRVar);
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndex(c->frameCount);
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX8Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x8, c->frameCount));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX16Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x16, c->frameCount));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX32Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x32, c->frameCount));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX256Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x256, c->frameCount));
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 

@@ -27,12 +27,6 @@ struct GlobalData
 
 	// SSAO Settings
 	vec4 SSAOSamples[64];
-
-	// Random
-	float HaltonSequenceX8[8 * 2];
-	float HaltonSequenceX16[16 * 2];
-	float HaltonSequenceX32[32 * 2];
-	float HaltonSequenceX256[256 * 2];
 };
 
 struct PerFrameData
@@ -48,7 +42,10 @@ struct PerFrameData
 	vec4 nearFarAB;
 	vec2 cameraJitterOffset;
 	vec2 time;
-	vec4 haltonIndex;
+	vec2 haltonX8Jitter;
+	vec2 haltonX16Jitter;
+	vec2 haltonX32Jitter;
+	vec2 haltonX256Jitter;
 };
 
 struct PerObjectData
@@ -275,7 +272,7 @@ const float weight[sampleCount] =
 	0.016216
 };
 
-vec3 AcquireBlurredSSAO(sampler2D tex, vec2 uv, int direction, float scale, float strength)
+vec4 Blur(sampler2D tex, vec2 uv, int direction, float scale, float strength)
 {
 	vec2 step = vec2(1.0f) / textureSize(tex, 0).xy;
 
@@ -285,11 +282,11 @@ vec3 AcquireBlurredSSAO(sampler2D tex, vec2 uv, int direction, float scale, floa
 
 	dir = dir * step;
 
-	vec3 result = texture(tex, uv).rgb * weight[0];
+	vec4 result = texture(tex, uv).rgba * weight[0];
 	for (int i = 1; i < sampleCount; i++)
 	{
-		result += texture(tex, uv + dir * i * scale).rgb * weight[i];
-		result += texture(tex, uv + dir * -i * scale).rgb * weight[i];
+		result += texture(tex, uv + dir * i * scale).rgba * weight[i];
+		result += texture(tex, uv + dir * -i * scale).rgba * weight[i];
 	}
 
 	return result * strength;

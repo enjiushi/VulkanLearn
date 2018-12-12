@@ -37,12 +37,6 @@ typedef struct _GlobalVariables
 
 	// SSAO settings
 	Vector4f	SSAOSamples[SSAO_SAMPLE_COUNT];
-
-	// Random
-	float		HaltonSequenceX8[8 * 2];
-	float		HaltonSequenceX16[16 * 2];
-	float		HaltonSequenceX32[32 * 2];
-	float		HaltonSequenceX256[256 * 2];
 }GlobalVariables;
 
 class GlobalUniforms : public UniformDataStorage
@@ -81,11 +75,6 @@ public:
 	float GetBRDFBias() const { return m_globalVariables.SSRSettings.x; }
 	void SetSSRMip(float SSRMip);
 	float GetSSRMip() const { return m_globalVariables.SSRSettings.y; }
-
-	void SetHaltonSequenceX8(const float* pData);
-	void SetHaltonSequenceX16(const float* pData);
-	void SetHaltonSequenceX32(const float* pData);
-	void SetHaltonSequenceX256(const float* pData);
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

@@ -5,11 +5,8 @@
 
 class Camera;
 
-class HaltonSequence : public Singleton<HaltonSequence>
+class HaltonSequence
 {
-public:
-	bool Init() override;
-
 public:
 	enum HaltonMode
 	{
@@ -20,10 +17,10 @@ public:
 		HaltonModeCount,
 	};
 
-	static float POINTS_HALTON_2_3_X8[];
-	static float POINTS_HALTON_2_3_X16[];
-	static float POINTS_HALTON_2_3_X32[];
-	static float POINTS_HALTON_2_3_X256[];
+	static float POINTS_HALTON_2_3_X8[8 * 2];
+	static float POINTS_HALTON_2_3_X16[16 * 2];
+	static float POINTS_HALTON_2_3_X32[32 * 2];
+	static float POINTS_HALTON_2_3_X256[256 * 2];
 
 	static bool Initialized;
 	static uint32_t PatternLength;
@@ -34,6 +31,7 @@ public:
 	static Vector2f Sample(float* pattern, int index);
 	static float HaltonSeq(uint32_t prime, uint32_t index);
 	static void InitializeHalton_2_3();
+	static Vector2f GetHaltonJitter(HaltonMode mode, uint64_t index);
 };
 
 class FrustumJitter : public BaseComponent

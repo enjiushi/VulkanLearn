@@ -114,34 +114,6 @@ void GlobalUniforms::SetMotionTileSize(const Vector2f& size)
 	SetDirty();
 }
 
-void GlobalUniforms::SetHaltonSequenceX8(const float* pData)
-{
-	for (uint32_t i = 0; i < 8 * 2; i++)
-		m_globalVariables.HaltonSequenceX8[i] = pData[i];
-	SetDirty();
-}
-
-void GlobalUniforms::SetHaltonSequenceX16(const float* pData)
-{
-	for (uint32_t i = 0; i < 16 * 2; i++)
-		m_globalVariables.HaltonSequenceX16[i] = pData[i];
-	SetDirty();
-}
-
-void GlobalUniforms::SetHaltonSequenceX32(const float* pData)
-{
-	for (uint32_t i = 0; i < 32 * 2; i++)
-		m_globalVariables.HaltonSequenceX32[i] = pData[i];
-	SetDirty();
-}
-
-void GlobalUniforms::SetHaltonSequenceX256(const float* pData)
-{
-	for (uint32_t i = 0; i < 256 * 2; i++)
-		m_globalVariables.HaltonSequenceX256[i] = pData[i];
-	SetDirty();
-}
-
 void GlobalUniforms::SyncBufferDataInternal()
 {
 	m_globalVariables.prevPN = m_globalVariables.PN;
@@ -242,6 +214,10 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				},
 				{
 					Vec4Unit,
+					"MotionWindowSize"
+				},
+				{
+					Vec4Unit,
 					"MainLightDir"
 				},
 				{
@@ -255,6 +231,10 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				{
 					Vec4Unit,
 					"Settings: Gamma, Exposure, White Scale"
+				},
+				{
+					Vec4Unit,
+					"SSR Settings: BRDFBias, SSR Mipmap"
 				},
 				{
 					Vec4Unit,

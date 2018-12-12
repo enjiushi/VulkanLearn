@@ -85,12 +85,27 @@ void PerFrameUniforms::SetSinTime(float sinTime)
 	SetDirty();
 }
 
-void PerFrameUniforms::SetHaltonIndex(uint32_t frameCount)
+void PerFrameUniforms::SetHaltonIndexX8Jitter(const Vector2f& haltonX8Jitter)
 {
-	m_perFrameVariables.haltonIndex.x = frameCount % 8;
-	m_perFrameVariables.haltonIndex.y = frameCount % 16;
-	m_perFrameVariables.haltonIndex.z = frameCount % 32;
-	m_perFrameVariables.haltonIndex.w = frameCount % 256;
+	m_perFrameVariables.haltonX8Jitter = haltonX8Jitter;
+	SetDirty();
+}
+
+void PerFrameUniforms::SetHaltonIndexX16Jitter(const Vector2f& haltonX16Jitter)
+{
+	m_perFrameVariables.haltonX16Jitter = haltonX16Jitter;
+	SetDirty();
+}
+
+void PerFrameUniforms::SetHaltonIndexX32Jitter(const Vector2f& haltonX32Jitter)
+{
+	m_perFrameVariables.haltonX32Jitter = haltonX32Jitter;
+	SetDirty();
+}
+
+void PerFrameUniforms::SetHaltonIndexX256Jitter(const Vector2f& haltonX256Jitter)
+{
+	m_perFrameVariables.haltonX256Jitter = haltonX256Jitter;
 	SetDirty();
 }
 
@@ -125,7 +140,12 @@ std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList() const
 				{ Vec4Unit, "CameraDirection_FrameIndex" },
 				{ Vec4Unit, "EyeSpaceSize" },
 				{ Vec4Unit, "NearFarAB" },
-				{ Vec2Unit, "CameraJitterOffset" }
+				{ Vec2Unit, "CameraJitterOffset" },
+				{ Vec2Unit, "Time, x:time, y:sin(time)" },
+				{ Vec2Unit, "HaltonX8 Jitter" },
+				{ Vec2Unit, "HaltonX16 Jitter" },
+				{ Vec2Unit, "HaltonX32 Jitter" },
+				{ Vec2Unit, "HaltonX256 Jitter" },
 			}
 		}
 	};
