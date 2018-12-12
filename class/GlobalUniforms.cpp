@@ -164,6 +164,48 @@ void GlobalUniforms::SetSSRMip(float SSRMip)
 	UniformDataStorage::SetDirty();
 }
 
+void GlobalUniforms::SetTemporalSettings0(const Vector4f& setting)
+{
+	m_globalVariables.TemporalSettings0 = setting;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetTemporalSettings1(const Vector4f& setting)
+{
+	m_globalVariables.TemporalSettings1 = setting;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetPrevMotionImpact(float prevMotionImpact)
+{
+	m_globalVariables.TemporalSettings0.x = prevMotionImpact;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetCurrMotionImpact(float currMotionImpact)
+{
+	m_globalVariables.TemporalSettings0.y = currMotionImpact;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMaxClippedPrevRatio(float maxClippedPrevRatio)
+{
+	m_globalVariables.TemporalSettings0.z = maxClippedPrevRatio;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMotionImpactLowerBound(float motionImpactLowerBound)
+{
+	m_globalVariables.TemporalSettings1.x = motionImpactLowerBound;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMotionImpactUpperBound(float motionImpactUpperBound)
+{
+	m_globalVariables.TemporalSettings1.y = motionImpactUpperBound;
+	UniformDataStorage::SetDirty();
+}
+
 std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 {
 	std::vector<UniformVarList> list = 
@@ -235,6 +277,14 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				{
 					Vec4Unit,
 					"SSR Settings: BRDFBias, SSR Mipmap"
+				},
+				{
+					Vec4Unit,
+					"Temporal settings: X/Y: Prev/Curr Motion Impact, Z: Max Clipped Prev Ratio"
+				},
+				{
+					Vec4Unit,
+					"Temporal Settings: X/Y: Motion Impact Lower/Upper Bound"
 				},
 				{
 					Vec4Unit,

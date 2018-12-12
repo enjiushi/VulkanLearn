@@ -24,6 +24,8 @@ struct GlobalData
 	// Render Settings
 	vec4 GEW;			//Gamma, exposure, white scale
 	vec4 SSRSettings;
+	vec4 TemporalSettings0;
+	vec4 TemporalSettings1;
 
 	// SSAO Settings
 	vec4 SSAOSamples[64];

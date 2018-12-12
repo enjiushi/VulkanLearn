@@ -34,6 +34,8 @@ typedef struct _GlobalVariables
 	// Render settings
 	Vector4f	GEW;				// x: Gamma, y: Exposure, z: White Scale, w: empty for padding
 	Vector4f	SSRSettings;		// x: BRDFBias, y: SSR mip toggle, rest: reserved
+	Vector4f	TemporalSettings0;	// x: Prev motion impact, y: Curr motion impac, z: Max clipped prev ratio, w: Reserved
+	Vector4f    TemporalSettings1;	// x: Motion impact lower bound, y: Motion impact upper bound, zw: Reserved
 
 	// SSAO settings
 	Vector4f	SSAOSamples[SSAO_SAMPLE_COUNT];
@@ -75,6 +77,21 @@ public:
 	float GetBRDFBias() const { return m_globalVariables.SSRSettings.x; }
 	void SetSSRMip(float SSRMip);
 	float GetSSRMip() const { return m_globalVariables.SSRSettings.y; }
+
+	void SetTemporalSettings0(const Vector4f& setting);
+	Vector4f GetTemporalSettings0() const { return m_globalVariables.TemporalSettings0; }
+	void SetTemporalSettings1(const Vector4f& setting);
+	Vector4f GetTemporalSettings1() const { return m_globalVariables.TemporalSettings1; }
+	void SetPrevMotionImpact(float prevMotionImpact);
+	float GetPrevMotionImpact() const { return m_globalVariables.TemporalSettings0.x; }
+	void SetCurrMotionImpact(float currMotionImpact);
+	float GetCurrMotionImpact() const { return m_globalVariables.TemporalSettings0.y; }
+	void SetMaxClippedPrevRatio(float maxClippedPrevRatio);
+	float GetMaxClippedPrevRatio() const { return m_globalVariables.TemporalSettings0.z; }
+	void SetMotionImpactLowerBound(float motionImpactLowerBound);
+	float GetMotionImpactLowerBound() const { return m_globalVariables.TemporalSettings1.x; }
+	void SetMotionImpactUpperBound(float motionImpactUpperBound);
+	float GetMotionImpactUpperBound() const { return m_globalVariables.TemporalSettings1.y; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

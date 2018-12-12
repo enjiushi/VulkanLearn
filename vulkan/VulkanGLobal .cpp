@@ -745,6 +745,12 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ 1, 1, -1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetRenderSettings({ 1.0f / 2.2f, 4.5f, 11.2f, 0.0f });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBRDFBias(0.7f);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPrevMotionImpact(6.7f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetCurrMotionImpact(50.0f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxClippedPrevRatio(0.8f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactLowerBound(0.0005f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.001f);
 }
 
 class RoughnessChanger : public IInputListener
