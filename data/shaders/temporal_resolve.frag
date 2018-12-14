@@ -28,7 +28,7 @@ vec4 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, ve
 {
 	float prevMotionLen = texture(prevSampler, unjitteredUV).a;
 	float currMaxMotionLen = max(motionNeighborMaxLength, prevMotionLen);
-	float prevMotionImpact = clamp(abs(prevMotionLen - motionNeighborMaxLength), 0.0f, 999.0f);
+	float prevMotionImpact = abs(prevMotionLen - motionNeighborMaxLength);
 
 	vec3 curr = texture(currSampler, unjitteredUV).rgb;
 	vec3 prev = texture(prevSampler, inUv + motionVec).rgb;
@@ -53,6 +53,7 @@ vec4 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, ve
 
 	float prevMix = 1.0f - smoothstep(motionImpactLowerBound, motionImpactUpperBound, currMaxMotionLen);
 	prev = mix(clippedPrev, prev, mix(max(0.0f, maxClippedPrevRatio - prevMotionImpact * prevMotionImpactAmp), 1.0f, prevMix));
+	//prev = mix(clippedPrev, prev, mix(max(0.0f, maxClippedPrevRatio - prevMotionImpact * prevMotionImpactAmp), 1.0f, prevMix));
 
 	float currLum = Luminance(curr);
 	float prevLum = Luminance(prev);
