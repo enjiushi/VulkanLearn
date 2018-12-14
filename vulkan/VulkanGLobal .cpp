@@ -762,8 +762,8 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPrevMotionImpact(16.7f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetCurrMotionImpact(50.0f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxClippedPrevRatio(0.8f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactLowerBound(0.005f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.02f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactLowerBound(0.002f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.007f);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingLowerBound(0.99f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingUpperBound(1.1f);
