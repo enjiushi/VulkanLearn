@@ -31,7 +31,7 @@ protected:
 	std::shared_ptr<StagingBuffer>	m_pStagingBufferPool;
 	std::vector<PendingBufferInfo>	m_pendingUpdateBuffer;
 	uint32_t						m_usedNumBytes = 0;
-	const static uint32_t STAGING_BUFFER_INC = 1024 * 1024 * 8;
+	const static uint32_t STAGING_BUFFER_INC = 1024 * 1024 * 256;
 	friend class Buffer;
 	friend class Image;
 	friend class SharedBufferManager;

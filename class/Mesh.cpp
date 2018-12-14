@@ -43,7 +43,7 @@ std::shared_ptr<Mesh> Mesh::Create
 	return nullptr;
 }
 
-std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath, uint32_t argumentedVertexFormat)
+std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath, uint32_t argumentedVertexFormat, uint32_t meshIndex)
 {
 	Assimp::Importer imp;
 	const aiScene* pScene = nullptr;
@@ -51,7 +51,9 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath, uint32_t argumen
 	ASSERTION(pScene != nullptr);
 
 	// FIXME: Now scene file is used as single mesh, it shouldn't be however, some class like "scene" should load it and dispatch mesh data to this class, in future
-	aiMesh* pMesh = pScene->mMeshes[0];
+	if (meshIndex >= pScene->mNumMeshes)
+		meshIndex = pScene->mNumMeshes - 1;
+	aiMesh* pMesh = pScene->mMeshes[meshIndex];
 
 	uint32_t vertexFormat = 0;
 
