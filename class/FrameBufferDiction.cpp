@@ -28,38 +28,38 @@ bool FrameBufferDiction::Init()
 
 	for (uint32_t i = 0; i < PipelineRenderPassCount; i++)
 	{
+		m_frameBuffers[i].resize(1);
+
 		switch ((FrameBufferType)i)
 		{
 		case  FrameBufferType_GBuffer:
-			m_frameBuffers[FrameBufferType_GBuffer] = CreateGBufferFrameBuffer(); break;
+			m_frameBuffers[FrameBufferType_GBuffer][0] = CreateGBufferFrameBuffer(); break;
 		case  FrameBufferType_MotionTileMax:
-			m_frameBuffers[FrameBufferType_MotionTileMax] = CreateMotionTileMaxFrameBuffer(); break;
+			m_frameBuffers[FrameBufferType_MotionTileMax][0] = CreateMotionTileMaxFrameBuffer(); break;
 		case  FrameBufferType_MotionNeighborMax:
-			m_frameBuffers[FrameBufferType_MotionNeighborMax] = CreateMotionNeighborMaxFrameBuffer(); break;
+			m_frameBuffers[FrameBufferType_MotionNeighborMax][0] = CreateMotionNeighborMaxFrameBuffer(); break;
 		case  FrameBufferType_ShadowMap:
-			m_frameBuffers[FrameBufferType_ShadowMap] = CreateShadowMapFrameBuffer(); break;
+			m_frameBuffers[FrameBufferType_ShadowMap][0] = CreateShadowMapFrameBuffer(); break;
 		case FrameBufferType_SSAOSSR:
-			m_frameBuffers[FrameBufferType_SSAOSSR] = CreateSSAOSSRFrameBuffer(); break;
+			m_frameBuffers[FrameBufferType_SSAOSSR][0] = CreateSSAOSSRFrameBuffer(); break;
 		case FrameBufferType_SSAOBlurV:
-			m_frameBuffers[FrameBufferType_SSAOBlurV] = CreateSSAOBlurFrameBufferV(); break;
+			m_frameBuffers[FrameBufferType_SSAOBlurV][0] = CreateSSAOBlurFrameBufferV(); break;
 		case FrameBufferType_SSAOBlurH:
-			m_frameBuffers[FrameBufferType_SSAOBlurH] = CreateSSAOBlurFrameBufferH(); break;
+			m_frameBuffers[FrameBufferType_SSAOBlurH][0] = CreateSSAOBlurFrameBufferH(); break;
 		case FrameBufferType_Shading:
-			m_frameBuffers[FrameBufferType_Shading] = CreateShadingFrameBuffer(); break;
+			m_frameBuffers[FrameBufferType_Shading][0] = CreateShadingFrameBuffer(); break;
 		case FrameBufferType_TemporalResolve:
-			m_frameBuffers[FrameBufferType_TemporalResolve] = CreateTemporalResolveFrameBuffer(); break;
-		case FrameBufferType_BloomBlurV:
-			m_frameBuffers[FrameBufferType_BloomBlurV] = CreateBloomFrameBufferV(); break;
-		case FrameBufferType_BloomBlurH:
-			m_frameBuffers[FrameBufferType_BloomBlurH] = CreateBloomFrameBufferH(); break;
+			m_frameBuffers[FrameBufferType_TemporalResolve][0] = CreateTemporalResolveFrameBuffer(); break;
+		case FrameBufferType_Bloom:
+			m_frameBuffers[FrameBufferType_Bloom][0] = CreateBloomFrameBuffer(); break;
 		case FrameBufferType_CombineResult:
-			m_frameBuffers[FrameBufferType_CombineResult] = CreateCombineResultFrameBuffer(); break;
+			m_frameBuffers[FrameBufferType_CombineResult][0] = CreateCombineResultFrameBuffer(); break;
 		case FrameBufferType_PostProcessing:
-			m_frameBuffers[FrameBufferType_PostProcessing] = CreatePostProcessingFrameBuffer(); break;
+			m_frameBuffers[FrameBufferType_PostProcessing][0] = CreatePostProcessingFrameBuffer(); break;
 		case FrameBufferType_EnvGenOffScreen:
-			m_frameBuffers[FrameBufferType_EnvGenOffScreen] = CreateForwardEnvGenOffScreenFrameBuffer(); break;
+			m_frameBuffers[FrameBufferType_EnvGenOffScreen][0] = CreateForwardEnvGenOffScreenFrameBuffer(); break;
 		case FrameBufferType_ForwardScreen:
-			m_frameBuffers[FrameBufferType_ForwardScreen] = CreateForwardScreenFrameBuffer(); break;
+			m_frameBuffers[FrameBufferType_ForwardScreen][0] = CreateForwardScreenFrameBuffer(); break;
 		default:
 			break;
 		}
@@ -68,28 +68,45 @@ bool FrameBufferDiction::Init()
 	return true;
 }
 
-std::shared_ptr<FrameBuffer> FrameBufferDiction::GetFrameBuffer(FrameBufferType type)
-{
-	return m_frameBuffers[type][FrameMgr()->FrameIndex()];
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::GetFrameBuffers(FrameBufferType type, uint32_t layer)
+{ 
+	// Only bloom is layered, might generalize it through all frame buffers, when needed
+	if (m_frameBuffers[type].size() <= layer && type == FrameBufferType_Bloom)
+	{
+		for (uint32_t i = 0; i < layer - m_frameBuffers[type].size() + 1; i++)
+			m_frameBuffers[type].push_back(CreateBloomFrameBuffer(m_frameBuffers[type].size()));
+	}
+	return m_frameBuffers[type][layer];
 }
 
-std::shared_ptr<FrameBuffer> FrameBufferDiction::GetFrameBuffer(FrameBufferType type, uint32_t pingPongIndex)
+std::shared_ptr<FrameBuffer> FrameBufferDiction::GetFrameBuffer(FrameBufferType type, uint32_t layer)
 {
-	return GetFrameBuffer(type, FrameMgr()->FrameIndex(), pingPongIndex);
+	// Only bloom is layered, might generalize it through all frame buffers, when needed
+	if (m_frameBuffers[type].size() <= layer && type == FrameBufferType_Bloom)
+	{
+		for (uint32_t i = 0; i < layer - m_frameBuffers[type].size() + 1; i++)
+			m_frameBuffers[type].push_back(CreateBloomFrameBuffer(m_frameBuffers[type].size()));
+	}
+	return m_frameBuffers[type][layer][FrameMgr()->FrameIndex()];
 }
 
-std::shared_ptr<FrameBuffer> FrameBufferDiction::GetFrameBuffer(FrameBufferType type, uint32_t frameIndex, uint32_t pingPongIndex)
+std::shared_ptr<FrameBuffer> FrameBufferDiction::GetPingPongFrameBuffer(FrameBufferType type, uint32_t pingPongIndex)
+{
+	return GetPingPongFrameBuffer(type, FrameMgr()->FrameIndex(), pingPongIndex);
+}
+
+std::shared_ptr<FrameBuffer> FrameBufferDiction::GetPingPongFrameBuffer(FrameBufferType type, uint32_t frameIndex, uint32_t pingPongIndex)
 {
 	if (frameIndex >= GetSwapChain()->GetSwapChainImageCount())
 		return nullptr;
 
 	if (type != FrameBufferType_TemporalResolve)
-		return m_frameBuffers[type][frameIndex];
+		return m_frameBuffers[type][0][frameIndex];
 
 	if (frameIndex % 2 != pingPongIndex)
-		return m_frameBuffers[type][frameIndex + 3];
+		return m_frameBuffers[type][0][frameIndex + 3];
 	else
-		return m_frameBuffers[type][frameIndex];
+		return m_frameBuffers[type][0][frameIndex];
 }
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffer()
@@ -219,7 +236,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffe
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
 		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = m_frameBuffers[FrameBufferType_GBuffer][i]->GetDepthStencilTarget();
+		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = m_frameBuffers[FrameBufferType_GBuffer][0][i]->GetDepthStencilTarget();
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()));
 	}
 
@@ -250,31 +267,25 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFr
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBufferV()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+
+#if defined(_DEBUG)
+	uint32_t min = std::fminf(windowSize.x, windowSize.y);
+	uint32_t layerMin = log2(min);
+	ASSERTION(layerMin != 1);
+#endif
+
+	float div = std::powf(2.0f, layer);
+	Vector2f layerSize = { windowSize.x / div, windowSize.y / div };
 
 	FrameBufferCombo frameBuffers;
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
-		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloomBlurV)->GetRenderPass()));
-	}
-
-	return frameBuffers;
-}
-
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBufferH()
-{
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetBloomWindowSize();
-
-	FrameBufferCombo frameBuffers;
-
-	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
-		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloomBlurH)->GetRenderPass()));
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), layerSize.x, layerSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->GetRenderPass()));
 	}
 
 	return frameBuffers;

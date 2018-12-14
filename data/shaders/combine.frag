@@ -12,8 +12,8 @@ layout (location = 0) out vec4 outCombineResult;
 
 layout (location = 0) in vec2 inUv;
 
-const float bloomMagnitude = 0.2f;
-const float bloomExposure = 1.3f;
+const float bloomMagnitude = 1.0f;
+const float bloomExposure = 1.0f;
 
 int index = int(perFrameData.camDir.a);
 int pingpong = (int(perFrameData.camPos.a) + 1) % 2;

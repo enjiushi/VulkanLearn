@@ -44,8 +44,7 @@ public:
 		FrameBufferType_SSAOBlurH,
 		FrameBufferType_Shading,
 		FrameBufferType_TemporalResolve,
-		FrameBufferType_BloomBlurV,
-		FrameBufferType_BloomBlurH,
+		FrameBufferType_Bloom,
 		FrameBufferType_CombineResult,
 		FrameBufferType_PostProcessing,
 		FrameBufferType_EnvGenOffScreen,
@@ -66,10 +65,10 @@ public:
 	bool Init() override;
 
 public:
-	FrameBufferCombo GetFrameBuffers(FrameBufferType type) { return m_frameBuffers[type]; }
-	std::shared_ptr<FrameBuffer> GetFrameBuffer(FrameBufferType type);
-	std::shared_ptr<FrameBuffer> GetFrameBuffer(FrameBufferType type, uint32_t pingPongIndex);
-	std::shared_ptr<FrameBuffer> GetFrameBuffer(FrameBufferType type, uint32_t frameIndex, uint32_t pingPongIndex);
+	FrameBufferCombo GetFrameBuffers(FrameBufferType type, uint32_t layer = 0);
+	std::shared_ptr<FrameBuffer> GetFrameBuffer(FrameBufferType type, uint32_t layer = 0);
+	std::shared_ptr<FrameBuffer> GetPingPongFrameBuffer(FrameBufferType type, uint32_t pingPongIndex);
+	std::shared_ptr<FrameBuffer> GetPingPongFrameBuffer(FrameBufferType type, uint32_t frameIndex, uint32_t pingPongIndex);
 
 	static VkFormat GetGBufferFormat(GBuffer gbuffer) { return m_GBufferFormatTable[gbuffer]; }
 
@@ -82,15 +81,17 @@ public:
 	FrameBufferCombo CreateSSAOBlurFrameBufferH();
 	FrameBufferCombo CreateShadingFrameBuffer();
 	FrameBufferCombo CreateTemporalResolveFrameBuffer();
-	FrameBufferCombo CreateBloomFrameBufferV();
-	FrameBufferCombo CreateBloomFrameBufferH();
+	FrameBufferCombo CreateBloomFrameBuffer(uint32_t layer = 0);
 	FrameBufferCombo CreateCombineResultFrameBuffer();
 	FrameBufferCombo CreatePostProcessingFrameBuffer();
 	FrameBufferCombo CreateForwardEnvGenOffScreenFrameBuffer();
 	FrameBufferCombo CreateForwardScreenFrameBuffer();
 
 protected:
-	std::vector<FrameBufferCombo>								m_frameBuffers;
+	// Since you can't render to a specific mip layer of a frame buffer
+	// I'll have to create multiple frame buffers as layers
+	// But, most of frame buffers contain 1 layer
+	std::vector<std::vector<FrameBufferCombo>>					m_frameBuffers;
 	std::vector<std::vector<std::shared_ptr<Texture2D>>>		m_temporalTexture;
 	static VkFormat												m_GBufferFormatTable[GBufferCount];
 };

@@ -23,8 +23,6 @@ public:
 		PipelineRenderPassShading,
 		PipelineRenderPassTemporalResolve,
 		PipelineRenderPassBloom,
-		PipelineRenderPassBloomBlurV,
-		PipelineRenderPassBloomBlurH,
 		PipelineRenderPassCombine,
 		PipelineRenderPassPostProcessing,
 		PipelineRenderPassCount

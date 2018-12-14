@@ -20,13 +20,24 @@
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<BloomMaterial> BloomMaterial::CreateDefaultMaterial()
+std::shared_ptr<BloomMaterial> BloomMaterial::CreateDefaultMaterial(BloomPass bloomPass, uint32_t iterIndex)
 {
+	std::wstring fragShaderPath;
+	switch (bloomPass)
+	{
+	case BloomPass_Prefilter:		fragShaderPath = L"../data/shaders/bloom_prefilter.frag.spv"; break;
+	case BloomPass_DownSampleBox13: fragShaderPath = L"../data/shaders/bloom_downsamplebox13.frag.spv"; break;
+	case BloomPass_UpSampleTent:	fragShaderPath = L"../data/shaders/bloom_upsampletent.frag.spv"; break;
+	default:
+		ASSERTION(false);
+		break;
+	}
+
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
-	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/bloom_gen.frag.spv", L"" };
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", fragShaderPath, L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
-	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_BloomBlurH;
+	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_Bloom;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom);
 	simpleMaterialInfo.depthTestEnable = false;
 	simpleMaterialInfo.depthWriteEnable = false;
@@ -38,6 +49,7 @@ std::shared_ptr<BloomMaterial> BloomMaterial::CreateDefaultMaterial()
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
 	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType)->GetColorTargets().size();
 
+	VkBlendFactor dstFactor = (bloomPass == BloomPass_UpSampleTent) ? VK_BLEND_FACTOR_ONE : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
 		blendStatesInfo.push_back(
@@ -45,11 +57,11 @@ std::shared_ptr<BloomMaterial> BloomMaterial::CreateDefaultMaterial()
 				VK_FALSE,							// blend enabled
 
 				VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
-				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
+				dstFactor,							// dst color blend factor
 				VK_BLEND_OP_ADD,					// color blend op
 
 				VK_BLEND_FACTOR_ONE,				// src alpha blend factor
-				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst alpha blend factor
+				dstFactor,							// dst alpha blend factor
 				VK_BLEND_OP_ADD,					// alpha blend factor
 
 				0xf,								// color mask
@@ -132,7 +144,12 @@ std::shared_ptr<BloomMaterial> BloomMaterial::CreateDefaultMaterial()
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	if (pBloomMaterial.get() && pBloomMaterial->Init(pBloomMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	VkPushConstantRange pushConstantRange0 = { VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(Vector2f) };
+
+	pBloomMaterial->m_bloomPass = bloomPass;
+	pBloomMaterial->m_iterIndex = iterIndex;
+
+	if (pBloomMaterial.get() && pBloomMaterial->Init(pBloomMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pBloomMaterial;
 
 	return nullptr;
@@ -142,38 +159,85 @@ bool BloomMaterial::Init(const std::shared_ptr<BloomMaterial>& pSelf,
 	const std::vector<std::wstring>	shaderPaths,
 	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
+	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
 	uint32_t vertexFormat)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat))
 		return false;
 
-	std::vector<CombinedImage> temporalResults;
-	for (uint32_t j = 0; j < 2; j++)
-	{
-		std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
+	std::vector<CombinedImage> srcImgs;
 
-		temporalResults.push_back({
-			pTemporalResult->GetColorTarget(0),
-			pTemporalResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-			pTemporalResult->GetColorTarget(0)->CreateDefaultImageView()
-		});
+	switch (m_bloomPass)
+	{
+	case BloomPass_Prefilter:
+		for (uint32_t j = 0; j < 2; j++)
+		{
+			std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
+
+			srcImgs.push_back({
+				pTemporalResult->GetColorTarget(0),
+				pTemporalResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pTemporalResult->GetColorTarget(0)->CreateDefaultImageView()
+				});
+		}
+		break;
+	case BloomPass_DownSampleBox13:
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+		{
+			std::shared_ptr<FrameBuffer> pPrevBloomResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Bloom, m_iterIndex)[j];
+
+			srcImgs.push_back({
+				pPrevBloomResult->GetColorTarget(0),
+				pPrevBloomResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pPrevBloomResult->GetColorTarget(0)->CreateDefaultImageView()
+				});
+		}
+		break;
+	case BloomPass_UpSampleTent:
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+		{
+			std::shared_ptr<FrameBuffer> pPrevBloomResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Bloom, m_iterIndex + 1)[j];
+
+			srcImgs.push_back({
+				pPrevBloomResult->GetColorTarget(0),
+				pPrevBloomResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pPrevBloomResult->GetColorTarget(0)->CreateDefaultImageView()
+				});
+		}
+		break;
+	default:
+		ASSERTION(false);
+		break;
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, temporalResults);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, srcImgs);
 
 	return true;
 }
 
 void BloomMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
 {
-	m_materialVariableLayout.push_back(
+	if (m_bloomPass == BloomPass_Prefilter)
 	{
-		CombinedSampler,
-		"Temporal result",
-		{},
-		2
-	});
+		m_materialVariableLayout.push_back(
+		{
+			CombinedSampler,
+			"Temporal result",
+			{},
+			2
+		});
+	}
+	else
+	{
+		m_materialVariableLayout.push_back(
+		{
+			CombinedSampler,
+			"PrevBloomDown(Up)Result",
+			{},
+			GetSwapChain()->GetSwapChainImageCount()
+		});
+	}
 }
 
 void BloomMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
@@ -187,24 +251,31 @@ void BloomMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const st
 
 	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pFrameBuffer);
 
+	Vector2f size = { (float)pFrameBuffer->GetFramebufferInfo().width, (float)pFrameBuffer->GetFramebufferInfo().height };
+
 	VkViewport viewport =
 	{
 		0, 0,
-		pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
+		size.x, size.y,
 		0, 1
 	};
 
 	VkRect2D scissorRect =
 	{
 		0, 0,
-		pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
+		size.x, size.y,
 	};
+	
+	size *= m_bloomPass == BloomPass_UpSampleTent ? 0.5f : 2.0f;
+	size = { 1.0f / size.x, 1.0f / size.y };
 
 	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
 	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
 
 	BindPipeline(pDrawCmdBuffer);
 	BindDescriptorSet(pDrawCmdBuffer);
+
+	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(Vector2f), &size);
 
 	pDrawCmdBuffer->Draw(3, 1, 0, 0);
 
@@ -215,17 +286,33 @@ void BloomMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const st
 
 void BloomMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
 {
-	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(0);
+	std::shared_ptr<Image> pBarrierImg;
+
+	switch (m_bloomPass)
+	{
+	case BloomPass_Prefilter:
+		pBarrierImg = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(0);
+		break;
+	case BloomPass_DownSampleBox13:
+		pBarrierImg = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Bloom, m_iterIndex)->GetColorTarget(0);
+		break;
+	case BloomPass_UpSampleTent:
+		pBarrierImg = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Bloom, m_iterIndex + 1)->GetColorTarget(0);
+		break;
+	default:
+		ASSERTION(false);
+		break;
+	}
 
 	VkImageSubresourceRange subresourceRange = {};
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pTemporalResult->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pTemporalResult->GetImageInfo().arrayLayers;
+	subresourceRange.levelCount = pBarrierImg->GetImageInfo().mipLevels;
+	subresourceRange.layerCount = pBarrierImg->GetImageInfo().arrayLayers;
 
 	VkImageMemoryBarrier imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pTemporalResult->GetDeviceHandle();
+	imgBarrier.image = pBarrierImg->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;

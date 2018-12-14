@@ -24,6 +24,9 @@ class CommandBuffer;
 
 class RenderWorkManager : public Singleton<RenderWorkManager>
 {
+	// FIXME: Temp
+	static const uint32_t BLOOM_ITER_COUNT = 5;
+
 public:
 	enum RenderState
 	{
@@ -69,7 +72,8 @@ protected:
 	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
 	std::shared_ptr<ForwardMaterial>			m_pSkyBoxMaterial;
 	std::shared_ptr<TemporalResolveMaterial>	m_pTemporalResolveMaterial;
-	std::shared_ptr<BloomMaterial>				m_pBloomMaterial;
+	std::vector<std::shared_ptr<BloomMaterial>>	m_bloomDownsampleMaterials;
+	std::vector<std::shared_ptr<BloomMaterial>>	m_bloomUpsampleMaterials;
 	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurVMaterial;
 	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurHMaterial;
 	std::shared_ptr<CombineMaterial>			m_pCombineMaterial;

@@ -773,7 +773,7 @@ public:
 	void ProcessMouse(KeyState keyState, const Vector2f& mousePosition) override {}
 	void ProcessMouse(const Vector2f& mousePosition) override {}
 	float roughness = 0.5f;
-	float SSRVar = 1.0f;
+	float SSRVar = 0.5f;
 	uint64_t frameCount = 0;
 };
 

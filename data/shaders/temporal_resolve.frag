@@ -15,8 +15,8 @@ layout (location = 1) in vec2 inOneNearPosition;
 
 layout (location = 0) out vec4 outTemporalResult;
 
-int index = int(perFrameData.camDir.a);
-int pingpong = int(perFrameData.camPos.a);
+int index = int(perFrameData.camDir.a + 0.5f);
+int pingpong = int(perFrameData.camPos.a + 0.5f);
 
 float prevMotionImpactAmp = globalData.TemporalSettings0.x;
 float currMotionImpactAmp = globalData.TemporalSettings0.y;
@@ -28,7 +28,7 @@ vec4 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, ve
 {
 	float prevMotionLen = texture(prevSampler, unjitteredUV).a;
 	float currMaxMotionLen = max(motionNeighborMaxLength, prevMotionLen);
-	float prevMotionImpact = clamp(0.0f, 999.0f, abs(prevMotionLen - motionNeighborMaxLength));
+	float prevMotionImpact = clamp(abs(prevMotionLen - motionNeighborMaxLength), 0.0f, 999.0f);
 
 	vec3 curr = texture(currSampler, unjitteredUV).rgb;
 	vec3 prev = texture(prevSampler, inUv + motionVec).rgb;
@@ -51,7 +51,7 @@ vec4 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, ve
 	// min max suppress to reduce temporal ghosting effect
 	vec3 clippedPrev = clip_aabb(minColor, maxColor, prev);
 
-	float prevMix = clamp(0.0f, 1.0f, 1.0f - smoothstep(motionImpactLowerBound, motionImpactUpperBound, currMaxMotionLen));
+	float prevMix = 1.0f - smoothstep(motionImpactLowerBound, motionImpactUpperBound, currMaxMotionLen);
 	prev = mix(clippedPrev, prev, mix(max(0.0f, maxClippedPrevRatio - prevMotionImpact * prevMotionImpactAmp), 1.0f, prevMix));
 
 	float currLum = Luminance(curr);
