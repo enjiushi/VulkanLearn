@@ -278,6 +278,49 @@ void GlobalUniforms::SetMotionImpactUpperBound(float motionImpactUpperBound)
 	UniformDataStorage::SetDirty();
 }
 
+void GlobalUniforms::SetBloomSettings0(const Vector4f& setting)
+{
+	m_globalVariables.BloomSettings0 = setting;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetBloomSettings1(const Vector4f& setting)
+{
+	m_globalVariables.BloomSettings1 = setting;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetBloomClampingLowerBound(float lowerBound)
+{
+	m_globalVariables.BloomSettings0.x = lowerBound;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetBloomClampingUpperBound(float upperBound)
+{
+	m_globalVariables.BloomSettings0.y = upperBound;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetUpsampleScale(float upsampleScale)
+{
+	m_globalVariables.BloomSettings0.z = upsampleScale;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetBloomAmplify(float bloomAmplify)
+{
+	m_globalVariables.BloomSettings1.x = bloomAmplify;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetBloomSlope(float bloomSlope)
+{
+	m_globalVariables.BloomSettings1.y = bloomSlope;
+	UniformDataStorage::SetDirty();
+}
+
+
 std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 {
 	std::vector<UniformVarList> list = 
@@ -365,6 +408,14 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				{
 					Vec4Unit,
 					"Temporal Settings1"
+				},
+				{
+					Vec4Unit,
+					"Bloom Settings0"
+				},
+				{
+					Vec4Unit,
+					"Bloom Settings1"
 				},
 				{
 					Vec4Unit,

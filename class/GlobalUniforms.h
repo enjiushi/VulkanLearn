@@ -93,6 +93,26 @@ typedef struct _GlobalVariables
 	*/
 	Vector4f    TemporalSettings1;
 
+	/*******************************************************************
+	* DESCRIPTION: Parameters for bloom
+	*
+	* X: Bloom intensity clamping lower bound
+	* Y: Bloom intensity clamping upper bound
+	* Z: Upsample scale
+	* W: Reserved
+	*/
+	Vector4f    BloomSettings0;
+
+	/*******************************************************************
+	* DESCRIPTION: Parameters for bloom
+	*
+	* X: Bloom amplify when combine back
+	* Y: Bloom slope(pow(bloom, slope)), e.g. 1 stands for linear
+	* Z: Reserved
+	* W: Reserved
+	*/
+	Vector4f    BloomSettings1;
+
 	// SSAO settings
 	Vector4f	SSAOSamples[SSAO_SAMPLE_COUNT];
 }GlobalVariables;
@@ -173,6 +193,21 @@ public:
 	float GetMotionImpactLowerBound() const { return m_globalVariables.TemporalSettings1.x; }
 	void SetMotionImpactUpperBound(float motionImpactUpperBound);
 	float GetMotionImpactUpperBound() const { return m_globalVariables.TemporalSettings1.y; }
+
+	void SetBloomSettings0(const Vector4f& setting);
+	Vector4f GetBloomSettings0() const { return m_globalVariables.BloomSettings0; }
+	void SetBloomSettings1(const Vector4f& setting);
+	Vector4f GetBloomSettings1() const { return m_globalVariables.BloomSettings1; }
+	void SetBloomClampingLowerBound(float lowerBound);
+	float GetBloomClampingLowerBound() const { return m_globalVariables.BloomSettings0.x; }
+	void SetBloomClampingUpperBound(float upperBound);
+	float GetBloomClampingUpperBound() const { return m_globalVariables.BloomSettings0.y; }
+	void SetUpsampleScale(float upsampleScale);
+	float GetUpsampleScale() const { return m_globalVariables.BloomSettings0.z; }
+	void SetBloomAmplify(float bloomAmplify);
+	float GetBloomAmplify() const { return m_globalVariables.BloomSettings1.x; }
+	void SetBloomSlope(float bloomSlope);
+	float GetBloomSlope() const { return m_globalVariables.BloomSettings1.y; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

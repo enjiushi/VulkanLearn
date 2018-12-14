@@ -12,15 +12,12 @@ layout (location = 0) out vec4 outCombineResult;
 
 layout (location = 0) in vec2 inUv;
 
-const float bloomMagnitude = 1.0f;
-const float bloomExposure = 1.0f;
-
 int index = int(perFrameData.camDir.a);
 int pingpong = (int(perFrameData.camPos.a) + 1) % 2;
 
 void main() 
 {
-	vec3 bloom = pow(texture(BloomTextures[index], inUv).rgb * bloomMagnitude, vec3(bloomExposure));
+	vec3 bloom = pow(texture(BloomTextures[index], inUv).rgb * globalData.BloomSettings1.x, vec3(globalData.BloomSettings1.y));
 	vec3 temporal = texture(TemporalResult[pingpong], inUv).rgb;
 
 	outCombineResult = vec4(bloom + temporal, 1.0f);

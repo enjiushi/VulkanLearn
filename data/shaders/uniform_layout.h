@@ -28,6 +28,8 @@ struct GlobalData
 	vec4 SSRSettings2;
 	vec4 TemporalSettings0;
 	vec4 TemporalSettings1;
+	vec4 BloomSettings0;
+	vec4 BloomSettings1;
 
 	// SSAO Settings
 	vec4 SSAOSamples[64];
