@@ -16,11 +16,15 @@ int index = int(perFrameData.camDir.a);
 
 const float MOTION_VEC_AMP = 8.0f;
 const float MOTION_VEC_SAMPLE_COUNT = 16;
+float vignetteMinDist = 0.2f;
+float vignetteMaxDist = 0.8f;
+float vignettAmp = 0.7f;
 
 void main() 
 {
 	vec3 noneMotionColor = texture(CombineResult[index], inUv).rgb;
 
+	// Motion Blur
 	vec3 fullMotionColor = vec3(0);
 	vec2 motionNeighborMax = texture(MotionNeighborMax[index], inUv).rg;
 	vec2 step = motionNeighborMax / MOTION_VEC_SAMPLE_COUNT * MOTION_VEC_AMP;	// either side samples a pre-defined amount of colors
@@ -40,6 +44,14 @@ void main()
 	float motionMag = length(motionNeighborMax * globalData.gameWindowSize.xy) * MOTION_VEC_AMP;
 	float motionMix = clamp(motionMag - noneMotion, 0.0f, span) / span;
 	vec3 final = mix(noneMotionColor, fullMotionColor, motionMix);
+
+	// Vignette
+	vec2 center = vec2(0.5f, 0.5f);
+	float distToCenter = abs(length(inUv - center));
+	float vignetteFactor = max(0.0f, 1.0f - smoothstep(vignetteMinDist, vignetteMaxDist, distToCenter) * vignettAmp);
+	final *= vignetteFactor;
+
+	// Chromatic Abberation
 
 	final = Uncharted2Tonemap(final * globalData.GEW.y);
 	final = final * (1.0 / Uncharted2Tonemap(vec3(globalData.GEW.z)));
