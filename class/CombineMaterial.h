@@ -10,6 +10,7 @@ protected:
 		const std::vector<std::wstring>	shaderPaths,
 		const std::shared_ptr<RenderPassBase>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
+		const std::vector<VkPushConstantRange>& pushConstsRanges,
 		const std::vector<UniformVar>& materialUniformVars,
 		uint32_t vertexFormat);
 
@@ -22,4 +23,7 @@ public:
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) override;
 	void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong = 0) override;
+
+private:
+	uint32_t m_cameraDirtTextureIndex;
 };

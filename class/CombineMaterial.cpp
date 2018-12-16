@@ -132,7 +132,9 @@ std::shared_ptr<CombineMaterial> CombineMaterial::CreateDefaultMaterial()
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	if (pCombineMaterial.get() && pCombineMaterial->Init(pCombineMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	VkPushConstantRange pushConstantRange0 = { VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(float) };
+
+	if (pCombineMaterial.get() && pCombineMaterial->Init(pCombineMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
 		return pCombineMaterial;
 
 	return nullptr;
@@ -142,6 +144,7 @@ bool CombineMaterial::Init(const std::shared_ptr<CombineMaterial>& pSelf,
 	const std::vector<std::wstring>	shaderPaths,
 	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
+	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
 	uint32_t vertexFormat)
 {
@@ -174,6 +177,11 @@ bool CombineMaterial::Init(const std::shared_ptr<CombineMaterial>& pSelf,
 
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount , temporalResult);
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, bloomTextures);
+
+	uint32_t index;
+	UniformData::GetInstance()->GetGlobalTextures()->GetTextureIndex(RGBA8_1024, "CamDirt0", index);
+	m_cameraDirtTextureIndex = index;
+	m_cameraDirtTextureIndex = -1;	// Don't want this now
 
 	return true;
 }
@@ -213,6 +221,9 @@ void CombineMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const 
 
 	BindPipeline(pDrawCmdBuffer);
 	BindDescriptorSet(pDrawCmdBuffer);
+
+	float index = m_cameraDirtTextureIndex;
+	pDrawCmdBuffer->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(float), &index);
 
 	pDrawCmdBuffer->Draw(3, 1, 0, 0);
 

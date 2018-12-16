@@ -485,6 +485,8 @@ void VulkanGlobal::InitUniforms()
 	SetAlphaChannel(gliAluminumNormalAO, 1.0f * 255);
 	CombineRGBA8_R8_RGBA8(gliAluminumAlbedo, gliAluminumMetalic);
 
+	gli::texture2d gliCamDirt(gli::load("../data/textures/cam_dirt_1024.ktx"));
+
 	m_pAlbedoRoughness = Texture2D::Create(m_pDevice, { {gliAlbedoTex} }, VK_FORMAT_R8G8B8A8_UNORM);
 	m_pMetalic = Texture2D::Create(m_pDevice, { {gliMetalic} }, VK_FORMAT_R8_UNORM);
 	m_pNormalAO = Texture2D::Create(m_pDevice, { {gliNormalTex} }, VK_FORMAT_R8G8B8A8_UNORM);
@@ -497,6 +499,7 @@ void VulkanGlobal::InitUniforms()
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "GunMetallic", "", "R:Metalic" }, gliMetalic);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "AluminumMetalic", "", "Aluminum plate metalic map" }, gliAluminumMetalic);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "AluminumAlbedoRoughness", "", "Aluminum plate albedo roughness" }, gliAluminumAlbedo);
+	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "CamDirt0", "", "Camera dirt texture 0" }, gliCamDirt);
 
 	gli::texture_cube gliSkyBox(gli::load("../data/textures/hdr/gcanyon_cube.ktx"));
 	UniformData::GetInstance()->GetGlobalTextures()->InitIBLTextures(gliSkyBox);
@@ -625,7 +628,7 @@ void VulkanGlobal::InitMaterials()
 	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, 0.92f));
 	m_pQuadMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.99f));
 	m_pQuadMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, "AluminumAlbedoRoughness");
-	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "AluminumNormalAO");
+	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, "AluminumMetalic");
 
 	m_pBoxMaterialInstance0 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
