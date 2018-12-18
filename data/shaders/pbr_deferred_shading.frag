@@ -19,7 +19,6 @@ layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
 
 layout (location = 0) out vec4 outShadingColor;
-layout (location = 1) out vec4 outDebugColor;
 
 int index = int(perFrameData.camDir.a);
 int pingpong = int(perFrameData.camPos.a);
@@ -161,6 +160,4 @@ void main()
 	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
 	outShadingColor = vec4(punctualRadiance + ambient, fresnel_roughness.r);
-
-	outDebugColor = vec4(irradiance, SSRRadiance.a);
 }
