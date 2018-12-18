@@ -628,7 +628,7 @@ void VulkanGlobal::InitMaterials()
 	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, 0.92f));
 	m_pQuadMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.99f));
 	m_pQuadMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, "AluminumAlbedoRoughness");
-	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "AluminumNormalAO");
 	m_pQuadMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, "AluminumMetalic");
 
 	m_pBoxMaterialInstance0 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
