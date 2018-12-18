@@ -148,7 +148,7 @@ bool CombineMaterial::Init(const std::shared_ptr<CombineMaterial>& pSelf,
 	const std::vector<UniformVar>& materialUniformVars,
 	uint32_t vertexFormat)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat))
 		return false;
 
 	std::vector<CombinedImage> temporalResult;
