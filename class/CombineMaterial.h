@@ -25,5 +25,5 @@ public:
 	void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong = 0) override;
 
 private:
-	uint32_t m_cameraDirtTextureIndex;
+	int32_t m_cameraDirtTextureIndex;
 };
