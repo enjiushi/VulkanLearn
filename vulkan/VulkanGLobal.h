@@ -105,8 +105,9 @@ public:
 
 
 	std::shared_ptr<Mesh>				m_pGunMesh;
-	std::shared_ptr<Mesh>				m_pInnerBallMeshA;
-	std::shared_ptr<Mesh>				m_pInnerBallMeshB;
+	std::vector<std::shared_ptr<Mesh>>	m_innerBallMeshes;
+	std::vector<std::shared_ptr<Mesh>>	m_bunnyMeshes;
+	std::vector<std::shared_ptr<Mesh>>	m_dragonMeshes;
 	std::shared_ptr<Mesh>				m_pSphereMesh;
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
@@ -142,8 +143,12 @@ public:
 	std::shared_ptr<BaseObject>			m_pSphere0;
 	std::shared_ptr<BaseObject>			m_pSphere1;
 	std::shared_ptr<BaseObject>			m_pSphere2;
-	std::shared_ptr<BaseObject>			m_pInnerBallA0;
-	std::shared_ptr<BaseObject>			m_pInnerBallB0;
+	std::vector<std::shared_ptr<BaseObject>> m_innerBallObjects;
+	std::shared_ptr<BaseObject>			m_pInnerBall;
+	std::vector<std::shared_ptr<BaseObject>> m_bunnyObjects;
+	std::shared_ptr<BaseObject>			m_pBunny;
+	std::vector<std::shared_ptr<BaseObject>> m_dragonObjects;
+	std::shared_ptr<BaseObject>			m_pDragon;
 	std::shared_ptr<BaseObject>			m_pBoxObject0;
 	std::shared_ptr<BaseObject>			m_pBoxObject1;
 	std::shared_ptr<BaseObject>			m_pBoxObject2;
@@ -151,8 +156,9 @@ public:
 	std::shared_ptr<MeshRenderer>		m_pSphereRenderer0;
 	std::shared_ptr<MeshRenderer>		m_pSphereRenderer1;
 	std::shared_ptr<MeshRenderer>		m_pSphereRenderer2;
-	std::shared_ptr<MeshRenderer>		m_pInnerBallRendererA0;
-	std::shared_ptr<MeshRenderer>		m_pInnerBallRendererB0;
+	std::vector<std::shared_ptr<MeshRenderer>>	m_innerBallRenderers;
+	std::vector<std::shared_ptr<MeshRenderer>>	m_bunnyRenderers;
+	std::vector<std::shared_ptr<MeshRenderer>>	m_dragonRenderers;
 	std::shared_ptr<MeshRenderer>		m_pQuadRenderer;
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer0;
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer1;
@@ -162,8 +168,9 @@ public:
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance0;
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance1;
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance2;
-	std::shared_ptr<MaterialInstance>	m_pInnerBallMaterialInstanceA0;
-	std::shared_ptr<MaterialInstance>	m_pInnerBallMaterialInstanceB0;
+	std::vector<std::shared_ptr<MaterialInstance>> m_innerBallMaterialInstances;
+	std::vector<std::shared_ptr<MaterialInstance>> m_bunnyMaterialInstances;
+	std::vector<std::shared_ptr<MaterialInstance>> m_dragonMaterialInstances;
 	std::shared_ptr<MaterialInstance>	m_pQuadMaterialInstance;
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance0;
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance1;

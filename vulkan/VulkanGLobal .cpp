@@ -355,10 +355,10 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	m_pGunMesh = Mesh::Create("../data/textures/cerberus/cerberus.fbx", VertexFormatPNTCT);
-	m_pInnerBallMeshA = Mesh::Create("../data/models/Sample.FBX", VertexFormatPNTCT, 0);
-	m_pInnerBallMeshB = Mesh::Create("../data/models/Sample.FBX", VertexFormatPNTCT, 1);
-	m_pSphereMesh = Mesh::Create("../data/models/sphere.obj", VertexFormatPNTCT);
+	m_pGunMesh = Mesh::Create("../data/textures/cerberus/cerberus.fbx", 0, VertexFormatPNTCT);
+	m_innerBallMeshes = Mesh::CreateMeshes("../data/models/Sample.FBX", VertexFormatPNTCT);
+	m_pSphereMesh = Mesh::Create("../data/models/sphere.obj", 0, VertexFormatPNTCT);
+
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
 	float cubeVertices[] = {
@@ -607,21 +607,31 @@ void VulkanGlobal::InitMaterials()
 	m_pSphereMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pSphereMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
-	m_pInnerBallMaterialInstanceA0 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
-	m_pInnerBallMaterialInstanceA0->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pInnerBallMaterialInstanceA0->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-	m_pInnerBallMaterialInstanceA0->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
-	m_pInnerBallMaterialInstanceA0->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
-	m_pInnerBallMaterialInstanceA0->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
-	m_pInnerBallMaterialInstanceA0->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+	for (uint32_t i = 0; i < m_innerBallMeshes.size(); i++)
+	{
+		std::shared_ptr<MaterialInstance> pInst = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 
-	m_pInnerBallMaterialInstanceB0 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
-	m_pInnerBallMaterialInstanceB0->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pInnerBallMaterialInstanceB0->SetParameter("AlbedoRoughness", Vector4f(0.0f, 1.0f, 0.0f, 0.1f));
-	m_pInnerBallMaterialInstanceB0->SetParameter("AOMetalic", Vector2f(1.0f, 1.0f));
-	m_pInnerBallMaterialInstanceB0->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
-	m_pInnerBallMaterialInstanceB0->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
-	m_pInnerBallMaterialInstanceB0->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+		if (i == 0)
+		{
+			pInst->SetRenderMask(1 << RenderWorkManager::Scene);
+			pInst->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+			pInst->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+			pInst->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+			pInst->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+			pInst->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+		}
+		else
+		{
+			pInst->SetRenderMask(1 << RenderWorkManager::Scene);
+			pInst->SetParameter("AlbedoRoughness", Vector4f(0.0f, 1.0f, 0.0f, 0.1f));
+			pInst->SetParameter("AOMetalic", Vector2f(1.0f, 1.0f));
+			pInst->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+			pInst->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+			pInst->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+		}
+
+		m_innerBallMaterialInstances.push_back(pInst);
+	}
 
 	m_pQuadMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 	m_pQuadMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
@@ -699,8 +709,11 @@ void VulkanGlobal::InitScene()
 	m_pSphere0 = BaseObject::Create();
 	m_pSphere1 = BaseObject::Create();
 	m_pSphere2 = BaseObject::Create();
-	m_pInnerBallA0 = BaseObject::Create();
-	m_pInnerBallB0 = BaseObject::Create();
+
+	m_pInnerBall = BaseObject::Create();
+	for (uint32_t i = 0; i < m_innerBallMeshes.size(); i++)
+		m_innerBallObjects.push_back(BaseObject::Create());
+
 	m_pQuadObject = BaseObject::Create();
 	m_pBoxObject0 = BaseObject::Create();
 	m_pBoxObject1 = BaseObject::Create();
@@ -710,8 +723,10 @@ void VulkanGlobal::InitScene()
 	m_pSphereRenderer0 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pSphereRenderer1 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pSphereRenderer2 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance2, m_pShadowMapMaterialInstance });
-	m_pInnerBallRendererA0 = MeshRenderer::Create(m_pInnerBallMeshA, { m_pInnerBallMaterialInstanceA0, m_pShadowMapMaterialInstance });
-	m_pInnerBallRendererB0 = MeshRenderer::Create(m_pInnerBallMeshB, { m_pInnerBallMaterialInstanceB0, m_pShadowMapMaterialInstance });
+
+	for (uint32_t i = 0; i < m_innerBallMeshes.size(); i++)
+		m_innerBallRenderers.push_back(MeshRenderer::Create(m_innerBallMeshes[i], { m_innerBallMaterialInstances[i], m_pShadowMapMaterialInstance }));
+
 	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer0 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
@@ -729,14 +744,14 @@ void VulkanGlobal::InitScene()
 	m_pSphere2->AddComponent(m_pSphereRenderer2);
 	m_pSphere2->SetPos(100, -15, 60);
 
-	m_pInnerBallA0->AddComponent(m_pInnerBallRendererA0);
-	m_pInnerBallA0->SetPos(-130, -40, 0);
-	m_pInnerBallA0->SetScale(0.5f);
-	m_pInnerBallA0->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14));
-	m_pInnerBallB0->AddComponent(m_pInnerBallRendererB0);
-	m_pInnerBallB0->SetPos(-130, -40, 0);
-	m_pInnerBallB0->SetScale(0.5f);
-	m_pInnerBallB0->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14));
+	m_pInnerBall->SetPos(-130, -40, 0);
+	m_pInnerBall->SetScale(0.5f);
+	m_pInnerBall->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14));
+	for (uint32_t i = 0; i < m_innerBallMeshes.size(); i++)
+	{
+		m_innerBallObjects[i]->AddComponent(m_innerBallRenderers[i]);
+		m_pInnerBall->AddChild(m_innerBallObjects[i]);
+	}
 
 	m_pQuadObject->AddComponent(m_pQuadRenderer);
 	m_pQuadObject->SetPos(-50, -40, 0);
@@ -766,8 +781,7 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pSphere0);
 	m_pRootObject->AddChild(m_pSphere1);
 	m_pRootObject->AddChild(m_pSphere2);
-	m_pRootObject->AddChild(m_pInnerBallA0);
-	m_pRootObject->AddChild(m_pInnerBallB0);
+	m_pRootObject->AddChild(m_pInnerBall);
 	m_pRootObject->AddChild(m_pQuadObject);
 	m_pRootObject->AddChild(m_pBoxObject0);
 	m_pRootObject->AddChild(m_pBoxObject1);

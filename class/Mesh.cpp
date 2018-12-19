@@ -4,7 +4,6 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/CommandBuffer.h"
 #include "Importer.hpp"
-#include "scene.h"
 #include "postprocess.h"
 #include <string>
 #include "../common/Util.h"
@@ -43,18 +42,36 @@ std::shared_ptr<Mesh> Mesh::Create
 	return nullptr;
 }
 
-std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath, uint32_t argumentedVertexFormat, uint32_t meshIndex)
+std::shared_ptr<Mesh> Mesh::Create(const std::string& filePath, uint32_t meshIndex, uint32_t argumentedVertexFormat)
+{
+	Assimp::Importer imp;
+	const aiScene* pScene = imp.ReadFile(filePath.c_str(), aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
+	ASSERTION(pScene != nullptr);
+
+	return Create(pScene->mMeshes[meshIndex], argumentedVertexFormat);
+}
+
+std::vector<std::shared_ptr<Mesh>> Mesh::CreateMeshes(const std::string& filePath, uint32_t argumentedVertexFormat)
 {
 	Assimp::Importer imp;
 	const aiScene* pScene = nullptr;
 	pScene = imp.ReadFile(filePath.c_str(), aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
 	ASSERTION(pScene != nullptr);
 
-	// FIXME: Now scene file is used as single mesh, it shouldn't be however, some class like "scene" should load it and dispatch mesh data to this class, in future
-	if (meshIndex >= pScene->mNumMeshes)
-		meshIndex = pScene->mNumMeshes - 1;
-	aiMesh* pMesh = pScene->mMeshes[meshIndex];
+	std::vector<std::shared_ptr<Mesh>> meshes;
+	for (int32_t i = 0; i < pScene->mNumMeshes; i++)
+	{
+		std::shared_ptr<Mesh> pMesh = Create(pScene->mMeshes[i], argumentedVertexFormat);
+		if (pMesh == nullptr)
+			return {};
 
+		meshes.push_back(pMesh);
+	}
+	return meshes;
+}
+
+std::shared_ptr<Mesh> Mesh::Create(const aiMesh* pMesh, uint32_t argumentedVertexFormat)
+{
 	uint32_t vertexFormat = 0;
 
 	uint32_t vertexSize = 0;
