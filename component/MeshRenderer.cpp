@@ -84,7 +84,7 @@ void MeshRenderer::Update()
 
 void MeshRenderer::LateUpdate()
 {
-	UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, GetBaseObject()->GetLocalTransform());
+	UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, GetBaseObject()->GetWorldTransform());
 
 	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
 	{
