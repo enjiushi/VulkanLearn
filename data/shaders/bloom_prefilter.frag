@@ -21,7 +21,7 @@ int pingpong = (int(perFrameData.camPos.a) + 1) % 2;
 void main() 
 {
 	vec4 color = DownsampleBox13Tap(TemporalResult[pingpong], inUv, pushConsts.texelSize);
-	vec3 factor = smoothstep(globalData.BloomSettings0.x, globalData.BloomSettings0.y, color.rgb);
+	float factor = smoothstep(globalData.BloomSettings0.x, globalData.BloomSettings0.y, Luminance(color.rgb));
 
 	outBloomFrag = vec4(color.rgb * factor, 1.0f);
 }
