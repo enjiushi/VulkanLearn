@@ -119,7 +119,7 @@ void Camera::SetNearPlane(float new_near_plane)
 void Camera::SetJitterOffset(Vector2f jitterOffset)
 {
 	m_cameraInfo.jitterOffset = jitterOffset;
-	m_cameraInfo.jitterOffset.x /= 1536.0f;
+	m_cameraInfo.jitterOffset.x /= 1440.0f;
 	m_cameraInfo.jitterOffset.y /= 1024.0f;
 	m_projDirty = true;
 }
