@@ -22,7 +22,7 @@ layout(push_constant) uniform PushConsts {
 
 int index = int(perFrameData.camDir.a);
 
-float SSAO_RADIUS = 30.0f;
+float SSAO_RADIUS = 0.3f;
 
 float maxRegenCount = globalData.SSRSettings0.z;
 float surfaceMargin = globalData.SSRSettings0.w;
@@ -45,7 +45,7 @@ vec4 RayMarch(vec3 sampleNormal, vec3 normal, vec3 position, vec3 wsViewRay)
 	if (length(sampleNormal) < 0.5f)
 		return vec4(0.0f);
 
-	float maxDistance = 2000.0f;
+	float maxDistance = 20.0f;
 	float csNearPlane = -perFrameData.nearFarAB.x;
 
 	vec3 wsReflectDir = reflect(wsViewRay, sampleNormal);

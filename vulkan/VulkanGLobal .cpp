@@ -676,8 +676,8 @@ void VulkanGlobal::InitScene()
 	{
 		3.1415f / 3.0f,
 		1440.0f / 1024.0f,
-		1.035f,
-		2000.0f,
+		1.0f,
+		256.0,
 	};
 	m_pCameraComp = Camera::Create(camInfo);
 	m_pCameraObj = BaseObject::Create();
@@ -691,15 +691,15 @@ void VulkanGlobal::InitScene()
 		2000.0f,
 	};
 
-	m_pCharacter = Character::Create({ 0.7f, 0.005f }, m_pCameraComp);
+	m_pCharacter = Character::Create({ 0.007f, 0.005f }, m_pCameraComp);
 	m_pCameraObj->AddComponent(m_pCharacter);
 	m_pCameraObj->AddComponent(FrustumJitter::Create());
 
-	m_pCameraObj->SetPos({ 0, 100, -220 });
+	m_pCameraObj->SetPos({ 0, 1, -2.2f });
 	m_pCameraObj->SetRotation(Matrix3f::EulerAngle(-0.78f, 3.14f, 0));
 
 	m_pDirLightObj = BaseObject::Create();
-	m_pDirLightObj->SetPos(64, 64, -64);
+	m_pDirLightObj->SetPos(0.64f, 0.64f, -0.64f);
 	m_pDirLightObj->SetRotation(Matrix3f::EulerAngle(0.78f, 0, 0) * Matrix3f::EulerAngle(0, 2.355f, 0));
 
 	m_pDirLight = DirectionLight::Create({ 4.0f, 4.0f, 4.0f });
@@ -733,41 +733,46 @@ void VulkanGlobal::InitScene()
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
 
 	m_pGunObject->AddComponent(m_pGunMeshRenderer);
-	m_pGunObject->SetPos({ -80, -8, 0 });
+	m_pGunObject->SetPos({ -0.8f, -0.08f, 0 });
+	m_pGunObject->SetScale(0.01f);
+
 
 	m_pSphere0->AddComponent(m_pSphereRenderer0);
-	m_pSphere0->SetPos(40, -15, 0);
+	m_pSphere0->SetPos(0.4f, -0.15f, 0);
+	m_pSphere0->SetScale(0.01f);
 
 	m_pSphere1->AddComponent(m_pSphereRenderer1);
-	m_pSphere1->SetPos(100, -15, 0);
+	m_pSphere1->SetPos(1, -0.15f, 0);
+	m_pSphere1->SetScale(0.01f);
 
 	m_pSphere2->AddComponent(m_pSphereRenderer2);
-	m_pSphere2->SetPos(100, -15, 60);
+	m_pSphere2->SetPos(1, -0.15f, 0.6f);
+	m_pSphere2->SetScale(0.01f);
 
-	m_pInnerBall->SetPos(-130, -40, 0);
-	m_pInnerBall->SetScale(0.5f);
+	m_pInnerBall->SetPos(-1.3f, -0.4f, 0);
 	m_pInnerBall->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14));
 	for (uint32_t i = 0; i < m_innerBallMeshes.size(); i++)
 	{
 		m_innerBallObjects[i]->AddComponent(m_innerBallRenderers[i]);
 		m_pInnerBall->AddChild(m_innerBallObjects[i]);
 	}
+	m_pInnerBall->SetScale(0.005f);
 
 	m_pQuadObject->AddComponent(m_pQuadRenderer);
-	m_pQuadObject->SetPos(-50, -40, 0);
-	m_pQuadObject->SetScale(200);
+	m_pQuadObject->SetPos(-0.5f, -0.4f, 0);
+	m_pQuadObject->SetScale(2);
 
 	m_pBoxObject0->AddComponent(m_pBoxRenderer0);
-	m_pBoxObject0->SetScale(30);
-	m_pBoxObject0->SetPos(-20, -10, 0);
+	m_pBoxObject0->SetScale(0.3f);
+	m_pBoxObject0->SetPos(-0.2f, -0.1f, 0);
 
 	m_pBoxObject1->AddComponent(m_pBoxRenderer1);
-	m_pBoxObject1->SetScale(15);
-	m_pBoxObject1->SetPos(-20, 35, 0);
+	m_pBoxObject1->SetScale(0.15f);
+	m_pBoxObject1->SetPos(-0.2f, 0.35f, 0);
 
 	m_pBoxObject2->AddComponent(m_pBoxRenderer2);
-	m_pBoxObject2->SetScale(15);
-	m_pBoxObject2->SetPos(-20, -25, 50);
+	m_pBoxObject2->SetScale(0.15f);
+	m_pBoxObject2->SetPos(-0.2f, -0.25f, 0.5f);
 
 	Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
 	m_pQuadObject->SetRotation(Quaternionf(Vector3f(1, 0, 0), -1.57));
@@ -802,7 +807,7 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStride(3.7f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTInitOffset(2.0f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxSSRTStepCount(200.0f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTThickness(5.5f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTThickness(0.05f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTBorderFadingDist(0.05f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStepCountFadingDist(0.1f);
 
@@ -828,7 +833,7 @@ public:
 	void ProcessKey(KeyState keyState, uint8_t keyCode) override;
 	void ProcessMouse(KeyState keyState, const Vector2f& mousePosition) override {}
 	void ProcessMouse(const Vector2f& mousePosition) override {}
-	float roughness = 0.5f;
+	float var = 0.035f;
 	float SSRVar = 0.5f;
 	uint64_t frameCount = 0;
 };
@@ -836,15 +841,16 @@ public:
 void RoughnessChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 {
 	static float interval = 0.01f;
+	static float varInterval = 0.005f;
 	if (keyCode == KEY_F)
 	{
-		roughness += interval;
-		roughness = roughness > 1.0f ? 1.0f : roughness;
+		var += varInterval;
+		var = var > 1.0f ? 1.0f : var;
 	}
 	if (keyCode == KEY_L)
 	{
-		roughness -= interval;
-		roughness = roughness < 0.05f ? 0.05f : roughness;
+		var -= varInterval;
+		var = var < 0.035f ? 0.035f : var;
 	}
 
 	if (keyCode == KEY_G)
@@ -895,7 +901,8 @@ void VulkanGlobal::Draw()
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
-	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, c->roughness));
+	//m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, c->roughness));
+	//m_pCameraComp->SetNearPlane(c->var);
 
 	m_pRootObject->Update();
 	m_pRootObject->LateUpdate();
