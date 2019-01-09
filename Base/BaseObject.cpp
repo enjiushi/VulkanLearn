@@ -112,7 +112,7 @@ void BaseObject::SetRotation(const Quaternionf& q)
 
 void BaseObject::UpdateLocalTransform()
 {
-	m_localTransform = Matrix4f(m_localRotationM, m_localPosition) * Matrix4f(Vector4f(m_localScale, 1));
+	m_localTransform = Matrix4f(m_localRotationM * Matrix3f(Vector3f(m_localScale)), m_localPosition);
 }
 
 Vector3f BaseObject::GetWorldPosition() const
