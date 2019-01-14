@@ -47,6 +47,7 @@
 #include "../class/GaussianBlurMaterial.h"
 #include "../class/BloomMaterial.h"
 #include "../class/PostProcessingMaterial.h"
+#include "../component/PhysicalCamera.h"
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
@@ -124,7 +125,7 @@ public:
 	std::mutex							m_updateMutex;
 
 	std::shared_ptr<BaseObject>			m_pCameraObj;
-	std::shared_ptr<Camera>				m_pCameraComp;
+	std::shared_ptr<PhysicalCamera>		m_pCameraComp;
 	std::shared_ptr<Character>			m_pCharacter;
 
 	std::shared_ptr<BaseObject>			m_pDirLightObj;

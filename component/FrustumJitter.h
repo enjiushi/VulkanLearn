@@ -3,7 +3,7 @@
 #include "../Maths/Matrix.h"
 #include "../common/Singleton.h"
 
-class Camera;
+class PhysicalCamera;
 
 class HaltonSequence
 {
@@ -53,8 +53,8 @@ public:
 	void SetHaltonMode(HaltonSequence::HaltonMode mode);
 
 protected:
-	std::shared_ptr<Camera>		m_pCamera;
-	HaltonSequence::HaltonMode	m_haltonMode = HaltonSequence::HaltonMode::x8;
-	uint32_t					m_currentIndex = 0;
-	bool						m_jitterEnabled = true;
+	std::shared_ptr<PhysicalCamera>	m_pCamera;
+	HaltonSequence::HaltonMode		m_haltonMode = HaltonSequence::HaltonMode::x8;
+	uint32_t						m_currentIndex = 0;
+	bool							m_jitterEnabled = true;
 };

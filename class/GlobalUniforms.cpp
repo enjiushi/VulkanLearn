@@ -145,6 +145,95 @@ void GlobalUniforms::SetMainLightVP(const Matrix4f& vp)
 	UniformDataStorage::SetDirty();
 }
 
+void GlobalUniforms::SetMainCameraSettings0(const Vector4f& settings)
+{
+	m_globalVariables.mainCameraSettings0 = settings;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraSettings1(const Vector4f& settings)
+{
+	m_globalVariables.mainCameraSettings1 = settings;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraSettings2(const Vector4f& settings)
+{
+	m_globalVariables.mainCameraSettings2 = settings;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraAspect(float aspect)
+{
+	m_globalVariables.mainCameraSettings0.x = aspect;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraFilmWidth(float filmWidth)
+{
+	m_globalVariables.mainCameraSettings0.y = filmWidth;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraFilmHeight(float filmHeight)
+{
+	m_globalVariables.mainCameraSettings0.z = filmHeight;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraFocalLength(float focalLength)
+{
+	m_globalVariables.mainCameraSettings0.w = focalLength;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraFocusDistance(float focusDistance)
+{
+	m_globalVariables.mainCameraSettings1.x = focusDistance;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraFStop(float fstop)
+{
+	m_globalVariables.mainCameraSettings1.y = fstop;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraShutterSpeed(float shutterSpeed)
+{
+	m_globalVariables.mainCameraSettings1.z = shutterSpeed;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraISO(float ISO)
+{
+	m_globalVariables.mainCameraSettings1.w = ISO;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraFarPlane(float farPlane)
+{
+	m_globalVariables.mainCameraSettings2.x = farPlane;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraHorizontalFOV(float horizontalFOV)
+{
+	m_globalVariables.mainCameraSettings2.y = horizontalFOV;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraVerticalFOV(float verticalFOV)
+{
+	m_globalVariables.mainCameraSettings2.z = verticalFOV;
+	UniformDataStorage::SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraApertureDiameter(float apertureDiameter)
+{
+	m_globalVariables.mainCameraSettings2.w = apertureDiameter;
+	UniformDataStorage::SetDirty();
+}
 
 void GlobalUniforms::SetRenderSettings(const Vector4f& setting)
 {

@@ -672,26 +672,23 @@ void VulkanGlobal::InitMaterials()
 
 void VulkanGlobal::InitScene()
 {
-	CameraInfo camInfo =
+	PhysicalCamera::PhysicalCameraProps props =
 	{
-		3.1415f / 3.0f,
 		1440.0f / 1024.0f,
-		0.2f,
-		256.0,
+		0.035f,
+		0.035f,
+		1,
+		3.5f,
+		1 / 500.0f,
+		100.0f,
+		2000.0f
 	};
-	m_pCameraComp = Camera::Create(camInfo);
+
+	m_pCameraComp = PhysicalCamera::Create(props);
 	m_pCameraObj = BaseObject::Create();
 	m_pCameraObj->AddComponent(m_pCameraComp);
 
-	camInfo =
-	{
-		3.1415f / 2.0f,
-		OffScreenSize / OffScreenSize,
-		1.0f,
-		2000.0f,
-	};
-
-	m_pCharacter = Character::Create({ 0.007f, 0.005f }, m_pCameraComp);
+	m_pCharacter = Character::Create({ 0.007f, 0.005f });
 	m_pCameraObj->AddComponent(m_pCharacter);
 	m_pCameraObj->AddComponent(FrustumJitter::Create());
 

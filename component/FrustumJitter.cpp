@@ -1,7 +1,7 @@
 #include "FrustumJitter.h"
 #include "../Base/BaseObject.h"
 #include "../class/UniformData.h"
-#include "Camera.h"
+#include "PhysicalCamera.h"
 
 bool HaltonSequence::Initialized = false;
 uint32_t HaltonSequence::PatternLength = 32;
@@ -93,7 +93,7 @@ void FrustumJitter::Start()
 {
 	BaseComponent::Start();
 
-	m_pCamera = GetComponent<Camera>();
+	m_pCamera = GetComponent<PhysicalCamera>();
 	ASSERTION(m_pCamera != nullptr);
 }
 

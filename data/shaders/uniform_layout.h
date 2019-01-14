@@ -21,6 +21,11 @@ struct GlobalData
 	vec4 mainLightColor;
 	mat4 mainLightVPN;
 
+	// Main camera settings
+	vec4 MainCameraSettings0;
+	vec4 MainCameraSettings1;
+	vec4 MainCameraSettings2;
+
 	// Render Settings
 	vec4 GEW;			//Gamma, exposure, white scale
 	vec4 SSRSettings0;

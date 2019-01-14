@@ -3,8 +3,6 @@
 #include "../Maths/Matrix.h"
 #include "../class/InputHub.h"
 
-class Camera;
-
 enum CharMoveDir
 {
 	Forward = 1,
@@ -24,7 +22,7 @@ class Character : public BaseComponent, public IInputListener
 	DECLARE_CLASS_RTTI(Character);
 
 public:
-	static std::shared_ptr<Character> Create(const CharacterVariable& charVar, const std::shared_ptr<Camera>& pCamera);
+	static std::shared_ptr<Character> Create(const CharacterVariable& charVar);
 
 	// For input listener
 	void ProcessKey(KeyState keyState, uint8_t keyCode) override;
@@ -47,8 +45,6 @@ public:
 
 	void SetCharacterVariable(const CharacterVariable& var) { m_charVars = var; }
 	CharacterVariable GetCharacterVariable() const { return m_charVars; }
-
-	void SetCamera(const std::shared_ptr<Camera>& pCamera) { m_pCamera = pCamera; }
 
 	void Update() override;
 
@@ -80,6 +76,4 @@ protected:
 
 	double				m_sampleInterval = 60.0f;
 	double				m_elapsedSinceLastSample = 0.0f;
-
-	std::shared_ptr<Camera>	m_pCamera;
 };

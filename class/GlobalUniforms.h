@@ -26,12 +26,56 @@ typedef struct _GlobalVariables
 	Vector4f	bloomWindowSize;
 	Vector4f	motionTileWindowSize;	// xy: tile size, zw: window size
 
-	// Scene settings
-	Vector4f	mainLightDir;		// Main directional light		w: empty for padding
-	Vector4f	mainLightColor;		// Main directional light color	w: empty for padding
+	/*******************************************************************
+	* DESCRIPTION: Main directional light direction
+	*
+	* XYZ: main light direction
+	* W: Reserved
+	*/
+	Vector4f	mainLightDir;
+
+	/*******************************************************************
+	* DESCRIPTION: Main directional light rgb
+	*
+	* XYZ: main light color
+	* W: Reserved
+	*/
+	Vector4f	mainLightColor;
+
+	/*******************************************************************
+	* DESCRIPTION: Main directional light vpn matrix
+	*/
 	Matrix4f	mainLightVPN;
 
-	// Render settings
+	/*******************************************************************
+	* DESCRIPTION: Camera parameters
+	*
+	* X: Aspect
+	* Y: Film width in meters
+	* Z: Film height in meters
+	* W: Focal length in meters
+	*/
+	Vector4f mainCameraSettings0;
+
+	/*******************************************************************
+	* DESCRIPTION: Camera parameters
+	*
+	* X: Focus distance in meters
+	* Y: FStop
+	* Z: Shutter speed in seconds
+	* W: IOS
+	*/
+	Vector4f mainCameraSettings1;
+
+	/*******************************************************************
+	* DESCRIPTION: Camera parameters
+	*
+	* X: Far plane in meters
+	* Y: Horizontal FOV in radius
+	* Z: Vertical FOV in radius
+	* W: Aperture diameter in meters
+	*/
+	Vector4f mainCameraSettings2;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for tone mapping
@@ -146,6 +190,37 @@ public:
 	Vector4f GetMainLightColor() const { return m_globalVariables.mainLightColor; }
 	void SetMainLightVP(const Matrix4f& vp);
 	Matrix4f GetmainLightVPN() const { return m_globalVariables.mainLightVPN; }
+
+	void SetMainCameraSettings0(const Vector4f& settings);
+	Vector4f GetMainCameraSettings0() const { return m_globalVariables.mainCameraSettings0; }
+	void SetMainCameraSettings1(const Vector4f& settings);
+	Vector4f GetMainCameraSettings1() const { return m_globalVariables.mainCameraSettings1; }
+	void SetMainCameraSettings2(const Vector4f& settings);
+	Vector4f GetMainCameraSettings2() const { return m_globalVariables.mainCameraSettings2; }
+	void SetMainCameraAspect(float aspect);
+	float GetMainCameraAspect() const { return m_globalVariables.mainCameraSettings0.x; }
+	void SetMainCameraFilmWidth(float filmWidth);
+	float GetMainCameraFilmWidth() const { return m_globalVariables.mainCameraSettings0.y; }
+	void SetMainCameraFilmHeight(float filmHeight);
+	float GetMainCameraFilmHeight() const { return m_globalVariables.mainCameraSettings0.z; }
+	void SetMainCameraFocalLength(float focalLength);
+	float GetMainCameraFocalLength() const { return m_globalVariables.mainCameraSettings0.w; }
+	void SetMainCameraFocusDistance(float focusDistance);
+	float GetMainCameraFocusDistance() const { return m_globalVariables.mainCameraSettings1.x; }
+	void SetMainCameraFStop(float fstop);
+	float GetMainCameraFStop() const { return m_globalVariables.mainCameraSettings1.y; }
+	void SetMainCameraShutterSpeed(float shutterSpeed);
+	float GetMainCameraShutterSpeed() const { return m_globalVariables.mainCameraSettings1.z; }
+	void SetMainCameraISO(float ISO);
+	float GetMainCameraISO() const { return m_globalVariables.mainCameraSettings1.w; }
+	void SetMainCameraFarPlane(float farPlane);
+	float GetMainCameraFarPlane() const { return m_globalVariables.mainCameraSettings2.x; }
+	void SetMainCameraHorizontalFOV(float horizontalFOV);
+	float GetMainCameraHorizontalFOV() const { return m_globalVariables.mainCameraSettings2.y; }
+	void SetMainCameraVerticalFOV(float verticalFOV);
+	float GetMainCameraVerticalFOV() const { return m_globalVariables.mainCameraSettings2.z; }
+	void SetMainCameraApertureDiameter(float apertureDiameter);
+	float GetMainCameraApertureDiameter() const { return m_globalVariables.mainCameraSettings2.w; }
 
 	void SetRenderSettings(const Vector4f& setting);
 	Vector4f GetRenderSettings() const { return m_globalVariables.GEW; }

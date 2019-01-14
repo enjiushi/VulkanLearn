@@ -1,6 +1,5 @@
 #include "Character.h"
 #include "../Base/BaseObject.h"
-#include "Camera.h"
 #include <iostream>
 #include <math.h>
 #include "../Maths/Vector.h"
@@ -9,16 +8,16 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/PhysicalDevice.h"
 #include "../class/Timer.h"
+#include "../class/UniformData.h"
 
 DEFINITE_CLASS_RTTI(Character, BaseComponent);
 
-std::shared_ptr<Character> Character::Create(const CharacterVariable& charVar, const std::shared_ptr<Camera>& pCamera)
+std::shared_ptr<Character> Character::Create(const CharacterVariable& charVar)
 {
 	std::shared_ptr<Character> pChar = std::make_shared<Character>();
 	if (pChar.get() && pChar->Init(pChar))
 	{
 		pChar->m_charVars = charVar;
-		pChar->SetCamera(pCamera);
 		InputHub::GetInstance()->Register(pChar);
 		return pChar;
 	}
@@ -160,10 +159,6 @@ void Character::OnRotateStart(const Vector2f& v)
 
 void Character::OnRotate(const Vector2f& v, bool started)
 {
-	//character needs a camera to know how to rotate
-	if (m_pCamera == nullptr)
-		return;
-
 	if (started)
 	{
 		if (!m_rotationStarted)
@@ -212,8 +207,8 @@ void Character::Rotate(const Vector2f& v)
 
 	//get euler angle
 	Vector2f euler_angle;
-	euler_angle.x = -v.y * m_pCamera->GetCameraInfo().fov;
-	euler_angle.y = v.x * m_pCamera->GetFovH();		//reverse y direction, because of camera looks negative z axis
+	euler_angle.x = -v.y * UniformData::GetInstance()->GetGlobalUniforms()->GetMainCameraVerticalFOV();
+	euler_angle.y = v.x * UniformData::GetInstance()->GetGlobalUniforms()->GetMainCameraHorizontalFOV();		//reverse y direction, because of camera looks negative z axis
 
 	//do this to prevent from over rotating
 	//your neck can't rotate more than 90 degree around your shoulder, right?
