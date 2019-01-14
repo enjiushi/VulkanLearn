@@ -676,7 +676,7 @@ void VulkanGlobal::InitScene()
 	{
 		3.1415f / 3.0f,
 		1440.0f / 1024.0f,
-		1.0f,
+		0.2f,
 		256.0,
 	};
 	m_pCameraComp = Camera::Create(camInfo);
