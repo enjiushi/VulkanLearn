@@ -8,12 +8,13 @@
 layout (set = 3, binding = 2) uniform sampler2D GBuffer0[3];
 layout (set = 3, binding = 3) uniform sampler2D GBuffer1[3];
 layout (set = 3, binding = 4) uniform sampler2D GBuffer2[3];
-layout (set = 3, binding = 5) uniform sampler2D MotionVector[3];
-layout (set = 3, binding = 6) uniform sampler2D DepthStencilBuffer[3];
-layout (set = 3, binding = 7) uniform sampler2D ShadowMapDepthBuffer[3];
-layout (set = 3, binding = 8) uniform sampler2D BlurredSSAOBuffer[3];
-layout (set = 3, binding = 9) uniform sampler2D SSRInfo[3];
-layout (set = 3, binding = 10) uniform sampler2D TemporalResult[2];
+layout (set = 3, binding = 5) uniform sampler2D GBuffer3[3];
+layout (set = 3, binding = 6) uniform sampler2D MotionVector[3];
+layout (set = 3, binding = 7) uniform sampler2D DepthStencilBuffer[3];
+layout (set = 3, binding = 8) uniform sampler2D ShadowMapDepthBuffer[3];
+layout (set = 3, binding = 9) uniform sampler2D BlurredSSAOBuffer[3];
+layout (set = 3, binding = 10) uniform sampler2D SSRInfo[3];
+layout (set = 3, binding = 11) uniform sampler2D TemporalResult[2];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
@@ -112,7 +113,7 @@ void main()
 {
 	ivec2 coord = ivec2(floor(inUv * globalData.gameWindowSize.xy));
 
-	GBufferVariables vars = UnpackGBuffers(coord, inUv, inOneNearPosition, GBuffer0[index], GBuffer1[index], GBuffer2[index], DepthStencilBuffer[index], BlurredSSAOBuffer[index], ShadowMapDepthBuffer[index]);
+	GBufferVariables vars = UnpackGBuffers(coord, inUv, inOneNearPosition, GBuffer0[index], GBuffer1[index], GBuffer2[index], GBuffer3[index], DepthStencilBuffer[index], BlurredSSAOBuffer[index], ShadowMapDepthBuffer[index]);
 
 	if (length(vars.normal_ao.xyz) > 1.1f)
 		discard;
