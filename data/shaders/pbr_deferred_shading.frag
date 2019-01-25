@@ -72,7 +72,8 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 		vec3 SSRSurfColor = textureLod(RGBA16_SCREEN_SIZE_MIP_2DARRAY, vec3(hitUV + motionVec, 0), mip).rgb * hitFlag;
 
 		float SSRSurfDepth;
-		vec3 SSRSurfPosition = ReconstructWSPosition(ivec2(SSRHitInfo.xy), DepthStencilBuffer[index], SSRSurfDepth);
+		//vec3 SSRSurfPosition = ReconstructWSPosition(ivec2(SSRHitInfo.xy), DepthStencilBuffer[index], SSRSurfDepth);
+		vec3 SSRSurfPosition = texelFetch(GBuffer3[index], ivec2(SSRHitInfo.xy), 0).xyz;
 
 		vec3 l = normalize(SSRSurfPosition.xyz - wsPosition);
 		vec3 h = normalize(l + v);

@@ -635,7 +635,7 @@ void VulkanGlobal::InitMaterials()
 
 	m_pQuadMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 	m_pQuadMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, 0.92f));
+	m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, 0.1f));
 	m_pQuadMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.99f));
 	m_pQuadMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, "AluminumAlbedoRoughness");
 	m_pQuadMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "AluminumNormalAO");
@@ -830,7 +830,7 @@ public:
 	void ProcessKey(KeyState keyState, uint8_t keyCode) override;
 	void ProcessMouse(KeyState keyState, const Vector2f& mousePosition) override {}
 	void ProcessMouse(const Vector2f& mousePosition) override {}
-	float var = 0.035f;
+	float var = 0.0;
 	float SSRVar = 0.5f;
 	uint64_t frameCount = 0;
 };
@@ -847,7 +847,7 @@ void RoughnessChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 	if (keyCode == KEY_L)
 	{
 		var -= varInterval;
-		var = var < 0.035f ? 0.035f : var;
+		var = var < 0 ? 0 : var;
 	}
 
 	if (keyCode == KEY_G)
@@ -898,6 +898,7 @@ void VulkanGlobal::Draw()
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
+	m_pCameraComp->SetFocalLength((1.0f - c->var) * 0.035f + c->var * 0.2f);
 	//m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, c->roughness));
 	//m_pCameraComp->SetNearPlane(c->var);
 
