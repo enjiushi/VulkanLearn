@@ -822,6 +822,8 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetUpsampleScale(1.0f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomAmplify(1.0f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomSlope(1.0f);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxCOC(1.0f / 30.0f);
 }
 
 class RoughnessChanger : public IInputListener

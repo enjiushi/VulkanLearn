@@ -119,6 +119,9 @@ void GlobalUniforms::SyncBufferDataInternal()
 	m_globalVariables.prevPN = m_globalVariables.PN;
 	m_globalVariables.PN = m_globalVariables.vulkanNDC * m_globalVariables.projectionMatrix;
 
+	m_globalVariables.DOFSettings0.z = m_globalVariables.mainCameraSettings0.w * m_globalVariables.mainCameraSettings0.w / 
+		(m_globalVariables.mainCameraSettings1.y * (m_globalVariables.mainCameraSettings1.x - m_globalVariables.mainCameraSettings0.w) * m_globalVariables.mainCameraSettings0.y * 2.0f);
+
 	GetBuffer()->UpdateByteStream(&m_globalVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_globalVariables));
 }
 
@@ -130,283 +133,290 @@ void GlobalUniforms::SetDirty()
 void GlobalUniforms::SetMainLightDir(const Vector3f& dir)
 {
 	m_globalVariables.mainLightDir = dir.Normal();
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainLightColor(const Vector3f& color)
 {
 	m_globalVariables.mainLightColor = color;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainLightVP(const Matrix4f& vp)
 {
 	m_globalVariables.mainLightVPN = GetVulkanNDCMatrix() * vp;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraSettings0(const Vector4f& settings)
 {
 	m_globalVariables.mainCameraSettings0 = settings;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraSettings1(const Vector4f& settings)
 {
 	m_globalVariables.mainCameraSettings1 = settings;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraSettings2(const Vector4f& settings)
 {
 	m_globalVariables.mainCameraSettings2 = settings;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraAspect(float aspect)
 {
 	m_globalVariables.mainCameraSettings0.x = aspect;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraFilmWidth(float filmWidth)
 {
 	m_globalVariables.mainCameraSettings0.y = filmWidth;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraFilmHeight(float filmHeight)
 {
 	m_globalVariables.mainCameraSettings0.z = filmHeight;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraFocalLength(float focalLength)
 {
 	m_globalVariables.mainCameraSettings0.w = focalLength;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraFocusDistance(float focusDistance)
 {
 	m_globalVariables.mainCameraSettings1.x = focusDistance;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraFStop(float fstop)
 {
 	m_globalVariables.mainCameraSettings1.y = fstop;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraShutterSpeed(float shutterSpeed)
 {
 	m_globalVariables.mainCameraSettings1.z = shutterSpeed;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraISO(float ISO)
 {
 	m_globalVariables.mainCameraSettings1.w = ISO;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraFarPlane(float farPlane)
 {
 	m_globalVariables.mainCameraSettings2.x = farPlane;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraHorizontalFOV(float horizontalFOV)
 {
 	m_globalVariables.mainCameraSettings2.y = horizontalFOV;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraVerticalFOV(float verticalFOV)
 {
 	m_globalVariables.mainCameraSettings2.z = verticalFOV;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMainCameraApertureDiameter(float apertureDiameter)
 {
 	m_globalVariables.mainCameraSettings2.w = apertureDiameter;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetRenderSettings(const Vector4f& setting)
 {
 	m_globalVariables.GEW = setting;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetSSRSettings0(const Vector4f& setting)
 {
 	m_globalVariables.SSRSettings0 = setting;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetSSRSettings1(const Vector4f& setting)
 {
 	m_globalVariables.SSRSettings1 = setting;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetSSRSettings2(const Vector4f& setting)
 {
 	m_globalVariables.SSRSettings2 = setting;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetBRDFBias(float BRDFBias)
 {
 	m_globalVariables.SSRSettings0.x = BRDFBias;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetSSRMip(float SSRMip)
 {
 	m_globalVariables.SSRSettings0.y = SSRMip;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetSampleNormalRegenCount(float count)
 {
 	m_globalVariables.SSRSettings0.z = count;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetSampleNormalRegenMargin(float margin)
 {
 	m_globalVariables.SSRSettings0.w = margin;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetSSRTStride(float stride)
 {
 	m_globalVariables.SSRSettings1.x = stride;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetSSRTInitOffset(float offset)
 {
 	m_globalVariables.SSRSettings1.y = offset;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMaxSSRTStepCount(float count)
 {
 	m_globalVariables.SSRSettings1.z = count;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetSSRTThickness(float thickness)
 {
 	m_globalVariables.SSRSettings1.w = thickness;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetSSRTBorderFadingDist(float dist)
 {
 	m_globalVariables.SSRSettings2.x = dist;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetSSRTStepCountFadingDist(float dist)
 {
 	m_globalVariables.SSRSettings2.y = dist;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetScreenSizeMipLevel(float mipLevel)
 {
 	m_globalVariables.SSRSettings2.z = mipLevel;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetTemporalSettings0(const Vector4f& setting)
 {
 	m_globalVariables.TemporalSettings0 = setting;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetTemporalSettings1(const Vector4f& setting)
 {
 	m_globalVariables.TemporalSettings1 = setting;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetPrevMotionImpact(float prevMotionImpact)
 {
 	m_globalVariables.TemporalSettings0.x = prevMotionImpact;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetCurrMotionImpact(float currMotionImpact)
 {
 	m_globalVariables.TemporalSettings0.y = currMotionImpact;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMaxClippedPrevRatio(float maxClippedPrevRatio)
 {
 	m_globalVariables.TemporalSettings0.z = maxClippedPrevRatio;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMotionImpactLowerBound(float motionImpactLowerBound)
 {
 	m_globalVariables.TemporalSettings1.x = motionImpactLowerBound;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetMotionImpactUpperBound(float motionImpactUpperBound)
 {
 	m_globalVariables.TemporalSettings1.y = motionImpactUpperBound;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetBloomSettings0(const Vector4f& setting)
 {
 	m_globalVariables.BloomSettings0 = setting;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetBloomSettings1(const Vector4f& setting)
 {
 	m_globalVariables.BloomSettings1 = setting;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetBloomClampingLowerBound(float lowerBound)
 {
 	m_globalVariables.BloomSettings0.x = lowerBound;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetBloomClampingUpperBound(float upperBound)
 {
 	m_globalVariables.BloomSettings0.y = upperBound;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetUpsampleScale(float upsampleScale)
 {
 	m_globalVariables.BloomSettings0.z = upsampleScale;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetBloomAmplify(float bloomAmplify)
 {
 	m_globalVariables.BloomSettings1.x = bloomAmplify;
-	UniformDataStorage::SetDirty();
+	SetDirty();
 }
 
 void GlobalUniforms::SetBloomSlope(float bloomSlope)
 {
 	m_globalVariables.BloomSettings1.y = bloomSlope;
-	UniformDataStorage::SetDirty();
+	SetDirty();
+}
+
+void GlobalUniforms::SetMaxCOC(float maxCOC)
+{
+	m_globalVariables.DOFSettings0.x = maxCOC;
+	m_globalVariables.DOFSettings0.y = 1 / maxCOC;
+	SetDirty();
 }
 
 

@@ -35,6 +35,7 @@ struct GlobalData
 	vec4 TemporalSettings1;
 	vec4 BloomSettings0;
 	vec4 BloomSettings1;
+	vec4 DOFSettings0;
 
 	// SSAO Settings
 	vec4 SSAOSamples[64];
@@ -554,4 +555,10 @@ vec3 clip_aabb(vec3 aabb_min, vec3 aabb_max, vec3 p)
 		return p_clip + v_clip / ma_unit;
 	else
 		return p;// point inside aabb
+}
+
+float CalculateCoC(float eyeDepth)
+{
+	float coc = (eyeDepth - globalData.MainCameraSettings1.x) * globalData.DOFSettings0.z / max(eyeDepth, 1e-5);
+	return clamp(coc * 0.5f * globalData.DOFSettings0.y + 0.5f, 0, 1);
 }

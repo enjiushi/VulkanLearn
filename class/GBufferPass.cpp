@@ -87,9 +87,11 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 	GBufferSubPass.pDepthStencilAttachment = &depthAttachment;
 	GBufferSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
-	std::vector<VkAttachmentReference> backgroundMotionAttach(1);
-	backgroundMotionAttach[0].attachment = 4;
+	std::vector<VkAttachmentReference> backgroundMotionAttach(2);
+	backgroundMotionAttach[0].attachment = 3;
 	backgroundMotionAttach[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	backgroundMotionAttach[1].attachment = 4;
+	backgroundMotionAttach[1].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription backgroundMotionSubPass = {};
 	backgroundMotionSubPass.colorAttachmentCount = backgroundMotionAttach.size();

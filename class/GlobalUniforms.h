@@ -157,6 +157,16 @@ typedef struct _GlobalVariables
 	*/
 	Vector4f    BloomSettings1;
 
+	/*******************************************************************
+	* DESCRIPTION: Parameters for bloom
+	*
+	* X: Max size of circle of confusion(COC), measured by texture coordinate(0, 1)
+	* Y: Recipe of X
+	* Z: COC coefficient: f^2 / (N * (S1 - f) * film_width * 2), divide by 2 means from diameter to radius, divide by film width obtains coc size in texture coordinate(0, 1)
+	* W: Reserved
+	*/
+	Vector4f	DOFSettings0;
+
 	// SSAO settings
 	Vector4f	SSAOSamples[SSAO_SAMPLE_COUNT];
 }GlobalVariables;
@@ -283,6 +293,11 @@ public:
 	float GetBloomAmplify() const { return m_globalVariables.BloomSettings1.x; }
 	void SetBloomSlope(float bloomSlope);
 	float GetBloomSlope() const { return m_globalVariables.BloomSettings1.y; }
+
+	void SetMaxCOC(float maxCOC);
+	float GetMaxCOC() const { return m_globalVariables.DOFSettings0.x; }
+	float GetRcpMaxCOC() const { return m_globalVariables.DOFSettings0.y; }
+	float GetCOCCoeff() const { return m_globalVariables.DOFSettings0.z; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

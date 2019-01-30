@@ -10,7 +10,8 @@ layout (location = 3) in vec3 inBitangent;
 layout (location = 4) flat in int perMaterialIndex;
 layout (location = 5) flat in int perObjectIndex;
 layout (location = 6) in vec3 inWorldPos;
-layout (location = 7) noperspective in vec2 inScreenPos;
+layout (location = 7) in vec3 inEyePos;
+layout (location = 8) noperspective in vec2 inScreenPos;
 
 layout (location = 0) out vec4 outGBuffer0;
 layout (location = 1) out vec4 outGBuffer1;
@@ -75,4 +76,7 @@ void main()
 	outMotionVec.rg = outMotionVec.rg * 0.5f;
 
 	outGBuffer3.rgb = inWorldPos;
+
+	// Calculate circle of confusion
+	outGBuffer3.a = CalculateCoC(-inEyePos.z);
 }
