@@ -20,6 +20,7 @@ public:
 	static const VkFormat SSAO_FORMAT = VK_FORMAT_R16_SFLOAT;
 	static const VkFormat SSR_FORMAT = VK_FORMAT_R16G16B16A16_SFLOAT;
 	static const VkFormat BLUR_FORMAT = VK_FORMAT_R16_SFLOAT;
+	static const VkFormat COC_FORMAT = VK_FORMAT_R16_SFLOAT;
 
 	static const uint32_t WINDOW_WIDTH = 1440;
 	static const uint32_t WINDOW_HEIGHT = 1024;
@@ -60,6 +61,13 @@ public:
 		GBuffer3,
 		MotionVector,
 		GBufferCount
+	};
+
+	enum TemporalFrameBuffer
+	{
+		ShadingResult,
+		CoC,
+		TemporalFrameBufferCount
 	};
 
 public:

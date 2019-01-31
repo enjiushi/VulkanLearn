@@ -250,10 +250,16 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFr
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
-	std::vector<std::shared_ptr<Image>> temporalTextures =
+	std::vector<std::shared_ptr<Image>> temporalShadingResult =
 	{
 		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
 		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	};
+
+	std::vector<std::shared_ptr<Image>> temporalCoC =
+	{
+		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, COC_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
+		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, COC_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 	};
 
 	FrameBufferCombo frameBuffers;
@@ -262,7 +268,8 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFr
 	{
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(),
 			{
-				temporalTextures[i % 2],
+				temporalShadingResult[i % 2],
+				temporalCoC[i % 2],
 			}, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->GetRenderPass()));
 	}
 

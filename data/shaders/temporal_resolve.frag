@@ -7,13 +7,16 @@
 
 layout (set = 3, binding = 2) uniform sampler2D MotionVector[3];
 layout (set = 3, binding = 3) uniform sampler2D ShadingResult[3];
-layout (set = 3, binding = 4) uniform sampler2D MotionNeighborMax[3];
-layout (set = 3, binding = 5) uniform sampler2D TemporalResult[2];
+layout (set = 3, binding = 4) uniform sampler2D GBuffer3[3];
+layout (set = 3, binding = 5) uniform sampler2D MotionNeighborMax[3];
+layout (set = 3, binding = 6) uniform sampler2D TemporalResult[2];
+layout (set = 3, binding = 7) uniform sampler2D TemporalCoC[2];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
 
 layout (location = 0) out vec4 outTemporalResult;
+layout (location = 1) out vec4 outTemporalCoC;
 
 int index = int(perFrameData.camDir.a + 0.5f);
 int pingpong = int(perFrameData.camPos.a + 0.5f);
@@ -24,7 +27,7 @@ float maxClippedPrevRatio = globalData.TemporalSettings0.z;
 float motionImpactLowerBound = globalData.TemporalSettings1.x;	// FIXME: This should be impact by frame rate
 float motionImpactUpperBound = globalData.TemporalSettings1.y;	// FIXME: This should be impact by frame rate
 
-vec4 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec, float motionNeighborMaxLength)
+vec4 ResolveColor(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec, float motionNeighborMaxLength)
 {
 	float prevMotionLen = texture(prevSampler, unjitteredUV).a;
 	float currMaxMotionLen = max(motionNeighborMaxLength, prevMotionLen);
@@ -67,6 +70,28 @@ vec4 resolve(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, ve
 	return vec4(mix(curr, prev, 0.98f), motionNeighborMaxLength);
 }
 
+float ResolveCoC(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec)
+{
+	vec3 offset = globalData.gameWindowSize.zww * vec3(1, 1, 0);
+
+	float coc1 = texture(currSampler, inUv - offset.xz).a;
+	float coc2 = texture(currSampler, inUv - offset.zy).a;
+	float coc3 = texture(currSampler, inUv + offset.zy).a;
+	float coc4 = texture(currSampler, inUv + offset.xz).a;
+
+	float coc0 = texture(currSampler, unjitteredUV).a;
+
+	// Dilation later
+
+	float minCoC = min(coc0, min(coc1, min(coc2, min(coc3, coc4))));
+	float maxCoC = max(coc0, max(coc1, max(coc2, max(coc3, coc4))));
+
+	float prevCoC = texture(prevSampler, inUv + motionVec).r;
+	prevCoC = clamp(prevCoC, minCoC, maxCoC);
+
+	return mix(coc0, prevCoC, 0.98f);
+}
+
 void main() 
 {
 	vec2 unjitteredUV = inUv - perFrameData.cameraJitterOffset;
@@ -79,5 +104,6 @@ void main()
 	// Using sampled value to expend tile area by hardware interpolation, so that ghosting will be reduced due to edge precision in tile boundary
 	float motionNeighborMaxLength = length(motionNeighborMaxFetch + diff) * currMotionImpactAmp;
 
-	outTemporalResult = resolve(ShadingResult[index], TemporalResult[pingpong], unjitteredUV, motionVec, motionNeighborMaxLength);
+	outTemporalResult = ResolveColor(ShadingResult[index], TemporalResult[pingpong], unjitteredUV, motionVec, motionNeighborMaxLength);
+	outTemporalCoC = vec4(ResolveCoC(GBuffer3[index], TemporalCoC[pingpong], unjitteredUV, motionVec));
 }
