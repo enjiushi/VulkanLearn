@@ -21,6 +21,7 @@ class CombineMaterial;
 class PostProcessingMaterial;
 class MaterialInstance;
 class CommandBuffer;
+class DOFMaterial;
 
 class RenderWorkManager : public Singleton<RenderWorkManager>
 {
@@ -72,6 +73,7 @@ protected:
 	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
 	std::shared_ptr<ForwardMaterial>			m_pSkyBoxMaterial;
 	std::shared_ptr<TemporalResolveMaterial>	m_pTemporalResolveMaterial;
+	std::vector<std::shared_ptr<DOFMaterial>>	m_DOFMaterials;
 	std::vector<std::shared_ptr<BloomMaterial>>	m_bloomDownsampleMaterials;
 	std::vector<std::shared_ptr<BloomMaterial>>	m_bloomUpsampleMaterials;
 	std::shared_ptr<GaussianBlurMaterial>		m_pBloomBlurVMaterial;

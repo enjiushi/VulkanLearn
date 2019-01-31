@@ -19,6 +19,7 @@
 #include "TemporalResolveMaterial.h"
 #include "CombineMaterial.h"
 #include "PostProcessingMaterial.h"
+#include "DOFMaterial.h"
 #include "MaterialInstance.h"
 
 bool RenderWorkManager::Init()
@@ -31,6 +32,10 @@ bool RenderWorkManager::Init()
 	m_pMotionNeighborMaxMaterial	= MotionNeighborMaxMaterial::CreateDefaultMaterial();
 	m_pShadingMaterial				= DeferredShadingMaterial::CreateDefaultMaterial();
 	m_pTemporalResolveMaterial		= TemporalResolveMaterial::CreateDefaultMaterial();
+	for (uint32_t i = 0; i < DOFMaterial::DOFPass_Count; i++)
+	{
+		m_DOFMaterials.push_back(DOFMaterial::CreateDefaultMaterial((DOFMaterial::DOFPass)i));
+	}
 	m_pShadowMapMaterial			= ShadowMapMaterial::CreateDefaultMaterial();
 	m_pSSAOMaterial					= SSAOMaterial::CreateDefaultMaterial();
 	for (uint32_t i = 0; i < BLOOM_ITER_COUNT; i++)
@@ -184,6 +189,17 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	m_pTemporalResolveMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (FrameMgr()->FrameIndex() + 1) % GetSwapChain()->GetSwapChainImageCount(), (pingpong + 1) % 2));
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->EndRenderPass(pDrawCmdBuffer);
 	m_pTemporalResolveMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
+
+	std::shared_ptr<FrameBuffer> pTargetFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, 0);
+	Vector2ui size = { pTargetFrameBuffer->GetFramebufferInfo().width, pTargetFrameBuffer->GetFramebufferInfo().height };
+
+	m_DOFMaterials[0]->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->BeginRenderPass(pDrawCmdBuffer, pTargetFrameBuffer);
+	GetGlobalVulkanStates()->SetViewport({ 0, 0, (float)size.x, (float)size.y, 0, 1 });
+	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, size.x, size.y });
+	m_DOFMaterials[0]->Draw(pDrawCmdBuffer, pTargetFrameBuffer, pingpong);
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->EndRenderPass(pDrawCmdBuffer);
+	m_DOFMaterials[0]->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 	// Downsample first
 	for (uint32_t i = 0; i < BLOOM_ITER_COUNT; i++)

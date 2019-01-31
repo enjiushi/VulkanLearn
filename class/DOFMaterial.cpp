@@ -25,7 +25,7 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 	std::wstring fragShaderPath;
 	switch (pass)
 	{
-	case DOFPass_Prefilter:		fragShaderPath = L"../data/shaders/bloom_prefilter.frag.spv"; break;
+	case DOFPass_Prefilter:		fragShaderPath = L"../data/shaders/dof_prefilter.frag.spv"; break;
 	case DOFPass_Blur:			fragShaderPath = L"../data/shaders/bloom_downsamplebox13.frag.spv"; break;
 	case DOFPass_Postfilter:	fragShaderPath = L"../data/shaders/bloom_upsampletent.frag.spv"; break;
 	default:
@@ -192,7 +192,7 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 					pGBuffer->GetColorTarget(FrameBufferDiction::GBuffer3)->CreateDefaultImageView()
 					});
 			}
-			m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, srcImgs);
+			m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, gbuffer3);
 		}
 
 		break;
