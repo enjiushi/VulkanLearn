@@ -22,6 +22,7 @@ public:
 		PipelineRenderPassSSAOBlurH,
 		PipelineRenderPassShading,
 		PipelineRenderPassTemporalResolve,
+		PipelineRenderPassDOF,
 		PipelineRenderPassBloom,
 		PipelineRenderPassCombine,
 		PipelineRenderPassPostProcessing,

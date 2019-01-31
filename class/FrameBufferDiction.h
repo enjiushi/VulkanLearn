@@ -45,6 +45,7 @@ public:
 		FrameBufferType_SSAOBlurH,
 		FrameBufferType_Shading,
 		FrameBufferType_TemporalResolve,
+		FrameBufferType_DOF,
 		FrameBufferType_Bloom,
 		FrameBufferType_CombineResult,
 		FrameBufferType_PostProcessing,
@@ -80,21 +81,23 @@ public:
 	std::shared_ptr<FrameBuffer> GetPingPongFrameBuffer(FrameBufferType type, uint32_t frameIndex, uint32_t pingPongIndex);
 
 	static VkFormat GetGBufferFormat(GBuffer gbuffer) { return m_GBufferFormatTable[gbuffer]; }
+	FrameBufferCombo CreateFrameBuffer(FrameBufferType type, uint32_t layer = 0);
 
-	FrameBufferCombo CreateGBufferFrameBuffer();
-	FrameBufferCombo CreateMotionTileMaxFrameBuffer();
-	FrameBufferCombo CreateMotionNeighborMaxFrameBuffer();
-	FrameBufferCombo CreateShadowMapFrameBuffer();
-	FrameBufferCombo CreateSSAOSSRFrameBuffer();
-	FrameBufferCombo CreateSSAOBlurFrameBufferV();
-	FrameBufferCombo CreateSSAOBlurFrameBufferH();
-	FrameBufferCombo CreateShadingFrameBuffer();
-	FrameBufferCombo CreateTemporalResolveFrameBuffer();
+	FrameBufferCombo CreateGBufferFrameBuffer(uint32_t layer = 0);
+	FrameBufferCombo CreateMotionTileMaxFrameBuffer(uint32_t layer = 0);
+	FrameBufferCombo CreateMotionNeighborMaxFrameBuffer(uint32_t layer = 0);
+	FrameBufferCombo CreateShadowMapFrameBuffer(uint32_t layer = 0);
+	FrameBufferCombo CreateSSAOSSRFrameBuffer(uint32_t layer = 0);
+	FrameBufferCombo CreateSSAOBlurFrameBufferV(uint32_t layer = 0);
+	FrameBufferCombo CreateSSAOBlurFrameBufferH(uint32_t layer = 0);
+	FrameBufferCombo CreateShadingFrameBuffer(uint32_t layer = 0);
+	FrameBufferCombo CreateTemporalResolveFrameBuffer(uint32_t layer = 0);
+	FrameBufferCombo CreateDOFFrameBuffer(uint32_t layer = 0);
 	FrameBufferCombo CreateBloomFrameBuffer(uint32_t layer = 0);
-	FrameBufferCombo CreateCombineResultFrameBuffer();
-	FrameBufferCombo CreatePostProcessingFrameBuffer();
-	FrameBufferCombo CreateForwardEnvGenOffScreenFrameBuffer();
-	FrameBufferCombo CreateForwardScreenFrameBuffer();
+	FrameBufferCombo CreateCombineResultFrameBuffer(uint32_t layer = 0);
+	FrameBufferCombo CreatePostProcessingFrameBuffer(uint32_t layer = 0);
+	FrameBufferCombo CreateForwardEnvGenOffScreenFrameBuffer(uint32_t layer = 0);
+	FrameBufferCombo CreateForwardScreenFrameBuffer(uint32_t layer = 0);
 
 protected:
 	// Since you can't render to a specific mip layer of a frame buffer

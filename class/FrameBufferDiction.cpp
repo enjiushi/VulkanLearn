@@ -20,6 +20,46 @@ VkFormat FrameBufferDiction::m_GBufferFormatTable[FrameBufferDiction::GBufferCou
 	VK_FORMAT_R16G16_SFLOAT,
 };
 
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateFrameBuffer(FrameBufferType type, uint32_t layer)
+{
+	switch (type)
+	{
+	case  FrameBufferType_GBuffer:
+		return CreateGBufferFrameBuffer(layer);
+	case  FrameBufferType_MotionTileMax:
+		return CreateMotionTileMaxFrameBuffer(layer);
+	case  FrameBufferType_MotionNeighborMax:
+		return CreateMotionNeighborMaxFrameBuffer(layer);
+	case  FrameBufferType_ShadowMap:
+		return CreateShadowMapFrameBuffer(layer);
+	case FrameBufferType_SSAOSSR:
+		return CreateSSAOSSRFrameBuffer(layer);
+	case FrameBufferType_SSAOBlurV:
+		return CreateSSAOBlurFrameBufferV(layer);
+	case FrameBufferType_SSAOBlurH:
+		return CreateSSAOBlurFrameBufferH(layer);
+	case FrameBufferType_Shading:
+		return CreateShadingFrameBuffer(layer);
+	case FrameBufferType_TemporalResolve:
+		return CreateTemporalResolveFrameBuffer(layer);
+	case FrameBufferType_DOF:
+		return CreateDOFFrameBuffer(layer);
+	case FrameBufferType_Bloom:
+		return CreateBloomFrameBuffer(layer);
+	case FrameBufferType_CombineResult:
+		return CreateCombineResultFrameBuffer(layer);
+	case FrameBufferType_PostProcessing:
+		return CreatePostProcessingFrameBuffer(layer);
+	case FrameBufferType_EnvGenOffScreen:
+		return CreateForwardEnvGenOffScreenFrameBuffer(layer);
+	case FrameBufferType_ForwardScreen:
+		return CreateForwardScreenFrameBuffer(layer);
+	default:
+		ASSERTION(false);
+		break;
+	}
+}
+
 bool FrameBufferDiction::Init()
 {
 	if (!Singleton<FrameBufferDiction>::Init())
@@ -28,43 +68,7 @@ bool FrameBufferDiction::Init()
 	m_frameBuffers.resize(PipelineRenderPassCount);
 
 	for (uint32_t i = 0; i < PipelineRenderPassCount; i++)
-	{
-		m_frameBuffers[i].resize(1);
-
-		switch ((FrameBufferType)i)
-		{
-		case  FrameBufferType_GBuffer:
-			m_frameBuffers[FrameBufferType_GBuffer][0] = CreateGBufferFrameBuffer(); break;
-		case  FrameBufferType_MotionTileMax:
-			m_frameBuffers[FrameBufferType_MotionTileMax][0] = CreateMotionTileMaxFrameBuffer(); break;
-		case  FrameBufferType_MotionNeighborMax:
-			m_frameBuffers[FrameBufferType_MotionNeighborMax][0] = CreateMotionNeighborMaxFrameBuffer(); break;
-		case  FrameBufferType_ShadowMap:
-			m_frameBuffers[FrameBufferType_ShadowMap][0] = CreateShadowMapFrameBuffer(); break;
-		case FrameBufferType_SSAOSSR:
-			m_frameBuffers[FrameBufferType_SSAOSSR][0] = CreateSSAOSSRFrameBuffer(); break;
-		case FrameBufferType_SSAOBlurV:
-			m_frameBuffers[FrameBufferType_SSAOBlurV][0] = CreateSSAOBlurFrameBufferV(); break;
-		case FrameBufferType_SSAOBlurH:
-			m_frameBuffers[FrameBufferType_SSAOBlurH][0] = CreateSSAOBlurFrameBufferH(); break;
-		case FrameBufferType_Shading:
-			m_frameBuffers[FrameBufferType_Shading][0] = CreateShadingFrameBuffer(); break;
-		case FrameBufferType_TemporalResolve:
-			m_frameBuffers[FrameBufferType_TemporalResolve][0] = CreateTemporalResolveFrameBuffer(); break;
-		case FrameBufferType_Bloom:
-			m_frameBuffers[FrameBufferType_Bloom][0] = CreateBloomFrameBuffer(); break;
-		case FrameBufferType_CombineResult:
-			m_frameBuffers[FrameBufferType_CombineResult][0] = CreateCombineResultFrameBuffer(); break;
-		case FrameBufferType_PostProcessing:
-			m_frameBuffers[FrameBufferType_PostProcessing][0] = CreatePostProcessingFrameBuffer(); break;
-		case FrameBufferType_EnvGenOffScreen:
-			m_frameBuffers[FrameBufferType_EnvGenOffScreen][0] = CreateForwardEnvGenOffScreenFrameBuffer(); break;
-		case FrameBufferType_ForwardScreen:
-			m_frameBuffers[FrameBufferType_ForwardScreen][0] = CreateForwardScreenFrameBuffer(); break;
-		default:
-			break;
-		}
-	}
+		m_frameBuffers[i].push_back(CreateFrameBuffer((FrameBufferType)i));
 
 	return true;
 }
@@ -72,10 +76,10 @@ bool FrameBufferDiction::Init()
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::GetFrameBuffers(FrameBufferType type, uint32_t layer)
 { 
 	// Only bloom is layered, might generalize it through all frame buffers, when needed
-	if (m_frameBuffers[type].size() <= layer && type == FrameBufferType_Bloom)
+	if (m_frameBuffers[type].size() <= layer)
 	{
 		for (uint32_t i = 0; i < layer - m_frameBuffers[type].size() + 1; i++)
-			m_frameBuffers[type].push_back(CreateBloomFrameBuffer(m_frameBuffers[type].size()));
+			m_frameBuffers[type].push_back(CreateFrameBuffer(type, m_frameBuffers[type].size()));
 	}
 	return m_frameBuffers[type][layer];
 }
@@ -83,10 +87,10 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::GetFrameBuffers(FrameBu
 std::shared_ptr<FrameBuffer> FrameBufferDiction::GetFrameBuffer(FrameBufferType type, uint32_t layer)
 {
 	// Only bloom is layered, might generalize it through all frame buffers, when needed
-	if (m_frameBuffers[type].size() <= layer && type == FrameBufferType_Bloom)
+	if (m_frameBuffers[type].size() <= layer)
 	{
 		for (uint32_t i = 0; i < layer - m_frameBuffers[type].size() + 1; i++)
-			m_frameBuffers[type].push_back(CreateBloomFrameBuffer(m_frameBuffers[type].size()));
+			m_frameBuffers[type].push_back(CreateFrameBuffer(type, m_frameBuffers[type].size()));
 	}
 	return m_frameBuffers[type][layer][FrameMgr()->FrameIndex()];
 }
@@ -110,7 +114,7 @@ std::shared_ptr<FrameBuffer> FrameBufferDiction::GetPingPongFrameBuffer(FrameBuf
 		return m_frameBuffers[type][0][frameIndex];
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffer(uint32_t layer)
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
@@ -134,7 +138,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffe
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionTileMaxFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionTileMaxFrameBuffer(uint32_t layer)
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize();
 
@@ -149,7 +153,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionTileMaxFram
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionNeighborMaxFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionNeighborMaxFrameBuffer(uint32_t layer)
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize();
 
@@ -164,7 +168,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionNeighborMax
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadowMapFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadowMapFrameBuffer(uint32_t layer)
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize();
 
@@ -180,7 +184,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadowMapFrameBuf
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOSSRFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOSSRFrameBuffer(uint32_t layer)
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
 
@@ -196,7 +200,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOSSRFrameBuffe
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferV()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferV(uint32_t layer)
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
 
@@ -212,7 +216,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBuff
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferH()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferH(uint32_t layer)
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
 
@@ -229,7 +233,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBuff
 }
 
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffer(uint32_t layer)
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
@@ -246,7 +250,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffe
 }
 
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFrameBuffer(uint32_t layer)
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
@@ -276,6 +280,23 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFr
 	return frameBuffers;
 }
 
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateDOFFrameBuffer(uint32_t layer)
+{
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+
+	Vector2f layerSize = { windowSize.x / 2, windowSize.y / 2 };
+
+	FrameBufferCombo frameBuffers;
+
+	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+	{
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), layerSize.x, layerSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->GetRenderPass()));
+	}
+
+	return frameBuffers;
+}
+
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBuffer(uint32_t layer)
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
@@ -300,7 +321,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBuffer(
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateCombineResultFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateCombineResultFrameBuffer(uint32_t layer)
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
@@ -315,7 +336,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateCombineResultFram
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreatePostProcessingFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreatePostProcessingFrameBuffer(uint32_t layer)
 {
 	FrameBufferCombo frameBuffers;
 
@@ -328,7 +349,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreatePostProcessingFra
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardEnvGenOffScreenFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardEnvGenOffScreenFrameBuffer(uint32_t layer)
 {
 	FrameBufferCombo frameBuffers;
 
@@ -344,7 +365,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardEnvGenOffS
 	return frameBuffers;
 }
 
-FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardScreenFrameBuffer()
+FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardScreenFrameBuffer(uint32_t layer)
 {
 	FrameBufferCombo frameBuffers;
 
