@@ -28,6 +28,7 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 	case DOFPass_Prefilter:		fragShaderPath = L"../data/shaders/dof_prefilter.frag.spv"; break;
 	case DOFPass_Blur:			fragShaderPath = L"../data/shaders/dof_blur.frag.spv"; break;
 	case DOFPass_Postfilter:	fragShaderPath = L"../data/shaders/dof_postfilter.frag.spv"; break;
+	case DOFPass_Combine:		fragShaderPath = L"../data/shaders/dof_combine.frag.spv"; break;
 	default:
 		ASSERTION(false);
 		break;
@@ -175,9 +176,9 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 				std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
 
 				srcImgs.push_back({
-					pTemporalResult->GetColorTarget(0),
-					pTemporalResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-					pTemporalResult->GetColorTarget(0)->CreateDefaultImageView()
+					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateLinearClampToEdgeSampler(),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateDefaultImageView()
 					});
 			}
 
@@ -194,8 +195,8 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 			}
 			m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, gbuffer3);
 		}
-
 		break;
+
 	case DOFPass_Blur:
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
@@ -218,6 +219,41 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 				pBlurResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
 				pBlurResult->GetColorTarget(0)->CreateDefaultImageView()
 				});
+		}
+		break;
+	case DOFPass_Combine:
+		{
+			for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+			{
+				std::shared_ptr<FrameBuffer> pPostfilterResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, DOFPass_Postfilter)[j];
+
+				srcImgs.push_back({
+					pPostfilterResult->GetColorTarget(0),
+					pPostfilterResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+					pPostfilterResult->GetColorTarget(0)->CreateDefaultImageView()
+					});
+			}
+
+			std::vector<CombinedImage> shadingResults;
+			std::vector<CombinedImage> CoCResults;
+			for (uint32_t j = 0; j < 2; j++)
+			{
+				std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
+
+				shadingResults.push_back({
+					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateLinearClampToEdgeSampler(),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateDefaultImageView()
+					});
+
+				CoCResults.push_back({
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CoC),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CoC)->CreateLinearClampToEdgeSampler(),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CoC)->CreateDefaultImageView()
+					});
+			}
+			m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, shadingResults);
+			m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 2, CoCResults);
 		}
 		break;
 	default:
@@ -251,6 +287,32 @@ void DOFMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialL
 			GetSwapChain()->GetSwapChainImageCount()
 		});
 	}
+	else if (m_DOFPass == DOFPass_Combine)
+	{
+		m_materialVariableLayout.push_back(
+		{
+			CombinedSampler,
+			"DOF post filter result",
+			{},
+			GetSwapChain()->GetSwapChainImageCount()
+		});
+
+		m_materialVariableLayout.push_back(
+		{
+			CombinedSampler,
+			"Temporal result",
+			{},
+			2
+		});
+
+		m_materialVariableLayout.push_back(
+		{
+			CombinedSampler,
+			"Temporal CoC",
+			{},
+			2
+		});
+	}
 	else
 	{
 		m_materialVariableLayout.push_back(
@@ -268,6 +330,10 @@ void DOFMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 	if (m_DOFPass == DOFPass_Prefilter)
 	{
 		counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() + 2);
+	}
+	else if (m_DOFPass == DOFPass_Combine)
+	{
+		counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() + 4);
 	}
 	else
 	{
@@ -317,6 +383,9 @@ void DOFMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& p
 	case DOFPass_Postfilter:
 		pBarrierImg = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, DOFPass_Blur)->GetColorTarget(0);
 		break;
+	case DOFPass_Combine:
+		pBarrierImg = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, DOFPass_Postfilter)->GetColorTarget(0);
+		break;
 	default:
 		ASSERTION(false);
 		break;
@@ -354,6 +423,47 @@ void DOFMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& p
 		imgBarrier = {};
 		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		imgBarrier.image = pGBuffer3->GetDeviceHandle();
+		imgBarrier.subresourceRange = subresourceRange;
+		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		barriers.push_back(imgBarrier);
+	}
+
+	if (m_DOFPass == DOFPass_Combine)
+	{
+		std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(FrameBufferDiction::ShadingResult);
+
+		subresourceRange = {};
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.levelCount = pShadingResult->GetImageInfo().mipLevels;
+		subresourceRange.layerCount = pShadingResult->GetImageInfo().arrayLayers;
+
+		imgBarrier = {};
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = pShadingResult->GetDeviceHandle();
+		imgBarrier.subresourceRange = subresourceRange;
+		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		barriers.push_back(imgBarrier);
+
+		std::shared_ptr<Image> pCoCResult = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(FrameBufferDiction::CoC);
+
+		subresourceRange = {};
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.levelCount = pCoCResult->GetImageInfo().mipLevels;
+		subresourceRange.layerCount = pCoCResult->GetImageInfo().arrayLayers;
+
+		imgBarrier = {};
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = pCoCResult->GetDeviceHandle();
 		imgBarrier.subresourceRange = subresourceRange;
 		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;

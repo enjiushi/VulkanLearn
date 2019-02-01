@@ -192,7 +192,7 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 
 	for (uint32_t i = 0; i < DOFMaterial::DOFPass_Count; i++)
 	{
-		std::shared_ptr<FrameBuffer> pTargetFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, i % ((uint32_t)DOFMaterial::DOFPass_Count - 1));
+		std::shared_ptr<FrameBuffer> pTargetFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, i);
 		Vector2ui size = { pTargetFrameBuffer->GetFramebufferInfo().width, pTargetFrameBuffer->GetFramebufferInfo().height };
 
 		m_DOFMaterials[i]->BeforeRenderPass(pDrawCmdBuffer, pingpong);

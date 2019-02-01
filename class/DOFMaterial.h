@@ -11,6 +11,7 @@ public:
 		DOFPass_Prefilter,
 		DOFPass_Blur,
 		DOFPass_Postfilter,
+		DOFPass_Combine,
 		DOFPass_Count
 	};
 

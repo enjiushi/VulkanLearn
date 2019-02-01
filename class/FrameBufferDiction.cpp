@@ -284,13 +284,18 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateDOFFrameBuffer(ui
 {
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
-	Vector2f layerSize = { windowSize.x / 2, windowSize.y / 2 };
+	uint32_t div = (layer == CombineLayer ? 1 : 2);
+	Vector2f layerSize = { windowSize.x / div, windowSize.y / div };
 
 	FrameBufferCombo frameBuffers;
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), layerSize.x, layerSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pColorTarget;
+		if (layer == PostfilterLayer)
+			pColorTarget = GetFrameBuffers(FrameBufferType_DOF, PrefilterLayer)[i]->GetColorTarget(0);
+		else
+			pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), layerSize.x, layerSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->GetRenderPass()));
 	}
 

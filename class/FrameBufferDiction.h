@@ -71,6 +71,15 @@ public:
 		TemporalFrameBufferCount
 	};
 
+	enum DOFFrameBufferLayer
+	{
+		PrefilterLayer,
+		BokehBlurLayer,
+		PostfilterLayer,
+		CombineLayer,
+		DOFFrameBufferLayerCount
+	};
+
 public:
 	bool Init() override;
 

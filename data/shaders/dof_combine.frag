@@ -1,0 +1,32 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+#include "uniform_layout.h"
+
+layout (set = 3, binding = 2) uniform sampler2D DOFPostfilterResult[3];
+layout (set = 3, binding = 3) uniform sampler2D TemporalShadingResult[2];
+layout (set = 3, binding = 4) uniform sampler2D TemporalCoCResult[2];
+
+layout (location = 0) in vec2 inUv;
+
+layout (location = 0) out vec4 outDOFResult;
+
+int index = int(perFrameData.camDir.a);
+int pingpong = (int(perFrameData.camPos.a) + 1) % 2;
+
+void main() 
+{
+	vec4 postfilteredCoC = texture(DOFPostfilterResult[index], inUv).rgba;
+	float temporalCoC = (texture(TemporalCoCResult[pingpong], inUv).r * 2.0f - 1.0f) * globalData.DOFSettings0.x;
+	vec4 temporalShading = texture(TemporalShadingResult[pingpong], inUv);
+
+	float farAlpha = smoothstep(globalData.gameWindowSize.z * 2.0f, globalData.gameWindowSize.z * 4.0f, temporalCoC);
+	float nearAlpha = postfilteredCoC.a;
+
+	// mix(mix(temporalShading, postfilteredCoC.rgb, farAlpha), postfilteredCoC.rgb, nearAlpha)
+	vec3 color = mix(temporalShading.rgb, postfilteredCoC.rgb, farAlpha + nearAlpha - farAlpha * nearAlpha);
+
+	outDOFResult = vec4(color, 1.0f);
+}
