@@ -190,16 +190,25 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->EndRenderPass(pDrawCmdBuffer);
 	m_pTemporalResolveMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
-	std::shared_ptr<FrameBuffer> pTargetFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, 0);
+	std::shared_ptr<FrameBuffer> pTargetFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, DOFMaterial::DOFPass_Prefilter);
 	Vector2ui size = { pTargetFrameBuffer->GetFramebufferInfo().width, pTargetFrameBuffer->GetFramebufferInfo().height };
 
-	m_DOFMaterials[0]->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	m_DOFMaterials[DOFMaterial::DOFPass_Prefilter]->BeforeRenderPass(pDrawCmdBuffer, pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->BeginRenderPass(pDrawCmdBuffer, pTargetFrameBuffer);
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, (float)size.x, (float)size.y, 0, 1 });
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, size.x, size.y });
-	m_DOFMaterials[0]->Draw(pDrawCmdBuffer, pTargetFrameBuffer, pingpong);
+	m_DOFMaterials[DOFMaterial::DOFPass_Prefilter]->Draw(pDrawCmdBuffer, pTargetFrameBuffer, pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->EndRenderPass(pDrawCmdBuffer);
-	m_DOFMaterials[0]->AfterRenderPass(pDrawCmdBuffer, pingpong);
+	m_DOFMaterials[DOFMaterial::DOFPass_Prefilter]->AfterRenderPass(pDrawCmdBuffer, pingpong);
+
+	pTargetFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, DOFMaterial::DOFPass_Blur);
+	m_DOFMaterials[DOFMaterial::DOFPass_Blur]->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->BeginRenderPass(pDrawCmdBuffer, pTargetFrameBuffer);
+	GetGlobalVulkanStates()->SetViewport({ 0, 0, (float)size.x, (float)size.y, 0, 1 });
+	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, size.x, size.y });
+	m_DOFMaterials[DOFMaterial::DOFPass_Blur]->Draw(pDrawCmdBuffer, pTargetFrameBuffer, pingpong);
+	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->EndRenderPass(pDrawCmdBuffer);
+	m_DOFMaterials[DOFMaterial::DOFPass_Blur]->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 	// Downsample first
 	for (uint32_t i = 0; i < BLOOM_ITER_COUNT; i++)

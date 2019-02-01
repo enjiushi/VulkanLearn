@@ -84,6 +84,7 @@ void PhysicalCamera::UpdateCameraProps()
 	if (!m_propDirty)
 		return;
 
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMainCameraAspect(m_props.aspect);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainCameraFilmWidth(m_props.filmWidth);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainCameraFilmHeight(m_supplementProps.filmHeight);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainCameraFocalLength(m_props.focalLength);

@@ -8,10 +8,6 @@
 layout (set = 3, binding = 2) uniform sampler2D TemporalResult[2];
 layout (set = 3, binding = 3) uniform sampler2D GBuffer3[3];
 
-layout(push_constant) uniform PushConsts {
-	layout (offset = 0) vec2 texelSize;
-} pushConsts;
-
 layout (location = 0) in vec2 inUv;
 
 layout (location = 0) out vec4 outPrefilter;

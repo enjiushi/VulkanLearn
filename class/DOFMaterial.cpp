@@ -26,7 +26,7 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 	switch (pass)
 	{
 	case DOFPass_Prefilter:		fragShaderPath = L"../data/shaders/dof_prefilter.frag.spv"; break;
-	case DOFPass_Blur:			fragShaderPath = L"../data/shaders/bloom_downsamplebox13.frag.spv"; break;
+	case DOFPass_Blur:			fragShaderPath = L"../data/shaders/dof_blur.frag.spv"; break;
 	case DOFPass_Postfilter:	fragShaderPath = L"../data/shaders/bloom_upsampletent.frag.spv"; break;
 	default:
 		ASSERTION(false);
@@ -37,7 +37,7 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", fragShaderPath, L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
-	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_Bloom;
+	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_DOF;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF);
 	simpleMaterialInfo.depthTestEnable = false;
 	simpleMaterialInfo.depthWriteEnable = false;
@@ -47,7 +47,7 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType)->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType, pass)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -199,7 +199,7 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 	case DOFPass_Blur:
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
-			std::shared_ptr<FrameBuffer> pPrefilterResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, 0)[j];
+			std::shared_ptr<FrameBuffer> pPrefilterResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, DOFPass_Prefilter)[j];
 
 			srcImgs.push_back({
 				pPrefilterResult->GetColorTarget(0),
@@ -211,7 +211,7 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 	case DOFPass_Postfilter:
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
-			std::shared_ptr<FrameBuffer> pBlurResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, 1)[j];
+			std::shared_ptr<FrameBuffer> pBlurResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, DOFPass_Blur)[j];
 
 			srcImgs.push_back({
 				pBlurResult->GetColorTarget(0),
@@ -312,10 +312,10 @@ void DOFMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& p
 		pBarrierImg = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(0);
 		break;
 	case DOFPass_Blur:
-		pBarrierImg = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Bloom, 0)->GetColorTarget(0);
+		pBarrierImg = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, DOFPass_Prefilter)->GetColorTarget(0);
 		break;
 	case DOFPass_Postfilter:
-		pBarrierImg = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Bloom, 1)->GetColorTarget(0);
+		pBarrierImg = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, DOFPass_Blur)->GetColorTarget(0);
 		break;
 	default:
 		ASSERTION(false);
