@@ -151,15 +151,15 @@ bool CombineMaterial::Init(const std::shared_ptr<CombineMaterial>& pSelf,
 	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat))
 		return false;
 
-	std::vector<CombinedImage> temporalResult;
-	for (uint32_t j = 0; j < 2; j++)
+	std::vector<CombinedImage> DOFResults;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
-		std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
+		std::shared_ptr<FrameBuffer> pDOFResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, FrameBufferDiction::CombineLayer)[j];
 
-		temporalResult.push_back({
-			pTemporalResult->GetColorTarget(0),
-			pTemporalResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-			pTemporalResult->GetColorTarget(0)->CreateDefaultImageView()
+		DOFResults.push_back({
+			pDOFResult->GetColorTarget(0),
+			pDOFResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pDOFResult->GetColorTarget(0)->CreateDefaultImageView()
 			});
 	}
 
@@ -175,7 +175,7 @@ bool CombineMaterial::Init(const std::shared_ptr<CombineMaterial>& pSelf,
 			});
 	}
 
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount , temporalResult);
+	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount , DOFResults);
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, bloomTextures);
 
 	uint32_t index;
@@ -191,9 +191,9 @@ void CombineMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& mater
 	m_materialVariableLayout.push_back(
 	{
 		CombinedSampler,
-		"Temporal result",
+		"DOF result",
 		{},
-		2
+		GetSwapChain()->GetSwapChainImageCount()
 	});
 
 	m_materialVariableLayout.push_back(
@@ -236,18 +236,18 @@ void CombineMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer
 {
 	std::vector<VkImageMemoryBarrier> barriers;
 
-	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(0);
+	std::shared_ptr<Image> pDOFResult = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, FrameBufferDiction::CombineLayer)->GetColorTarget(0);
 	std::shared_ptr<Image> pBloomTex = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Bloom)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 
 	VkImageSubresourceRange subresourceRange = {};
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pTemporalResult->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pTemporalResult->GetImageInfo().arrayLayers;
+	subresourceRange.levelCount = pDOFResult->GetImageInfo().mipLevels;
+	subresourceRange.layerCount = pDOFResult->GetImageInfo().arrayLayers;
 
 	VkImageMemoryBarrier imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pTemporalResult->GetDeviceHandle();
+	imgBarrier.image = pDOFResult->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;

@@ -5,7 +5,7 @@
 
 #include "uniform_layout.h"
 
-layout (set = 3, binding = 2) uniform sampler2D TemporalResult[2];
+layout (set = 3, binding = 2) uniform sampler2D DOFResults[3];
 layout (set = 3, binding = 3) uniform sampler2D BloomTextures[3];
 
 layout(push_constant) uniform PushConsts {
@@ -17,7 +17,6 @@ layout (location = 0) out vec4 outCombineResult;
 layout (location = 0) in vec2 inUv;
 
 int index = int(perFrameData.camDir.a);
-int pingpong = (int(perFrameData.camPos.a) + 1) % 2;
 
 void main() 
 {
@@ -26,7 +25,7 @@ void main()
 		camDirt = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv, pushConsts.camDirtTexIndex), 0.0f).rgb;
 
 	vec3 bloom = pow(texture(BloomTextures[index], inUv).rgb * globalData.BloomSettings1.x * camDirt, vec3(globalData.BloomSettings1.y));
-	vec3 temporal = texture(TemporalResult[pingpong], inUv).rgb;
+	vec3 temporal = texture(DOFResults[index], inUv).rgb;
 
 	outCombineResult = vec4(bloom + temporal, 1.0f);
 }

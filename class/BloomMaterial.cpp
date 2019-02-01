@@ -171,14 +171,14 @@ bool BloomMaterial::Init(const std::shared_ptr<BloomMaterial>& pSelf,
 	switch (m_bloomPass)
 	{
 	case BloomPass_Prefilter:
-		for (uint32_t j = 0; j < 2; j++)
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
-			std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
+			std::shared_ptr<FrameBuffer> pDOFResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, FrameBufferDiction::CombineLayer)[j];
 
 			srcImgs.push_back({
-				pTemporalResult->GetColorTarget(0),
-				pTemporalResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-				pTemporalResult->GetColorTarget(0)->CreateDefaultImageView()
+				pDOFResult->GetColorTarget(0),
+				pDOFResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pDOFResult->GetColorTarget(0)->CreateDefaultImageView()
 				});
 		}
 		break;
@@ -223,9 +223,9 @@ void BloomMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materia
 		m_materialVariableLayout.push_back(
 		{
 			CombinedSampler,
-			"Temporal result",
+			"DOF result",
 			{},
-			2
+			GetSwapChain()->GetSwapChainImageCount()
 		});
 	}
 	else
@@ -291,7 +291,7 @@ void BloomMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>&
 	switch (m_bloomPass)
 	{
 	case BloomPass_Prefilter:
-		pBarrierImg = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(0);
+		pBarrierImg = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, FrameBufferDiction::CombineLayer)->GetColorTarget(0);
 		break;
 	case BloomPass_DownSampleBox13:
 		pBarrierImg = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Bloom, m_iterIndex)->GetColorTarget(0);

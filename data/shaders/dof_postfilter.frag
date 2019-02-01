@@ -15,7 +15,7 @@ int index = int(perFrameData.camDir.a);
 
 void main() 
 {
-	vec4 offset = globalData.gameWindowSize.zwzw * vec4(0.5f, 0.5f, -0.5f, 0.0f);
+	vec4 offset = globalData.gameWindowSize.zwzw * vec4(1, 1, -1, 0.0f);
 	vec4 c = texture(DOFBlurredResult[index], inUv - offset.xy);
 	c += texture(DOFBlurredResult[index], inUv - offset.zy);
 	c += texture(DOFBlurredResult[index], inUv + offset.zy);

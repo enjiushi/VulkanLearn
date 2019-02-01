@@ -5,7 +5,7 @@
 
 #include "uniform_layout.h"
 
-layout (set = 3, binding = 2) uniform sampler2D TemporalResult[2];
+layout (set = 3, binding = 2) uniform sampler2D DOFResults[3];
 
 layout(push_constant) uniform PushConsts {
 	layout (offset = 0) vec2 texelSize;
@@ -16,11 +16,10 @@ layout (location = 0) in vec2 inUv;
 layout (location = 0) out vec4 outBloomFrag;
 
 int index = int(perFrameData.camDir.a);
-int pingpong = (int(perFrameData.camPos.a) + 1) % 2;
 
 void main() 
 {
-	vec4 color = DownsampleBox13Tap(TemporalResult[pingpong], inUv, pushConsts.texelSize);
+	vec4 color = DownsampleBox13Tap(DOFResults[index], inUv, pushConsts.texelSize);
 	float factor = smoothstep(globalData.BloomSettings0.x, globalData.BloomSettings0.y, Luminance(color.rgb));
 
 	outBloomFrag = vec4(color.rgb * factor, 1.0f);
