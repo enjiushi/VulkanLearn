@@ -27,7 +27,7 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 	{
 	case DOFPass_Prefilter:		fragShaderPath = L"../data/shaders/dof_prefilter.frag.spv"; break;
 	case DOFPass_Blur:			fragShaderPath = L"../data/shaders/dof_blur.frag.spv"; break;
-	case DOFPass_Postfilter:	fragShaderPath = L"../data/shaders/bloom_upsampletent.frag.spv"; break;
+	case DOFPass_Postfilter:	fragShaderPath = L"../data/shaders/dof_postfilter.frag.spv"; break;
 	default:
 		ASSERTION(false);
 		break;
