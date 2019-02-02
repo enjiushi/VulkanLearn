@@ -12,9 +12,8 @@ What I've implemented:
 9. Physical Based Camera(prerequisites of DOF)
 
 What I want to do later:
-1. DOF(In progress)
-2. Clusterred Deferred
-3. Cascade Shadow Map
+1. Clusterred Deferred
+2. Cascade Shadow Map
 
 What needs to improve:
 1. SSSR on rough materials, to reduce variance that seriously impact visual quality.
@@ -29,3 +28,7 @@ Variance reducing is the only solution.
 ![Alt text](assets/img1.png "Screen Shot 1")
 ![Alt text](assets/img2.png "Screen Shot 2")
 ![Alt text](assets/img3.png "Screen Shot 3")
+![Alt text](assets/dof_img0.png "Screen Shot 0")
+![Alt text](assets/dof_img1.png "Screen Shot 1")
+![Alt text](assets/dof_img2.png "Screen Shot 2")
+![Alt text](assets/dof_img3.png "Screen Shot 3")
