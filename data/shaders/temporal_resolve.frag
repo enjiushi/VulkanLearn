@@ -70,21 +70,28 @@ vec4 ResolveColor(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredU
 	return vec4(mix(curr, prev, 0.98f), motionNeighborMaxLength);
 }
 
-float ResolveCoC(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec)
+float ResolveCoC(sampler2D currSampler, sampler2D prevSampler, sampler2D motionVecSampler, vec2 unjitteredUV)
 {
 	vec3 offset = globalData.gameWindowSize.zww * vec3(1, 1, 0);
 
-	float coc1 = texture(currSampler, inUv - offset.xz).a;
-	float coc2 = texture(currSampler, inUv - offset.zy).a;
-	float coc3 = texture(currSampler, inUv + offset.zy).a;
-	float coc4 = texture(currSampler, inUv + offset.xz).a;
+	float coc1 = texture(currSampler, unjitteredUV - offset.xz).a;
+	float coc2 = texture(currSampler, unjitteredUV - offset.zy).a;
+	float coc3 = texture(currSampler, unjitteredUV + offset.zy).a;
+	float coc4 = texture(currSampler, unjitteredUV + offset.xz).a;
 
-	float coc0 = texture(currSampler, unjitteredUV).a;
+	float coc0 = texture(currSampler, inUv).a;
 
-	// Dilation later
+	// Dilation
+	vec3 closest = vec3(0, 0, coc0);
+	closest = coc1 < closest.z ? vec3(-offset.xz, coc1) : closest;
+	closest = coc2 < closest.z ? vec3(-offset.zy, coc2) : closest;
+	closest = coc3 < closest.z ? vec3(offset.zy, coc3) : closest;
+	closest = coc4 < closest.z ? vec3(offset.xz, coc4) : closest;
 
 	float minCoC = min(coc0, min(coc1, min(coc2, min(coc3, coc4))));
 	float maxCoC = max(coc0, max(coc1, max(coc2, max(coc3, coc4))));
+
+	vec2 motionVec = texture(motionVecSampler, unjitteredUV + closest.xy).xy;
 
 	float prevCoC = texture(prevSampler, inUv + motionVec).r;
 	prevCoC = clamp(prevCoC, minCoC, maxCoC);
@@ -105,5 +112,5 @@ void main()
 	float motionNeighborMaxLength = length(motionNeighborMaxFetch + diff) * currMotionImpactAmp;
 
 	outTemporalResult = ResolveColor(ShadingResult[index], TemporalResult[pingpong], unjitteredUV, motionVec, motionNeighborMaxLength);
-	outTemporalCoC = vec4(ResolveCoC(GBuffer3[index], TemporalCoC[pingpong], unjitteredUV, motionVec));
+	outTemporalCoC = vec4(ResolveCoC(GBuffer3[index], TemporalCoC[pingpong], MotionVector[index], unjitteredUV));
 }

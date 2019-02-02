@@ -182,18 +182,18 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 					});
 			}
 
-			std::vector<CombinedImage> gbuffer3;
+			std::vector<CombinedImage> temporalCoC;
 			for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 			{
-				std::shared_ptr<FrameBuffer> pGBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
+				std::shared_ptr<FrameBuffer> pGBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
 
-				gbuffer3.push_back({
-					pGBuffer->GetColorTarget(FrameBufferDiction::GBuffer3),
-					pGBuffer->GetColorTarget(FrameBufferDiction::GBuffer3)->CreateLinearClampToEdgeSampler(),
-					pGBuffer->GetColorTarget(FrameBufferDiction::GBuffer3)->CreateDefaultImageView()
+				temporalCoC.push_back({
+					pGBuffer->GetColorTarget(FrameBufferDiction::CoC),
+					pGBuffer->GetColorTarget(FrameBufferDiction::CoC)->CreateLinearClampToEdgeSampler(),
+					pGBuffer->GetColorTarget(FrameBufferDiction::CoC)->CreateDefaultImageView()
 					});
 			}
-			m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, gbuffer3);
+			m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, temporalCoC);
 		}
 		break;
 

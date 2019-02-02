@@ -6,7 +6,7 @@
 #include "uniform_layout.h"
 
 layout (set = 3, binding = 2) uniform sampler2D TemporalResult[2];
-layout (set = 3, binding = 3) uniform sampler2D GBuffer3[3];
+layout (set = 3, binding = 3) uniform sampler2D TemporalCoC[2];
 
 layout (location = 0) in vec2 inUv;
 
@@ -29,10 +29,10 @@ void main()
 	vec3 color2 = texture(TemporalResult[pingpong], uv2).rgb;
 	vec3 color3 = texture(TemporalResult[pingpong], uv3).rgb;
 
-	float coc0 = texture(GBuffer3[index], uv0).a * 2.0f - 1.0f;
-	float coc1 = texture(GBuffer3[index], uv1).a * 2.0f - 1.0f;
-	float coc2 = texture(GBuffer3[index], uv2).a * 2.0f - 1.0f;
-	float coc3 = texture(GBuffer3[index], uv3).a * 2.0f - 1.0f;
+	float coc0 = texture(TemporalCoC[pingpong], uv0).a * 2.0f - 1.0f;
+	float coc1 = texture(TemporalCoC[pingpong], uv1).a * 2.0f - 1.0f;
+	float coc2 = texture(TemporalCoC[pingpong], uv2).a * 2.0f - 1.0f;
+	float coc3 = texture(TemporalCoC[pingpong], uv3).a * 2.0f - 1.0f;
 
 	float w0 = abs(coc0) / (max(color0.r, max(color0.g, color0.b)) + 1.0f);
 	float w1 = abs(coc1) / (max(color1.r, max(color1.g, color1.b)) + 1.0f);
