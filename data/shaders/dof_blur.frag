@@ -92,7 +92,7 @@ void main()
 	nearColor.rgb /= (nearColor.a + float(nearColor.a == 0.0f));
 
 	//farColor.a = smoothstep(globalData.gameWindowSize.z * 2.0f, globalData.gameWindowSize.z * 4.0f, center.a);
-	nearColor.a *= (float(BOKEH_KERNEL_COUNT));
+	nearColor.a /= (float(BOKEH_KERNEL_COUNT));
 
 	float nearCoC = clamp(nearColor.a, 0, 1);
 	vec3 CoCColor = mix(farColor.rgb, nearColor.rgb, nearCoC);
