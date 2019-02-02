@@ -10,6 +10,7 @@ What I've implemented:
 7. Temporal AA
 8. Stochastic Screen Space Reflection(Try to implement according to the docs of Frostbite)
 9. Physical Based Camera(prerequisites of DOF)
+10. DOF
 
 What I want to do later:
 1. Clusterred Deferred
