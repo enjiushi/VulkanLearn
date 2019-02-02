@@ -171,6 +171,7 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 	{
 		case DOFPass_Prefilter:
 		{
+			std::vector<CombinedImage> temporalCoC;
 			for (uint32_t j = 0; j < 2; j++)
 			{
 				std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
@@ -180,17 +181,11 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateLinearClampToEdgeSampler(),
 					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateDefaultImageView()
 					});
-			}
-
-			std::vector<CombinedImage> temporalCoC;
-			for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
-			{
-				std::shared_ptr<FrameBuffer> pGBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
 
 				temporalCoC.push_back({
-					pGBuffer->GetColorTarget(FrameBufferDiction::CoC),
-					pGBuffer->GetColorTarget(FrameBufferDiction::CoC)->CreateLinearClampToEdgeSampler(),
-					pGBuffer->GetColorTarget(FrameBufferDiction::CoC)->CreateDefaultImageView()
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CoC),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CoC)->CreateLinearClampToEdgeSampler(),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CoC)->CreateDefaultImageView()
 					});
 			}
 			m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 1, temporalCoC);
@@ -282,9 +277,9 @@ void DOFMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialL
 		m_materialVariableLayout.push_back(
 		{
 			CombinedSampler,
-			"GBuffer3",
+			"Temporal CoC",
 			{},
-			GetSwapChain()->GetSwapChainImageCount()
+			2
 		});
 	}
 	else if (m_DOFPass == DOFPass_Combine)
