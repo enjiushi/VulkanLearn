@@ -150,6 +150,12 @@ Quaternion<T>& Quaternion<T>::Normalize()
 }
 
 template<typename T>
+T Quaternion<T>::Dot(const Quaternion<T>& q)
+{
+	return w * q.w + x * q.x + y * q.y + z * q.z;
+}
+
+template<typename T>
 Quaternion<T> Quaternion<T>::Conjugate() const
 {
 	Quaternion<T> ret = *this;
@@ -165,7 +171,7 @@ Vector3<T> Quaternion<T>::Rotate(const Vector3<T>& v)
 	Quaternion<T> q2(0.f, v.x, v.y, v.z), q = *this, qinv = q;
 	q.Conjugate();
 
-	q = q.Conjugate()*q2*q;
+	q = q * q2 * q.Conjugate();
 	return Vector3<T>(q.x, q.y, q.z);
 }
 
@@ -174,7 +180,7 @@ Quaternion<T> Quaternion<T>::Interpolate(const Quaternion<T>& from, const Quater
 {
 	Quaternion<T> out;
 	// calc cosine theta
-	T cosom = from.x * to.x + from.y * to.y + from.z * to.z + from.w * to.w;
+	T cosom = Dot<T>(from, to);
 
 	// adjust signs (if necessary)
 	Quaternion<T> end = to;
@@ -202,4 +208,10 @@ Quaternion<T> Quaternion<T>::Interpolate(const Quaternion<T>& from, const Quater
 	out.w = sclp * from.w + sclq * end.w;
 
 	return out;
+}
+
+template<typename T>
+T Quaternion<T>::Dot(const Quaternion<T>& q0, const Quaternion<T>& q1)
+{
+	return q0.w * q1.w + q0.x * q1.x + q0.y * q1.y + q0.z *q1.z;
 }

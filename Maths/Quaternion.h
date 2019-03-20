@@ -25,11 +25,13 @@ public:
 	Quaternion<T> operator * (const Quaternion<T>& q);
 
 	Quaternion<T>& Normalize();
+	T Dot(const Quaternion<T>& q);
 	Quaternion<T> Conjugate() const;
 
 	Vector3<T> Rotate(const Vector3<T>& v);
 
 	static Quaternion<T> Interpolate(const Quaternion<T>& from, const Quaternion<T>& to, T factor);
+	static T Dot(const Quaternion<T>& q0, const Quaternion<T>& q1);
 
 public:
 	union
