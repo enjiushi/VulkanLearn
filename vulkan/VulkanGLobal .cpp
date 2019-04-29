@@ -688,7 +688,7 @@ void VulkanGlobal::InitScene()
 	m_pCameraObj = BaseObject::Create();
 	m_pCameraObj->AddComponent(m_pCameraComp);
 
-	m_pCharacter = Character::Create({ 0.007f, 0.005f });
+	m_pCharacter = Character::Create({ 0.002f, 0.005f });
 	m_pCameraObj->AddComponent(m_pCharacter);
 	m_pCameraObj->AddComponent(FrustumJitter::Create());
 
