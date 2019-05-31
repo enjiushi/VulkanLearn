@@ -20,17 +20,29 @@ public:
 
 	Matrix3x3<T> Matrix() const;
 
-	bool operator == (const Quaternion<T>& q);
-	bool operator != (const Quaternion<T>& q);
-	Quaternion<T> operator * (const Quaternion<T>& q);
+	bool operator == (const Quaternion<T>& q) const;
+	bool operator != (const Quaternion<T>& q) const;
+	Quaternion<T>& operator *= (const Quaternion<T>& q);
+	Quaternion<T>& operator *= (T s);
+	Quaternion<T> operator * (const Quaternion<T>& q) const;
+	Quaternion<T> operator * (T s) const;
+	Quaternion<T>& operator += (const Quaternion<T>& q);
+	Quaternion<T> operator + (const Quaternion<T>& q) const;
 
+	T Mag() const;
 	Quaternion<T>& Normalize();
+	Quaternion<T> Normal();
 	T Dot(const Quaternion<T>& q);
 	Quaternion<T> Conjugate() const;
 
 	Vector3<T> Rotate(const Vector3<T>& v);
 
-	static Quaternion<T> Interpolate(const Quaternion<T>& from, const Quaternion<T>& to, T factor);
+	// Spherical Lerp
+	static Quaternion<T> SLerp(const Quaternion<T>& from, const Quaternion<T>& to, T factor);
+
+	// Normalized Lerp
+	static Quaternion<T> NLerp(const Quaternion<T>& from, const Quaternion<T>& to, T factor);
+
 	static T Dot(const Quaternion<T>& q0, const Quaternion<T>& q1);
 
 public:

@@ -5,7 +5,8 @@
 template<typename T>
 Quaternion<T>::Quaternion()
 {
-	w = x = y = z = 0;
+	w = 1;
+	x = y = z = 0;
 }
 
 template<typename T>
@@ -79,10 +80,10 @@ Quaternion<T>::Quaternion(const T* pData)
 }
 
 template<typename T>
-Quaternion<T>::Quaternion(T real, const Vector3<T>& imag)
+Quaternion<T>::Quaternion(T _real, const Vector3<T>& _imag)
 {
-	w = real;
-	imag = imag;
+	real = _real;
+	imag = _imag;
 }
 
 template<typename T>
@@ -114,30 +115,90 @@ Matrix3x3<T> Quaternion<T>::Matrix() const
 }
 
 template<typename T>
-bool Quaternion<T>::operator == (const Quaternion<T>& q)
+bool Quaternion<T>::operator == (const Quaternion<T>& q) const
 {
+	// FIXME: wrong
 	return w == q.w && x == q.x && y == q.y && z == q.z;
 }
 
 template<typename T>
-bool Quaternion<T>::operator != (const Quaternion<T>& q)
+bool Quaternion<T>::operator != (const Quaternion<T>& q) const
 {
 	return !(*this == q);
 }
 
 template<typename T>
-Quaternion<T> Quaternion<T>::operator * (const Quaternion<T>& q)
+Quaternion<T>& Quaternion<T>::operator *= (const Quaternion<T>& q)
 {
-	return Quaternion<T>(w*q.w - x*q.x - y*q.y - z*q.z,
-		w*q.x + x*q.w + y*q.z - z*q.y,
-		w*q.y + y*q.w + z*q.x - x*q.z,
-		w*q.z + z*q.w + x*q.y - y*q.x);
+	T _w = w * q.w - x * q.x - y * q.y - z * q.z;
+	T _x = w * q.x + x * q.w + y * q.z - z * q.y;
+	T _y = w * q.y + y * q.w + z * q.x - x * q.z;
+	T _z = w * q.z + z * q.w + x * q.y - y * q.x;
+
+	w = _w;
+	x = _x;
+	y = _y;
+	z = _z;
+
+	return *this;
+}
+
+template<typename T>
+Quaternion<T>& Quaternion<T>::operator *= (T s)
+{
+	w *= s;
+	x *= s;
+	y *= s;
+	z *= s;
+
+	return *this;
+}
+
+template<typename T>
+Quaternion<T> Quaternion<T>::operator * (const Quaternion<T>& q) const
+{
+	Quaternion<T> ret = *this;
+	ret *= q;
+	return ret;
+}
+
+template<typename T>
+Quaternion<T> Quaternion<T>::operator * (T s) const
+{
+	Quaternion<T> ret = *this;
+	ret *= s;
+	return ret;
+}
+
+template<typename T>
+Quaternion<T>& Quaternion<T>::operator += (const Quaternion<T>& q)
+{
+	w += q.w;
+	x += q.x;
+	y += q.y;
+	z += q.z;
+
+	return *this;
+}
+
+template<typename T>
+Quaternion<T> Quaternion<T>::operator + (const Quaternion<T>& q) const
+{
+	Quaternion<T> ret = *this;
+	ret += q;
+	return ret;
+}
+
+template<typename T>
+T Quaternion<T>::Mag() const
+{
+	return sqrt(x * x + y * y + z * z + w * w);
 }
 
 template<typename T>
 Quaternion<T>& Quaternion<T>::Normalize()
 {
-	const T mag = sqrt(x*x + y*y + z*z + w*w);
+	const T mag = Mag();
 	if (mag)
 	{
 		const T invMag = static_cast<T>(1.0) / mag;
@@ -147,6 +208,22 @@ Quaternion<T>& Quaternion<T>::Normalize()
 		w *= invMag;
 	}
 	return *this;
+}
+
+template<typename T>
+Quaternion<T> Quaternion<T>::Normal()
+{
+	Quaternion<T> ret;
+	const T mag = ret.Mag();
+	if (mag)
+	{
+		const T invMag = static_cast<T>(1.0) / mag;
+		ret.x *= invMag;
+		ret.y *= invMag;
+		ret.z *= invMag;
+		ret.w *= invMag;
+	}
+	return ret;
 }
 
 template<typename T>
@@ -176,7 +253,7 @@ Vector3<T> Quaternion<T>::Rotate(const Vector3<T>& v)
 }
 
 template<typename T>
-Quaternion<T> Quaternion<T>::Interpolate(const Quaternion<T>& from, const Quaternion<T>& to, T factor)
+Quaternion<T> Quaternion<T>::SLerp(const Quaternion<T>& from, const Quaternion<T>& to, T factor)
 {
 	Quaternion<T> out;
 	// calc cosine theta
@@ -208,6 +285,19 @@ Quaternion<T> Quaternion<T>::Interpolate(const Quaternion<T>& from, const Quater
 	out.w = sclp * from.w + sclq * end.w;
 
 	return out;
+}
+
+template<typename T>
+Quaternion<T> Quaternion<T>::NLerp(const Quaternion<T>& from, const Quaternion<T>& to, T factor)
+{
+	Quaternion<T> ret;
+
+	ret.w = from.w * factor + to.w * (static_cast<T>(1.0) - factor);
+	ret.x = from.x * factor + to.x * (static_cast<T>(1.0) - factor);
+	ret.y = from.y * factor + to.y * (static_cast<T>(1.0) - factor);
+	ret.z = from.z * factor + to.z * (static_cast<T>(1.0) - factor);
+
+	return ret.Normalize();
 }
 
 template<typename T>
