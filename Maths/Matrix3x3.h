@@ -4,6 +4,9 @@ template <typename T>
 class Vector3;
 
 template <typename T>
+class Quaternion;
+
+template <typename T>
 class Matrix3x3
 {
 public:
@@ -30,6 +33,8 @@ public:
 	Matrix3x3& Inverse();
 
 	T Determinant() const;
+	
+	Quaternion<T> AcquireQuaternion() const;
 
 	static Matrix3x3<T> Rotation(T rotation, const Vector3<T>& v);
 	static Matrix3x3<T> EulerAngle(T rotationX, T rotationY, T rotationZ);

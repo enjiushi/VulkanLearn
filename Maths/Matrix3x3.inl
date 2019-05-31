@@ -1,6 +1,7 @@
 #pragma once
 #include "Matrix3x3.h"
 #include "Vector.h"
+#include "Quaternion.h"
 #include <algorithm>
 
 template <typename T>
@@ -171,6 +172,43 @@ template <typename T>
 T Matrix3x3<T>::Determinant() const
 {
 	return c00 * c11 * c22 + c01 * c12 * c20 + c02 * c10 * c21 - c02 * c11 * c20 - c01 * c10 * c22 - c00 * c12 * c21;
+}
+
+// https://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2015/01/matrix-to-quat.pdf
+template <typename T>
+Quaternion<T> Matrix3x3<T>::AcquireQuaternion() const
+{
+	Quaternion<T> q;
+
+	if (c22 < static_cast<T>(0))
+	{
+		if (c00 > c11)
+		{
+			t = static_cast<T>(1.0) + c00 - c11 - c22;
+			q = Quaternion<T>(t, c01 + c10, c20 + c02, c12 - c21);
+		}
+		else
+		{
+			t = static_cast<T>(1.0) - c00 + c11 - c22;
+			q = Quaternion<T>(c01 + c10, t, c12 + c21, c20 - c02);
+		}
+	}
+	else
+	{
+		if (c00 < -c11)
+		{
+			t = static_cast<T>(1.0) - c00 - c11 + c22;
+			q = Quaternion<T>(c20 + c02, c12 + c21, t, c01 - c10);
+		}
+		else
+		{
+			t = static_cast<T>(1.0) + c00 + c11 + c22;
+			q = Quaternion<T>(c12 - c21, c20 - c02, c01 - c10, t);
+		}
+	}
+	q *= static_cast<T>(0.5) / std::sqrt(t);
+
+	return q;
 }
 
 template <typename T>
