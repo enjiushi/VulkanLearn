@@ -68,7 +68,7 @@ Vector3<T> DualQuaternion<T>::AcquireTranslation() const
 	// when it comes to acquire translation
 	// always assume the order is translate after rotation
 	// i.e, 1/2 * t * r = dual ====> t = 2 * dual * real^-1
-	Quaternion<T> t = dual * real.Conjugate() * static_cast<T>(2.0);
+	Quaternion<T> t = dual * real.GetConjugate() * static_cast<T>(2.0);
 	return {t.x, t.y, t.z};
 }
 
@@ -100,16 +100,27 @@ DualQuaternion<T>& DualQuaternion<T>::Normalize()
 }
 
 template<typename T>
-DualQuaternion<T> DualQuaternion<T>::Conjugate() const
+DualQuaternion<T> DualQuaternion<T>::GetConjugate() const
 {
-	return DualQuaternion<T>(real.Conjugate(), dual.Conjugate());
+	return DualQuaternion<T>(real.GetConjugate(), dual.GetConjugate());
 }
 
 template<typename T>
-void DualQuaternion<T>::Conjugate()
+DualQuaternion<T>& DualQuaternion<T>::Conjugate()
 {
 	real.Conjugate();
 	dual.Conjugate();
+
+	return *this;
+}
+
+template<typename T>
+Vector3<T> DualQuaternion<T>::Transform(const Vector3<T>& input)
+{
+	Quaternion<T> r = AcquireRotation();
+	Vector3<T> t = AcquireTranslation();
+
+	return r.Rotate(input) + t;
 }
 
 template<typename T>
@@ -126,6 +137,8 @@ DualQuaternion<T> DualQuaternion<T>::DLB(const DualQuaternion<T>& from, const Du
 	ret.dual.x = from.dual.x * factor + to.dual.x * (static_cast<T>(1.0) - factor);
 	ret.dual.y = from.dual.y * factor + to.dual.y * (static_cast<T>(1.0) - factor);
 	ret.dual.z = from.dual.z * factor + to.dual.z * (static_cast<T>(1.0) - factor);
+
+	ret.Normalize();
 
 	return ret;
 }

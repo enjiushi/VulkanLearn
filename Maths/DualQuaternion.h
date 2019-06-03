@@ -33,8 +33,10 @@ public:
 	DualQuaternion<T> operator * (const DualQuaternion<T>& dq);
 
 	DualQuaternion<T>& Normalize();
-	DualQuaternion<T> Conjugate() const;
-	void Conjugate();
+	DualQuaternion<T> GetConjugate() const;
+	DualQuaternion<T>& Conjugate();
+
+	Vector3<T> Transform(const Vector3<T>& input);
 
 	static DualQuaternion<T> DLB(const DualQuaternion<T>& from, const DualQuaternion<T>& to, float factor);
 

@@ -233,7 +233,17 @@ T Quaternion<T>::Dot(const Quaternion<T>& q)
 }
 
 template<typename T>
-Quaternion<T> Quaternion<T>::Conjugate() const
+Quaternion<T>& Quaternion<T>::Conjugate()
+{
+	ret.x = -ret.x;
+	ret.y = -ret.y;
+	ret.z = -ret.z;
+
+	return *this;
+}
+
+template<typename T>
+Quaternion<T> Quaternion<T>::GetConjugate() const
 {
 	Quaternion<T> ret = *this;
 	ret.x = -ret.x;
@@ -245,11 +255,7 @@ Quaternion<T> Quaternion<T>::Conjugate() const
 template<typename T>
 Vector3<T> Quaternion<T>::Rotate(const Vector3<T>& v)
 {
-	Quaternion<T> q2(0.f, v.x, v.y, v.z), q = *this, qinv = q;
-	q.Conjugate();
-
-	q = q * q2 * q.Conjugate();
-	return Vector3<T>(q.x, q.y, q.z);
+	return v + (imag ^ (v * real + (imag ^ v))) * static_cast<T>(2.0);
 }
 
 template<typename T>

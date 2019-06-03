@@ -33,7 +33,8 @@ public:
 	Quaternion<T>& Normalize();
 	Quaternion<T> Normal();
 	T Dot(const Quaternion<T>& q);
-	Quaternion<T> Conjugate() const;
+	Quaternion<T>& Conjugate();
+	Quaternion<T> GetConjugate() const;
 
 	Vector3<T> Rotate(const Vector3<T>& v);
 
