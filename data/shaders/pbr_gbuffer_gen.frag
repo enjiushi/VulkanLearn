@@ -51,7 +51,7 @@ void main()
 	{
 		normal_ao = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].normalAOIndex), 0.0);
 
-		vec3 pertNormal = normal_ao.xyz * 2.0 - 1.0;
+		vec3 pertNormal = normalize(normal_ao.xyz * 2.0 - 1.0);
 		mat3 TBN = mat3(normalize(inTangent), normalize(inBitangent), normalize(inNormal));
 		pertNormal = TBN * pertNormal;
 
