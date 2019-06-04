@@ -23,6 +23,9 @@ uint32_t ChunkBasedUniforms::AllocatePerObjectChunk()
 	if (m_freeChunks[0].first > m_freeChunks[0].second)
 		m_freeChunks.erase(m_freeChunks.begin());
 
+	// To remind you when chunks are all in use(you'll have to increase the pool, statically or dynamically)
+	ASSERTION(m_freeChunks.size() != 0);
+
 	return index;
 }
 
