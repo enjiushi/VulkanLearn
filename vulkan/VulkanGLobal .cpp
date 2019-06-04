@@ -358,6 +358,7 @@ void VulkanGlobal::InitVertices()
 	m_pGunMesh = Mesh::Create("../data/textures/cerberus/cerberus.fbx", 0, VertexFormatPNTCT);
 	m_innerBallMeshes = Mesh::CreateMeshes("../data/models/Sample.FBX", VertexFormatPNTCT);
 	m_pSphereMesh = Mesh::Create("../data/models/sphere.obj", 0, VertexFormatPNTCT);
+	m_pSophiaMesh = Mesh::Create("../data/models/rp_sophia_animated_003_idling.FBX", 0, VertexFormatPNTCT);
 
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
@@ -421,7 +422,7 @@ void CombineRGBA8_R8_RGBA8(gli::texture2d& rgbaTex, gli::texture2d rTex)
 	}
 }
 
-void CombinecRGBcA8_RGBcAc8_RGBA8(gli::texture2d& rgba_rgbTex, gli::texture2d rgba_aTex)
+void CombineRGBA8_RGBA8(gli::texture2d& rgba_rgbTex, gli::texture2d rgba_aTex, bool revert = false, uint32_t whichChannel = 3)
 {
 
 	ASSERTION(rgba_rgbTex.extent().x == rgba_aTex.extent().x && rgba_rgbTex.extent().y == rgba_aTex.extent().y);
@@ -432,7 +433,10 @@ void CombinecRGBcA8_RGBcAc8_RGBA8(gli::texture2d& rgba_rgbTex, gli::texture2d rg
 
 	for (uint32_t i = 0; i < rgba_aTex.size() / 4; i++)
 	{
-		rgba_rgbTexData[i * 4 + 3] = rgba_aTexData[i * 4 + 3];
+		if (revert)
+			rgba_rgbTexData[i * 4 + 3] = 255 - rgba_aTexData[i * 4 + whichChannel];
+		else
+			rgba_rgbTexData[i * 4 + 3] = rgba_aTexData[i * 4 + whichChannel];
 	}
 }
 
@@ -487,9 +491,13 @@ void VulkanGlobal::InitUniforms()
 
 	gli::texture2d gliCamDirt(gli::load("../data/textures/cam_dirt_1024.ktx"));
 
-	m_pAlbedoRoughness = Texture2D::Create(m_pDevice, { {gliAlbedoTex} }, VK_FORMAT_R8G8B8A8_UNORM);
-	m_pMetalic = Texture2D::Create(m_pDevice, { {gliMetalic} }, VK_FORMAT_R8_UNORM);
-	m_pNormalAO = Texture2D::Create(m_pDevice, { {gliNormalTex} }, VK_FORMAT_R8G8B8A8_UNORM);
+	gli::texture2d gliSophiaAlbedoRoughness(gli::load("../data/textures/sophia_albedo_1024.ktx"));
+	gli::texture2d gliSophiaRoughness(gli::load("../data/textures/sophia_gloss_1024.ktx"));
+	CombineRGBA8_RGBA8(gliSophiaAlbedoRoughness, gliSophiaRoughness, true, 0);
+	//SetAlphaChannel(gliSophiaAlbedoRoughness, 0.0f * 255);
+
+	gli::texture2d gliSophiaNormal(gli::load("../data/textures/sophia_normal_1024.ktx"));
+	SetAlphaChannel(gliSophiaNormal, 1.0f * 255);
 
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunAlbedoRoughness", "", "RGB:Albedo, A:Roughness" }, gliAlbedoTex);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunNormalAO", "", "RGB:Normal, A:AO" }, gliNormalTex);
@@ -500,6 +508,8 @@ void VulkanGlobal::InitUniforms()
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::R8_1024, { "AluminumMetalic", "", "Aluminum plate metalic map" }, gliAluminumMetalic);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "AluminumAlbedoRoughness", "", "Aluminum plate albedo roughness" }, gliAluminumAlbedo);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "CamDirt0", "", "Camera dirt texture 0" }, gliCamDirt);
+	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "SophiaAlbedoRoughness", "", "Sophia model albedo" }, gliSophiaAlbedoRoughness);
+	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "SophiaNormalAO", "", "Sophia model normal" }, gliSophiaNormal);
 
 	gli::texture_cube gliSkyBox(gli::load("../data/textures/hdr/gcanyon_cube.ktx"));
 	UniformData::GetInstance()->GetGlobalTextures()->InitIBLTextures(gliSkyBox);
@@ -665,6 +675,14 @@ void VulkanGlobal::InitMaterials()
 	m_pBoxMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pBoxMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
+	m_pSophiaMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
+	m_pSophiaMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pSophiaMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	m_pSophiaMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.0f));
+	m_pSophiaMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, "SophiaAlbedoRoughness");
+	m_pSophiaMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "SophiaNormalAO");
+	m_pSophiaMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+
 	m_pSkyBoxMaterialInstance = RenderWorkManager::GetInstance()->AcquireSkyBoxMaterialInstance();
 
 	m_pShadowMapMaterialInstance = RenderWorkManager::GetInstance()->AcquireShadowMaterialInstance();
@@ -771,6 +789,13 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject2->SetScale(0.15f);
 	m_pBoxObject2->SetPos(-0.2f, -0.25f, 0.5f);
 
+	m_pSophiaRenderer = MeshRenderer::Create(m_pSophiaMesh, { m_pSophiaMaterialInstance, m_pShadowMapMaterialInstance });
+	m_pSophiaObject = BaseObject::Create();
+	m_pSophiaObject->AddComponent(m_pSophiaRenderer);
+	m_pSophiaObject->SetScale(0.005f);
+	m_pSophiaObject->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14f));
+	m_pSophiaObject->SetPos(0, -0.4f, -1);
+
 	Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
 	m_pQuadObject->SetRotation(Quaternionf(Vector3f(1, 0, 0), -1.57));
 
@@ -788,6 +813,7 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pBoxObject0);
 	m_pRootObject->AddChild(m_pBoxObject1);
 	m_pRootObject->AddChild(m_pBoxObject2);
+	m_pRootObject->AddChild(m_pSophiaObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pDirLightObj);
 
