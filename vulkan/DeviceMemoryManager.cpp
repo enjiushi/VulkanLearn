@@ -156,11 +156,11 @@ void DeviceMemoryManager::AllocateBufferMemory(uint32_t key, uint32_t numBytes, 
 	if (m_bufferMemPool.find(typeIndex) == m_bufferMemPool.end())
 	{
 		MemoryNode node;
-		node.numBytes = MEMORY_ALLOCATE_INC;
+		node.numBytes = (memoryPropertyBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) ? STAGING_MEMORY_ALLOCATE_INC : DEVICE_MEMORY_ALLOCATE_INC;
 
 		VkMemoryAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = MEMORY_ALLOCATE_INC;
+		allocInfo.allocationSize = node.numBytes;
 		allocInfo.memoryTypeIndex = typeIndex;
 		CHECK_VK_ERROR(vkAllocateMemory(GetDevice()->GetDeviceHandle(), &allocInfo, nullptr, &node.memory));
 
