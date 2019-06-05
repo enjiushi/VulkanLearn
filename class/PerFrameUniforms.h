@@ -35,19 +35,32 @@ typedef struct _BoneData
 	DualQuaternionf	boneReference;
 }BoneData;
 
-//class PerFrameBoneUniforms : public ChunkBasedUniforms
-//{
-//	static const uint32_t MAXIMUM_BONES = 1024;
-//
-//protected:
-//	bool Init(const std::shared_ptr<PerFrameBoneUniforms>& pSelf);
-//
-//public:
-//	static std::shared_ptr<PerFrameBoneUniforms> Create();
-//
-//public:
-//	std::vector<p
-//};
+class PerFrameBoneUniforms : public ChunkBasedUniforms
+{
+protected:
+	bool Init(const std::shared_ptr<PerFrameBoneUniforms>& pSelf);
+
+public:
+	static std::shared_ptr<PerFrameBoneUniforms> Create();
+
+public:
+	void SetAnimationTransform(uint32_t index, const DualQuaternionf& animationDQ) { m_boneData[index].boneAnimation = animationDQ; SetChunkDirty(index); }
+	void SetReferenceTransform(uint32_t index, const DualQuaternionf& referenceDQ) { m_boneData[index].boneReference = referenceDQ; SetChunkDirty(index); }
+
+	DualQuaternionf GetAnimationTransform(uint32_t index) const { return m_boneData[index].boneAnimation; }
+	DualQuaternionf GetReferenceTransform(uint32_t index) const { return m_boneData[index].boneReference; }
+
+	std::vector<UniformVarList> PrepareUniformVarList() const override;
+	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
+
+protected:
+	void UpdateDirtyChunkInternal(uint32_t index) override;
+	const void* AcquireDataPtr() const override { return &m_boneData[0]; }
+	uint32_t AcquireDataSize() const override { return sizeof(m_boneData); }
+
+protected:
+	BoneData	m_boneData[MAXIMUM_OBJECTS];
+};
 
 class PerFrameUniforms : public UniformDataStorage
 {

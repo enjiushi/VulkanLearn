@@ -4,8 +4,50 @@
 #include "../vulkan/Buffer.h"
 #include "../vulkan/DescriptorSet.h"
 #include "../vulkan/UniformBuffer.h"
+#include "../vulkan/ShaderStorageBuffer.h"
 #include "UniformData.h"
 #include "Material.h"
+
+bool PerFrameBoneUniforms::Init(const std::shared_ptr<PerFrameBoneUniforms>& pSelf)
+{
+	if (!ChunkBasedUniforms::Init(pSelf, sizeof(BoneData)))
+		return false;
+	return true;
+}
+
+std::shared_ptr<PerFrameBoneUniforms> PerFrameBoneUniforms::Create()
+{
+	std::shared_ptr<PerFrameBoneUniforms> pPerFrameBoneUniforms = std::make_shared<PerFrameBoneUniforms>();
+	if (pPerFrameBoneUniforms.get() && pPerFrameBoneUniforms->Init(pPerFrameBoneUniforms))
+		return pPerFrameBoneUniforms;
+	return nullptr;
+}
+
+void PerFrameBoneUniforms::UpdateDirtyChunkInternal(uint32_t index)
+{
+}
+
+std::vector<UniformVarList> PerFrameBoneUniforms::PrepareUniformVarList() const
+{
+	return
+	{
+		{
+			DynamicShaderStorageBuffer,
+			"PerFrameBoneUniforms",
+			{
+				{ Mat4x2Unit, "Animation transform of dual quaternion" },
+				{ Mat4x2Unit, "Reference transform of dual quaternion" },
+			}
+		}
+	};
+}
+
+uint32_t PerFrameBoneUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
+{
+	pDescriptorSet->UpdateShaderStorageBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
+
+	return bindingIndex;
+}
 
 bool PerFrameUniforms::Init(const std::shared_ptr<PerFrameUniforms>& pSelf)
 {
@@ -13,6 +55,7 @@ bool PerFrameUniforms::Init(const std::shared_ptr<PerFrameUniforms>& pSelf)
 		return false;
 	return true;
 }
+
 
 std::shared_ptr<PerFrameUniforms> PerFrameUniforms::Create()
 {
