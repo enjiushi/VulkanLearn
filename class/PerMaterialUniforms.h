@@ -24,8 +24,8 @@ public:
 		//                              chunkIndex * m_perMaterialInstanceBytes
 		//                                               |
 		//                                              offset
-		memcpy_s(m_pData + parameterChunkIndex * m_perMaterialInstanceBytes + parameterOffset, sizeof(val), &val, sizeof(val));
-		SetDirty();
+		memcpy_s(m_pData + parameterChunkIndex * m_perChunkBytes + parameterOffset, sizeof(val), &val, sizeof(val));
+		SetChunkDirty(parameterChunkIndex);
 	}
 
 	template <typename T>
@@ -33,16 +33,17 @@ public:
 	{
 		//return m_pMaterial->GetParameter(bindingIndex, parameterIndex);
 		T ret;
-		memcpy_s(&ret, sizeof(ret), m_pData + parameterChunkIndex * m_perMaterialInstanceBytes + parameterOffset, sizeof(T));
+		memcpy_s(&ret, sizeof(ret), m_pData + parameterChunkIndex * m_perChunkBytes + parameterOffset, sizeof(T));
 		return ret;
 	}
 
 protected:
 	bool Init(const std::shared_ptr<PerMaterialUniforms>& pSelf, uint32_t numBytes);
 
-	void SyncBufferDataInternal() override;
+	void UpdateDirtyChunkInternal(uint32_t index) override;
+	const void* AcquireDataPtr() const override { return m_pData; }
+	uint32_t AcquireDataSize() const override { return GetFrameOffset(); }
 
 protected:
 	uint8_t*	m_pData;
-	uint32_t	m_perMaterialInstanceBytes;
 };

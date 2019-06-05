@@ -28,25 +28,13 @@ void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4f& modelMatr
 {
 	m_perObjectVariables[index].prevModelMatrix = m_perObjectVariables[index].modelMatrix;
 	m_perObjectVariables[index].modelMatrix = modelMatrix;
-	SetDirty(index);
+	SetChunkDirty(index);
 }
 
-void PerObjectUniforms::SyncBufferDataInternal()
+void PerObjectUniforms::UpdateDirtyChunkInternal(uint32_t index)
 {
-	for (auto index : m_dirtyChunks)
-	{
-		m_perObjectVariables[index].prevMVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetPrevVPNMatrix() * m_perObjectVariables[index].prevModelMatrix;
-		m_perObjectVariables[index].MVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPNMatrix() * m_perObjectVariables[index].modelMatrix;
-	}
-	m_dirtyChunks.clear();
-
-	GetBuffer()->UpdateByteStream(m_perObjectVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perObjectVariables));
-}
-
-void PerObjectUniforms::SetDirty(uint32_t index)
-{
-	m_dirtyChunks.push_back(index);
-	UniformDataStorage::SetDirty();
+	m_perObjectVariables[index].prevMVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetPrevVPNMatrix() * m_perObjectVariables[index].prevModelMatrix;
+	m_perObjectVariables[index].MVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPNMatrix() * m_perObjectVariables[index].modelMatrix;
 }
 
 std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList() const

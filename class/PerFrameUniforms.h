@@ -1,7 +1,9 @@
 #pragma once
 
 #include "../Maths/Matrix.h"
+#include "../Maths/DualQuaternion.h"
 #include "UniformDataStorage.h"
+#include "ChunkBasedUniforms.h"
 
 class DescriptorSet;
 
@@ -27,12 +29,32 @@ typedef struct _PerFrameVariables
 	Vector2f	haltonX256Jitter;
 }PerFrameVariables;
 
+typedef struct _BoneData
+{
+	DualQuaternionf	boneAnimation;
+	DualQuaternionf	boneReference;
+}BoneData;
+
+//class PerFrameBoneUniforms : public ChunkBasedUniforms
+//{
+//	static const uint32_t MAXIMUM_BONES = 1024;
+//
+//protected:
+//	bool Init(const std::shared_ptr<PerFrameBoneUniforms>& pSelf);
+//
+//public:
+//	static std::shared_ptr<PerFrameBoneUniforms> Create();
+//
+//public:
+//	std::vector<p
+//};
+
 class PerFrameUniforms : public UniformDataStorage
 {
-	static const uint32_t MAXIMUM_OBJECTS = 1024;
+protected:
+	bool Init(const std::shared_ptr<PerFrameUniforms>& pSelf);
 
 public:
-	bool Init(const std::shared_ptr<PerFrameUniforms>& pSelf);
 	static std::shared_ptr<PerFrameUniforms> Create();
 
 public:
@@ -69,8 +91,10 @@ public:
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
-	void SyncBufferDataInternal() override;
-	void SetDirty() override;
+	void UpdateUniformDataInternal() override;
+	void SetDirtyInternal() override;
+	const void* AcquireDataPtr() const { return &m_perFrameVariables; }
+	uint32_t AcquireDataSize() const override { return sizeof(PerFrameVariables); }
 
 protected:
 	PerFrameVariables	m_perFrameVariables;

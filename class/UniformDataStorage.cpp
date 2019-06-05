@@ -28,14 +28,24 @@ void UniformDataStorage::SyncBufferData()
 	if (m_pendingSyncCount == 0)
 		return;
 
+	// only update uniform data when it's just dirty
+	if (m_pendingSyncCount == GetSwapChain()->GetSwapChainImageCount())
+		UpdateUniformDataInternal();
+
 	SyncBufferDataInternal();
 
 	m_pendingSyncCount--;
 }
 
+void UniformDataStorage::SyncBufferDataInternal()
+{
+	GetBuffer()->UpdateByteStream(AcquireDataPtr(), FrameMgr()->FrameIndex() * GetFrameOffset(), AcquireDataSize());
+}
+
 void UniformDataStorage::SetDirty()
 {
 	m_pendingSyncCount = GetSwapChain()->GetSwapChainImageCount();
+	SetDirtyInternal();
 }
 
 std::shared_ptr<Buffer> UniformDataStorage::GetBuffer() const

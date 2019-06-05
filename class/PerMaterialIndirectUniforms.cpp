@@ -23,9 +23,8 @@ std::shared_ptr<PerMaterialIndirectUniforms> PerMaterialIndirectUniforms::Create
 	return nullptr;
 }
 
-void PerMaterialIndirectUniforms::SyncBufferDataInternal()
+void PerMaterialIndirectUniforms::UpdateDirtyChunkInternal(uint32_t index)
 {
-	GetBuffer()->UpdateByteStream(m_perMaterialIndirectIndex, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_perMaterialIndirectIndex));
 }
 
 std::vector<UniformVarList> PerMaterialIndirectUniforms::PrepareUniformVarList() const

@@ -11,6 +11,8 @@ bool ChunkBasedUniforms::Init(const std::shared_ptr<ChunkBasedUniforms>& pSelf, 
 	if (!UniformDataStorage::Init(pSelf, numBytes * MAXIMUM_OBJECTS, true))
 		return false;
 
+	m_perChunkBytes = numBytes;
+
 	m_freeChunks.push_back({ 0, MAXIMUM_OBJECTS });
 	return true;
 }
@@ -88,4 +90,25 @@ void ChunkBasedUniforms::FreePreObjectChunk(uint32_t index)
 {
 	FreePreObjectChunk(index, 0, m_freeChunks.size() - 1);
 }
+
+void ChunkBasedUniforms::UpdateUniformDataInternal()
+{
+	for (auto index : m_dirtyChunks)
+	{
+		UpdateDirtyChunkInternal(index);
+	}
+	m_dirtyChunks.clear();
+}
+
+void ChunkBasedUniforms::SetDirtyInternal()
+{
+}
+
+void ChunkBasedUniforms::SetChunkDirty(uint32_t index)
+{
+	m_dirtyChunks.push_back(index);
+
+	UniformDataStorage::SetDirty();
+}
+
 

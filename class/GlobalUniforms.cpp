@@ -114,20 +114,17 @@ void GlobalUniforms::SetMotionTileSize(const Vector2f& size)
 	SetDirty();
 }
 
-void GlobalUniforms::SyncBufferDataInternal()
+void GlobalUniforms::UpdateUniformDataInternal()
 {
 	m_globalVariables.prevPN = m_globalVariables.PN;
 	m_globalVariables.PN = m_globalVariables.vulkanNDC * m_globalVariables.projectionMatrix;
 
 	m_globalVariables.DOFSettings0.z = m_globalVariables.mainCameraSettings0.w * m_globalVariables.mainCameraSettings0.w / 
 		(m_globalVariables.mainCameraSettings1.y * (m_globalVariables.mainCameraSettings1.x - m_globalVariables.mainCameraSettings0.w) * m_globalVariables.mainCameraSettings0.y * 2.0f);
-
-	GetBuffer()->UpdateByteStream(&m_globalVariables, FrameMgr()->FrameIndex() * GetFrameOffset(), sizeof(m_globalVariables));
 }
 
-void GlobalUniforms::SetDirty()
+void GlobalUniforms::SetDirtyInternal()
 {
-	UniformDataStorage::SetDirty();
 }
 
 void GlobalUniforms::SetMainLightDir(const Vector3f& dir)

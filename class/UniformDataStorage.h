@@ -13,9 +13,6 @@ enum MaterialVariableType;
 
 class UniformDataStorage : public UniformBase
 {
-protected:
-	static const uint32_t MAXIMUM_OBJECTS = 1024;
-
 public:
 	bool Init(const std::shared_ptr<UniformDataStorage>& pSelf, uint32_t numBytes, bool perObject);
 
@@ -25,8 +22,12 @@ public:
 	std::shared_ptr<Buffer> GetBuffer() const;
 
 protected:
-	virtual void SyncBufferDataInternal() = 0;
-	virtual void SetDirty();
+	virtual void UpdateUniformDataInternal() = 0;
+	virtual void SyncBufferDataInternal();
+	virtual void SetDirtyInternal() = 0;
+	virtual const void* AcquireDataPtr() const = 0;
+	virtual uint32_t AcquireDataSize() const = 0;
+	void SetDirty();
 
 protected:
 	std::shared_ptr<UniformBuffer>			m_pUniformBuffer;

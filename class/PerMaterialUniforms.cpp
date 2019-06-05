@@ -15,7 +15,6 @@ bool PerMaterialUniforms::Init(const std::shared_ptr<PerMaterialUniforms>& pSelf
 
 	m_pData = new uint8_t[GetFrameOffset()];
 	memset(m_pData, 0, GetFrameOffset());
-	m_perMaterialInstanceBytes = numBytes;
 
 	return true;
 }
@@ -33,9 +32,8 @@ std::shared_ptr<PerMaterialUniforms> PerMaterialUniforms::Create(uint32_t numByt
 	return nullptr;
 }
 
-void PerMaterialUniforms::SyncBufferDataInternal()
+void PerMaterialUniforms::UpdateDirtyChunkInternal(uint32_t index)
 {
-	GetBuffer()->UpdateByteStream(m_pData, FrameMgr()->FrameIndex() * GetFrameOffset(), GetFrameOffset());
 }
 
 uint32_t PerMaterialUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const

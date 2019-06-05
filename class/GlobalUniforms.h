@@ -307,8 +307,10 @@ public:
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
-	void SyncBufferDataInternal() override;
-	void SetDirty() override;
+	void UpdateUniformDataInternal() override;
+	void SetDirtyInternal() override;
+	const void* AcquireDataPtr() const override { return &m_globalVariables; }
+	uint32_t AcquireDataSize() const override { return sizeof(GlobalVariables); }
 
 	void InitSSAORandomSample();
 

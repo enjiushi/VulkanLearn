@@ -30,10 +30,11 @@ public:
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
-	void SyncBufferDataInternal() override;
-	void SetDirty(uint32_t index);
+	void UpdateDirtyChunkInternal(uint32_t index) override;
+	const void* AcquireDataPtr() const override { return &m_perObjectVariables[0]; }
+	uint32_t AcquireDataSize() const override { return sizeof(m_perObjectVariables); }
 
 protected:
-	PerObjectVariables	m_perObjectVariables[MAXIMUM_OBJECTS];
+	PerObjectVariables		m_perObjectVariables[MAXIMUM_OBJECTS];
 	std::vector<uint32_t>	m_dirtyChunks;
 };
