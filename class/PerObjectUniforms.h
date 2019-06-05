@@ -17,8 +17,10 @@ typedef struct _PerObjectVariables
 
 class PerObjectUniforms : public ChunkBasedUniforms
 {
-public:
+protected:
 	bool Init(const std::shared_ptr<PerObjectUniforms>& pSelf);
+
+public:
 	static std::shared_ptr<PerObjectUniforms> Create();
 
 public:
