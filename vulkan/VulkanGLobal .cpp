@@ -36,6 +36,7 @@
 #include "../class/InputHub.h"
 #include "../class/Timer.h"
 #include "../component/FrustumJitter.h"
+#include "../class/AssimpSceneReader.h"
 
 bool PREBAKE_CB = true;
 
@@ -355,10 +356,11 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	m_pGunMesh = Mesh::Create("../data/textures/cerberus/cerberus.fbx", 0, VertexFormatPNTCT);
-	m_innerBallMeshes = Mesh::CreateMeshes("../data/models/Sample.FBX", VertexFormatPNTCT);
-	m_pSphereMesh = Mesh::Create("../data/models/sphere.obj", 0, VertexFormatPNTCT);
-	m_pSophiaMesh = Mesh::Create("../data/models/rp_sophia_animated_003_idling.FBX", 0, VertexFormatPNTCT);
+	//m_pGunMesh = Mesh::Create("../data/textures/cerberus/cerberus.fbx", 0, VertexFormatPNTCT);
+	m_pGunMesh = AssimpSceneReader::Read("../data/textures/cerberus/cerberus.fbx", { VertexFormatPNTCT }, 0);
+	m_innerBallMeshes = AssimpSceneReader::Read("../data/models/Sample.FBX", { VertexFormatPNTCT });
+	m_pSphereMesh = AssimpSceneReader::Read("../data/models/sphere.obj", { VertexFormatPNTCT }, 0);
+	m_pSophiaMesh = AssimpSceneReader::Read("../data/models/rp_sophia_animated_003_idling.FBX", { VertexFormatPNTCT }, 0);
 
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
