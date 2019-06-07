@@ -41,6 +41,12 @@ struct GlobalData
 	vec4 SSAOSamples[64];
 };
 
+struct PerFrameBoneData
+{
+	mat4x2 animationDQ;
+	mat4x2 referenceDQ;
+};
+
 struct PerFrameData
 {
 	mat4 view;
@@ -92,6 +98,11 @@ layout(set = 0, binding = 8) uniform sampler2D SSAO_RANDOM_ROTATIONS;
 layout(set = 1, binding = 0) uniform PerFrameUniforms
 {
 	PerFrameData perFrameData;
+};
+
+layout(set = 1, binding = 1) uniform PerFrameBoneUniforms
+{
+	PerFrameBoneData perFrameBoneData[];
 };
 
 layout(set = 2, binding = 0) buffer PerObjectUniforms
