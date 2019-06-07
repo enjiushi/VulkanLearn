@@ -22,6 +22,7 @@ bool UniformData::Init()
 		switch ((UniformStorageType)i)
 		{
 		case UniformStorageType::GlobalVariableBuffer: m_uniformStorageBuffers[i] = GlobalUniforms::Create(); break;
+		case UniformStorageType::PerFrameBonesBuffer: m_uniformStorageBuffers[i] = PerFrameBoneUniforms::Create(); break;
 		case UniformStorageType::PerFrameVariableBuffer: m_uniformStorageBuffers[i] = PerFrameUniforms::Create(); break;
 		case UniformStorageType::PerObjectVariableBuffer: m_uniformStorageBuffers[i] = PerObjectUniforms::Create(); break;
 		default:
@@ -88,6 +89,10 @@ void UniformData::BuildDescriptorSets()
 
 	// Setup per frame uniform var list
 	std::vector<UniformVarList> perFrameUniformVars = m_uniformStorageBuffers[UniformStorageType::PerFrameVariableBuffer]->PrepareUniformVarList();
+
+	// Setup per frame bone var list
+	std::vector<UniformVarList> perFrameBoneVars = m_uniformStorageBuffers[UniformStorageType::PerFrameBonesBuffer]->PrepareUniformVarList();
+	perFrameUniformVars.insert(perFrameUniformVars.end(), perFrameBoneVars.begin(), perFrameBoneVars.end());
 
 	// Setup per object uniform var list
 	std::vector<UniformVarList> perObjectUniformVars = m_uniformStorageBuffers[UniformStorageType::PerObjectVariableBuffer]->PrepareUniformVarList();
@@ -198,7 +203,9 @@ void UniformData::BuildDescriptorSets()
 	bindingSlot = m_uniformTextures[GlobalUniformTextures]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 
 	// 2. Per frame descriptor set
-	m_uniformStorageBuffers[PerFrameVariableBuffer]->SetupDescriptorSet(m_descriptorSets[PerFrameUniformsLocation], 0);
+	bindingSlot = 0;
+	bindingSlot = m_uniformStorageBuffers[PerFrameVariableBuffer]->SetupDescriptorSet(m_descriptorSets[PerFrameUniformsLocation], bindingSlot);
+	bindingSlot = m_uniformStorageBuffers[PerFrameBonesBuffer]->SetupDescriptorSet(m_descriptorSets[PerFrameUniformsLocation], bindingSlot);
 
 	// 3. Per object descriptor set
 	m_uniformStorageBuffers[PerObjectVariableBuffer]->SetupDescriptorSet(m_descriptorSets[PerObjectUniformsLocation], 0);
