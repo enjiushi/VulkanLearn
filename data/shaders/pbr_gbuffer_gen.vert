@@ -38,4 +38,6 @@ void main()
 	outBitangent = normalize(cross(outNormal, outTangent));
 
 	perMaterialIndex = objectDataIndex[gl_DrawID].perMaterialIndex;
+
+	gl_Position.z = gl_Position.y + perFrameBoneData[0].animationDQ[0].x;
 }

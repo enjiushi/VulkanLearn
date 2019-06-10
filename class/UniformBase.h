@@ -14,7 +14,7 @@ enum UBOType
 	Vec2Unit,
 	Vec3Unit,
 	Vec4Unit,
-	Mat4x2Unit,
+	Mat2x4Unit,
 	Mat3Unit,
 	Mat4Unit,
 	UBOTypeCount

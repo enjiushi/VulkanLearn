@@ -43,8 +43,8 @@ struct GlobalData
 
 struct PerFrameBoneData
 {
-	mat4x2 animationDQ;
-	mat4x2 referenceDQ;
+	mat2x4 animationDQ;
+	mat2x4 referenceDQ;
 };
 
 struct PerFrameData
