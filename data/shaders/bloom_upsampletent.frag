@@ -3,7 +3,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-#include "uniform_layout.h"
+#include "uniform_layout.sh"
 
 layout (set = 3, binding = 2) uniform sampler2D PrevBloomUpsample[3];
 

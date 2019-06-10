@@ -18,7 +18,7 @@ layout (location = 6) out vec3 outWorldPos;
 layout (location = 7) out vec3 outEyePos;
 layout (location = 8) noperspective out vec2 outScreenPos;
 
-#include "uniform_layout.h"
+#include "uniform_layout.sh"
 
 void main() 
 {
@@ -38,6 +38,4 @@ void main()
 	outBitangent = normalize(cross(outNormal, outTangent));
 
 	perMaterialIndex = objectDataIndex[gl_DrawID].perMaterialIndex;
-
-	gl_Position.z = gl_Position.y + perFrameBoneData[0].animationDQ[0].x;
 }

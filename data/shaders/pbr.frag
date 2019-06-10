@@ -18,7 +18,7 @@ layout(set = 3, binding = 1) buffer MaterialUniforms
 	PBRTextures textures[];
 };
 
-#include "uniform_layout.h"
+#include "uniform_layout.sh"
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inNormal;

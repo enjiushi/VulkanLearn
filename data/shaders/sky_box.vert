@@ -7,7 +7,7 @@ layout (location = 0) in vec3 inPos;
 
 layout (location = 0) out vec3 outSampleDir;
 
-#include "uniform_layout.h"
+#include "uniform_layout.sh"
 
 void main() 
 {

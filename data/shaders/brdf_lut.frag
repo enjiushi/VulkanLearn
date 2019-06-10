@@ -7,7 +7,7 @@ layout (location = 0) in vec2 inUv;
 
 layout (location = 0) out vec4 outFragColor;
 
-#include "uniform_layout.h"
+#include "uniform_layout.sh"
 
 const uint numSamples = 1024;
 

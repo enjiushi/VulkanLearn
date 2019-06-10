@@ -17,7 +17,7 @@ layout (location = 5) out vec3 outTangent;
 layout (location = 6) out vec3 outBitangent;
 layout (location = 7) flat out int perMaterialIndex;
 
-#include "uniform_layout.h"
+#include "uniform_layout.sh"
 
 const vec3 lightPos = vec3(1000, 0, -1000);
 

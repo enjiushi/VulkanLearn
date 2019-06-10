@@ -13,7 +13,7 @@ layout (location = 1) out vec2 outOneNearPosition;
 layout (location = 2) out vec3 outWsViewRay;
 #endif
 
-#include "uniform_layout.h"
+#include "uniform_layout.sh"
 
 void main() 
 {

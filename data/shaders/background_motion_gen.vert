@@ -7,7 +7,7 @@ layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 prevClipSpacePos;
 layout (location = 2) out vec3 currClipSpacePos;
 
-#include "uniform_layout.h"
+#include "uniform_layout.sh"
 
 void main() 
 {

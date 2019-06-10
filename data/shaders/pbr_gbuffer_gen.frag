@@ -19,7 +19,7 @@ layout (location = 2) out vec4 outGBuffer2;
 layout (location = 3) out vec4 outGBuffer3;
 layout (location = 4) out vec4 outMotionVec;
 
-#include "uniform_layout.h"
+#include "uniform_layout.sh"
 
 struct PBRTextures
 {

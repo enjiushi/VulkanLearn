@@ -8,7 +8,7 @@ layout (location = 1) in vec3 inNormal;
 layout (location = 3) in vec2 inUv;
 layout (location = 4) in vec3 inTangent;
 
-#include "uniform_layout.h"
+#include "uniform_layout.sh"
 
 void main() 
 {
