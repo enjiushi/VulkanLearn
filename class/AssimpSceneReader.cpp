@@ -3,8 +3,12 @@
 #include "../common/Macros.h"
 #include "Mesh.h"
 #include "UniformData.h"
+#include "../Base/BaseObject.h"
+#include <string>
+#include <codecvt>
+#include <locale>
 
-std::vector<std::shared_ptr<Mesh>> AssimpSceneReader::Read(const std::string& path, std::vector<uint32_t> argumentedVAFList)
+std::vector<std::shared_ptr<Mesh>> AssimpSceneReader::Read(const std::string& path, const std::vector<uint32_t>& argumentedVAFList)
 {
 	Assimp::Importer imp;
 	const aiScene* pScene = nullptr;
@@ -34,7 +38,7 @@ std::vector<std::shared_ptr<Mesh>> AssimpSceneReader::Read(const std::string& pa
 	return meshes;
 }
 
-std::shared_ptr<Mesh> AssimpSceneReader::Read(const std::string& path, std::vector<uint32_t> argumentedVAFList, uint32_t meshIndex)
+std::shared_ptr<Mesh> AssimpSceneReader::Read(const std::string& path, const std::vector<uint32_t>& argumentedVAFList, uint32_t meshIndex)
 {
 	Assimp::Importer imp;
 	const aiScene* pScene = nullptr;
@@ -54,6 +58,63 @@ std::shared_ptr<Mesh> AssimpSceneReader::Read(const std::string& path, std::vect
 	ExtractAnimations(path);
 
 	return pMesh;
+}
+
+std::shared_ptr<BaseObject> AssimpSceneReader::ReadAndAssemblyScene(const std::string& path, const std::vector<uint32_t>& argumentedVAFList, std::vector<MeshLink>& outputMeshLinks)
+{
+	Assimp::Importer imp;
+	const aiScene* pScene = nullptr;
+	pScene = imp.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
+	ASSERTION(pScene != nullptr);
+
+	return AssemblyNode(pScene->mRootNode, pScene, argumentedVAFList, outputMeshLinks);
+}
+
+std::shared_ptr<BaseObject> AssimpSceneReader::AssemblyNode(const aiNode* pAssimpNode, const aiScene* pScene, const std::vector<uint32_t>& argumentedVAFList, std::vector<MeshLink>& outputMeshLinks)
+{
+	if (pAssimpNode == nullptr)
+		return nullptr;
+
+	std::shared_ptr<BaseObject> pObject = BaseObject::Create();
+
+	aiMatrix4x4 assimp_matrix = pAssimpNode->mTransformation;
+	Matrix3f rotation(
+		assimp_matrix.a1, assimp_matrix.b1, assimp_matrix.c1,
+		assimp_matrix.a2, assimp_matrix.b2, assimp_matrix.c2,
+		assimp_matrix.a3, assimp_matrix.b3, assimp_matrix.c3);
+
+	Vector3f translation(assimp_matrix.a4, assimp_matrix.b4, assimp_matrix.c4);
+
+	pObject->SetRotation(rotation);
+	pObject->SetPos(translation);
+
+	std::wstring wstr_name = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pAssimpNode->mName.C_Str());
+	pObject->SetDescription(wstr_name);
+
+	for (int32_t i = 0; i < pAssimpNode->mNumMeshes; i++)
+	{
+		std::shared_ptr<Mesh> pMesh = nullptr;
+
+		// Iterate all argumented vertex format, from first to last, and see if we can get one match
+		for (auto vaf : argumentedVAFList)
+		{
+			pMesh = Mesh::Create(pScene->mMeshes[pAssimpNode->mMeshes[i]], vaf);
+			if (pMesh)
+				break;
+		}
+
+		// Add mesh to result vector if available
+		if (pMesh)
+			outputMeshLinks.push_back({ pMesh, pObject });
+	}
+
+	for (uint32_t i = 0; i < pAssimpNode->mNumChildren; i++)
+	{
+		std::shared_ptr<BaseObject> pChild = AssemblyNode(pAssimpNode->mChildren[i], pScene, argumentedVAFList, outputMeshLinks);
+		pObject->AddChild(pChild);
+	}
+
+	return pObject;
 }
 
 void AssimpSceneReader::ExtractAnimations(const std::string& path)
