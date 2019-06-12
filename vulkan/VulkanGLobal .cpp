@@ -356,7 +356,6 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	m_innerBallMeshes = AssimpSceneReader::Read("../data/models/Sample.FBX", { VertexFormatPNTCT });
 	m_pSphereMesh = AssimpSceneReader::Read("../data/models/sphere.obj", { VertexFormatPNTCT }, 0);
 
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
@@ -723,10 +722,6 @@ void VulkanGlobal::InitScene()
 	m_pSphere1 = BaseObject::Create();
 	m_pSphere2 = BaseObject::Create();
 
-	m_pInnerBall = BaseObject::Create();
-	for (uint32_t i = 0; i < m_innerBallMeshes.size(); i++)
-		m_innerBallObjects.push_back(BaseObject::Create());
-
 	m_pQuadObject = BaseObject::Create();
 	m_pBoxObject0 = BaseObject::Create();
 	m_pBoxObject1 = BaseObject::Create();
@@ -735,9 +730,6 @@ void VulkanGlobal::InitScene()
 	m_pSphereRenderer0 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pSphereRenderer1 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pSphereRenderer2 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance2, m_pShadowMapMaterialInstance });
-
-	for (uint32_t i = 0; i < m_innerBallMeshes.size(); i++)
-		m_innerBallRenderers.push_back(MeshRenderer::Create(m_innerBallMeshes[i], { m_innerBallMaterialInstances[i], m_pShadowMapMaterialInstance }));
 
 	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer0 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance0, m_pShadowMapMaterialInstance });
@@ -766,14 +758,16 @@ void VulkanGlobal::InitScene()
 	m_pSphere2->SetPos(1, -0.15f, 0.6f);
 	m_pSphere2->SetScale(0.01f);
 
+	m_pInnerBall = AssimpSceneReader::ReadAndAssemblyScene("../data/models/Sample.FBX", { VertexFormatPNTCT }, meshLinks);
+	for (uint32_t i = 0; i < meshLinks.size(); i++)
+	{
+		m_innerBallRenderers.push_back(MeshRenderer::Create(meshLinks[i].first, { m_innerBallMaterialInstances[i], m_pShadowMapMaterialInstance }));
+		meshLinks[i].second->AddComponent(m_innerBallRenderers[i]);
+	}
 	m_pInnerBall->SetPos(-1.3f, -0.4f, 0);
 	m_pInnerBall->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14));
-	for (uint32_t i = 0; i < m_innerBallMeshes.size(); i++)
-	{
-		m_innerBallObjects[i]->AddComponent(m_innerBallRenderers[i]);
-		m_pInnerBall->AddChild(m_innerBallObjects[i]);
-	}
 	m_pInnerBall->SetScale(0.005f);
+	meshLinks.clear();
 
 	m_pQuadObject->AddComponent(m_pQuadRenderer);
 	m_pQuadObject->SetPos(-0.5f, -0.4f, 0);
@@ -806,6 +800,7 @@ void VulkanGlobal::InitScene()
 	m_pSophiaObject->SetScale(0.005f);
 	m_pSophiaObject->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14f));
 	m_pSophiaObject->SetPos(0, -0.4f, -1);
+	meshLinks.clear();
 
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pGunObject);
