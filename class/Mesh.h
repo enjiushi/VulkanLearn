@@ -34,6 +34,7 @@ public:
 protected:
 	bool Init
 	(
+		const std::shared_ptr<Mesh>& pSelf,
 		const void* pVertices, uint32_t verticesCount, uint32_t vertexFormat,
 		const void* pIndices, uint32_t indicesCount, VkIndexType indexType
 	);

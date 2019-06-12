@@ -10,10 +10,14 @@
 
 bool Mesh::Init
 (
+	const std::shared_ptr<Mesh>& pSelf,
 	const void* pVertices, uint32_t verticesCount, uint32_t vertexFormat,
 	const void* pIndices, uint32_t indicesCount, VkIndexType indexType
 )
 {
+	if (!SelfRefBase<Mesh>::Init(pSelf))
+		return false;
+
 	m_vertexBytes = ::GetVertexBytes(vertexFormat);
 	m_verticesCount = verticesCount;
 	m_indicesCount = indicesCount;
@@ -35,6 +39,7 @@ std::shared_ptr<Mesh> Mesh::Create
 	std::shared_ptr<Mesh> pRetMesh = std::make_shared<Mesh>();
 	if (pRetMesh.get() && pRetMesh->Init
 	(
+		pRetMesh,
 		pVertices, verticesCount, vertexFormat,
 		pIndices, indicesCount, indexType
 	))
@@ -163,6 +168,7 @@ std::shared_ptr<Mesh> Mesh::Create(const aiMesh* pMesh, uint32_t argumentedVerte
 	std::shared_ptr<Mesh> pRetMesh = std::make_shared<Mesh>();
 	if (pRetMesh.get() && pRetMesh->Init
 	(
+		pRetMesh,
 		pVertices, pMesh->mNumVertices, vertexFormat,
 		pIndices, pMesh->mNumFaces * 3, VK_INDEX_TYPE_UINT32
 	))
