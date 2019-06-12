@@ -186,12 +186,12 @@ Quaternion<T> Matrix3x3<T>::AcquireQuaternion() const
 		if (c00 > c11)
 		{
 			t = static_cast<T>(1.0) + c00 - c11 - c22;
-			q = Quaternion<T>(c12 - c21, t, c01 + c10, c20 + c02);
+			q = Quaternion<T>(t, c01 + c10, c20 + c02, c12 - c21);
 		}
 		else
 		{
 			t = static_cast<T>(1.0) - c00 + c11 - c22;
-			q = Quaternion<T>(c20 - c02, c01 + c10, t, c12 + c21);
+			q = Quaternion<T>(c01 + c10, t, c12 + c21, c20 - c02);
 		}
 	}
 	else
@@ -199,12 +199,12 @@ Quaternion<T> Matrix3x3<T>::AcquireQuaternion() const
 		if (c00 < -c11)
 		{
 			t = static_cast<T>(1.0) - c00 - c11 + c22;
-			q = Quaternion<T>(c01 - c10, c20 + c02, c12 + c21, t);
+			q = Quaternion<T>(c20 + c02, c12 + c21, t, c01 - c10);
 		}
 		else
 		{
 			t = static_cast<T>(1.0) + c00 + c11 + c22;
-			q = Quaternion<T>(t, c12 - c21, c20 - c02, c01 - c10);
+			q = Quaternion<T>(c12 - c21, c20 - c02, c01 - c10, t);
 		}
 	}
 	q *= static_cast<T>(0.5) / std::sqrt(t);

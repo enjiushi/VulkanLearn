@@ -20,7 +20,7 @@ public:
 	DualQuaternion(const DualQuaternion<T>& dq);
 	DualQuaternion(const Quaternion<T>& r, const Quaternion<T>& t);
 	DualQuaternion(const Quaternion<T>& r, const Vector3<T>& t);
-	DualQuaternion(T _w, T _x, T _y, T _z, T _dw, T _dx, T _dy, T _dz);
+	DualQuaternion(T _x, T _y, T _z, T _w, T _dx, T _dy, T _dz, T _dw);
 	DualQuaternion(const T* pData);
 
 	bool operator == (const DualQuaternion<T>& dq) const;
@@ -45,8 +45,8 @@ public:
 	{
 		struct
 		{
-			T w, x, y, z;
-			T dw, dx, dy, dz;
+			T x, y, z, w;
+			T dx, dy, dz, dw;
 		};
 		struct
 		{

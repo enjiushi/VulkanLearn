@@ -12,10 +12,10 @@ Quaternion<T>::Quaternion()
 template<typename T>
 Quaternion<T>::Quaternion(const Quaternion<T>& q)
 {
-	w = q.w;
 	x = q.x;
 	y = q.y;
 	z = q.z;
+	w = q.w;
 }
 
 template<typename T>
@@ -62,28 +62,28 @@ Quaternion<T>::Quaternion(const Matrix3x3<T>& m)
 }
 
 template<typename T>
-Quaternion<T>::Quaternion(T _w, T _x, T _y, T _z)
+Quaternion<T>::Quaternion(T _x, T _y, T _z, T _w)
 {
-	w = _w;
 	x = _x;
 	y = _y;
 	z = _z;
+	w = _w;
 }
 
 template<typename T>
 Quaternion<T>::Quaternion(const T* pData)
 {
-	w = pData[0];
-	x = pData[1];
-	y = pData[2];
-	z = pData[3];
+	x = pData[0];
+	y = pData[1];
+	z = pData[2];
+	w = pData[3];
 }
 
 template<typename T>
 Quaternion<T>::Quaternion(T _real, const Vector3<T>& _imag)
 {
-	real = _real;
 	imag = _imag;
+	real = _real;
 }
 
 template<typename T>
@@ -130,15 +130,15 @@ bool Quaternion<T>::operator != (const Quaternion<T>& q) const
 template<typename T>
 Quaternion<T>& Quaternion<T>::operator *= (const Quaternion<T>& q)
 {
-	T _w = w * q.w - x * q.x - y * q.y - z * q.z;
 	T _x = w * q.x + x * q.w + y * q.z - z * q.y;
 	T _y = w * q.y + y * q.w + z * q.x - x * q.z;
 	T _z = w * q.z + z * q.w + x * q.y - y * q.x;
+	T _w = w * q.w - x * q.x - y * q.y - z * q.z;
 
-	w = _w;
 	x = _x;
 	y = _y;
 	z = _z;
+	w = _w;
 
 	return *this;
 }
@@ -146,10 +146,10 @@ Quaternion<T>& Quaternion<T>::operator *= (const Quaternion<T>& q)
 template<typename T>
 Quaternion<T>& Quaternion<T>::operator *= (T s)
 {
-	w *= s;
 	x *= s;
 	y *= s;
 	z *= s;
+	w *= s;
 
 	return *this;
 }
@@ -173,10 +173,10 @@ Quaternion<T> Quaternion<T>::operator * (T s) const
 template<typename T>
 Quaternion<T>& Quaternion<T>::operator += (const Quaternion<T>& q)
 {
-	w += q.w;
 	x += q.x;
 	y += q.y;
 	z += q.z;
+	w += q.w;
 
 	return *this;
 }
@@ -229,7 +229,7 @@ Quaternion<T> Quaternion<T>::Normal()
 template<typename T>
 T Quaternion<T>::Dot(const Quaternion<T>& q)
 {
-	return w * q.w + x * q.x + y * q.y + z * q.z;
+	return x * q.x + y * q.y + z * q.z + w * q.w;
 }
 
 template<typename T>
@@ -298,10 +298,10 @@ Quaternion<T> Quaternion<T>::NLerp(const Quaternion<T>& from, const Quaternion<T
 {
 	Quaternion<T> ret;
 
-	ret.w = from.w * factor + to.w * (static_cast<T>(1.0) - factor);
 	ret.x = from.x * factor + to.x * (static_cast<T>(1.0) - factor);
 	ret.y = from.y * factor + to.y * (static_cast<T>(1.0) - factor);
 	ret.z = from.z * factor + to.z * (static_cast<T>(1.0) - factor);
+	ret.w = from.w * factor + to.w * (static_cast<T>(1.0) - factor);
 
 	return ret.Normalize();
 }
@@ -309,5 +309,5 @@ Quaternion<T> Quaternion<T>::NLerp(const Quaternion<T>& from, const Quaternion<T
 template<typename T>
 T Quaternion<T>::Dot(const Quaternion<T>& q0, const Quaternion<T>& q1)
 {
-	return q0.w * q1.w + q0.x * q1.x + q0.y * q1.y + q0.z *q1.z;
+	return q0.x * q1.x + q0.y * q1.y + q0.z *q1.z + q0.w * q1.w;
 }

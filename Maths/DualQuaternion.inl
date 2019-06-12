@@ -5,7 +5,7 @@
 template<typename T>
 DualQuaternion<T>::DualQuaternion()
 {
-	real = Quaternionf(1, 0, 0, 0);
+	real = Quaternionf(0, 0, 0, 1);
 	dual = Quaternionf(0, 0, 0, 0);
 }
 
@@ -31,10 +31,10 @@ DualQuaternion<T>::DualQuaternion(const Quaternion<T>& r, const Vector3<T>& t)
 }
 
 template<typename T>
-DualQuaternion<T>::DualQuaternion(T _w, T _x, T _y, T _z, T _dw, T _dx, T _dy, T _dz)
+DualQuaternion<T>::DualQuaternion(T _x, T _y, T _z, T _w, T _dx, T _dy, T _dz, T _dw)
 {
-	real = Quaternion<T>(_w, _x, _y, _z);
-	dual = Quaternion<T>(_dw, _dx, _dy, _dz);
+	real = Quaternion<T>(_x, _y, _z, _w);
+	dual = Quaternion<T>(_dx, _dy, _dz, _dw);
 }
 
 template<typename T>
@@ -128,15 +128,15 @@ DualQuaternion<T> DualQuaternion<T>::DLB(const DualQuaternion<T>& from, const Du
 {
 	DualQuaternion<T> ret;
 	
-	ret.real.w = from.real.w * factor + to.real.w * (static_cast<T>(1.0) - factor);
 	ret.real.x = from.real.x * factor + to.real.x * (static_cast<T>(1.0) - factor);
 	ret.real.y = from.real.y * factor + to.real.y * (static_cast<T>(1.0) - factor);
 	ret.real.z = from.real.z * factor + to.real.z * (static_cast<T>(1.0) - factor);
+	ret.real.w = from.real.w * factor + to.real.w * (static_cast<T>(1.0) - factor);
 
-	ret.dual.w = from.dual.w * factor + to.dual.w * (static_cast<T>(1.0) - factor);
 	ret.dual.x = from.dual.x * factor + to.dual.x * (static_cast<T>(1.0) - factor);
 	ret.dual.y = from.dual.y * factor + to.dual.y * (static_cast<T>(1.0) - factor);
 	ret.dual.z = from.dual.z * factor + to.dual.z * (static_cast<T>(1.0) - factor);
+	ret.dual.w = from.dual.w * factor + to.dual.w * (static_cast<T>(1.0) - factor);
 
 	ret.Normalize();
 

@@ -13,9 +13,9 @@ public:
 	Quaternion();
 	Quaternion(const Quaternion<T>& q);
 	Quaternion(const Matrix3x3<T>& m);
-	Quaternion(T _w, T _x, T _y, T _z);
+	Quaternion(T _x, T _y, T _z, T _w);
 	Quaternion(const T* pData);
-	Quaternion(T real, const Vector3<T>& imag);
+	Quaternion(T _real, const Vector3<T>& imag);
 	Quaternion(const Vector3<T>& v, T rotation);
 
 	Matrix3x3<T> Matrix() const;
@@ -51,12 +51,12 @@ public:
 	{
 		struct
 		{
-			T w, x, y, z;
+			T x, y, z, w;
 		};
 		struct
 		{
-			T real;
 			Vector3<T> imag;
+			T real;
 		};
 	};
 };
