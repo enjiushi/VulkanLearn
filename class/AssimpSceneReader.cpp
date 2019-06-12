@@ -89,7 +89,7 @@ std::shared_ptr<BaseObject> AssimpSceneReader::AssemblyNode(const aiNode* pAssim
 	pObject->SetPos(translation);
 
 	std::wstring wstr_name = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pAssimpNode->mName.C_Str());
-	pObject->SetDescription(wstr_name);
+	pObject->SetName(wstr_name);
 
 	for (int32_t i = 0; i < pAssimpNode->mNumMeshes; i++)
 	{

@@ -11,11 +11,11 @@ public:
 	virtual bool Init() { return true; }
 
 	void AddToReferenceTable(const std::shared_ptr<Base>& pObj) { m_referenceTable.push_back(pObj); }
-	void SetDescription(const std::wstring& description) { m_description = description; }
-	std::wstring GetDescription() const { return m_description; }
+	void SetName(const std::wstring& name) { m_name = name; }
+	std::wstring GetName() const { return m_name; }
 
 protected:
-	std::wstring						m_description;
+	std::wstring						m_name;
 	std::vector<std::shared_ptr<Base>>	m_referenceTable;
 };
 
