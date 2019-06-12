@@ -356,8 +356,6 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	//m_pGunMesh = Mesh::Create("../data/textures/cerberus/cerberus.fbx", 0, VertexFormatPNTCT);
-	m_pGunMesh = AssimpSceneReader::Read("../data/textures/cerberus/cerberus.fbx", { VertexFormatPNTCT }, 0);
 	m_innerBallMeshes = AssimpSceneReader::Read("../data/models/Sample.FBX", { VertexFormatPNTCT });
 	m_pSphereMesh = AssimpSceneReader::Read("../data/models/sphere.obj", { VertexFormatPNTCT }, 0);
 
@@ -721,7 +719,6 @@ void VulkanGlobal::InitScene()
 	m_pDirLight = DirectionLight::Create({ 4.0f, 4.0f, 4.0f });
 	m_pDirLightObj->AddComponent(m_pDirLight);
 
-	m_pGunObject = BaseObject::Create();
 	m_pSphere0 = BaseObject::Create();
 	m_pSphere1 = BaseObject::Create();
 	m_pSphere2 = BaseObject::Create();
@@ -735,7 +732,6 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject1 = BaseObject::Create();
 	m_pBoxObject2 = BaseObject::Create();
 
-	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, { m_pGunMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pSphereRenderer0 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pSphereRenderer1 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pSphereRenderer2 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance2, m_pShadowMapMaterialInstance });
@@ -748,7 +744,12 @@ void VulkanGlobal::InitScene()
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
 
-	m_pGunObject->AddComponent(m_pGunMeshRenderer);
+	std::vector<AssimpSceneReader::MeshLink> meshLinks;
+	m_pGunObject = AssimpSceneReader::ReadAndAssemblyScene("../data/textures/cerberus/cerberus.fbx", { VertexFormatPNTCT }, meshLinks);
+	m_pGunMesh = meshLinks[0].first;
+	m_pGunMeshRenderer = MeshRenderer::Create(m_pGunMesh, { m_pGunMaterialInstance, m_pShadowMapMaterialInstance });
+	meshLinks[0].second->AddComponent(m_pGunMeshRenderer);
+	meshLinks.clear();
 	m_pGunObject->SetPos({ -0.8f, -0.08f, 0 });
 	m_pGunObject->SetScale(0.01f);
 
@@ -797,7 +798,6 @@ void VulkanGlobal::InitScene()
 	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, { m_pSkyBoxMaterialInstance });
 	m_pSkyBoxObject->AddComponent(m_pSkyBoxMeshRenderer);
 
-	std::vector<AssimpSceneReader::MeshLink> meshLinks;
 	m_pSophiaObject = AssimpSceneReader::ReadAndAssemblyScene("../data/models/rp_sophia_animated_003_idling.FBX", { VertexFormatPNTCT }, meshLinks);
 	m_pSophiaMesh = meshLinks[0].first;
 
