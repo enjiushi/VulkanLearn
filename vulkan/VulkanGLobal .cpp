@@ -356,8 +356,6 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	m_pSphereMesh = AssimpSceneReader::Read("../data/models/sphere.obj", { VertexFormatPNTCT }, 0);
-
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
 	float cubeVertices[] = {
@@ -615,7 +613,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSphereMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pSphereMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
-	for (uint32_t i = 0; i < m_innerBallMeshes.size(); i++)
+	for (uint32_t i = 0; i < 2; i++)
 	{
 		std::shared_ptr<MaterialInstance> pInst = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 
@@ -718,7 +716,6 @@ void VulkanGlobal::InitScene()
 	m_pDirLight = DirectionLight::Create({ 4.0f, 4.0f, 4.0f });
 	m_pDirLightObj->AddComponent(m_pDirLight);
 
-	m_pSphere0 = BaseObject::Create();
 	m_pSphere1 = BaseObject::Create();
 	m_pSphere2 = BaseObject::Create();
 
@@ -726,10 +723,6 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject0 = BaseObject::Create();
 	m_pBoxObject1 = BaseObject::Create();
 	m_pBoxObject2 = BaseObject::Create();
-
-	m_pSphereRenderer0 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance0, m_pShadowMapMaterialInstance });
-	m_pSphereRenderer1 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance1, m_pShadowMapMaterialInstance });
-	m_pSphereRenderer2 = MeshRenderer::Create(m_pSphereMesh, { m_pSphereMaterialInstance2, m_pShadowMapMaterialInstance });
 
 	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer0 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance0, m_pShadowMapMaterialInstance });
@@ -745,18 +738,22 @@ void VulkanGlobal::InitScene()
 	m_pGunObject->SetPos({ -0.8f, -0.08f, 0 });
 	m_pGunObject->SetScale(0.01f);
 
-
-	m_pSphere0->AddComponent(m_pSphereRenderer0);
+	m_pSphere0 = AssimpSceneReader::ReadAndAssemblyScene("../data/models/sphere.obj", { VertexFormatPNTCT }, meshLinks);
+	m_pSphereRenderer0 = MeshRenderer::Create(meshLinks[0].first, { m_pSphereMaterialInstance0, m_pShadowMapMaterialInstance });
+	meshLinks[0].second->AddComponent(m_pSphereRenderer0);
 	m_pSphere0->SetPos(0.4f, -0.15f, 0);
 	m_pSphere0->SetScale(0.01f);
 
+	m_pSphereRenderer1 = MeshRenderer::Create(meshLinks[0].first, { m_pSphereMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pSphere1->AddComponent(m_pSphereRenderer1);
 	m_pSphere1->SetPos(1, -0.15f, 0);
 	m_pSphere1->SetScale(0.01f);
 
+	m_pSphereRenderer2 = MeshRenderer::Create(meshLinks[0].first, { m_pSphereMaterialInstance2, m_pShadowMapMaterialInstance });
 	m_pSphere2->AddComponent(m_pSphereRenderer2);
 	m_pSphere2->SetPos(1, -0.15f, 0.6f);
 	m_pSphere2->SetScale(0.01f);
+	meshLinks.clear();
 
 	m_pInnerBall = AssimpSceneReader::ReadAndAssemblyScene("../data/models/Sample.FBX", { VertexFormatPNTCT }, meshLinks);
 	for (uint32_t i = 0; i < meshLinks.size(); i++)
