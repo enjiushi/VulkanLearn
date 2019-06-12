@@ -100,7 +100,7 @@ layout(set = 1, binding = 0) uniform PerFrameUniforms
 	PerFrameData perFrameData;
 };
 
-layout(set = 1, binding = 1) uniform PerFrameBoneUniforms
+layout(set = 1, binding = 1) buffer PerFrameBoneUniforms
 {
 	PerFrameBoneData perFrameBoneData[];
 };
