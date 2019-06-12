@@ -360,7 +360,6 @@ void VulkanGlobal::InitVertices()
 	m_pGunMesh = AssimpSceneReader::Read("../data/textures/cerberus/cerberus.fbx", { VertexFormatPNTCT }, 0);
 	m_innerBallMeshes = AssimpSceneReader::Read("../data/models/Sample.FBX", { VertexFormatPNTCT });
 	m_pSphereMesh = AssimpSceneReader::Read("../data/models/sphere.obj", { VertexFormatPNTCT }, 0);
-	m_pSophiaMesh = AssimpSceneReader::Read("../data/models/rp_sophia_animated_003_idling.FBX", { VertexFormatPNTCT }, 1);
 
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
@@ -791,13 +790,6 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject2->SetScale(0.15f);
 	m_pBoxObject2->SetPos(-0.2f, -0.25f, 0.5f);
 
-	m_pSophiaRenderer = MeshRenderer::Create(m_pSophiaMesh, { m_pSophiaMaterialInstance, m_pShadowMapMaterialInstance });
-	m_pSophiaObject = BaseObject::Create();
-	m_pSophiaObject->AddComponent(m_pSophiaRenderer);
-	m_pSophiaObject->SetScale(0.005f);
-	m_pSophiaObject->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14f));
-	m_pSophiaObject->SetPos(0, -0.4f, -1);
-
 	Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
 	m_pQuadObject->SetRotation(Quaternionf(Vector3f(1, 0, 0), -1.57));
 
@@ -806,14 +798,14 @@ void VulkanGlobal::InitScene()
 	m_pSkyBoxObject->AddComponent(m_pSkyBoxMeshRenderer);
 
 	std::vector<AssimpSceneReader::MeshLink> meshLinks;
-	m_pSohpiaObject1 = AssimpSceneReader::ReadAndAssemblyScene("../data/models/rp_sophia_animated_003_idling.FBX", { VertexFormatPNTCT }, meshLinks);
-	m_pSophiaMesh1 = meshLinks[0].first;
+	m_pSophiaObject = AssimpSceneReader::ReadAndAssemblyScene("../data/models/rp_sophia_animated_003_idling.FBX", { VertexFormatPNTCT }, meshLinks);
+	m_pSophiaMesh = meshLinks[0].first;
 
-	m_pSophiaRenderer1 = MeshRenderer::Create(m_pSophiaMesh1, { m_pSophiaMaterialInstance, m_pShadowMapMaterialInstance });
-	meshLinks[0].second->AddComponent(m_pSophiaRenderer1);
-	m_pSohpiaObject1->SetScale(0.005f);
-	m_pSohpiaObject1->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14f));
-	m_pSohpiaObject1->SetPos(-1, -0.4f, -1);
+	m_pSophiaRenderer = MeshRenderer::Create(m_pSophiaMesh, { m_pSophiaMaterialInstance, m_pShadowMapMaterialInstance });
+	meshLinks[0].second->AddComponent(m_pSophiaRenderer);
+	m_pSophiaObject->SetScale(0.005f);
+	m_pSophiaObject->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14f));
+	m_pSophiaObject->SetPos(0, -0.4f, -1);
 
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pGunObject);
@@ -826,7 +818,6 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pBoxObject1);
 	m_pRootObject->AddChild(m_pBoxObject2);
 	m_pRootObject->AddChild(m_pSophiaObject);
-	m_pRootObject->AddChild(m_pSohpiaObject1);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pDirLightObj);
 
