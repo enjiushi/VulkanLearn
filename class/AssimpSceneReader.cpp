@@ -128,7 +128,7 @@ void AssimpSceneReader::ExtractAnimations(const aiScene* pScene)
 		for (uint32_t boneIndex = 0; boneIndex < pScene->mMeshes[meshIndex]->mNumBones; boneIndex++)
 		{
 			DualQuaternionf dq = ExtractBoneInfo(pScene->mMeshes[meshIndex]->mBones[boneIndex]);
-			UniformData::GetInstance()->GetPerBoneUniforms()->AddBoneOffsetTransform(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pScene->mMeshes[meshIndex]->mBones[boneIndex]->mName.C_Str()), dq);
+			UniformData::GetInstance()->GetPerBoneUniforms()->SetBoneOffsetTransform(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pScene->mMeshes[meshIndex]->mBones[boneIndex]->mName.C_Str()), dq);
 		}
 	}
 }

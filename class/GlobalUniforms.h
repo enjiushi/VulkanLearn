@@ -336,7 +336,7 @@ public:
 	static std::shared_ptr<PerBoneUniforms> Create();
 
 public:
-	void AddBoneOffsetTransform(const std::wstring& boneName, const DualQuaternionf& offsetDQ);
+	void SetBoneOffsetTransform(const std::wstring& boneName, const DualQuaternionf& offsetDQ);
 	DualQuaternionf GetBoneOffsetTransform(const std::wstring& boneName) const;
 
 	std::vector<UniformVarList> PrepareUniformVarList() const override;

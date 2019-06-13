@@ -569,19 +569,22 @@ std::shared_ptr<PerBoneUniforms> PerBoneUniforms::Create()
 	return nullptr;
 }
 
-void PerBoneUniforms::AddBoneOffsetTransform(const std::wstring& boneName, const DualQuaternionf& offsetDQ)
+void PerBoneUniforms::SetBoneOffsetTransform(const std::wstring& boneName, const DualQuaternionf& offsetDQ)
 {
+	uint32_t boneChunkIndex;
+
 	auto iter = m_boneDataDiction.find(boneName);
 	if (iter != m_boneDataDiction.end())
+		boneChunkIndex = iter->second;
+	else
 	{
-		FreePreObjectChunk(iter->second);
-		m_boneDataDiction.erase(iter);
+		boneChunkIndex = AllocatePerObjectChunk();
+		m_boneDataDiction[boneName] = boneChunkIndex;
 	}
 
-	 uint32_t boneChunkIndex = AllocatePerObjectChunk();
-	 m_boneDataDiction[boneName] = boneChunkIndex;
-
 	 m_boneData[boneChunkIndex].boneOffset = offsetDQ;
+
+	 SetChunkDirty(boneChunkIndex);
 }
 
 DualQuaternionf PerBoneUniforms::GetBoneOffsetTransform(const std::wstring& boneName) const
