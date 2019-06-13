@@ -29,11 +29,11 @@ typedef struct _PerFrameVariables
 	Vector2f	haltonX256Jitter;
 }PerFrameVariables;
 
-typedef struct _BoneData
+typedef struct _PerFrameBoneData
 {
 	DualQuaternionf	boneAnimation;
 	DualQuaternionf	boneReference;
-}BoneData;
+}PerFramBoneData;
 
 class PerFrameBoneUniforms : public ChunkBasedUniforms
 {
@@ -59,7 +59,7 @@ protected:
 	uint32_t AcquireDataSize() const override { return sizeof(m_boneData); }
 
 protected:
-	BoneData	m_boneData[MAXIMUM_OBJECTS];
+	PerFramBoneData	m_boneData[MAXIMUM_OBJECTS];
 };
 
 class PerFrameUniforms : public UniformDataStorage

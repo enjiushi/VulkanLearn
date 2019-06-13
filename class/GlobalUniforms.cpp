@@ -7,6 +7,7 @@
 #include "../vulkan/Texture2D.h"
 #include "../vulkan/Texture2DArray.h"
 #include "../vulkan/TextureCube.h"
+#include "../vulkan/ShaderStorageBuffer.h"
 #include "GlobalTextures.h"
 #include "GlobalUniforms.h"
 #include "Material.h"
@@ -553,3 +554,66 @@ void GlobalUniforms::InitSSAORandomSample()
 	SetDirty();
 }
 
+bool PerBoneUniforms::Init(const std::shared_ptr<PerBoneUniforms>& pSelf)
+{
+	if (!ChunkBasedUniforms::Init(pSelf, sizeof(BoneData)))
+		return false;
+	return true;
+}
+
+std::shared_ptr<PerBoneUniforms> PerBoneUniforms::Create()
+{
+	std::shared_ptr<PerBoneUniforms> pPerBoneUniforms = std::make_shared<PerBoneUniforms>();
+	if (pPerBoneUniforms.get() && pPerBoneUniforms->Init(pPerBoneUniforms))
+		return pPerBoneUniforms;
+	return nullptr;
+}
+
+void PerBoneUniforms::AddBoneOffsetTransform(const std::wstring& boneName, const DualQuaternionf& offsetDQ)
+{
+	auto iter = m_boneDataDiction.find(boneName);
+	if (iter != m_boneDataDiction.end())
+	{
+		FreePreObjectChunk(iter->second);
+		m_boneDataDiction.erase(iter);
+	}
+
+	 uint32_t boneChunkIndex = AllocatePerObjectChunk();
+	 m_boneDataDiction[boneName] = boneChunkIndex;
+
+	 m_boneData[boneChunkIndex].boneOffset = offsetDQ;
+}
+
+DualQuaternionf PerBoneUniforms::GetBoneOffsetTransform(const std::wstring& boneName) const
+{
+	auto iter = m_boneDataDiction.find(boneName);
+	if (iter != m_boneDataDiction.end())
+		return DualQuaternionf();
+
+	return m_boneData[iter->second].boneOffset;
+}
+
+void PerBoneUniforms::UpdateDirtyChunkInternal(uint32_t index)
+{
+}
+
+std::vector<UniformVarList> PerBoneUniforms::PrepareUniformVarList() const
+{
+	return
+	{
+		{
+			DynamicShaderStorageBuffer,
+			"PerBoneUniforms",
+			{
+				{ Mat2x4Unit, "Bone offset transform quaternions" }
+			}
+		}
+	};
+}
+
+uint32_t PerBoneUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
+{
+	pDescriptorSet->UpdateShaderStorageBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
+
+	return bindingIndex;
+}

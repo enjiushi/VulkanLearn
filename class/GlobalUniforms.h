@@ -1,6 +1,10 @@
 #pragma once
 
 #include "UniformDataStorage.h"
+#include "ChunkBasedUniforms.h"
+#include "../Maths/DualQuaternion.h"
+#include <map>
+#include <string>
 
 class DescriptorSetLayout;
 class DescriptorSet;
@@ -316,4 +320,34 @@ protected:
 
 protected:
 	GlobalVariables							m_globalVariables;
+};
+
+typedef struct _BoneData
+{
+	DualQuaternionf	boneOffset;
+}BoneData;
+
+class PerBoneUniforms : public ChunkBasedUniforms
+{
+protected:
+	bool Init(const std::shared_ptr<PerBoneUniforms>& pSelf);
+
+public:
+	static std::shared_ptr<PerBoneUniforms> Create();
+
+public:
+	void AddBoneOffsetTransform(const std::wstring& boneName, const DualQuaternionf& offsetDQ);
+	DualQuaternionf GetBoneOffsetTransform(const std::wstring& boneName) const;
+
+	std::vector<UniformVarList> PrepareUniformVarList() const override;
+	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
+
+protected:
+	void UpdateDirtyChunkInternal(uint32_t index) override;
+	const void* AcquireDataPtr() const override { return &m_boneData[0]; }
+	uint32_t AcquireDataSize() const override { return sizeof(m_boneData); }
+
+protected:
+	BoneData							m_boneData[MAXIMUM_OBJECTS];
+	std::map<std::wstring, uint32_t>	m_boneDataDiction;
 };
