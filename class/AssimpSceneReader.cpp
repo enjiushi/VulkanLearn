@@ -33,8 +33,6 @@ std::vector<std::shared_ptr<Mesh>> AssimpSceneReader::Read(const std::string& pa
 			meshes.push_back(pMesh);
 	}
 
-	ExtractAnimations(path);
-
 	return meshes;
 }
 
@@ -55,8 +53,6 @@ std::shared_ptr<Mesh> AssimpSceneReader::Read(const std::string& path, const std
 			break;
 	}
 
-	ExtractAnimations(path);
-
 	return pMesh;
 }
 
@@ -66,6 +62,8 @@ std::shared_ptr<BaseObject> AssimpSceneReader::ReadAndAssemblyScene(const std::s
 	const aiScene* pScene = nullptr;
 	pScene = imp.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
 	ASSERTION(pScene != nullptr);
+
+	ExtractAnimations(pScene);
 
 	return AssemblyNode(pScene->mRootNode, pScene, argumentedVAFList, outputMeshLinks);
 }
@@ -117,11 +115,8 @@ std::shared_ptr<BaseObject> AssimpSceneReader::AssemblyNode(const aiNode* pAssim
 	return pObject;
 }
 
-void AssimpSceneReader::ExtractAnimations(const std::string& path)
+void AssimpSceneReader::ExtractAnimations(const aiScene* pScene)
 {
-	Assimp::Importer imp;
-	const aiScene* pScene = imp.ReadFile(path.c_str(), 0);
-
 	if (pScene->mNumAnimations == 0)
 		return;
 

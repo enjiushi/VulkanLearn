@@ -20,7 +20,7 @@ public:
 	static std::shared_ptr<BaseObject> ReadAndAssemblyScene(const std::string& path, const std::vector<uint32_t>& argumentedVAFList, std::vector<MeshLink>& outputMeshLinks);
 
 protected:
-	static void ExtractAnimations(const std::string& path);
+	static void ExtractAnimations(const aiScene* pScene);
 	static DualQuaternionf ExtractBoneInfo(const aiBone* pBone);
 	static std::shared_ptr<BaseObject> AssemblyNode(const aiNode* pAssimpNode, const aiScene* pScene, const std::vector<uint32_t>& argumentedVAFList, std::vector<MeshLink>& outputMeshLinks);
 };
