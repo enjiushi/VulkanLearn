@@ -35,8 +35,7 @@ std::vector<UniformVarList> PerFrameBoneUniforms::PrepareUniformVarList() const
 			DynamicShaderStorageBuffer,
 			"PerFrameBoneUniforms",
 			{
-				{ Mat2x4Unit, "Animation transform of dual quaternion" },
-				{ Mat2x4Unit, "Reference transform of dual quaternion" },
+				{ Mat2x4Unit, "Animation transform of dual quaternion" }
 			}
 		}
 	};

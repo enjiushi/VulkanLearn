@@ -49,7 +49,6 @@ struct BoneData
 struct PerFrameBoneData
 {
 	mat2x4 animationDQ;
-	mat2x4 referenceDQ;
 };
 
 struct PerFrameData

@@ -32,7 +32,6 @@ typedef struct _PerFrameVariables
 typedef struct _PerFrameBoneData
 {
 	DualQuaternionf	boneAnimation;
-	DualQuaternionf	boneReference;
 }PerFramBoneData;
 
 class PerFrameBoneUniforms : public ChunkBasedUniforms
@@ -44,11 +43,10 @@ public:
 	static std::shared_ptr<PerFrameBoneUniforms> Create();
 
 public:
-	void SetAnimationTransform(uint32_t index, const DualQuaternionf& animationDQ) { m_boneData[index].boneAnimation = animationDQ; SetChunkDirty(index); }
-	void SetReferenceTransform(uint32_t index, const DualQuaternionf& referenceDQ) { m_boneData[index].boneReference = referenceDQ; SetChunkDirty(index); }
+	//void SetAnimationTransform(uint32_t index, const DualQuaternionf& animationDQ) { m_boneData[index].boneAnimation = animationDQ; SetChunkDirty(index); }
 
-	DualQuaternionf GetAnimationTransform(uint32_t index) const { return m_boneData[index].boneAnimation; }
-	DualQuaternionf GetReferenceTransform(uint32_t index) const { return m_boneData[index].boneReference; }
+	//DualQuaternionf GetAnimationTransform(uint32_t index) const { return m_boneData[index].boneAnimation; }
+	//DualQuaternionf GetReferenceTransform(uint32_t index) const { return m_boneData[index].boneReference; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
