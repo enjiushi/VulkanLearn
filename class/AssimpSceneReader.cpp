@@ -4,6 +4,7 @@
 #include "Mesh.h"
 #include "UniformData.h"
 #include "../Base/BaseObject.h"
+#include "../Maths/AssimpDataConverter.h"
 #include <string>
 #include <codecvt>
 #include <locale>
@@ -75,16 +76,8 @@ std::shared_ptr<BaseObject> AssimpSceneReader::AssemblyNode(const aiNode* pAssim
 
 	std::shared_ptr<BaseObject> pObject = BaseObject::Create();
 
-	aiMatrix4x4 assimp_matrix = pAssimpNode->mTransformation;
-	Matrix3f rotation(
-		assimp_matrix.a1, assimp_matrix.b1, assimp_matrix.c1,
-		assimp_matrix.a2, assimp_matrix.b2, assimp_matrix.c2,
-		assimp_matrix.a3, assimp_matrix.b3, assimp_matrix.c3);
-
-	Vector3f translation(assimp_matrix.a4, assimp_matrix.b4, assimp_matrix.c4);
-
-	pObject->SetRotation(rotation);
-	pObject->SetPos(translation);
+	pObject->SetRotation(AssimpDataConverter::AcquireRotationMatrix(pAssimpNode->mTransformation));
+	pObject->SetPos(AssimpDataConverter::AcquireTranslationVector(pAssimpNode->mTransformation));
 
 	std::wstring wstr_name = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pAssimpNode->mName.C_Str());
 	pObject->SetName(wstr_name);
@@ -135,14 +128,5 @@ void AssimpSceneReader::ExtractAnimations(const aiScene* pScene)
 
 DualQuaternionf AssimpSceneReader::ExtractBoneInfo(const aiBone* pBone)
 {
-	const aiMatrix4x4 pReferenceMatrix = pBone->mOffsetMatrix;
-
-	Matrix3f rotation(
-		pReferenceMatrix.a1, pReferenceMatrix.b1, pReferenceMatrix.c1,
-		pReferenceMatrix.a2, pReferenceMatrix.b2, pReferenceMatrix.c2,
-		pReferenceMatrix.a3, pReferenceMatrix.b3, pReferenceMatrix.c3);
-
-	Vector3f translate(pReferenceMatrix.a4, pReferenceMatrix.b4, pReferenceMatrix.c4);
-
-	return DualQuaternionf(rotation.AcquireQuaternion(), translate);
+	return AssimpDataConverter::AcquireDualQuaternion(pBone->mOffsetMatrix);
 }
