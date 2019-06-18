@@ -147,8 +147,12 @@ public:
 	Matrix3f BaseObject::GetWorldRotationM() const;
 	Quaternionf BaseObject::GetWorldRotationQ() const;
 
+	// Register a component so that all of the children base objects of current base object will call function "CallbackFunc"
+	void RegisterCallbackComponent(const std::shared_ptr<BaseComponent>& pComponent);
+
 	//creators
 	static std::shared_ptr<BaseObject> Create();
+
 protected:
 	void UpdateLocalTransform();
 
@@ -163,4 +167,7 @@ protected:
 	Matrix4f	m_localTransform;
 	Matrix3f	m_localRotationM;
 	Quaternionf m_localRotationQ;
+
+	static std::vector<std::shared_ptr<BaseComponent>>	m_globalRegisteredComponents;
+	std::vector<std::shared_ptr<BaseComponent>>			m_localRegisteredComponents;
 };

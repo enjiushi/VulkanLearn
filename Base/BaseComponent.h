@@ -30,6 +30,7 @@ public:
 
 	virtual void Update() {}
 	virtual void LateUpdate() {}
+	virtual void CallbackFunc(std::shared_ptr<BaseObject>& pObject) {}
 	virtual void Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes) {}
 
 	virtual void Awake() {}
