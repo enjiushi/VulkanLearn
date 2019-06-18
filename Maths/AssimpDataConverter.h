@@ -15,5 +15,4 @@ public:
 	static Vector3f AcquireTranslationVector(const aiMatrix4x4& assimpMatrix4x4);
 	static Matrix4f AcquireMatrix(const aiMatrix4x4& assimpMatrix4x4);
 	static DualQuaternionf AcquireDualQuaternion(const aiMatrix4x4& assimpMatrix4x4);
-	static uint32_t asdf(const uint32_t& qwer) { return 0; }
 };
