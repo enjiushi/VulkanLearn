@@ -3,10 +3,14 @@
 #include "../vulkan/SharedIndexBuffer.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/CommandBuffer.h"
+#include "../Maths/AssimpDataConverter.h"
+#include "UniformData.h"
 #include "Importer.hpp"
 #include "postprocess.h"
 #include <string>
 #include "../common/Util.h"
+#include <codecvt>
+#include <locale>
 
 bool Mesh::Init
 (
@@ -26,6 +30,8 @@ bool Mesh::Init
 	m_pVertexBuffer->UpdateByteStream(pVertices, 0, m_verticesCount * m_vertexBytes);
 	m_pIndexBuffer = SharedIndexBuffer::Create(GetDevice(), indicesCount * GetIndexBytes(indexType), indexType);
 	m_pIndexBuffer->UpdateByteStream(pIndices, 0, indicesCount * GetIndexBytes(indexType));
+
+	m_meshChunkIndex = UniformData::GetInstance()->GetPerMeshUniforms()->AllocatePerObjectChunk();
 
 	return true;
 }
@@ -172,7 +178,16 @@ std::shared_ptr<Mesh> Mesh::Create(const aiMesh* pMesh, uint32_t argumentedVerte
 		pVertices, pMesh->mNumVertices, vertexFormat,
 		pIndices, pMesh->mNumFaces * 3, VK_INDEX_TYPE_UINT32
 	))
+	{
+		for (uint32_t i = 0; i < pMesh->mNumBones; i++)
+		{
+			DualQuaternionf dq = AssimpDataConverter::AcquireDualQuaternion(pMesh->mBones[i]->mOffsetMatrix);
+			UniformData::GetInstance()->GetPerMeshUniforms()->SetBoneOffsetTransform(pRetMesh->m_meshChunkIndex, std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pMesh->mBones[i]->mName.C_Str()), dq);
+		}
+
 		return pRetMesh;
+	}
+
 	return nullptr;
 }
 

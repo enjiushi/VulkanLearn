@@ -5,6 +5,7 @@
 #include "UniformData.h"
 #include "../Base/BaseObject.h"
 #include "../Maths/AssimpDataConverter.h"
+#include "SkeletonAnimation.h"
 #include <string>
 #include <codecvt>
 #include <locale>
@@ -113,17 +114,10 @@ void AssimpSceneReader::ExtractAnimations(const aiScene* pScene)
 	if (pScene->mNumAnimations == 0)
 		return;
 
+	std::shared_ptr<SkeletonAnimation> pAnimation = SkeletonAnimation::Create(pScene);
+
 	// For temp
 	uint32_t index = 0;
-
-	for (uint32_t meshIndex = 0; meshIndex < pScene->mNumMeshes; meshIndex++)
-	{
-		for (uint32_t boneIndex = 0; boneIndex < pScene->mMeshes[meshIndex]->mNumBones; boneIndex++)
-		{
-			DualQuaternionf dq = ExtractBoneInfo(pScene->mMeshes[meshIndex]->mBones[boneIndex]);
-			UniformData::GetInstance()->GetPerBoneUniforms()->SetBoneOffsetTransform(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pScene->mMeshes[meshIndex]->mBones[boneIndex]->mName.C_Str()), dq);
-		}
-	}
 }
 
 DualQuaternionf AssimpSceneReader::ExtractBoneInfo(const aiBone* pBone)

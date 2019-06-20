@@ -3,6 +3,7 @@
 #include "UniformDataStorage.h"
 #include "ChunkBasedUniforms.h"
 #include "../Maths/DualQuaternion.h"
+#include "../common/Macros.h"
 #include <map>
 #include <string>
 
@@ -324,8 +325,10 @@ protected:
 
 typedef struct _BoneData
 {
-	DualQuaternionf	boneOffset;
+	DualQuaternionf	boneOffsetDQ;
 }BoneData;
+
+class PerMeshUniforms;
 
 class PerBoneUniforms : public ChunkBasedUniforms
 {
@@ -336,11 +339,20 @@ public:
 	static std::shared_ptr<PerBoneUniforms> Create();
 
 public:
-	void SetBoneOffsetTransform(const std::wstring& boneName, const DualQuaternionf& offsetDQ);
-	DualQuaternionf GetBoneOffsetTransform(const std::wstring& boneName) const;
-
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
+
+	// Override to disable chunk allocation
+	uint32_t AllocatePerObjectChunk() override { ASSERTION(false); return 0; }
+
+	uint32_t GetAllocatedBoneCount() const { return m_allocatedBoneCount; }
+
+protected:
+	void SetBoneOffsetTransform(uint32_t chunkIndex, const DualQuaternionf& offsetDQ);
+	DualQuaternionf GetBoneOffsetTransform(uint32_t chunkIndex) const;
+
+	// Make allocation internal
+	uint32_t AllocatePerObjectChunkInternal();
 
 protected:
 	void UpdateDirtyChunkInternal(uint32_t index) override;
@@ -348,6 +360,50 @@ protected:
 	uint32_t AcquireDataSize() const override { return sizeof(m_boneData); }
 
 protected:
-	BoneData							m_boneData[MAXIMUM_OBJECTS];
-	std::map<std::wstring, uint32_t>	m_boneDataDiction;
+	BoneData	m_boneData[MAXIMUM_OBJECTS];
+	uint32_t	m_allocatedBoneCount;
+
+	friend class PerMeshUniforms;
+};
+
+class Mesh;
+
+class PerMeshUniforms : public ChunkBasedUniforms
+{
+	typedef std::map<std::wstring, uint32_t>	BoneIndexLookupTable;
+
+protected:
+	bool Init(const std::shared_ptr<PerMeshUniforms>& pSelf);
+
+public:
+	static std::shared_ptr<PerMeshUniforms> Create();
+	uint32_t AllocatePerObjectChunk() override;
+
+	// Disable the visibility of these access functions, since meshChunkIndex is something internal only within mesh
+	// Let specific mesh to deal with these functions and make wrappers of them
+protected:
+	void SetBoneOffsetTransform(uint32_t meshChunkIndex, const std::wstring& boneName, const DualQuaternionf& offsetDQ);
+	bool GetBoneOffsetTransform(uint32_t meshChunkIndex, const std::wstring& boneName, DualQuaternionf& outBoneOffsetTransformDQ) const;
+
+	bool GetBoneIndex(uint32_t meshChunkIndex, const std::wstring& boneName, uint32_t& outBoneIndex) const;
+
+	//void SetMeshBoneOffset(uint32_t meshChunkIndex, uint32_t offset);
+	uint32_t GetMeshBoneOffset(uint32_t meshChunkIndex) const { return m_meshBoneOffsets[meshChunkIndex]; }
+
+public:
+	std::vector<UniformVarList> PrepareUniformVarList() const override;
+	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
+
+protected:
+	void UpdateDirtyChunkInternal(uint32_t index) override;
+	const void* AcquireDataPtr() const override { return &m_meshBoneOffsets[0]; }
+	uint32_t AcquireDataSize() const override { return sizeof(m_meshBoneOffsets); }
+
+protected:
+	uint32_t									m_meshBoneOffsets[MAXIMUM_OBJECTS];
+
+	// index stands for mesh chunk index
+	std::map<uint32_t, BoneIndexLookupTable>	m_boneIndexLookupTables;
+
+	friend class Mesh;
 };

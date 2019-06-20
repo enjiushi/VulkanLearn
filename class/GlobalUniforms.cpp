@@ -8,6 +8,7 @@
 #include "../vulkan/Texture2DArray.h"
 #include "../vulkan/TextureCube.h"
 #include "../vulkan/ShaderStorageBuffer.h"
+#include "UniformData.h"
 #include "GlobalTextures.h"
 #include "GlobalUniforms.h"
 #include "Material.h"
@@ -569,31 +570,20 @@ std::shared_ptr<PerBoneUniforms> PerBoneUniforms::Create()
 	return nullptr;
 }
 
-void PerBoneUniforms::SetBoneOffsetTransform(const std::wstring& boneName, const DualQuaternionf& offsetDQ)
+void PerBoneUniforms::SetBoneOffsetTransform(uint32_t chunkIndex, const DualQuaternionf& offsetDQ)
 {
-	uint32_t boneChunkIndex;
-
-	auto iter = m_boneDataDiction.find(boneName);
-	if (iter != m_boneDataDiction.end())
-		boneChunkIndex = iter->second;
-	else
-	{
-		boneChunkIndex = AllocatePerObjectChunk();
-		m_boneDataDiction[boneName] = boneChunkIndex;
-	}
-
-	 m_boneData[boneChunkIndex].boneOffset = offsetDQ;
-
-	 SetChunkDirty(boneChunkIndex);
+	 m_boneData[chunkIndex].boneOffsetDQ = offsetDQ;
+	 SetChunkDirty(chunkIndex);
 }
 
-DualQuaternionf PerBoneUniforms::GetBoneOffsetTransform(const std::wstring& boneName) const
+DualQuaternionf PerBoneUniforms::GetBoneOffsetTransform(uint32_t chunkIndex) const
 {
-	auto iter = m_boneDataDiction.find(boneName);
-	if (iter != m_boneDataDiction.end())
-		return DualQuaternionf();
+	return m_boneData[chunkIndex].boneOffsetDQ;
+}
 
-	return m_boneData[iter->second].boneOffset;
+uint32_t PerBoneUniforms::AllocatePerObjectChunkInternal()
+{
+	return (m_allocatedBoneCount = ChunkBasedUniforms::AllocatePerObjectChunk());
 }
 
 void PerBoneUniforms::UpdateDirtyChunkInternal(uint32_t index)
@@ -620,3 +610,95 @@ uint32_t PerBoneUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet
 
 	return bindingIndex;
 }
+
+bool PerMeshUniforms::Init(const std::shared_ptr<PerMeshUniforms>& pSelf)
+{
+	if (!ChunkBasedUniforms::Init(pSelf, sizeof(uint32_t)))
+		return false;
+	return true;
+}
+
+std::shared_ptr<PerMeshUniforms> PerMeshUniforms::Create()
+{
+	std::shared_ptr<PerMeshUniforms> pPerMeshUniforms = std::make_shared<PerMeshUniforms>();
+	if (pPerMeshUniforms.get() && pPerMeshUniforms->Init(pPerMeshUniforms))
+		return pPerMeshUniforms;
+	return nullptr;
+}
+
+uint32_t PerMeshUniforms::AllocatePerObjectChunk()
+{
+	uint32_t chunkIndex = ChunkBasedUniforms::AllocatePerObjectChunk();
+
+	m_meshBoneOffsets[chunkIndex] = UniformData::GetInstance()->GetPerBoneUniforms()->GetAllocatedBoneCount();
+	m_boneIndexLookupTables[chunkIndex] = {};
+
+	return chunkIndex;
+}
+
+void PerMeshUniforms::SetBoneOffsetTransform(uint32_t meshChunkIndex, const std::wstring& boneName, const DualQuaternionf& offsetDQ)
+{
+	uint32_t meshBoneOffset = GetMeshBoneOffset(meshChunkIndex);
+
+	uint32_t boneIndex;
+	if (!GetBoneIndex(meshChunkIndex, boneName, boneIndex))
+	{
+		uint32_t boneChunkIndex = UniformData::GetInstance()->GetPerBoneUniforms()->AllocatePerObjectChunkInternal();
+		UniformData::GetInstance()->GetPerBoneUniforms()->SetBoneOffsetTransform(boneChunkIndex, offsetDQ);
+
+		boneIndex = boneChunkIndex - meshBoneOffset;	// To acquire bone index starting from 0 of current mesh
+		m_boneIndexLookupTables[meshChunkIndex][boneName] = boneIndex;
+	}
+
+	UniformData::GetInstance()->GetPerBoneUniforms()->SetBoneOffsetTransform(boneIndex + meshBoneOffset, offsetDQ);
+}
+
+bool PerMeshUniforms::GetBoneOffsetTransform(uint32_t meshChunkIndex, const std::wstring& boneName, DualQuaternionf& outBoneOffsetTransformDQ) const
+{
+	uint32_t boneIndex;
+	if (!GetBoneIndex(meshChunkIndex, boneName, boneIndex))
+		return false;
+
+	uint32_t meshBoneOffset = GetMeshBoneOffset(meshChunkIndex);
+
+	UniformData::GetInstance()->GetPerBoneUniforms()->GetBoneOffsetTransform(boneIndex + meshBoneOffset);
+
+	return true;
+}
+
+bool PerMeshUniforms::GetBoneIndex(uint32_t meshChunkIndex, const std::wstring& boneName, uint32_t& outBoneIndex) const
+{
+	auto lookupTable = m_boneIndexLookupTables.at(meshChunkIndex);
+	auto iter = lookupTable.find(boneName);
+	if (iter == lookupTable.end())
+		return false;
+
+	outBoneIndex = iter->second;
+	return true;
+}
+
+std::vector<UniformVarList> PerMeshUniforms::PrepareUniformVarList() const
+{
+	return
+	{
+		{
+			DynamicShaderStorageBuffer,
+			"PerMeshUniforms",
+			{
+				{ OneUnit, "Bone chunk index starting offset of a specific mesh" }
+			}
+		}
+	};
+}
+
+uint32_t PerMeshUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
+{
+	pDescriptorSet->UpdateShaderStorageBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
+
+	return bindingIndex;
+}
+
+void PerMeshUniforms::UpdateDirtyChunkInternal(uint32_t index)
+{
+}
+

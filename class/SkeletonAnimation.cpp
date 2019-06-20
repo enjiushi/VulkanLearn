@@ -12,9 +12,11 @@ bool SkeletonAnimation::Init(const std::shared_ptr<SkeletonAnimation>& pSelf, co
 
 	for (uint32_t i = 0; i < pAssimpScene->mNumAnimations; i++)
 	{
-		std::wstring animationName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pAssimpScene->mAnimations[i]->mName.C_Str());
-		m_animationDataDiction[animationName] = {};
-		AssemblyAnimationData(pAssimpScene->mAnimations[i], m_animationDataDiction[animationName]);
+		AnimationData animationData = {};
+		AssemblyAnimationData(pAssimpScene->mAnimations[i], animationData);
+
+		m_animationDataDiction.push_back(animationData);
+		m_animationDataLookupTable[animationData.animationName] = m_animationDataDiction.size() - 1;
 	}
 
 	return true;
@@ -29,14 +31,6 @@ std::shared_ptr<SkeletonAnimation> SkeletonAnimation::Create(const aiScene* pAss
 	return nullptr;
 }
 
-DualQuaternionf SkeletonAnimation::AcquireTransformDQ(const aiNodeAnim* pAssimpNodeAnim, uint32_t key)
-{
-	Quaternionf rotation = AssimpDataConverter::AcquireQuaternion(pAssimpNodeAnim->mRotationKeys[key].mValue);
-	Vector3f position = AssimpDataConverter::AcquireVector3(pAssimpNodeAnim->mPositionKeys[key].mValue);
-
-	return {};
-}
-
 void SkeletonAnimation::AssemblyAnimationData(const aiAnimation* pAssimpAnimation, AnimationData& animationData)
 {
 	animationData.animationName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pAssimpAnimation->mName.C_Str());
@@ -44,9 +38,11 @@ void SkeletonAnimation::AssemblyAnimationData(const aiAnimation* pAssimpAnimatio
 
 	for (uint32_t i = 0; i < pAssimpAnimation->mNumChannels; i++)
 	{
-		std::wstring objectName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pAssimpAnimation->mChannels[i]->mNodeName.C_Str());
-		animationData.objectAnimationDiction[objectName] = {};
-		AssemblyObjectAnimation(pAssimpAnimation->mChannels[i], animationData.objectAnimationDiction[objectName]);
+		ObjectAnimation objectAnimation = {};
+		AssemblyObjectAnimation(pAssimpAnimation->mChannels[i], objectAnimation);
+
+		animationData.objectAnimationDiction.push_back(objectAnimation);
+		animationData.objectAnimationLookupTable[objectAnimation.objectName] = animationData.objectAnimationDiction.size() - 1;
 	}
 }
 

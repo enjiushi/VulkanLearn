@@ -23,6 +23,7 @@ bool UniformData::Init()
 		{
 		case UniformStorageType::GlobalVariableBuffer:		m_uniformStorageBuffers[i] = GlobalUniforms::Create(); break;
 		case UniformStorageType::PerBoneBuffer:				m_uniformStorageBuffers[i] = PerBoneUniforms::Create(); break;
+		case UniformStorageType::PerMeshBuffer:				m_uniformStorageBuffers[i] = PerMeshUniforms::Create(); break;
 		case UniformStorageType::PerFrameBonesBuffer:		m_uniformStorageBuffers[i] = PerFrameBoneUniforms::Create(); break;
 		case UniformStorageType::PerFrameVariableBuffer:	m_uniformStorageBuffers[i] = PerFrameUniforms::Create(); break;
 		case UniformStorageType::PerObjectVariableBuffer:	m_uniformStorageBuffers[i] = PerObjectUniforms::Create(); break;
@@ -83,6 +84,9 @@ void UniformData::BuildDescriptorSets()
 
 	std::vector<UniformVarList> perBoneVars = m_uniformStorageBuffers[UniformStorageType::PerBoneBuffer]->PrepareUniformVarList();
 	globalUniformVars.insert(globalUniformVars.end(), perBoneVars.begin(), perBoneVars.end());
+
+	std::vector<UniformVarList> perMeshVars = m_uniformStorageBuffers[UniformStorageType::PerMeshBuffer]->PrepareUniformVarList();
+	globalUniformVars.insert(globalUniformVars.end(), perMeshVars.begin(), perMeshVars.end());
 
 	std::vector<UniformVarList> globalTextureVars = m_uniformTextures[UniformTextureType::GlobalUniformTextures]->PrepareUniformVarList();
 	globalUniformVars.insert(globalUniformVars.end(), globalTextureVars.begin(), globalTextureVars.end());
@@ -205,6 +209,7 @@ void UniformData::BuildDescriptorSets()
 	uint32_t bindingSlot = 0;
 	bindingSlot = m_uniformStorageBuffers[GlobalVariableBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 	bindingSlot = m_uniformStorageBuffers[PerBoneBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
+	bindingSlot = m_uniformStorageBuffers[PerMeshBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 	bindingSlot = m_uniformTextures[GlobalUniformTextures]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 
 	// 2. Per frame descriptor set

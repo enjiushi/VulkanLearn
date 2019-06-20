@@ -10,8 +10,8 @@ protected:
 	static const uint32_t MAXIMUM_OBJECTS = 256;
 
 public:
-	uint32_t AllocatePerObjectChunk();
-	void FreePreObjectChunk(uint32_t index);
+	virtual uint32_t AllocatePerObjectChunk();
+	virtual void FreePreObjectChunk(uint32_t index);
 
 protected:
 	bool Init(const std::shared_ptr<ChunkBasedUniforms>& pSelf, uint32_t numBytes);
