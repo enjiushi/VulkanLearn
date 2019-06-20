@@ -632,6 +632,7 @@ uint32_t PerMeshUniforms::AllocatePerObjectChunk()
 
 	m_meshBoneOffsets[chunkIndex] = UniformData::GetInstance()->GetPerBoneUniforms()->GetAllocatedBoneCount();
 	m_boneIndexLookupTables[chunkIndex] = {};
+	SetChunkDirty(chunkIndex);
 
 	return chunkIndex;
 }
