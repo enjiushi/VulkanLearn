@@ -354,30 +354,30 @@ protected:
 protected:
 	BoneData	m_boneData[MAXIMUM_OBJECTS];
 
-	friend class PerMeshUniforms;
+	friend class BoneIndirectUniform;
 };
 
 class Mesh;
 
-class PerMeshUniforms : public ChunkBasedUniforms
+class BoneIndirectUniform : public ChunkBasedUniforms
 {
 	typedef std::map<std::wstring, uint32_t>	BoneIndexLookupTable;
 
 protected:
-	bool Init(const std::shared_ptr<PerMeshUniforms>& pSelf);
+	bool Init(const std::shared_ptr<BoneIndirectUniform>& pSelf);
 
 public:
-	static std::shared_ptr<PerMeshUniforms> Create();
+	static std::shared_ptr<BoneIndirectUniform> Create();
 	uint32_t AllocatePerObjectChunk() override { ASSERTION(false); return -1; }
 	uint32_t AllocateConsecutiveChunks(uint32_t chunkSize) override;
 
 	// Disable the visibility of these access functions, since meshChunkIndex is something internal only within mesh
 	// Let specific mesh to deal with these functions and make wrappers of them
 protected:
-	void SetBoneOffsetTransform(uint32_t meshChunkIndex, const std::wstring& boneName, const DualQuaternionf& offsetDQ);
-	bool GetBoneOffsetTransform(uint32_t meshChunkIndex, const std::wstring& boneName, DualQuaternionf& outBoneOffsetTransformDQ) const;
+	void SetBoneOffsetTransform(uint32_t chunkIndex, const std::wstring& boneName, const DualQuaternionf& offsetDQ);
+	bool GetBoneOffsetTransform(uint32_t chunkIndex, const std::wstring& boneName, DualQuaternionf& outBoneOffsetTransformDQ) const;
 
-	bool GetBoneIndex(uint32_t meshChunkIndex, const std::wstring& boneName, uint32_t& outBoneIndex) const;
+	bool GetBoneIndex(uint32_t chunkIndex, const std::wstring& boneName, uint32_t& outBoneIndex) const;
 
 public:
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
@@ -390,7 +390,7 @@ protected:
 
 protected:
 	uint32_t									m_boneChunkIndex[MAXIMUM_OBJECTS];
-	// index stands for mesh chunk index
+	// index stands for instance chunk index of a set of bones
 	std::map<uint32_t, BoneIndexLookupTable>	m_boneIndexLookupTables;
 
 	friend class Mesh;

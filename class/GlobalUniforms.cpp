@@ -606,22 +606,22 @@ uint32_t PerBoneUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet
 	return bindingIndex;
 }
 
-bool PerMeshUniforms::Init(const std::shared_ptr<PerMeshUniforms>& pSelf)
+bool BoneIndirectUniform::Init(const std::shared_ptr<BoneIndirectUniform>& pSelf)
 {
 	if (!ChunkBasedUniforms::Init(pSelf, sizeof(uint32_t)))
 		return false;
 	return true;
 }
 
-std::shared_ptr<PerMeshUniforms> PerMeshUniforms::Create()
+std::shared_ptr<BoneIndirectUniform> BoneIndirectUniform::Create()
 {
-	std::shared_ptr<PerMeshUniforms> pPerMeshUniforms = std::make_shared<PerMeshUniforms>();
-	if (pPerMeshUniforms.get() && pPerMeshUniforms->Init(pPerMeshUniforms))
-		return pPerMeshUniforms;
+	std::shared_ptr<BoneIndirectUniform> pBoneIndirectUniform = std::make_shared<BoneIndirectUniform>();
+	if (pBoneIndirectUniform.get() && pBoneIndirectUniform->Init(pBoneIndirectUniform))
+		return pBoneIndirectUniform;
 	return nullptr;
 }
 
-uint32_t PerMeshUniforms::AllocateConsecutiveChunks(uint32_t chunkSize)
+uint32_t BoneIndirectUniform::AllocateConsecutiveChunks(uint32_t chunkSize)
 {
 	uint32_t chunkIndex = ChunkBasedUniforms::AllocateConsecutiveChunks(chunkSize);
 	m_boneIndexLookupTables[chunkIndex] = {};
@@ -631,40 +631,40 @@ uint32_t PerMeshUniforms::AllocateConsecutiveChunks(uint32_t chunkSize)
 	return chunkIndex;
 }
 
-void PerMeshUniforms::SetBoneOffsetTransform(uint32_t meshChunkIndex, const std::wstring& boneName, const DualQuaternionf& offsetDQ)
+void BoneIndirectUniform::SetBoneOffsetTransform(uint32_t chunkIndex, const std::wstring& boneName, const DualQuaternionf& offsetDQ)
 {
 	uint32_t boneIndex, boneChunkIndex;
 
-	if (!GetBoneIndex(meshChunkIndex, boneName, boneIndex))
+	if (!GetBoneIndex(chunkIndex, boneName, boneIndex))
 	{
 		boneChunkIndex = UniformData::GetInstance()->GetPerBoneUniforms()->AllocatePerObjectChunk();
 
-		boneIndex = m_boneIndexLookupTables[meshChunkIndex].size();
-		m_boneIndexLookupTables[meshChunkIndex][boneName] = boneIndex;
+		boneIndex = m_boneIndexLookupTables[chunkIndex].size();
+		m_boneIndexLookupTables[chunkIndex][boneName] = boneIndex;
 
 		// Fill the actual mapping between bone index and bone chunk index(where bone data is located)
-		m_boneChunkIndex[boneIndex + meshChunkIndex] = boneChunkIndex;
-		SetChunkDirty(boneIndex + meshChunkIndex);
+		m_boneChunkIndex[boneIndex + chunkIndex] = boneChunkIndex;
+		SetChunkDirty(boneIndex + chunkIndex);
 	}
 
 	UniformData::GetInstance()->GetPerBoneUniforms()->SetBoneOffsetTransform(boneChunkIndex, offsetDQ);
 }
 
-bool PerMeshUniforms::GetBoneOffsetTransform(uint32_t meshChunkIndex, const std::wstring& boneName, DualQuaternionf& outBoneOffsetTransformDQ) const
+bool BoneIndirectUniform::GetBoneOffsetTransform(uint32_t chunkIndex, const std::wstring& boneName, DualQuaternionf& outBoneOffsetTransformDQ) const
 {
 	uint32_t boneIndex;
 
-	if (!GetBoneIndex(meshChunkIndex, boneName, boneIndex))
+	if (!GetBoneIndex(chunkIndex, boneName, boneIndex))
 		return false;
 
-	outBoneOffsetTransformDQ = UniformData::GetInstance()->GetPerBoneUniforms()->GetBoneOffsetTransform(boneIndex + meshChunkIndex);
+	outBoneOffsetTransformDQ = UniformData::GetInstance()->GetPerBoneUniforms()->GetBoneOffsetTransform(boneIndex + chunkIndex);
 
 	return true;
 }
 
-bool PerMeshUniforms::GetBoneIndex(uint32_t meshChunkIndex, const std::wstring& boneName, uint32_t& outBoneIndex) const
+bool BoneIndirectUniform::GetBoneIndex(uint32_t chunkIndex, const std::wstring& boneName, uint32_t& outBoneIndex) const
 {
-	auto lookupTable = m_boneIndexLookupTables.at(meshChunkIndex);
+	auto lookupTable = m_boneIndexLookupTables.at(chunkIndex);
 	auto iter = lookupTable.find(boneName);
 	if (iter == lookupTable.end())
 		return false;
@@ -673,7 +673,7 @@ bool PerMeshUniforms::GetBoneIndex(uint32_t meshChunkIndex, const std::wstring& 
 	return true;
 }
 
-std::vector<UniformVarList> PerMeshUniforms::PrepareUniformVarList() const
+std::vector<UniformVarList> BoneIndirectUniform::PrepareUniformVarList() const
 {
 	return
 	{
@@ -687,14 +687,14 @@ std::vector<UniformVarList> PerMeshUniforms::PrepareUniformVarList() const
 	};
 }
 
-uint32_t PerMeshUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
+uint32_t BoneIndirectUniform::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
 {
 	pDescriptorSet->UpdateShaderStorageBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
 
 	return bindingIndex;
 }
 
-void PerMeshUniforms::UpdateDirtyChunkInternal(uint32_t index)
+void BoneIndirectUniform::UpdateDirtyChunkInternal(uint32_t index)
 {
 }
 
