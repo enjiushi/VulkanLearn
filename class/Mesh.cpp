@@ -31,8 +31,6 @@ bool Mesh::Init
 	m_pIndexBuffer = SharedIndexBuffer::Create(GetDevice(), indicesCount * GetIndexBytes(indexType), indexType);
 	m_pIndexBuffer->UpdateByteStream(pIndices, 0, indicesCount * GetIndexBytes(indexType));
 
-	m_meshChunkIndex = UniformData::GetInstance()->GetPerMeshUniforms()->AllocatePerObjectChunk();
-
 	return true;
 }
 
@@ -179,6 +177,9 @@ std::shared_ptr<Mesh> Mesh::Create(const aiMesh* pMesh, uint32_t argumentedVerte
 		pIndices, pMesh->mNumFaces * 3, VK_INDEX_TYPE_UINT32
 	))
 	{
+		if (pMesh->mNumBones)
+			pRetMesh->m_meshChunkIndex = UniformData::GetInstance()->GetPerMeshUniforms()->AllocateConsecutiveChunks(pMesh->mNumBones);
+
 		for (uint32_t i = 0; i < pMesh->mNumBones; i++)
 		{
 			DualQuaternionf dq = AssimpDataConverter::AcquireDualQuaternion(pMesh->mBones[i]->mOffsetMatrix);
