@@ -342,17 +342,9 @@ public:
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
-	// Override to disable chunk allocation
-	uint32_t AllocatePerObjectChunk() override { ASSERTION(false); return 0; }
-
-	uint32_t GetAllocatedBoneCount() const { return m_allocatedBoneCount; }
-
 protected:
 	void SetBoneOffsetTransform(uint32_t chunkIndex, const DualQuaternionf& offsetDQ);
 	DualQuaternionf GetBoneOffsetTransform(uint32_t chunkIndex) const;
-
-	// Make allocation internal
-	uint32_t AllocatePerObjectChunkInternal();
 
 protected:
 	void UpdateDirtyChunkInternal(uint32_t index) override;
@@ -361,7 +353,6 @@ protected:
 
 protected:
 	BoneData	m_boneData[MAXIMUM_OBJECTS];
-	uint32_t	m_allocatedBoneCount;
 
 	friend class PerMeshUniforms;
 };
@@ -377,7 +368,8 @@ protected:
 
 public:
 	static std::shared_ptr<PerMeshUniforms> Create();
-	uint32_t AllocatePerObjectChunk() override;
+	uint32_t AllocatePerObjectChunk() override { ASSERTION(false); return -1; }
+	uint32_t AllocateConsecutiveChunks(uint32_t chunkSize) override;
 
 	// Disable the visibility of these access functions, since meshChunkIndex is something internal only within mesh
 	// Let specific mesh to deal with these functions and make wrappers of them
@@ -387,21 +379,17 @@ protected:
 
 	bool GetBoneIndex(uint32_t meshChunkIndex, const std::wstring& boneName, uint32_t& outBoneIndex) const;
 
-	//void SetMeshBoneOffset(uint32_t meshChunkIndex, uint32_t offset);
-	uint32_t GetMeshBoneOffset(uint32_t meshChunkIndex) const { return m_meshBoneOffsets[meshChunkIndex]; }
-
 public:
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
 	void UpdateDirtyChunkInternal(uint32_t index) override;
-	const void* AcquireDataPtr() const override { return &m_meshBoneOffsets[0]; }
-	uint32_t AcquireDataSize() const override { return sizeof(m_meshBoneOffsets); }
+	const void* AcquireDataPtr() const override { return &m_boneChunkIndex[0]; }
+	uint32_t AcquireDataSize() const override { return sizeof(m_boneChunkIndex); }
 
 protected:
-	uint32_t									m_meshBoneOffsets[MAXIMUM_OBJECTS];
-
+	uint32_t									m_boneChunkIndex[MAXIMUM_OBJECTS];
 	// index stands for mesh chunk index
 	std::map<uint32_t, BoneIndexLookupTable>	m_boneIndexLookupTables;
 
