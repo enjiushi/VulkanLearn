@@ -11,6 +11,7 @@ protected:
 
 public:
 	virtual uint32_t AllocatePerObjectChunk();
+	virtual uint32_t AllocateConsecutiveChunks(uint32_t chunkSize);
 	virtual void FreePreObjectChunk(uint32_t index);
 
 protected:

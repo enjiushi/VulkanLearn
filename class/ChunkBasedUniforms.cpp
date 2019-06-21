@@ -31,6 +31,31 @@ uint32_t ChunkBasedUniforms::AllocatePerObjectChunk()
 	return index;
 }
 
+uint32_t ChunkBasedUniforms::AllocateConsecutiveChunks(uint32_t chunkSize)
+{
+	ASSERTION(m_freeChunks.size() != 0);
+	for (auto iter = m_freeChunks.begin(); iter != m_freeChunks.end(); iter++)
+	{
+		uint32_t freeChunkSize = iter->second - iter->first;
+		if (freeChunkSize >= chunkSize)
+		{
+			uint32_t offsetChunkIndex = iter->first;
+
+			if (freeChunkSize == chunkSize)
+				m_freeChunks.erase(iter);
+			else
+				iter->first += chunkSize;
+
+			ASSERTION(m_freeChunks.size() != 0);
+
+			return offsetChunkIndex;
+		}
+	}
+
+	ASSERTION(false);
+	return -1;
+}
+
 void ChunkBasedUniforms::FreePreObjectChunk(uint32_t index, uint32_t start, uint32_t end)
 {
 	uint32_t midChunkIndex = (start + end) / 2;
