@@ -328,7 +328,7 @@ typedef struct _BoneData
 	DualQuaternionf	boneOffsetDQ;
 }BoneData;
 
-class PerMeshUniforms;
+class BoneIndirectUniform;
 
 class PerBoneUniforms : public ChunkBasedUniforms
 {
@@ -358,24 +358,25 @@ protected:
 };
 
 class Mesh;
+class SkeletonAnimationInstance;
 
 class BoneIndirectUniform : public ChunkBasedUniforms
 {
 	typedef std::map<std::wstring, uint32_t>	BoneIndexLookupTable;
 
 protected:
-	bool Init(const std::shared_ptr<BoneIndirectUniform>& pSelf);
+	bool Init(const std::shared_ptr<BoneIndirectUniform>& pSelf, uint32_t type);
 
 public:
-	static std::shared_ptr<BoneIndirectUniform> Create();
+	static std::shared_ptr<BoneIndirectUniform> Create(uint32_t type);
 	uint32_t AllocatePerObjectChunk() override { ASSERTION(false); return -1; }
 	uint32_t AllocateConsecutiveChunks(uint32_t chunkSize) override;
 
 	// Disable the visibility of these access functions, since meshChunkIndex is something internal only within mesh
 	// Let specific mesh to deal with these functions and make wrappers of them
 protected:
-	void SetBoneOffsetTransform(uint32_t chunkIndex, const std::wstring& boneName, const DualQuaternionf& offsetDQ);
-	bool GetBoneOffsetTransform(uint32_t chunkIndex, const std::wstring& boneName, DualQuaternionf& outBoneOffsetTransformDQ) const;
+	void SetBoneTransform(uint32_t chunkIndex, const std::wstring& boneName, const DualQuaternionf& offsetDQ);
+	bool GetBoneTransform(uint32_t chunkIndex, const std::wstring& boneName, DualQuaternionf& outBoneOffsetTransformDQ) const;
 
 	bool GetBoneIndex(uint32_t chunkIndex, const std::wstring& boneName, uint32_t& outBoneIndex) const;
 
@@ -393,5 +394,8 @@ protected:
 	// index stands for instance chunk index of a set of bones
 	std::map<uint32_t, BoneIndexLookupTable>	m_boneIndexLookupTables;
 
+	uint32_t									m_boneBufferType;			// Which binding bone data buffer is located
+
 	friend class Mesh;
+	friend class SkeletonAnimationInstance;
 };

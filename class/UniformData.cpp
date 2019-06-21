@@ -23,9 +23,9 @@ bool UniformData::Init()
 		{
 		case UniformStorageType::GlobalVariableBuffer:		m_uniformStorageBuffers[i] = GlobalUniforms::Create(); break;
 		case UniformStorageType::PerBoneBuffer:				m_uniformStorageBuffers[i] = PerBoneUniforms::Create(); break;
-		case UniformStorageType::PerMeshBuffer:				m_uniformStorageBuffers[i] = BoneIndirectUniform::Create(); break;
-		case UniformStorageType::PerAnimationBuffer:		m_uniformStorageBuffers[i] = BoneIndirectUniform::Create(); break;
-		case UniformStorageType::PerFrameBonesBuffer:		m_uniformStorageBuffers[i] = PerFrameBoneUniforms::Create(); break;
+		case UniformStorageType::PerMeshBuffer:				m_uniformStorageBuffers[i] = BoneIndirectUniform::Create(PerBoneBuffer); break;
+		case UniformStorageType::PerAnimationBuffer:		m_uniformStorageBuffers[i] = BoneIndirectUniform::Create(PerFrameBonesBuffer); break;
+		case UniformStorageType::PerFrameBonesBuffer:		m_uniformStorageBuffers[i] = PerBoneUniforms::Create(); break;
 		case UniformStorageType::PerFrameVariableBuffer:	m_uniformStorageBuffers[i] = PerFrameUniforms::Create(); break;
 		case UniformStorageType::PerObjectVariableBuffer:	m_uniformStorageBuffers[i] = PerObjectUniforms::Create(); break;
 		default:
