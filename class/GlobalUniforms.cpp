@@ -637,10 +637,10 @@ uint32_t BoneIndirectUniform::AllocateConsecutiveChunks(uint32_t chunkSize)
 void BoneIndirectUniform::SetBoneTransform(uint32_t chunkIndex, const std::wstring& boneName, const DualQuaternionf& offsetDQ)
 {
 	uint32_t boneIndex, boneChunkIndex;
+	std::shared_ptr<PerBoneUniforms> pUniformBuffer = std::dynamic_pointer_cast<PerBoneUniforms>(UniformData::GetInstance()->GetUniformStorage((UniformData::UniformStorageType)m_boneBufferType));
 
 	if (!GetBoneIndex(chunkIndex, boneName, boneIndex))
 	{
-		std::shared_ptr<PerBoneUniforms> pUniformBuffer = std::dynamic_pointer_cast<PerBoneUniforms>(UniformData::GetInstance()->GetUniformStorage((UniformData::UniformStorageType)m_boneBufferType));
 		ASSERTION(pUniformBuffer != nullptr);
 
 		boneChunkIndex = pUniformBuffer->AllocatePerObjectChunk();
@@ -652,8 +652,10 @@ void BoneIndirectUniform::SetBoneTransform(uint32_t chunkIndex, const std::wstri
 		m_boneChunkIndex[boneIndex + chunkIndex] = boneChunkIndex;
 		SetChunkDirty(boneIndex + chunkIndex);
 	}
+	else
+		boneChunkIndex = boneIndex + chunkIndex;
 
-	UniformData::GetInstance()->GetPerBoneUniforms()->SetBoneOffsetTransform(boneChunkIndex, offsetDQ);
+	pUniformBuffer->SetBoneOffsetTransform(boneChunkIndex, offsetDQ);
 }
 
 bool BoneIndirectUniform::GetBoneTransform(uint32_t chunkIndex, const std::wstring& boneName, DualQuaternionf& outBoneOffsetTransformDQ) const
