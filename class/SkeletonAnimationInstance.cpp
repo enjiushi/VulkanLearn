@@ -9,6 +9,10 @@ bool SkeletonAnimationInstance::Init(const std::shared_ptr<SkeletonAnimationInst
 	if (!SelfRefBase<SkeletonAnimationInstance>::Init(pSelf))
 		return false;
 
+	// No animation of input mesh? quit
+	if (!pMesh->ContainBoneData())
+		return false;
+
 	m_pSkeletonAnimation = pSkeletonAnimation;
 	m_pMesh = pMesh;
 
@@ -19,7 +23,9 @@ bool SkeletonAnimationInstance::Init(const std::shared_ptr<SkeletonAnimationInst
 	uint32_t boneIndex;
 	for each (auto objectAnimation in pSkeletonAnimation->m_animationDataDiction[0].objectAnimationDiction)
 	{
-		ASSERTION(UniformData::GetInstance()->GetPerMeshUniforms()->GetBoneIndex(pMesh->GetMeshChunkIndex(), objectAnimation.objectName, boneIndex));
+		// Animation bone and mesh bone doesn't match? quit
+		if (!UniformData::GetInstance()->GetPerMeshUniforms()->GetBoneIndex(pMesh->GetMeshChunkIndex(), objectAnimation.objectName, boneIndex))
+			return false;
 
 		DualQuaternionf dq = { objectAnimation.rotationKeyFrames[0].transform, objectAnimation.translationKeyFrames[0].transform };
 
