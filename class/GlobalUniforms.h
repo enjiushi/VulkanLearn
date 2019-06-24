@@ -362,6 +362,7 @@ class SkeletonAnimationInstance;
 
 class BoneIndirectUniform : public ChunkBasedUniforms
 {
+public:
 	typedef std::map<std::wstring, uint32_t>	BoneIndexLookupTable;
 
 protected:
@@ -372,13 +373,19 @@ public:
 	uint32_t AllocatePerObjectChunk() override { ASSERTION(false); return -1; }
 	uint32_t AllocateConsecutiveChunks(uint32_t chunkSize) override;
 
+	bool GetBoneIndex(uint32_t chunkIndex, const std::wstring& boneName, uint32_t& outBoneIndex) const;
+	bool GetBoneCount(uint32_t chunkIndex, uint32_t& outBoneCount) const;
+
 	// Disable the visibility of these access functions, since meshChunkIndex is something internal only within mesh
 	// Let specific mesh to deal with these functions and make wrappers of them
 protected:
+	// Bone index automatically generated if not exists
 	void SetBoneTransform(uint32_t chunkIndex, const std::wstring& boneName, const DualQuaternionf& offsetDQ);
 	bool GetBoneTransform(uint32_t chunkIndex, const std::wstring& boneName, DualQuaternionf& outBoneOffsetTransformDQ) const;
 
-	bool GetBoneIndex(uint32_t chunkIndex, const std::wstring& boneName, uint32_t& outBoneIndex) const;
+	// Input bone index
+	void SetBoneTransform(uint32_t chunkIndex, const std::wstring& boneName, uint32_t boneIndex, const DualQuaternionf& offsetDQ);
+	bool GetBoneTransform(uint32_t chunkIndex, const std::wstring& boneName, uint32_t boneIndex, DualQuaternionf& outBoneOffsetTransformDQ) const;
 
 public:
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
