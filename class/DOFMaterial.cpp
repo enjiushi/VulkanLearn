@@ -37,6 +37,7 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", fragShaderPath, L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
 	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_DOF;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF);
@@ -121,8 +122,8 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -148,7 +149,7 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 
 	pDOFMaterial->m_DOFPass = pass;
 
-	if (pDOFMaterial.get() && pDOFMaterial->Init(pDOFMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pDOFMaterial.get() && pDOFMaterial->Init(pDOFMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
 		return pDOFMaterial;
 
 	return nullptr;
@@ -160,9 +161,10 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat)
+	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat, vertexFormatInMem))
 		return false;
 
 	std::vector<CombinedImage> srcImgs;

@@ -22,7 +22,8 @@ protected:
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 		const std::vector<VkPushConstantRange>& pushConstsRanges,
 		const std::vector<UniformVar>& materialUniformVars,
-		uint32_t vertexFormat);
+		uint32_t vertexFormat,
+		uint32_t vertexFormatInMem);
 
 	void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) override;
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;

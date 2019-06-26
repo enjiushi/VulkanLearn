@@ -36,6 +36,7 @@ std::shared_ptr<BloomMaterial> BloomMaterial::CreateDefaultMaterial(BloomPass bl
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", fragShaderPath, L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
 	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_Bloom;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom);
@@ -121,8 +122,8 @@ std::shared_ptr<BloomMaterial> BloomMaterial::CreateDefaultMaterial(BloomPass bl
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -149,7 +150,7 @@ std::shared_ptr<BloomMaterial> BloomMaterial::CreateDefaultMaterial(BloomPass bl
 	pBloomMaterial->m_bloomPass = bloomPass;
 	pBloomMaterial->m_iterIndex = iterIndex;
 
-	if (pBloomMaterial.get() && pBloomMaterial->Init(pBloomMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pBloomMaterial.get() && pBloomMaterial->Init(pBloomMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
 		return pBloomMaterial;
 
 	return nullptr;
@@ -161,9 +162,10 @@ bool BloomMaterial::Init(const std::shared_ptr<BloomMaterial>& pSelf,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat)
+	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat, vertexFormatInMem))
 		return false;
 
 	std::vector<CombinedImage> srcImgs;

@@ -4,6 +4,8 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 layout (location = 0) in vec3 inPos;
+layout (location = 5) in vec4 inBoneWeight;
+layout (location = 6) in uint inBoneIndices;
 
 #include "uniform_layout.sh"
 

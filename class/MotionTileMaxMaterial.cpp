@@ -25,6 +25,7 @@ std::shared_ptr<MotionTileMaxMaterial> MotionTileMaxMaterial::CreateDefaultMater
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/motion_tile_max.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
 	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_MotionTileMax;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionTileMax);
@@ -109,8 +110,8 @@ std::shared_ptr<MotionTileMaxMaterial> MotionTileMaxMaterial::CreateDefaultMater
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -132,7 +133,7 @@ std::shared_ptr<MotionTileMaxMaterial> MotionTileMaxMaterial::CreateDefaultMater
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	if (pMotionTileMaxMaterial.get() && pMotionTileMaxMaterial->Init(pMotionTileMaxMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pMotionTileMaxMaterial.get() && pMotionTileMaxMaterial->Init(pMotionTileMaxMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
 		return pMotionTileMaxMaterial;
 
 	return nullptr;
@@ -143,9 +144,10 @@ bool MotionTileMaxMaterial::Init(const std::shared_ptr<MotionTileMaxMaterial>& p
 	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat)
+	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat, vertexFormatInMem))
 		return false;
 
 	std::vector<CombinedImage> motionVector;

@@ -7,7 +7,7 @@ enum VertexAttribFlag
 	VAFColor,
 	VAFTexCoord,
 	VAFTangent,
-	VAFBoneWeight,
+	VAFBone,
 	VACount
 };
 
@@ -19,5 +19,5 @@ enum VertexFormat
 	VertexFormatPTC = (1 << VAFPosition) | (1 << VAFTexCoord),
 	VertexFormatPNTC = (1 << VAFPosition) | (1 << VAFNormal) | (1 << VAFTexCoord),
 	VertexFormatPNTCT = (1 << VAFPosition) | (1 << VAFNormal) | (1 << VAFTexCoord) | (1 << VAFTangent),
-	VertexFormatPNTCTW = (1 << VAFPosition) | (1 << VAFNormal) | (1 << VAFTexCoord) | (1 << VAFTangent) | (1 << VAFBoneWeight)
+	VertexFormatPNTCTB = (1 << VAFPosition) | (1 << VAFNormal) | (1 << VAFTexCoord) | (1 << VAFTangent) | (1 << VAFBone)
 };

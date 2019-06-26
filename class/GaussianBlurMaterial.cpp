@@ -27,6 +27,7 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/gaussian_blur.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
 	simpleMaterialInfo.frameBufferType = outputFrameBufferType;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(renderPass);
@@ -116,8 +117,8 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -143,7 +144,7 @@ std::shared_ptr<GaussianBlurMaterial> GaussianBlurMaterial::CreateDefaultMateria
 	
 	pGaussianBlurMaterial->m_inputFrameBufferType = inputFrameBufferType;
 
-	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, textures, params))
+	if (pGaussianBlurMaterial.get() && pGaussianBlurMaterial->Init(pGaussianBlurMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, { pushConstantRange0 }, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem, textures, params))
 		return pGaussianBlurMaterial;
 	return nullptr;
 }
@@ -155,10 +156,11 @@ bool GaussianBlurMaterial::Init(const std::shared_ptr<GaussianBlurMaterial>& pSe
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
 	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem,
 	const std::vector<std::shared_ptr<Image>>& inputTextures,
 	GaussianBlurParams params)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat, vertexFormatInMem))
 		return false;
 
 	std::vector<CombinedImage> combinedImages;

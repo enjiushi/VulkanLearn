@@ -32,6 +32,7 @@ protected:
 		const std::vector<VkPushConstantRange>& pushConstsRanges,
 		const std::vector<UniformVar>& materialUniformVars,
 		uint32_t vertexFormat,
+		uint32_t vertexFormatInMem,
 		const std::vector<std::shared_ptr<Image>>& inputTextures,
 		GaussianBlurParams params);
 

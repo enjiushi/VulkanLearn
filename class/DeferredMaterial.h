@@ -6,7 +6,7 @@ class RenderPassBase;
 class GBufferMaterial : public Material
 {
 public:
-	static std::shared_ptr<GBufferMaterial> CreateDefaultMaterial();
+	static std::shared_ptr<GBufferMaterial> CreateDefaultMaterial(bool skinned = false);
 
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) override;
@@ -20,7 +20,8 @@ protected:
 		const std::shared_ptr<RenderPassBase>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 		const std::vector<UniformVar>& materialUniformVars,
-		uint32_t vertexFormat);
+		uint32_t vertexFormat,
+		uint32_t vertexFormatInMem);
 
 	void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) override;
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;

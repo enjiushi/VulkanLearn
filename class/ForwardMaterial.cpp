@@ -95,8 +95,8 @@ std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const Si
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -118,7 +118,7 @@ std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const Si
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
-	if (pForwardMaterial.get() && pForwardMaterial->Init(pForwardMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pForwardMaterial.get() && pForwardMaterial->Init(pForwardMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
 		return pForwardMaterial;
 	return nullptr;
 }

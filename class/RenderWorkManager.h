@@ -50,7 +50,9 @@ public:
 	uint32_t GetRenderStateMask() const { return m_renderStateMask; }
 
 	std::shared_ptr<MaterialInstance> AcquirePBRMaterialInstance() const;
+	std::shared_ptr<MaterialInstance> AcquirePBRSkinnedMaterialInstance() const;
 	std::shared_ptr<MaterialInstance> AcquireShadowMaterialInstance() const;
+	std::shared_ptr<MaterialInstance> AcquireSkinnedShadowMaterialInstance() const;
 	std::shared_ptr<MaterialInstance> AcquireSkyBoxMaterialInstance() const;
 
 	void SyncMaterialData();
@@ -63,10 +65,12 @@ protected:
 	uint32_t m_renderStateMask;
 	
 	std::shared_ptr<GBufferMaterial>			m_PBRGbufferMaterial;
+	std::shared_ptr<GBufferMaterial>			m_PBRSkinnedGbufferMaterial;
 	std::shared_ptr<ForwardMaterial>			m_pBackgroundMotionMaterial;
 	std::shared_ptr<MotionTileMaxMaterial>		m_pMotionTileMaxMaterial;
 	std::shared_ptr<MotionNeighborMaxMaterial>	m_pMotionNeighborMaxMaterial;
 	std::shared_ptr<ShadowMapMaterial>			m_pShadowMapMaterial;
+	std::shared_ptr<ShadowMapMaterial>			m_pSkinnedShadowMapMaterial;
 	std::shared_ptr<SSAOMaterial>				m_pSSAOMaterial;
 	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurVMaterial;
 	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurHMaterial;

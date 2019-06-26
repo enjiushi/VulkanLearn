@@ -182,6 +182,7 @@ public:
 	std::shared_ptr<MaterialInstance>	m_pSophiaMaterialInstance;
 
 	std::shared_ptr<MaterialInstance>	m_pShadowMapMaterialInstance;
+	std::shared_ptr<MaterialInstance>	m_pSkinnedShadowMapMaterialInstance;
 
 	std::shared_ptr<BaseObject>			m_pSkyBoxObject;
 	std::shared_ptr<MeshRenderer>		m_pSkyBoxMeshRenderer;

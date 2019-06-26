@@ -25,6 +25,7 @@ std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMat
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/post_processing.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
 	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_PostProcessing;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing);
@@ -109,8 +110,8 @@ std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMat
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -132,7 +133,7 @@ std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMat
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	if (pPostProcessMaterial.get() && pPostProcessMaterial->Init(pPostProcessMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pPostProcessMaterial.get() && pPostProcessMaterial->Init(pPostProcessMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
 		return pPostProcessMaterial;
 
 	return nullptr;
@@ -143,9 +144,10 @@ bool PostProcessingMaterial::Init(const std::shared_ptr<PostProcessingMaterial>&
 	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat)
+	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat, vertexFormatInMem))
 		return false;
 
 	std::vector<CombinedImage> resultTargets;

@@ -39,6 +39,7 @@ typedef struct _SimpleMaterialCreateInfo
 	std::vector<std::wstring>								shaderPaths;
 	std::vector<UniformVar>									materialUniformVars;
 	uint32_t												vertexFormat;
+	uint32_t												vertexFormatInMem;
 	uint32_t												subpassIndex = 0;
 	FrameBufferDiction::FrameBufferType						frameBufferType;
 	std::shared_ptr<RenderPassBase>							pRenderPass = nullptr;
@@ -67,6 +68,7 @@ public:
 	uint32_t GetUniformBufferSize() const;
 	std::vector<std::vector<uint32_t>> Material::GetCachedFrameOffsets() const { return m_cachedFrameOffsets; }
 	uint32_t GetVertexFormat() const { return m_vertexFormat; }
+	uint32_t GetVertexFormatInMem() const { return m_vertexFormatInMem; }
 
 	std::shared_ptr<DescriptorSet> GetDescriptorSet() const { return m_pUniformStorageDescriptorSet; }
 
@@ -124,7 +126,8 @@ protected:
 		const std::shared_ptr<RenderPassBase>& pRenderPass,
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 		const std::vector<UniformVar>& materialUniformVars,
-		uint32_t vertexFormat
+		uint32_t vertexFormat,
+		uint32_t vertexFormatInMem
 	);
 
 	bool Init
@@ -135,7 +138,8 @@ protected:
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 		const std::vector<VkPushConstantRange>& pushConstsRanges,
 		const std::vector<UniformVar>& materialUniformVars,
-		uint32_t vertexFormat
+		uint32_t vertexFormat,
+		uint32_t vertexFormatInMem
 	);
 
 	virtual void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) {}
@@ -167,5 +171,6 @@ protected:
 	std::shared_ptr<SharedIndirectBuffer>				m_pIndirectBuffer;
 	uint32_t											m_indirectIndex = 0;
 	uint32_t											m_vertexFormat;
+	uint32_t											m_vertexFormatInMem;
 	friend class MaterialInstance;
 };

@@ -71,7 +71,7 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 		uint32_t key = val->AddMeshRenderer(std::dynamic_pointer_cast<MeshRenderer>(GetSelfSharedPtr()));
 		m_materialInstances.push_back({ val, key });
 
-		ASSERTION(m_pMesh->GetVertexFormat() == val->GetMaterial()->GetVertexFormat());
+		ASSERTION(m_pMesh->GetVertexFormat() == val->GetMaterial()->GetVertexFormatInMem());
 	}
 
 	m_perObjectBufferIndex = UniformData::GetInstance()->GetPerObjectUniforms()->AllocatePerObjectChunk();

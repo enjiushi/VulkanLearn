@@ -6,6 +6,7 @@
 #include "../Base/BaseObject.h"
 #include "../Maths/AssimpDataConverter.h"
 #include "SkeletonAnimation.h"
+#include "SkeletonAnimationInstance.h"
 #include <string>
 #include <codecvt>
 #include <locale>
@@ -58,7 +59,7 @@ std::shared_ptr<Mesh> AssimpSceneReader::Read(const std::string& path, const std
 	return pMesh;
 }
 
-std::shared_ptr<BaseObject> AssimpSceneReader::ReadAndAssemblyScene(const std::string& path, const std::vector<uint32_t>& argumentedVAFList, std::vector<MeshLink>& outputMeshLinks)
+std::shared_ptr<BaseObject> AssimpSceneReader::ReadAndAssemblyScene(const std::string& path, const std::vector<uint32_t>& argumentedVAFList, SceneInfo& sceneInfo)
 {
 	Assimp::Importer imp;
 	const aiScene* pScene = nullptr;
@@ -67,10 +68,19 @@ std::shared_ptr<BaseObject> AssimpSceneReader::ReadAndAssemblyScene(const std::s
 
 	ExtractAnimations(pScene);
 
-	return AssemblyNode(pScene->mRootNode, pScene, argumentedVAFList, outputMeshLinks);
+	std::shared_ptr<BaseObject> rootObject = AssemblyNode(pScene->mRootNode, pScene, argumentedVAFList, sceneInfo);
+
+	sceneInfo.pAnimation = SkeletonAnimation::Create(pScene);
+	//std::shared_ptr<SkeletonAnimationInstance> pAnimationInstance;
+	//for (uint32_t i = 0; i < outputMeshLinks.size(); i++)
+	//{
+	//	pAnimationInstance = SkeletonAnimationInstance::Create(pAnimation, outputMeshLinks[i].first);
+	//}
+
+	return rootObject;
 }
 
-std::shared_ptr<BaseObject> AssimpSceneReader::AssemblyNode(const aiNode* pAssimpNode, const aiScene* pScene, const std::vector<uint32_t>& argumentedVAFList, std::vector<MeshLink>& outputMeshLinks)
+std::shared_ptr<BaseObject> AssimpSceneReader::AssemblyNode(const aiNode* pAssimpNode, const aiScene* pScene, const std::vector<uint32_t>& argumentedVAFList, SceneInfo& sceneInfo)
 {
 	if (pAssimpNode == nullptr)
 		return nullptr;
@@ -97,12 +107,12 @@ std::shared_ptr<BaseObject> AssimpSceneReader::AssemblyNode(const aiNode* pAssim
 
 		// Add mesh to result vector if available
 		if (pMesh)
-			outputMeshLinks.push_back({ pMesh, pObject });
+			sceneInfo.meshLinks.push_back({ pMesh, pObject });
 	}
 
 	for (uint32_t i = 0; i < pAssimpNode->mNumChildren; i++)
 	{
-		std::shared_ptr<BaseObject> pChild = AssemblyNode(pAssimpNode->mChildren[i], pScene, argumentedVAFList, outputMeshLinks);
+		std::shared_ptr<BaseObject> pChild = AssemblyNode(pAssimpNode->mChildren[i], pScene, argumentedVAFList, sceneInfo);
 		pObject->AddChild(pChild);
 	}
 
@@ -114,7 +124,8 @@ void AssimpSceneReader::ExtractAnimations(const aiScene* pScene)
 	if (pScene->mNumAnimations == 0)
 		return;
 
-	std::shared_ptr<SkeletonAnimation> pAnimation = SkeletonAnimation::Create(pScene);
+	//std::shared_ptr<SkeletonAnimation> pAnimation = SkeletonAnimation::Create(pScene);
+	//std::shared_ptr<SkeletonAnimationInstance> pAnimationInstance = SkeletonAnimationInstance::Create(pAnimation);
 
 	// For temp
 	uint32_t index = 0;

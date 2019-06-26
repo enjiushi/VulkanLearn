@@ -263,6 +263,7 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateIrradianceGenMaterial(c
 	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" };
 	info.materialUniformVars = {};
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
+	info.vertexFormatInMem = pMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen();
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_EnvGenOffScreen;
@@ -276,6 +277,7 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GeneratePrefilterEnvGenMaterial
 	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" };
 	info.materialUniformVars = {};
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
+	info.vertexFormatInMem = pMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen();
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_EnvGenOffScreen;
@@ -289,6 +291,7 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateBRDFLUTGenMaterial(cons
 	info.shaderPaths = { L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" };
 	info.materialUniformVars = {};
 	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
+	info.vertexFormatInMem = pMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen();
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_EnvGenOffScreen;

@@ -13,11 +13,13 @@
 #include "RenderPassDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial()
+std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(bool skinned)
 {
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
-	simpleMaterialInfo.shaderPaths = { L"../data/shaders/shadow_map_gen.vert.spv", L"", L"", L"", L"", L"" };
-	simpleMaterialInfo.vertexFormat = VertexFormatPNTCT;
+	std::wstring vert = skinned ? L"../data/shaders/shadow_map_gen_skinned.vert.spv" : L"../data/shaders/shadow_map_gen.vert.spv";
+	simpleMaterialInfo.shaderPaths = { vert, L"", L"", L"", L"", L"" };
+	simpleMaterialInfo.vertexFormat = skinned ? (1 << VAFPosition) | (1 << VAFBone) : (1 << VAFPosition);
+	simpleMaterialInfo.vertexFormatInMem = skinned ? VertexFormatPNTCTB : VertexFormatPNTCT;
 	simpleMaterialInfo.subpassIndex = 0;
 	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_ShadowMap;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap);
@@ -106,8 +108,8 @@ std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial()
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -129,7 +131,7 @@ std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial()
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
-	if (pShadowMapMaterial.get() && pShadowMapMaterial->Init(pShadowMapMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pShadowMapMaterial.get() && pShadowMapMaterial->Init(pShadowMapMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
 		return pShadowMapMaterial;
 	return nullptr;
 }

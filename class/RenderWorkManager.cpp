@@ -28,6 +28,7 @@ bool RenderWorkManager::Init()
 		return false;
 
 	m_PBRGbufferMaterial			= GBufferMaterial::CreateDefaultMaterial();
+	m_PBRSkinnedGbufferMaterial		= GBufferMaterial::CreateDefaultMaterial(true);
 	m_pMotionTileMaxMaterial		= MotionTileMaxMaterial::CreateDefaultMaterial();
 	m_pMotionNeighborMaxMaterial	= MotionNeighborMaxMaterial::CreateDefaultMaterial();
 	m_pShadingMaterial				= DeferredShadingMaterial::CreateDefaultMaterial();
@@ -37,6 +38,7 @@ bool RenderWorkManager::Init()
 		m_DOFMaterials.push_back(DOFMaterial::CreateDefaultMaterial((DOFMaterial::DOFPass)i));
 	}
 	m_pShadowMapMaterial			= ShadowMapMaterial::CreateDefaultMaterial();
+	m_pSkinnedShadowMapMaterial		= ShadowMapMaterial::CreateDefaultMaterial(true);
 	m_pSSAOMaterial					= SSAOMaterial::CreateDefaultMaterial();
 	for (uint32_t i = 0; i < BLOOM_ITER_COUNT; i++)
 	{
@@ -54,6 +56,7 @@ bool RenderWorkManager::Init()
 	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" };
 	info.materialUniformVars = {};
 	info.vertexFormat = VertexFormatP;
+	info.vertexFormatInMem = VertexFormatP;
 	info.subpassIndex = 1;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
 	info.depthWriteEnable = false;
@@ -65,6 +68,7 @@ bool RenderWorkManager::Init()
 	info.shaderPaths = { L"../data/shaders/background_motion_gen.vert.spv", L"", L"", L"", L"../data/shaders/background_motion_gen.frag.spv", L"" };
 	info.materialUniformVars = {};
 	info.vertexFormat = VertexFormatP;
+	info.vertexFormatInMem = VertexFormatP;
 	info.subpassIndex = 1;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
 	info.depthWriteEnable = false;
@@ -82,9 +86,23 @@ std::shared_ptr<MaterialInstance> RenderWorkManager::AcquirePBRMaterialInstance(
 	return pMaterialInstance;
 }
 
+std::shared_ptr<MaterialInstance> RenderWorkManager::AcquirePBRSkinnedMaterialInstance() const
+{
+	std::shared_ptr<MaterialInstance> pMaterialInstance = m_PBRSkinnedGbufferMaterial->CreateMaterialInstance();
+	pMaterialInstance->SetRenderMask(1 << Scene);
+	return pMaterialInstance;
+}
+
 std::shared_ptr<MaterialInstance> RenderWorkManager::AcquireShadowMaterialInstance() const
 {
 	std::shared_ptr<MaterialInstance> pMaterialInstance = m_pShadowMapMaterial->CreateMaterialInstance();
+	pMaterialInstance->SetRenderMask(1 << ShadowMapGen);
+	return pMaterialInstance;
+}
+
+std::shared_ptr<MaterialInstance> RenderWorkManager::AcquireSkinnedShadowMaterialInstance() const
+{
+	std::shared_ptr<MaterialInstance> pMaterialInstance = m_pSkinnedShadowMapMaterial->CreateMaterialInstance();
 	pMaterialInstance->SetRenderMask(1 << ShadowMapGen);
 	return pMaterialInstance;
 }
@@ -99,21 +117,26 @@ std::shared_ptr<MaterialInstance> RenderWorkManager::AcquireSkyBoxMaterialInstan
 void RenderWorkManager::SyncMaterialData()
 {
 	m_PBRGbufferMaterial->SyncBufferData();
+	m_PBRSkinnedGbufferMaterial->SyncBufferData();
 	m_pShadowMapMaterial->SyncBufferData();
+	m_pSkinnedShadowMapMaterial->SyncBufferData();
 }
 
 void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffer, uint32_t pingpong)
 {
 	m_PBRGbufferMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	m_PBRSkinnedGbufferMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
 	m_pBackgroundMotionMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer));
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y, 0, 1 });
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y });
 	m_PBRGbufferMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer), pingpong);
+	m_PBRSkinnedGbufferMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer), pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->NextSubpass(pDrawCmdBuffer);
 	m_pBackgroundMotionMaterial->DrawScreenQuad(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer));
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->EndRenderPass(pDrawCmdBuffer);
 	m_pBackgroundMotionMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
+	m_PBRSkinnedGbufferMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
 	m_PBRGbufferMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
@@ -132,11 +155,14 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 
 
 	m_pShadowMapMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	m_pSkinnedShadowMapMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_ShadowMap));
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize().y, 0, 1 });
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize().y });
 	m_pShadowMapMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_ShadowMap), pingpong);
+	m_pSkinnedShadowMapMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_ShadowMap), pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap)->EndRenderPass(pDrawCmdBuffer);
+	m_pSkinnedShadowMapMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
 	m_pShadowMapMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
@@ -255,13 +281,17 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 void RenderWorkManager::OnFrameBegin()
 {
 	m_PBRGbufferMaterial->OnFrameBegin();
+	m_PBRSkinnedGbufferMaterial->OnFrameBegin();
 	m_pShadowMapMaterial->OnFrameBegin();
+	m_pSkinnedShadowMapMaterial->OnFrameBegin();
 	m_pSkyBoxMaterial->OnFrameBegin();
 }
 
 void RenderWorkManager::OnFrameEnd()
 {
-	m_PBRGbufferMaterial->OnFrameEnd();
-	m_pShadowMapMaterial->OnFrameEnd();
 	m_pSkyBoxMaterial->OnFrameEnd();
+	m_pSkinnedShadowMapMaterial->OnFrameEnd();
+	m_pShadowMapMaterial->OnFrameEnd();
+	m_PBRSkinnedGbufferMaterial->OnFrameEnd();
+	m_PBRGbufferMaterial->OnFrameEnd();
 }

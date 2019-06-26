@@ -111,11 +111,18 @@ std::shared_ptr<Mesh> Mesh::Create(const aiMesh* pMesh, uint32_t argumentedVerte
 		vertexSize += 3 * sizeof(float);
 		vertexFormat |= (1 << VAFTangent);
 	}
+	if (pMesh->HasBones())
+	{
+		vertexSize += 4 * sizeof(float);	// Bone weight
+		vertexSize += 4 * sizeof(uint8_t);	// Bone index
+		vertexFormat |= (1 << VAFBone);
+	}
 
 	if (vertexFormat != argumentedVertexFormat && argumentedVertexFormat != 0)
 		return nullptr;
 
 	float* pVertices = new float[pMesh->mNumVertices * vertexSize / sizeof(float)];
+	memset(pVertices, 0, pMesh->mNumVertices * vertexSize);
 	uint32_t verticesNumBytes = pMesh->mNumVertices * vertexSize;
 	uint32_t count = 0;
 
@@ -160,6 +167,32 @@ std::shared_ptr<Mesh> Mesh::Create(const aiMesh* pMesh, uint32_t argumentedVerte
 		}
 	}
 
+	if (vertexFormat & (1 << VAFBone))
+	{
+		uint32_t vertexSizeInFloats = vertexSize / sizeof(float);
+
+		uint8_t* pOffsets = new uint8_t[pMesh->mNumVertices];
+		memset(pOffsets, 0, pMesh->mNumVertices);
+		for (uint32_t i = 0; i < pMesh->mNumBones; i++)
+		{
+			for (uint32_t j = 0; j < pMesh->mBones[i]->mNumWeights; j++)
+			{
+				float boneWeight = pMesh->mBones[i]->mWeights[j].mWeight;
+				int32_t vertexID = pMesh->mBones[i]->mWeights[j].mVertexId;
+
+				ASSERTION(pOffsets[vertexID] <= 4);
+
+				pVertices[vertexSizeInFloats * vertexID + count + pOffsets[vertexID]] = boneWeight;
+
+				uint8_t* pBoneIndex = (uint8_t*)(&pVertices[vertexSizeInFloats * vertexID + count + 4]);
+				pBoneIndex[pOffsets[vertexID]] = i;
+
+				pOffsets[vertexID]++;
+			}
+		}
+		delete[] pOffsets;
+	}
+
 	uint32_t* pIndices = new uint32_t[pMesh->mNumFaces * 3];
 	uint32_t indicesNumBytes = pMesh->mNumFaces * 3 * sizeof(uint32_t);
 	for (size_t i = 0; i < pMesh->mNumFaces; i++)
@@ -186,9 +219,13 @@ std::shared_ptr<Mesh> Mesh::Create(const aiMesh* pMesh, uint32_t argumentedVerte
 			UniformData::GetInstance()->GetPerMeshUniforms()->SetBoneTransform(pRetMesh->m_meshChunkIndex, std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pMesh->mBones[i]->mName.C_Str()), dq);
 		}
 
+		delete[] pVertices;
+		delete[] pIndices;
 		return pRetMesh;
 	}
 
+	delete[] pVertices;
+	delete[] pIndices;
 	return nullptr;
 }
 

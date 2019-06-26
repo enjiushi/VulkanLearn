@@ -25,6 +25,7 @@ std::shared_ptr<TemporalResolveMaterial> TemporalResolveMaterial::CreateDefaultM
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon.vert.spv", L"", L"", L"", L"../data/shaders/temporal_resolve.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
 	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_TemporalResolve;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve);
@@ -109,8 +110,8 @@ std::shared_ptr<TemporalResolveMaterial> TemporalResolveMaterial::CreateDefaultM
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -132,7 +133,7 @@ std::shared_ptr<TemporalResolveMaterial> TemporalResolveMaterial::CreateDefaultM
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	if (pResolveMaterial.get() && pResolveMaterial->Init(pResolveMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pResolveMaterial.get() && pResolveMaterial->Init(pResolveMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
 		return pResolveMaterial;
 
 	return nullptr;
@@ -143,9 +144,10 @@ bool TemporalResolveMaterial::Init(const std::shared_ptr<TemporalResolveMaterial
 	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat)
+	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat, vertexFormatInMem))
 		return false;
 
 	std::vector<CombinedImage> motionVectors;

@@ -25,6 +25,7 @@ std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial()
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon_ws_view_ray.vert.spv", L"", L"", L"", L"../data/shaders/ssao_gen.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
 	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_SSAOSSR;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOSSR);
@@ -109,8 +110,8 @@ std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial()
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -132,7 +133,7 @@ std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial()
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	if (pSSAOMaterial.get() && pSSAOMaterial->Init(pSSAOMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pSSAOMaterial.get() && pSSAOMaterial->Init(pSSAOMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
 		return pSSAOMaterial;
 
 	return nullptr;
@@ -143,11 +144,12 @@ bool SSAOMaterial::Init(const std::shared_ptr<SSAOMaterial>& pSelf,
 	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat)
+	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem)
 {
 	VkPushConstantRange pushConstantRange = { VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(float) };
 
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, { pushConstantRange }, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, { pushConstantRange }, materialUniformVars, vertexFormat, vertexFormatInMem))
 		return false;
 
 	std::vector<CombinedImage> gbuffer0;

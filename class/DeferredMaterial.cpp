@@ -21,7 +21,7 @@
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial()
+std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(bool skinned)
 {
 	std::vector<UniformVar> vars =
 	{
@@ -50,9 +50,11 @@ std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial()
 	};
 
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
-	simpleMaterialInfo.shaderPaths = { L"../data/shaders/pbr_gbuffer_gen.vert.spv", L"", L"", L"", L"../data/shaders/pbr_gbuffer_gen.frag.spv", L"" };
+	std::wstring vert = skinned ? L"../data/shaders/pbr_gbuffer_gen_skinned.vert.spv" : L"../data/shaders/pbr_gbuffer_gen.vert.spv";
+	simpleMaterialInfo.shaderPaths = { vert, L"", L"", L"", L"../data/shaders/pbr_gbuffer_gen.frag.spv", L"" };
 	simpleMaterialInfo.materialUniformVars = vars;
-	simpleMaterialInfo.vertexFormat = VertexFormatPNTCT;
+	simpleMaterialInfo.vertexFormat = skinned ? VertexFormatPNTCTB : VertexFormatPNTCT;
+	simpleMaterialInfo.vertexFormatInMem = skinned ? VertexFormatPNTCTB : VertexFormatPNTCT;
 	simpleMaterialInfo.subpassIndex = 0;
 	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_GBuffer;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
@@ -135,8 +137,8 @@ std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial()
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -158,7 +160,7 @@ std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial()
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
-	if (pGbufferMaterial.get() && pGbufferMaterial->Init(pGbufferMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pGbufferMaterial.get() && pGbufferMaterial->Init(pGbufferMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
 		return pGbufferMaterial;
 	return nullptr;
 }
@@ -189,6 +191,7 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon.vert.spv", L"", L"", L"", L"../data/shaders/pbr_deferred_shading.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
+	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
 	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_Shading;
@@ -273,8 +276,8 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormat));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat);
+		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -296,7 +299,7 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 
-	if (pDeferredMaterial.get() && pDeferredMaterial->Init(pDeferredMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat))
+	if (pDeferredMaterial.get() && pDeferredMaterial->Init(pDeferredMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
 		return pDeferredMaterial;
 
 	return nullptr;
@@ -307,9 +310,10 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat)
+	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat, vertexFormatInMem))
 		return false;
 
 	for (uint32_t i = 0; i < FrameBufferDiction::GBufferCount + 1; i++)

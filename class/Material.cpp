@@ -44,10 +44,11 @@ bool Material::Init
 	const std::shared_ptr<RenderPassBase>& pRenderPass,
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat
+	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem
 )
 {
-	return Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, {}, materialUniformVars, vertexFormat);
+	return Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, {}, materialUniformVars, vertexFormat, vertexFormatInMem);
 }
 
 bool Material::Init
@@ -58,7 +59,8 @@ bool Material::Init
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat
+	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem
 )
 {
 	if (!SelfRefBase<Material>::Init(pSelf))
@@ -233,6 +235,7 @@ bool Material::Init
 	m_pIndirectBuffer = SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT);
 
 	m_vertexFormat = vertexFormat;
+	m_vertexFormatInMem = vertexFormatInMem;
 
 	return true;
 }
@@ -362,7 +365,7 @@ void Material::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& 
 
 void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	pCmdBuffer->BindVertexBuffers({ VertexAttribBufferMgr(m_vertexFormat)->GetBuffer() });
+	pCmdBuffer->BindVertexBuffers({ VertexAttribBufferMgr(m_vertexFormatInMem)->GetBuffer() });
 	pCmdBuffer->BindIndexBuffer(IndexBufferMgr()->GetBuffer(), VK_INDEX_TYPE_UINT32);
 }
 

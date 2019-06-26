@@ -25,6 +25,10 @@ uint32_t GetVertexBytes(uint32_t vertexFormat)
 	{
 		vertexByte += 3 * sizeof(float);
 	}
+	if (vertexFormat & (1 << VAFBone))
+	{
+		vertexByte += 5 * sizeof(float);
+	}
 	return vertexByte;
 }
 
@@ -49,8 +53,11 @@ VkVertexInputBindingDescription GenerateBindingDesc(uint32_t bindingIndex, uint3
 	return bindingDesc;
 }
 
-std::vector<VkVertexInputAttributeDescription> GenerateAttribDesc(uint32_t bindingIndex, uint32_t vertexFormat)
+std::vector<VkVertexInputAttributeDescription> GenerateAttribDesc(uint32_t bindingIndex, uint32_t vertexFormat, uint32_t vertexFormatInMem)
 {
+	// Do assert all bits of vertex format must exist in vertex format in memory
+	ASSERTION((vertexFormat & vertexFormatInMem) == vertexFormat);
+
 	std::vector<VkVertexInputAttributeDescription> attribDesc;
 
 	uint32_t offset = 0;
@@ -61,9 +68,11 @@ std::vector<VkVertexInputAttributeDescription> GenerateAttribDesc(uint32_t bindi
 		attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
 		attrib.location = VAFPosition;
 		attrib.offset = offset;
-		offset += sizeof(float) * 3;
 		attribDesc.push_back(attrib);
 	}
+	if (vertexFormatInMem & (1 << VAFPosition))
+		offset += sizeof(float) * 3;
+
 	if (vertexFormat & (1 << VAFNormal))
 	{
 		VkVertexInputAttributeDescription attrib = {};
@@ -71,9 +80,11 @@ std::vector<VkVertexInputAttributeDescription> GenerateAttribDesc(uint32_t bindi
 		attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
 		attrib.location = VAFNormal;
 		attrib.offset = offset;
-		offset += sizeof(float) * 3;
 		attribDesc.push_back(attrib);
 	}
+	if (vertexFormatInMem & (1 << VAFNormal))
+		offset += sizeof(float) * 3;
+
 	if (vertexFormat & (1 << VAFColor))
 	{
 		VkVertexInputAttributeDescription attrib = {};
@@ -81,9 +92,11 @@ std::vector<VkVertexInputAttributeDescription> GenerateAttribDesc(uint32_t bindi
 		attrib.format = VK_FORMAT_R32G32B32A32_SFLOAT;
 		attrib.location = VAFColor;
 		attrib.offset = offset;
-		offset += sizeof(float) * 4;
 		attribDesc.push_back(attrib);
 	}
+	if (vertexFormatInMem & (1 << VAFColor))
+		offset += sizeof(float) * 4;
+
 	if (vertexFormat & (1 << VAFTexCoord))
 	{
 		VkVertexInputAttributeDescription attrib = {};
@@ -91,9 +104,11 @@ std::vector<VkVertexInputAttributeDescription> GenerateAttribDesc(uint32_t bindi
 		attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
 		attrib.location = VAFTexCoord;
 		attrib.offset = offset;
-		offset += sizeof(float) * 2;
 		attribDesc.push_back(attrib);
 	}
+	if (vertexFormatInMem & (1 << VAFTexCoord))
+		offset += sizeof(float) * 2;
+
 	if (vertexFormat & (1 << VAFTangent))
 	{
 		VkVertexInputAttributeDescription attrib = {};
@@ -101,9 +116,31 @@ std::vector<VkVertexInputAttributeDescription> GenerateAttribDesc(uint32_t bindi
 		attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
 		attrib.location = VAFTangent;
 		attrib.offset = offset;
-		offset += sizeof(float) * 3;
 		attribDesc.push_back(attrib);
 	}
+	if (vertexFormatInMem & (1 << VAFTangent))
+		offset += sizeof(float) * 3;
+
+	if (vertexFormat & (1 << VAFBone))
+	{
+		// Bone weight
+		VkVertexInputAttributeDescription attrib = {};
+		attrib.binding = 0;
+		attrib.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		attrib.location = VAFBone;
+		attrib.offset = offset;
+		attribDesc.push_back(attrib);
+
+		// Bone index (4 bytes, 1 per index from 0 - 255)
+		attrib = {};
+		attrib.binding = 0;
+		attrib.format = VK_FORMAT_R32_UINT;
+		attrib.location = VAFBone + 1;
+		attrib.offset = offset + sizeof(float) * 4;
+		attribDesc.push_back(attrib);
+	}
+	if (vertexFormatInMem & (1 << VAFBone))
+		offset += sizeof(float) * 5;
 
 	return attribDesc;
 }
