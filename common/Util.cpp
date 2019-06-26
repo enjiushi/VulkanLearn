@@ -101,7 +101,7 @@ std::vector<VkVertexInputAttributeDescription> GenerateAttribDesc(uint32_t bindi
 	{
 		VkVertexInputAttributeDescription attrib = {};
 		attrib.binding = 0;
-		attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
+		attrib.format = VK_FORMAT_R32G32_SFLOAT;
 		attrib.location = VAFTexCoord;
 		attrib.offset = offset;
 		attribDesc.push_back(attrib);
