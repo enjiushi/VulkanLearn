@@ -7,6 +7,7 @@
 #include "../Maths/AssimpDataConverter.h"
 #include "SkeletonAnimation.h"
 #include "SkeletonAnimationInstance.h"
+#include "../component/AnimationController.h"
 #include <string>
 #include <codecvt>
 #include <locale>
@@ -70,12 +71,19 @@ std::shared_ptr<BaseObject> AssimpSceneReader::ReadAndAssemblyScene(const std::s
 
 	std::shared_ptr<BaseObject> rootObject = AssemblyNode(pScene->mRootNode, pScene, argumentedVAFList, sceneInfo);
 
+	// Create animation
 	sceneInfo.pAnimation = SkeletonAnimation::Create(pScene);
-	//std::shared_ptr<SkeletonAnimationInstance> pAnimationInstance;
-	//for (uint32_t i = 0; i < outputMeshLinks.size(); i++)
-	//{
-	//	pAnimationInstance = SkeletonAnimationInstance::Create(pAnimation, outputMeshLinks[i].first);
-	//}
+
+	if (sceneInfo.pAnimation == nullptr)
+		return rootObject;
+
+	// For each object with animation in his children, create animation instance and animation controller to attach to it
+	for (auto link : sceneInfo.meshLinks)
+	{
+		std::shared_ptr<SkeletonAnimationInstance> pAnimationInstance = SkeletonAnimationInstance::Create(sceneInfo.pAnimation, link.first);
+		std::shared_ptr<AnimationController> pAnimationController = AnimationController::Create(pAnimationInstance);
+		link.second->AddComponent(pAnimationController);
+	}
 
 	return rootObject;
 }
