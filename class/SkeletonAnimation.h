@@ -10,6 +10,7 @@ struct aiAnimation;
 struct aiNodeAnim;
 
 class SkeletonAnimationInstance;
+class AnimationController;
 
 typedef struct _RotationKeyFrame
 {
@@ -62,4 +63,5 @@ protected:
 	std::map<std::wstring, uint32_t>	m_animationDataLookupTable;		// Using this to lookup specific index in animation dictionary
 
 	friend class SkeletonAnimationInstance;
+	friend class AnimationController;
 };
