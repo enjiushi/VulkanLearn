@@ -10,6 +10,9 @@ bool SkeletonAnimation::Init(const std::shared_ptr<SkeletonAnimation>& pSelf, co
 	if (!SelfRefBase<SkeletonAnimation>::Init(pSelf))
 		return false;
 
+	if (pAssimpScene->mNumAnimations == 0)
+		return false;
+
 	for (uint32_t i = 0; i < pAssimpScene->mNumAnimations; i++)
 	{
 		AnimationData animationData = {};
