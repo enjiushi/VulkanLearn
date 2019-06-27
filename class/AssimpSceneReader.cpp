@@ -80,9 +80,12 @@ std::shared_ptr<BaseObject> AssimpSceneReader::ReadAndAssemblyScene(const std::s
 	// For each object with animation in his children, create animation instance and animation controller to attach to it
 	for (auto link : sceneInfo.meshLinks)
 	{
-		std::shared_ptr<SkeletonAnimationInstance> pAnimationInstance = SkeletonAnimationInstance::Create(sceneInfo.pAnimation, link.first);
-		std::shared_ptr<AnimationController> pAnimationController = AnimationController::Create(pAnimationInstance);
-		link.second->AddComponent(pAnimationController);
+		if (link.first->ContainBoneData())
+		{
+			std::shared_ptr<SkeletonAnimationInstance> pAnimationInstance = SkeletonAnimationInstance::Create(sceneInfo.pAnimation, link.first);
+			std::shared_ptr<AnimationController> pAnimationController = AnimationController::Create(pAnimationInstance);
+			rootObject->AddComponent(pAnimationController);
+		}
 	}
 
 	return rootObject;
