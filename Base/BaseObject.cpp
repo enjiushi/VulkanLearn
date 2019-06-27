@@ -60,7 +60,7 @@ void BaseObject::Update()
 		m_components[i]->Update();
 
 	// Call all global registered component call back function
-	for (size_t i = m_globalRegisteredComponents.size() - 1; i >= 0 && m_globalRegisteredComponents.size() > 0; i--)
+	for (int32_t i = m_globalRegisteredComponents.size() - 1; i >= 0 && m_globalRegisteredComponents.size() > 0; i--)
 		m_globalRegisteredComponents[i]->CallbackFunc(GetSelfSharedPtr());
 
 	size_t originalSize = m_globalRegisteredComponents.size();
