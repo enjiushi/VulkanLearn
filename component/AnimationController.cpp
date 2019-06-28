@@ -3,6 +3,8 @@
 #include "../class/SkeletonAnimationInstance.h"
 #include "../Base/BaseObject.h"
 #include "../Maths/DualQuaternion.h"
+#include "../class/UniformData.h"
+#include "../class/Mesh.h"
 
 DEFINITE_CLASS_RTTI(AnimationController, BaseComponent);
 
@@ -38,7 +40,9 @@ void AnimationController::CallbackFunc(std::shared_ptr<BaseObject>& pObject)
 	pObject->SetRotation(rotation);
 	pObject->SetPos(translate);
 
-	Matrix4f transform = pObject->GetWorldTransform();
+	DualQuaternionf boneOffsetDQ;
+	ASSERTION(UniformData::GetInstance()->GetPerMeshUniforms()->GetBoneTransform(m_pAnimationInstance->GetMesh()->GetMeshChunkIndex(), pObject->GetName(), boneOffsetDQ));
+	Matrix4f transform = pObject->GetWorldTransform() * Matrix4f(boneOffsetDQ.AcquireRotation().Matrix(), boneOffsetDQ.AcquireTranslation());
 
 	m_pAnimationInstance->SetBoneTransform(pObject->GetName(), DualQuaternionf(transform.RotationMatrix(), transform.TranslationVector()));
 }
