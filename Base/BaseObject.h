@@ -109,6 +109,7 @@ public:
 	void AddChild(const std::shared_ptr<BaseObject>& pObj);
 	void DelChild(uint32_t index);
 	std::shared_ptr<BaseObject> GetChild(uint32_t index);
+	uint32_t GetChildrenCount() const { return m_children.size(); }
 
 	bool ContainObject(const std::shared_ptr<BaseObject>& pObj) const;
 
