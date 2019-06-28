@@ -359,6 +359,7 @@ protected:
 
 class Mesh;
 class SkeletonAnimationInstance;
+class AnimationController;
 
 class BoneIndirectUniform : public ChunkBasedUniforms
 {
@@ -405,4 +406,5 @@ protected:
 
 	friend class Mesh;
 	friend class SkeletonAnimationInstance;
+	friend class AnimationController;
 };
