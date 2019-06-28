@@ -2,6 +2,7 @@
 
 #include "DeviceObjectBase.h"
 #include <map>
+#include <unordered_map>
 
 class Buffer;
 class Image;
@@ -69,9 +70,19 @@ protected:
 	void ReleaseMemory();
 
 protected:
-	std::map<uint32_t, MemoryNode>		m_bufferMemPool;
-	std::map<uint32_t, MemoryNode>		m_imageMemPool;
-	std::map<uint32_t, BindingInfo>		m_bufferBindingTable;
+	std::vector<MemoryNode>						m_bufferMemPool;
+	std::vector<MemoryNode>						m_imageMemPool;
+	std::vector<std::pair<BindingInfo, bool>>	m_bufferBindingTable;	// bool stands for whether it's freed
+
+	// uint32_t stands for actual image mem pool index
+	// bool stands for whether it's freed
+	std::vector<std::pair<uint32_t, bool>>		m_imageMemPoolLookupTable;
+
+	// uint32_t stands for actual buffer binding table index
+	// bool stands for whether it's freed
+	std::vector<std::pair<uint32_t, bool>>		m_bufferBindingLookupTable;
+
+	static const uint32_t						LOOKUP_TABLE_SIZE_INC = 256;
 
 	friend class MemoryKey;
 };

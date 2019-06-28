@@ -41,6 +41,8 @@ bool DeviceMemoryManager::Init(const std::shared_ptr<Device>& pDevice, const std
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
+	m_bufferMemPool.resize(sizeof(uint32_t) * 8, {});	// Same size as bit count of uint32_t, i.e. type index count
+
 	return true;
 }
 
@@ -62,14 +64,36 @@ std::shared_ptr<MemoryKey> DeviceMemoryManager::AllocateBufferMemChunk(const std
 	uint32_t offset;
 	AllocateBufferMemory(pMemKey->m_key, reqs.size, reqs.memoryTypeBits, memoryPropertyBits, typeIndex, offset);
 
+	// If key exceeds lookup table size, increase it
+	if (pMemKey->m_key >= m_bufferBindingLookupTable.size())
+	{
+		std::vector<std::pair<uint32_t, bool>> newLookupTable(m_bufferBindingLookupTable.size() + LOOKUP_TABLE_SIZE_INC);
+		std::swap_ranges(m_bufferBindingLookupTable.begin(), m_bufferBindingLookupTable.end(), newLookupTable.begin());
+		m_bufferBindingLookupTable = std::move(newLookupTable);
+	}
+
 	pBuffer->BindMemory(m_bufferMemPool[typeIndex].memory, offset);
 
-	m_bufferBindingTable[pMemKey->m_key].typeIndex = typeIndex;
-	m_bufferBindingTable[pMemKey->m_key].startByte = offset;
-	m_bufferBindingTable[pMemKey->m_key].numBytes = reqs.size;
+	uint32_t bindingTableIndex = m_bufferBindingTable.size();
+	m_bufferBindingTable.push_back
+		(
+			{
+				{
+					typeIndex,
+					offset,
+					(uint32_t)reqs.size,
+					nullptr
+				},
+				{
+					false
+				}
+			}
+		);
 
 	if (m_bufferMemPool[typeIndex].pData)
-		m_bufferBindingTable[pMemKey->m_key].pData = (char*)m_bufferMemPool[typeIndex].pData + offset;
+		m_bufferBindingTable[bindingTableIndex].first.pData = (char*)m_bufferMemPool[typeIndex].pData + offset;
+
+	m_bufferBindingLookupTable[pMemKey->m_key] = { bindingTableIndex, false };
 
 	UpdateBufferMemChunk(pMemKey, memoryPropertyBits, pData, offset, reqs.size);
 
@@ -85,14 +109,15 @@ std::shared_ptr<MemoryKey> DeviceMemoryManager::AllocateImageMemChunk(const std:
 	uint32_t typeIndex;
 	uint32_t offset;
 	AllocateImageMemory(pMemKey->m_key, reqs.size, reqs.memoryTypeBits, memoryPropertyBits, typeIndex, offset);
-	pImage->BindMemory(m_imageMemPool[pMemKey->m_key].memory, offset);
+	pImage->BindMemory(m_imageMemPool[m_imageMemPoolLookupTable[pMemKey->m_key].first].memory, offset);
 
 	return pMemKey;
 }
 
 bool DeviceMemoryManager::UpdateBufferMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes)
 {
-	if (m_bufferBindingTable.find(pMemKey->m_key) == m_bufferBindingTable.end())
+	// Early return if it's been freed
+	if (m_bufferBindingLookupTable[pMemKey->m_key].second)
 		return false;
 
 	if ((memoryPropertyBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
@@ -101,7 +126,7 @@ bool DeviceMemoryManager::UpdateBufferMemChunk(const std::shared_ptr<MemoryKey>&
 	if (pData == nullptr)
 		return false;
 
-	BindingInfo bindingInfo = m_bufferBindingTable[pMemKey->m_key];
+	auto& bindingInfo = m_bufferBindingTable[m_bufferBindingLookupTable[pMemKey->m_key].first].first;
 
 	// If numbytes is larger than buffer's bytes, use buffer bytes
 	uint32_t updateNumBytes = numBytes > bindingInfo.numBytes ? bindingInfo.numBytes : numBytes;
@@ -112,16 +137,13 @@ bool DeviceMemoryManager::UpdateBufferMemChunk(const std::shared_ptr<MemoryKey>&
 
 bool DeviceMemoryManager::UpdateImageMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes)
 {
-	if (m_imageMemPool.find(pMemKey->m_key) == m_imageMemPool.end())
-		return false;
-
 	if ((memoryPropertyBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
 		return false;
 
 	if (pData == nullptr)
 		return false;
 
-	MemoryNode memoryNode = m_imageMemPool[pMemKey->m_key];
+	auto& memoryNode = m_imageMemPool[m_imageMemPoolLookupTable[pMemKey->m_key].first];
 
 	// If numbytes is larger than buffer's bytes, use buffer bytes
 	uint32_t updateNumBytes = numBytes > memoryNode.numBytes ? memoryNode.numBytes : numBytes;
@@ -153,7 +175,7 @@ void DeviceMemoryManager::AllocateBufferMemory(uint32_t key, uint32_t numBytes, 
 		typeIndex++;
 	}
 
-	if (m_bufferMemPool.find(typeIndex) == m_bufferMemPool.end())
+	if (m_bufferMemPool[typeIndex].memory == 0)
 	{
 		MemoryNode node;
 		node.numBytes = (memoryPropertyBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) ? STAGING_MEMORY_ALLOCATE_INC : DEVICE_MEMORY_ALLOCATE_INC;
@@ -204,16 +226,29 @@ void DeviceMemoryManager::AllocateImageMemory(uint32_t key, uint32_t numBytes, u
 	CHECK_VK_ERROR(vkAllocateMemory(GetDevice()->GetDeviceHandle(), &allocInfo, nullptr, &node.memory));
 
 	offset = 0;
-	m_imageMemPool[key] = node;
+
+	uint32_t imageMemPoolIndex = m_imageMemPool.size();
+	m_imageMemPool.push_back(node);
+
+	if (key >= m_imageMemPoolLookupTable.size())
+	{
+		std::vector<std::pair<uint32_t, bool>> newLookupTable(m_imageMemPoolLookupTable.size() + LOOKUP_TABLE_SIZE_INC);
+		std::swap_ranges(m_imageMemPoolLookupTable.begin(), m_imageMemPoolLookupTable.end(), newLookupTable.begin());
+		m_imageMemPoolLookupTable = std::move(newLookupTable);
+	}
+
+	m_imageMemPoolLookupTable[key] = { imageMemPoolIndex, false };
 }
 
 void DeviceMemoryManager::FreeBufferMemChunk(uint32_t key)
 {
-	auto bindingIter = m_bufferBindingTable.find(key);
-	if (bindingIter == m_bufferBindingTable.end())
+	// Early return if it's freed
+	if (m_bufferBindingLookupTable[key].second)
 		return;
 
-	MemoryNode& node = m_bufferMemPool[bindingIter->second.typeIndex];
+	auto& bindingInfo = m_bufferBindingTable[m_bufferBindingLookupTable[key].first];
+	
+	MemoryNode& node = m_bufferMemPool[bindingInfo.first.typeIndex];
 	auto memIter = std::find_if(node.bindingList.begin(), node.bindingList.end(), [key](uint32_t poolKey)
 	{
 		return poolKey == key;
@@ -221,18 +256,24 @@ void DeviceMemoryManager::FreeBufferMemChunk(uint32_t key)
 	if (memIter == node.bindingList.end())
 		return;
 
-	m_bufferBindingTable.erase(key);
+	m_bufferBindingLookupTable[key].second = true;
+	m_bufferBindingTable[m_bufferBindingLookupTable[key].first].second = true;
+
 	node.bindingList.erase(memIter);
+
+	// Need to add some sort of logics to make buffer tables more compact
 }
 
 void DeviceMemoryManager::FreeImageMemChunk(uint32_t key)
 {
-	auto memNodeIter = m_imageMemPool.find(key);
-	if (memNodeIter == m_imageMemPool.end())
-		return;
+	auto index = m_imageMemPoolLookupTable[key];
 
-	vkFreeMemory(GetDevice()->GetDeviceHandle(), memNodeIter->second.memory, nullptr);
-	m_imageMemPool.erase(key);
+	vkFreeMemory(GetDevice()->GetDeviceHandle(), m_imageMemPool[index.first].memory, nullptr);
+
+	m_imageMemPool.erase(m_imageMemPool.begin() + index.first);
+	m_imageMemPoolLookupTable[key].second = true;
+
+	// Need to add some sort of logics to make buffer tables more compact
 }
 
 bool DeviceMemoryManager::FindFreeBufferMemoryChunk(uint32_t key, uint32_t typeIndex, uint32_t numBytes, uint32_t& offset)
@@ -241,17 +282,21 @@ bool DeviceMemoryManager::FindFreeBufferMemoryChunk(uint32_t key, uint32_t typeI
 	uint32_t endByte = 0;
 	for (uint32_t i = 0; i < m_bufferMemPool[typeIndex].bindingList.size(); i++)
 	{
-		BindingInfo bindingInfo = m_bufferBindingTable[m_bufferMemPool[typeIndex].bindingList[i]];
+		auto& bindingInfo = m_bufferBindingTable[m_bufferBindingLookupTable[m_bufferMemPool[typeIndex].bindingList[i]].first];
+
+		// Skip if it's freed
+		if (bindingInfo.second)
+			continue;
 
 		endByte = offset + numBytes - 1;
-		if (endByte < bindingInfo.startByte)
+		if (endByte < bindingInfo.first.startByte)
 		{
 			m_bufferMemPool[typeIndex].bindingList.insert(m_bufferMemPool[typeIndex].bindingList.begin() + i, key);
 			return true;
 		}
 		else
 		{
-			offset = bindingInfo.startByte + bindingInfo.numBytes;
+			offset = bindingInfo.first.startByte + bindingInfo.first.numBytes;
 		}
 	}
 
@@ -264,13 +309,13 @@ bool DeviceMemoryManager::FindFreeBufferMemoryChunk(uint32_t key, uint32_t typeI
 
 void DeviceMemoryManager::ReleaseMemory()
 {
-	std::for_each(m_bufferMemPool.begin(), m_bufferMemPool.end(), [this](std::pair<const uint32_t, MemoryNode>& pair)
+	std::for_each(m_bufferMemPool.begin(), m_bufferMemPool.end(), [this](MemoryNode& node)
 	{
-		vkFreeMemory(GetDevice()->GetDeviceHandle(), pair.second.memory, nullptr);
+		vkFreeMemory(GetDevice()->GetDeviceHandle(), node.memory, nullptr);
 	});
 }
 
 void* DeviceMemoryManager::GetDataPtr(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t offset, uint32_t numBytes)
 {
-	return m_bufferBindingTable[pMemKey->m_key].pData;
+	return m_bufferBindingTable[m_bufferBindingLookupTable[pMemKey->m_key].first].first.pData;
 }
