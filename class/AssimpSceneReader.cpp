@@ -82,9 +82,9 @@ std::shared_ptr<BaseObject> AssimpSceneReader::ReadAndAssemblyScene(const std::s
 	{
 		if (link.first->ContainBoneData())
 		{
-			std::shared_ptr<SkeletonAnimationInstance> pAnimationInstance = SkeletonAnimationInstance::Create(sceneInfo.pAnimation, link.first);
-			std::shared_ptr<AnimationController> pAnimationController = AnimationController::Create(pAnimationInstance);
-			rootObject->AddComponent(pAnimationController);
+			//std::shared_ptr<SkeletonAnimationInstance> pAnimationInstance = SkeletonAnimationInstance::Create(sceneInfo.pAnimation, link.first);
+			//std::shared_ptr<AnimationController> pAnimationController = AnimationController::Create(pAnimationInstance);
+			//rootObject->AddComponent(pAnimationController);
 		}
 	}
 
