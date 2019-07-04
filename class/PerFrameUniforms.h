@@ -29,35 +29,6 @@ typedef struct _PerFrameVariables
 	Vector2f	haltonX256Jitter;
 }PerFrameVariables;
 
-//typedef struct _PerFrameBoneData
-//{
-//	DualQuaternionf	boneAnimation;
-//}PerFramBoneData;
-//
-//class PerFrameBoneUniforms : public ChunkBasedUniforms
-//{
-//protected:
-//	bool Init(const std::shared_ptr<PerFrameBoneUniforms>& pSelf);
-//
-//public:
-//	static std::shared_ptr<PerFrameBoneUniforms> Create();
-//
-//public:
-//	void SetAnimationTransform(uint32_t index, const DualQuaternionf& animationDQ) { m_boneData[index].boneAnimation = animationDQ; SetChunkDirty(index); }
-//	DualQuaternionf GetAnimationTransform(uint32_t index) const { return m_boneData[index].boneAnimation; }
-//
-//	std::vector<UniformVarList> PrepareUniformVarList() const override;
-//	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
-//
-//protected:
-//	void UpdateDirtyChunkInternal(uint32_t index) override;
-//	const void* AcquireDataPtr() const override { return &m_boneData[0]; }
-//	uint32_t AcquireDataSize() const override { return sizeof(m_boneData); }
-//
-//protected:
-//	PerFramBoneData	m_boneData[MAXIMUM_OBJECTS];
-//};
-
 class PerFrameUniforms : public UniformDataStorage
 {
 protected:
