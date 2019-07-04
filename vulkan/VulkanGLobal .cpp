@@ -685,6 +685,29 @@ void VulkanGlobal::InitMaterials()
 	m_pSkinnedShadowMapMaterialInstance = RenderWorkManager::GetInstance()->AcquireSkinnedShadowMaterialInstance();
 }
 
+void VulkanGlobal::AddBoneBox(const std::shared_ptr<BaseObject>& pObject)
+{
+	std::shared_ptr<MaterialInstance> pInst = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
+	pInst->SetRenderMask(1 << RenderWorkManager::Scene);
+	pInst->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 0.0f, 0.5f));
+	pInst->SetParameter("AOMetalic", Vector2f(1.0f, 0.9f));
+	pInst->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	pInst->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	pInst->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+
+	m_boneBoxMaterialInstances.push_back(pInst);
+	m_boneBoxRenderers.push_back(MeshRenderer::Create(m_pPBRBoxMesh, pInst));
+
+	pObject->AddComponent(m_boneBoxRenderers.back());
+	//pObject->SetScale(0.11f);
+	//pObject->SetPos(0, 0, 0);
+
+	for (uint32_t i = 0; i < pObject->GetChildrenCount(); i++)
+	{
+		AddBoneBox(pObject->GetChild(i));
+	}
+}
+
 void VulkanGlobal::InitScene()
 {
 	PhysicalCamera::PhysicalCameraProps props =
@@ -799,7 +822,8 @@ void VulkanGlobal::InitScene()
 	m_pSophiaRenderer->SetName(L"hehe");
 	m_pSophiaObject->SetScale(0.005f);
 	m_pSophiaObject->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14f));
-	m_pSophiaObject->SetPos(0, -0.4f, -1);
+	m_pSophiaObject->SetPos(0, 0.4f, -1);
+	//AddBoneBox(m_pSophiaObject);
 	sceneInfo.meshLinks.clear();
 
 	m_pRootObject = BaseObject::Create();

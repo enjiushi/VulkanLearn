@@ -166,6 +166,8 @@ public:
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer0;
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer1;
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer2;
+	std::vector<std::shared_ptr<MeshRenderer>> m_boneBoxRenderers;
+	std::vector<std::shared_ptr<MaterialInstance>> m_boneBoxMaterialInstances;
 	std::shared_ptr<MeshRenderer>		m_pSophiaRenderer;
 
 	std::shared_ptr<MaterialInstance>	m_pGunMaterialInstance;
@@ -204,4 +206,6 @@ public:
 	HINSTANCE							m_hPlatformInst;
 	HWND								m_hWindow;
 #endif
+
+	void AddBoneBox(const std::shared_ptr<BaseObject>& pObject);
 };
