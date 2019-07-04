@@ -42,9 +42,15 @@ void AnimationController::CallbackFunc(std::shared_ptr<BaseObject>& pObject)
 
 	DualQuaternionf boneOffsetDQ;
 	ASSERTION(UniformData::GetInstance()->GetPerMeshUniforms()->GetBoneTransform(m_pAnimationInstance->GetMesh()->GetMeshChunkIndex(), pObject->GetName(), boneOffsetDQ));
-	Matrix4f transform = pObject->GetWorldTransform() * Matrix4f(boneOffsetDQ.AcquireRotation().Matrix(), boneOffsetDQ.AcquireTranslation());
 
-	m_pAnimationInstance->SetBoneTransform(pObject->GetName(), DualQuaternionf(transform.RotationMatrix(), transform.TranslationVector()));
+	Matrix4f animationRootTransform = GetBaseObject()->GetWorldTransform();
+
+	Matrix4f boneTransform = pObject->GetWorldTransform();
+	boneTransform = animationRootTransform.Inverse() * boneTransform;
+
+	boneTransform = boneTransform * Matrix4f(boneOffsetDQ.AcquireRotation().Matrix(), boneOffsetDQ.AcquireTranslation());
+
+	m_pAnimationInstance->SetBoneTransform(pObject->GetName(), DualQuaternionf(boneTransform.RotationMatrix(), boneTransform.TranslationVector()));
 }
 
 void AnimationController::OnAddedToObjectInternal(const std::shared_ptr<BaseObject>& pObject)
