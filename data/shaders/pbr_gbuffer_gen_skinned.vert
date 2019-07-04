@@ -21,15 +21,38 @@ layout (location = 7) out vec3 outEyePos;
 layout (location = 8) noperspective out vec2 outScreenPos;
 
 #include "uniform_layout.sh"
+#include "quaternion.sh"
 
 void main() 
 {
 	perObjectIndex = objectDataIndex[gl_DrawID].perObjectIndex;
 
-	gl_Position = perObjectData[perObjectIndex].MVPN * vec4(inPos.xyz, 1.0);
+	vec4 bone_weights = inBoneWeight;
+
+	mat2x4 dq0 = perFrameBoneData[animationData[(inBoneIndices >> 0) & 255].boneChunkIndex].animationDQ;
+    mat2x4 dq1 = perFrameBoneData[animationData[(inBoneIndices >> 8) & 255].boneChunkIndex].animationDQ;
+    mat2x4 dq2 = perFrameBoneData[animationData[(inBoneIndices >> 16) & 255].boneChunkIndex].animationDQ;
+    mat2x4 dq3 = perFrameBoneData[animationData[(inBoneIndices >> 24) & 255].boneChunkIndex].animationDQ;
+
+    // Ensure all bone transforms are in the same neighbourhood
+    if (dot(dq0[0], dq1[0]) < 0.0) bone_weights.y *= -1.0;
+    if (dot(dq0[0], dq2[0]) < 0.0) bone_weights.z *= -1.0;
+    if (dot(dq0[0], dq3[0]) < 0.0) bone_weights.w *= -1.0;
+
+    // Blend
+    mat2x4 result =
+        bone_weights.x * dq0 +
+        bone_weights.y * dq1 +
+        bone_weights.z * dq2 +
+        bone_weights.w * dq3;
+
+	vec3 animated_pos = DualQuaternionTransform(result, inPos);
+	//animated_pos = inPos;
+
+	gl_Position = perObjectData[perObjectIndex].MVPN * vec4(animated_pos.xyz, 1.0);
 
 	outNormal = normalize(vec3(perObjectData[perObjectIndex].model * vec4(inNormal, 0.0)));
-	outWorldPos = (perObjectData[perObjectIndex].model * vec4(inPos.xyz, 1.0)).xyz;
+	outWorldPos = (perObjectData[perObjectIndex].model * vec4(animated_pos.xyz, 1.0)).xyz;
 	outEyePos = (perFrameData.view * vec4(outWorldPos, 1.0)).xyz;
 	outScreenPos = gl_Position.xy / gl_Position.w;
 
