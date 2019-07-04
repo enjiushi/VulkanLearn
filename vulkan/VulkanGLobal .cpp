@@ -822,7 +822,7 @@ void VulkanGlobal::InitScene()
 	m_pSophiaRenderer->SetName(L"hehe");
 	m_pSophiaObject->SetScale(0.005f);
 	m_pSophiaObject->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14f));
-	m_pSophiaObject->SetPos(0, 0.4f, -1);
+	m_pSophiaObject->SetPos(0, -0.4f, -1);
 	//AddBoneBox(m_pSophiaObject);
 	sceneInfo.meshLinks.clear();
 
