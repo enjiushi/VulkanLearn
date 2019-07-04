@@ -17,19 +17,19 @@ bool SkeletonAnimationInstance::Init(const std::shared_ptr<SkeletonAnimationInst
 	m_pMesh = pMesh;
 
 	uint32_t boneCount;
-	ASSERTION(UniformData::GetInstance()->GetPerMeshUniforms()->GetBoneCount(pMesh->GetMeshChunkIndex(), boneCount));
-	m_animationChunk = UniformData::GetInstance()->GetPerAnimationUniforms()->AllocateConsecutiveChunks(boneCount);
+	ASSERTION(UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneCount(pMesh->GetMeshChunkIndex(), boneCount));
+	m_animationChunk = UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->AllocateConsecutiveChunks(boneCount);
 
 	uint32_t boneIndex;
 	for each (auto objectAnimation in pSkeletonAnimation->m_animationDataDiction[0].objectAnimationDiction)
 	{
 		// Animation bone and mesh bone doesn't match? quit
-		if (!UniformData::GetInstance()->GetPerMeshUniforms()->GetBoneIndex(pMesh->GetMeshChunkIndex(), objectAnimation.objectName, boneIndex))
+		if (!UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneIndex(pMesh->GetMeshChunkIndex(), objectAnimation.objectName, boneIndex))
 			return false;
 
 		DualQuaternionf dq = { objectAnimation.rotationKeyFrames[0].transform, objectAnimation.translationKeyFrames[0].transform };
 
-		UniformData::GetInstance()->GetPerAnimationUniforms()->SetBoneTransform(m_animationChunk, objectAnimation.objectName, boneIndex, dq);
+		UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->SetBoneTransform(m_animationChunk, objectAnimation.objectName, boneIndex, dq);
 	}
 
 	return true;
@@ -49,8 +49,8 @@ void SkeletonAnimationInstance::SetBoneTransform(const std::wstring& boneName, c
 	uint32_t boneIndex;
 
 	// Animation bone and mesh bone doesn't match? quit
-	if (!UniformData::GetInstance()->GetPerMeshUniforms()->GetBoneIndex(m_pMesh->GetMeshChunkIndex(), boneName, boneIndex))
+	if (!UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneIndex(m_pMesh->GetMeshChunkIndex(), boneName, boneIndex))
 		return;
 
-	UniformData::GetInstance()->GetPerAnimationUniforms()->SetBoneTransform(m_animationChunk, boneName, boneIndex, dq);
+	UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->SetBoneTransform(m_animationChunk, boneName, boneIndex, dq);
 }

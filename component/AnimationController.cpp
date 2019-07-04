@@ -41,7 +41,7 @@ void AnimationController::CallbackFunc(std::shared_ptr<BaseObject>& pObject)
 	pObject->SetPos(translate);
 
 	DualQuaternionf boneOffsetDQ;
-	ASSERTION(UniformData::GetInstance()->GetPerMeshUniforms()->GetBoneTransform(m_pAnimationInstance->GetMesh()->GetMeshChunkIndex(), pObject->GetName(), boneOffsetDQ));
+	ASSERTION(UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneTransform(m_pAnimationInstance->GetMesh()->GetMeshChunkIndex(), pObject->GetName(), boneOffsetDQ));
 
 	Matrix4f animationRootTransform = GetBaseObject()->GetWorldTransform();
 

@@ -29,10 +29,10 @@ void main()
 
 	vec4 bone_weights = inBoneWeight;
 
-	mat2x4 dq0 = perFrameBoneData[animationData[(inBoneIndices >> 0) & 255].boneChunkIndex].animationDQ;
-    mat2x4 dq1 = perFrameBoneData[animationData[(inBoneIndices >> 8) & 255].boneChunkIndex].animationDQ;
-    mat2x4 dq2 = perFrameBoneData[animationData[(inBoneIndices >> 16) & 255].boneChunkIndex].animationDQ;
-    mat2x4 dq3 = perFrameBoneData[animationData[(inBoneIndices >> 24) & 255].boneChunkIndex].animationDQ;
+	mat2x4 dq0 = perFrameBoneData[perFrameBoneChunkIndirect[(inBoneIndices >> 0) & 255]].animationDQ;
+    mat2x4 dq1 = perFrameBoneData[perFrameBoneChunkIndirect[(inBoneIndices >> 8) & 255]].animationDQ;
+    mat2x4 dq2 = perFrameBoneData[perFrameBoneChunkIndirect[(inBoneIndices >> 16) & 255]].animationDQ;
+    mat2x4 dq3 = perFrameBoneData[perFrameBoneChunkIndirect[(inBoneIndices >> 24) & 255]].animationDQ;
 
     // Ensure all bone transforms are in the same neighbourhood
     if (dot(dq0[0], dq1[0]) < 0.0) bone_weights.y *= -1.0;

@@ -48,12 +48,12 @@ struct BoneData
 
 struct MeshData
 {
-	uint boneChunkIndex;
+	uint boneChunkIndexOffset;
 };
 
 struct AnimationData
 {
-	uint boneChunkIndex;
+	uint boneChunkIndexOffset;
 };
 
 struct PerFrameBoneData
@@ -105,14 +105,14 @@ layout(set = 0, binding = 1) buffer PerBoneUniforms
 	BoneData		boneData[];
 };
 
-layout(set = 0, binding = 2) buffer PerMeshUniforms
+layout(set = 0, binding = 2) buffer BoneIndirectUniforms
 {
-	MeshData		meshData[];
+	uint	boneChunkIndirect[];
 };
 
-layout(set = 0, binding = 3) buffer PerAnimationUniforms
+layout(set = 0, binding = 3) buffer PerFrameBoneIndirectUniforms
 {
-	AnimationData	animationData[];
+	uint	perFrameBoneChunkIndirect[];
 };
 
 layout(set = 0, binding = 4) uniform sampler2DArray RGBA8_1024_MIP_2DARRAY;
