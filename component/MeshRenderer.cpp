@@ -23,21 +23,23 @@
 #include "../vulkan/Framebuffer.h"
 #include "../class/UniformData.h"
 #include "../class/Material.h"
+#include "AnimationController.h"
+#include "../class/SkeletonAnimationInstance.h"
 
 DEFINITE_CLASS_RTTI(MeshRenderer, BaseComponent);
 
-std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance)
+std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance, const std::shared_ptr<AnimationController>& pAnimationController)
 {
 	std::shared_ptr<MeshRenderer> pMeshRenderer = std::make_shared<MeshRenderer>();
-	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, pMesh, { pMaterialInstance }))
+	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, pMesh, { pMaterialInstance }, pAnimationController))
 		return pMeshRenderer;
 	return nullptr;
 }
 
-std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances)
+std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances, const std::shared_ptr<AnimationController>& pAnimationController)
 {
 	std::shared_ptr<MeshRenderer> pMeshRenderer = std::make_shared<MeshRenderer>();
-	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, pMesh, materialInstances))
+	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, pMesh, materialInstances, pAnimationController))
 		return pMeshRenderer;
 	return nullptr;
 }
@@ -45,7 +47,7 @@ std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> p
 std::shared_ptr<MeshRenderer> MeshRenderer::Create()
 {
 	std::shared_ptr<MeshRenderer> pMeshRenderer = std::make_shared<MeshRenderer>();
-	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, nullptr, {}))
+	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, nullptr, {}, nullptr))
 		return pMeshRenderer;
 	return nullptr;
 }
@@ -59,7 +61,7 @@ MeshRenderer::~MeshRenderer()
 		val.first->DelMeshRenderer(val.second);
 }
 
-bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances)
+bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances, const std::shared_ptr<AnimationController>& pAnimationController)
 {
 	if (!BaseComponent::Init(pSelf))
 		return false;
@@ -75,6 +77,9 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 	}
 
 	m_perObjectBufferIndex = UniformData::GetInstance()->GetPerObjectUniforms()->AllocatePerObjectChunk();
+
+	m_pAnimationController = pAnimationController;
+
 	return true;
 }
 
@@ -84,7 +89,10 @@ void MeshRenderer::Update()
 
 void MeshRenderer::LateUpdate()
 {
-	UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, GetBaseObject()->GetWorldTransform());
+	if (m_pAnimationController != nullptr)
+		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, m_pAnimationController->GetBaseObject()->GetWorldTransform());
+	else
+		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, GetBaseObject()->GetWorldTransform());
 
 	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
 	{
@@ -93,7 +101,10 @@ void MeshRenderer::LateUpdate()
 
 		VkDrawIndexedIndirectCommand cmd;
 		m_pMesh->PrepareIndirectCmd(cmd);
-		m_materialInstances[i].first->InsertIntoRenderQueue(cmd, m_perObjectBufferIndex);
+
+		uint32_t animationChunkIndex = m_pAnimationController == nullptr ? 0 : m_pAnimationController->GetAnimationInstance()->GetAnimationChunkIndex();
+
+		m_materialInstances[i].first->InsertIntoRenderQueue(cmd, m_perObjectBufferIndex, m_pMesh->GetMeshChunkIndex(), animationChunkIndex);
 	}
 }
 

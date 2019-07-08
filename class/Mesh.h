@@ -29,6 +29,7 @@ public:
 	uint32_t GetVertexBytes() const { return m_vertexBytes; }
 	uint32_t GetVerticesCount() const { return m_verticesCount; }
 	uint32_t GetMeshChunkIndex() const { return m_meshChunkIndex; }
+	uint32_t GetMeshBoneChunkIndexOffset() const { return m_meshBoneChunkIndexOffset; }
 	uint32_t ContainBoneData() const { return m_meshChunkIndex != -1; }
 	void PrepareMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	void PrepareIndirectCmd(VkDrawIndexedIndirectCommand& cmd);
@@ -48,4 +49,5 @@ protected:
 	uint32_t							m_vertexBytes;
 	uint32_t							m_indicesCount;
 	uint32_t							m_meshChunkIndex = -1;
+	uint32_t							m_meshBoneChunkIndexOffset;
 };

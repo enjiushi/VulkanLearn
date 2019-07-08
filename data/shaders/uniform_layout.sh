@@ -1,3 +1,5 @@
+
+
 struct GlobalData
 {
 	// Camera Settings
@@ -93,6 +95,8 @@ struct ObjectDataIndex
 {
 	int perObjectIndex;
 	int perMaterialIndex;
+	int perMeshIndex;
+	int perAnimationIndex;
 };
 
 layout(set = 0, binding = 0) uniform GlobalUniforms
@@ -115,14 +119,24 @@ layout(set = 0, binding = 3) buffer PerFrameBoneIndirectUniforms
 	uint	perFrameBoneChunkIndirect[];
 };
 
-layout(set = 0, binding = 4) uniform sampler2DArray RGBA8_1024_MIP_2DARRAY;
-layout(set = 0, binding = 5) uniform sampler2DArray R8_1024_MIP_2DARRAY;
-layout(set = 0, binding = 6) uniform sampler2DArray RGBA16_SCREEN_SIZE_MIP_2DARRAY;
-layout(set = 0, binding = 7) uniform samplerCube RGBA16_1024_MIP_CUBE_SKYBOX;
-layout(set = 0, binding = 8) uniform samplerCube RGBA16_512_CUBE_IRRADIANCE;
-layout(set = 0, binding = 9) uniform samplerCube RGBA16_512_CUBE_PREFILTERENV;
-layout(set = 0, binding = 10) uniform sampler2D RGBA16_512_2D_BRDFLUT;
-layout(set = 0, binding = 11) uniform sampler2D SSAO_RANDOM_ROTATIONS;
+layout(set = 0, binding = 4) buffer PerMeshUniforms
+{
+	MeshData		meshData[];
+};
+
+layout(set = 0, binding = 5) buffer PerAnimationUniforms
+{
+	AnimationData	animationData[];
+};
+
+layout(set = 0, binding = 6) uniform sampler2DArray RGBA8_1024_MIP_2DARRAY;
+layout(set = 0, binding = 7) uniform sampler2DArray R8_1024_MIP_2DARRAY;
+layout(set = 0, binding = 8) uniform sampler2DArray RGBA16_SCREEN_SIZE_MIP_2DARRAY;
+layout(set = 0, binding = 9) uniform samplerCube RGBA16_1024_MIP_CUBE_SKYBOX;
+layout(set = 0, binding = 10) uniform samplerCube RGBA16_512_CUBE_IRRADIANCE;
+layout(set = 0, binding = 11) uniform samplerCube RGBA16_512_CUBE_PREFILTERENV;
+layout(set = 0, binding = 12) uniform sampler2D RGBA16_512_2D_BRDFLUT;
+layout(set = 0, binding = 13) uniform sampler2D SSAO_RANDOM_ROTATIONS;
 
 layout(set = 1, binding = 0) uniform PerFrameUniforms
 {
@@ -602,3 +616,4 @@ float CalculateCoC(float eyeDepth)
 	float coc = (eyeDepth - globalData.MainCameraSettings1.x) * globalData.DOFSettings0.z / max(eyeDepth, 1e-5);
 	return clamp(coc * 0.5f * globalData.DOFSettings0.y + 0.5f, 0, 1);
 }
+

@@ -369,12 +369,15 @@ void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 	pCmdBuffer->BindIndexBuffer(IndexBufferMgr()->GetBuffer(), VK_INDEX_TYPE_UINT32);
 }
 
-void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex)
+void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex)
 {
 	m_pIndirectBuffer->SetIndirectCmd(m_indirectIndex, cmd);
 
 	m_pPerMaterialIndirectUniforms->SetPerObjectIndex(m_indirectIndex, perObjectIndex);
 	m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(m_indirectIndex, perMaterialIndex);
+	m_pPerMaterialIndirectUniforms->SetPerMeshIndex(m_indirectIndex, perMeshIndex);
+	m_pPerMaterialIndirectUniforms->SetPerAnimationIndex(m_indirectIndex, perAnimationIndex);
+
 	m_indirectIndex += 1;
 }
 

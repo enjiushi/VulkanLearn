@@ -210,14 +210,18 @@ std::shared_ptr<Mesh> Mesh::Create(const aiMesh* pMesh, uint32_t argumentedVerte
 		pIndices, pMesh->mNumFaces * 3, VK_INDEX_TYPE_UINT32
 	))
 	{
+		// todo
 		if (pMesh->mNumBones)
-			pRetMesh->m_meshChunkIndex = UniformData::GetInstance()->GetPerBoneIndirectUniforms()->AllocateConsecutiveChunks(pMesh->mNumBones);
+			pRetMesh->m_meshBoneChunkIndexOffset = UniformData::GetInstance()->GetPerBoneIndirectUniforms()->AllocateConsecutiveChunks(pMesh->mNumBones);
 
 		for (uint32_t i = 0; i < pMesh->mNumBones; i++)
 		{
 			DualQuaternionf dq = AssimpDataConverter::AcquireDualQuaternion(pMesh->mBones[i]->mOffsetMatrix);
-			UniformData::GetInstance()->GetPerBoneIndirectUniforms()->SetBoneTransform(pRetMesh->m_meshChunkIndex, std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pMesh->mBones[i]->mName.C_Str()), dq);
+			UniformData::GetInstance()->GetPerBoneIndirectUniforms()->SetBoneTransform(pRetMesh->m_meshBoneChunkIndexOffset, std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pMesh->mBones[i]->mName.C_Str()), dq);
 		}
+
+		pRetMesh->m_meshChunkIndex = UniformData::GetInstance()->GetPerMeshUniforms()->AllocatePerObjectChunk();
+		UniformData::GetInstance()->GetPerMeshUniforms()->SetBoneChunkIndexOffset(pRetMesh->m_meshChunkIndex, pRetMesh->m_meshBoneChunkIndexOffset);
 
 		delete[] pVertices;
 		delete[] pIndices;

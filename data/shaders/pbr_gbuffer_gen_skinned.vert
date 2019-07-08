@@ -27,12 +27,14 @@ void main()
 {
 	perObjectIndex = objectDataIndex[gl_DrawID].perObjectIndex;
 
+	int perAnimationChunkIndex = objectDataIndex[gl_DrawID].perAnimationIndex;
+
 	vec4 bone_weights = inBoneWeight;
 
-	mat2x4 dq0 = perFrameBoneData[perFrameBoneChunkIndirect[(inBoneIndices >> 0) & 255]].animationDQ;
-    mat2x4 dq1 = perFrameBoneData[perFrameBoneChunkIndirect[(inBoneIndices >> 8) & 255]].animationDQ;
-    mat2x4 dq2 = perFrameBoneData[perFrameBoneChunkIndirect[(inBoneIndices >> 16) & 255]].animationDQ;
-    mat2x4 dq3 = perFrameBoneData[perFrameBoneChunkIndirect[(inBoneIndices >> 24) & 255]].animationDQ;
+	mat2x4 dq0 = perFrameBoneData[perFrameBoneChunkIndirect[perAnimationChunkIndex + (inBoneIndices >> 0) & 255]].animationDQ;
+    mat2x4 dq1 = perFrameBoneData[perFrameBoneChunkIndirect[perAnimationChunkIndex + (inBoneIndices >> 8) & 255]].animationDQ;
+    mat2x4 dq2 = perFrameBoneData[perFrameBoneChunkIndirect[perAnimationChunkIndex + (inBoneIndices >> 16) & 255]].animationDQ;
+    mat2x4 dq3 = perFrameBoneData[perFrameBoneChunkIndirect[perAnimationChunkIndex + (inBoneIndices >> 24) & 255]].animationDQ;
 
     // Ensure all bone transforms are in the same neighbourhood
     if (dot(dq0[0], dq1[0]) < 0.0) bone_weights.y *= -1.0;

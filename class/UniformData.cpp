@@ -25,6 +25,8 @@ bool UniformData::Init()
 		case UniformStorageType::PerBoneBuffer:				m_uniformStorageBuffers[i] = PerBoneUniforms::Create(); break;
 		case UniformStorageType::PerBoneIndirectBuffer:		m_uniformStorageBuffers[i] = BoneIndirectUniform::Create(PerBoneBuffer); break;
 		case UniformStorageType::PerFrameBoneIndirectBuffer:m_uniformStorageBuffers[i] = BoneIndirectUniform::Create(PerFrameBoneBuffer); break;
+		case UniformStorageType::PerMeshUniformBuffer:		m_uniformStorageBuffers[i] = PerMeshUniforms::Create(); break;
+		case UniformStorageType::PerAnimationUniformBuffer:	m_uniformStorageBuffers[i] = PerAnimationUniforms::Create(); break;
 		case UniformStorageType::PerFrameBoneBuffer:		m_uniformStorageBuffers[i] = PerBoneUniforms::Create(); break;
 		case UniformStorageType::PerFrameVariableBuffer:	m_uniformStorageBuffers[i] = PerFrameUniforms::Create(); break;
 		case UniformStorageType::PerObjectVariableBuffer:	m_uniformStorageBuffers[i] = PerObjectUniforms::Create(); break;
@@ -86,11 +88,17 @@ void UniformData::BuildDescriptorSets()
 	std::vector<UniformVarList> perBoneVars = m_uniformStorageBuffers[UniformStorageType::PerBoneBuffer]->PrepareUniformVarList();
 	globalUniformVars.insert(globalUniformVars.end(), perBoneVars.begin(), perBoneVars.end());
 
-	std::vector<UniformVarList> perMeshVars = m_uniformStorageBuffers[UniformStorageType::PerBoneIndirectBuffer]->PrepareUniformVarList();
+	std::vector<UniformVarList> perBoneIndirectVars = m_uniformStorageBuffers[UniformStorageType::PerBoneIndirectBuffer]->PrepareUniformVarList();
+	globalUniformVars.insert(globalUniformVars.end(), perBoneIndirectVars.begin(), perBoneIndirectVars.end());
+
+	std::vector<UniformVarList> perFrameBoneIndirectVars = m_uniformStorageBuffers[UniformStorageType::PerFrameBoneIndirectBuffer]->PrepareUniformVarList();
+	globalUniformVars.insert(globalUniformVars.end(), perFrameBoneIndirectVars.begin(), perFrameBoneIndirectVars.end());
+
+	std::vector<UniformVarList> perMeshVars = m_uniformStorageBuffers[UniformStorageType::PerMeshUniformBuffer]->PrepareUniformVarList();
 	globalUniformVars.insert(globalUniformVars.end(), perMeshVars.begin(), perMeshVars.end());
 
-	std::vector<UniformVarList> perAniVars = m_uniformStorageBuffers[UniformStorageType::PerFrameBoneIndirectBuffer]->PrepareUniformVarList();
-	globalUniformVars.insert(globalUniformVars.end(), perAniVars.begin(), perAniVars.end());
+	std::vector<UniformVarList> perAnimationVars = m_uniformStorageBuffers[UniformStorageType::PerAnimationUniformBuffer]->PrepareUniformVarList();
+	globalUniformVars.insert(globalUniformVars.end(), perAnimationVars.begin(), perAnimationVars.end());
 
 	std::vector<UniformVarList> globalTextureVars = m_uniformTextures[UniformTextureType::GlobalUniformTextures]->PrepareUniformVarList();
 	globalUniformVars.insert(globalUniformVars.end(), globalTextureVars.begin(), globalTextureVars.end());
@@ -215,6 +223,8 @@ void UniformData::BuildDescriptorSets()
 	bindingSlot = m_uniformStorageBuffers[PerBoneBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 	bindingSlot = m_uniformStorageBuffers[PerBoneIndirectBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 	bindingSlot = m_uniformStorageBuffers[PerFrameBoneIndirectBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
+	bindingSlot = m_uniformStorageBuffers[PerMeshUniformBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
+	bindingSlot = m_uniformStorageBuffers[PerAnimationUniformBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 	bindingSlot = m_uniformTextures[GlobalUniformTextures]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 
 	// 2. Per frame descriptor set

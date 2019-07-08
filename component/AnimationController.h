@@ -13,6 +13,7 @@ public:
 
 public:
 	void CallbackFunc(std::shared_ptr<BaseObject>& pObject);
+	std::shared_ptr<SkeletonAnimationInstance> GetAnimationInstance() const { return m_pAnimationInstance; }
 
 protected:
 	bool Init(const std::shared_ptr<AnimationController>& pAnimationController, const std::shared_ptr<SkeletonAnimationInstance>& pAnimationInstance = nullptr);

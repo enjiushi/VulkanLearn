@@ -146,7 +146,7 @@ protected:
 	virtual void CustomizePoolSize(std::vector<uint32_t>& counts) {}
 
 	static uint32_t GetByteSize(std::vector<UniformVar>& UBOLayout);
-	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex);
+	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex);
 
 protected:
 	std::shared_ptr<RenderPassBase>						m_pRenderPass;

@@ -30,6 +30,8 @@ public:
 		PerBoneBuffer,
 		PerBoneIndirectBuffer,
 		PerFrameBoneIndirectBuffer,
+		PerMeshUniformBuffer,
+		PerAnimationUniformBuffer,
 		PerFrameVariableBuffer,
 		PerFrameBoneBuffer,
 		PerObjectVariableBuffer,
@@ -52,6 +54,8 @@ public:
 	std::shared_ptr<PerBoneUniforms> GetPerBoneUniforms() const { return std::dynamic_pointer_cast<PerBoneUniforms>(m_uniformStorageBuffers[UniformStorageType::PerBoneBuffer]); }
 	std::shared_ptr<BoneIndirectUniform> GetPerBoneIndirectUniforms() const { return std::dynamic_pointer_cast<BoneIndirectUniform>(m_uniformStorageBuffers[UniformStorageType::PerBoneIndirectBuffer]); }
 	std::shared_ptr<BoneIndirectUniform> GetPerFrameBoneIndirectUniforms() const { return std::dynamic_pointer_cast<BoneIndirectUniform>(m_uniformStorageBuffers[UniformStorageType::PerFrameBoneIndirectBuffer]); }
+	std::shared_ptr<PerMeshUniforms> GetPerMeshUniforms() const { return std::dynamic_pointer_cast<PerMeshUniforms>(m_uniformStorageBuffers[UniformStorageType::PerMeshUniformBuffer]); }
+	std::shared_ptr<PerAnimationUniforms> GetPerAnimationUniforms() const { return std::dynamic_pointer_cast<PerAnimationUniforms>(m_uniformStorageBuffers[UniformStorageType::PerAnimationUniformBuffer]); }
 	std::shared_ptr<PerFrameUniforms> GetPerFrameUniforms() const { return std::dynamic_pointer_cast<PerFrameUniforms>(m_uniformStorageBuffers[UniformStorageType::PerFrameVariableBuffer]); }
 	std::shared_ptr<PerBoneUniforms> GetPerFrameBoneUniforms() const { return std::dynamic_pointer_cast<PerBoneUniforms>(m_uniformStorageBuffers[UniformStorageType::PerFrameBoneBuffer]); }
 	std::shared_ptr<PerObjectUniforms> GetPerObjectUniforms() const { return std::dynamic_pointer_cast<PerObjectUniforms>(m_uniformStorageBuffers[UniformStorageType::PerObjectVariableBuffer]); }

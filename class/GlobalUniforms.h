@@ -10,6 +10,8 @@
 class DescriptorSetLayout;
 class DescriptorSet;
 class GlobalTextures;
+class Mesh;
+class SkeletonAnimationInstance;
 
 const static uint32_t SSAO_SAMPLE_COUNT = 64;
 
@@ -407,4 +409,68 @@ protected:
 	friend class Mesh;
 	friend class SkeletonAnimationInstance;
 	friend class AnimationController;
+};
+
+class PerMeshUniforms : public ChunkBasedUniforms
+{
+	typedef struct _MeshData
+	{
+		uint32_t	boneChunkIndexOffset;
+	}MeshData;
+
+protected:
+	bool Init(const std::shared_ptr<PerMeshUniforms>& pSelf);
+
+public:
+	static std::shared_ptr<PerMeshUniforms> Create();
+
+public:
+	std::vector<UniformVarList> PrepareUniformVarList() const override;
+	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
+
+protected:
+	void SetBoneChunkIndexOffset(uint32_t chunkIndex, uint32_t boneChunkIndexOffset);
+	uint32_t GetBoneChunkIndexOffset(uint32_t chunkIndex) const { return m_meshData[chunkIndex].boneChunkIndexOffset; }
+
+protected:
+	void UpdateDirtyChunkInternal(uint32_t index) override;
+	const void* AcquireDataPtr() const override { return &m_meshData[0]; }
+	uint32_t AcquireDataSize() const override { return sizeof(m_meshData); }
+
+protected:
+	MeshData	m_meshData[MAXIMUM_OBJECTS];
+
+	friend class Mesh;
+};
+
+class PerAnimationUniforms : public ChunkBasedUniforms
+{
+	typedef struct _AnimationData
+	{
+		uint32_t	boneChunkIndexOffset;
+	}AnimationData;
+
+protected:
+	bool Init(const std::shared_ptr<PerAnimationUniforms>& pSelf);
+
+public:
+	static std::shared_ptr<PerAnimationUniforms> Create();
+
+public:
+	std::vector<UniformVarList> PrepareUniformVarList() const override;
+	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
+
+protected:
+	void SetBoneChunkIndexOffset(uint32_t chunkIndex, uint32_t boneChunkIndexOffset);
+	uint32_t GetBoneChunkIndexOffset(uint32_t chunkIndex) const { return m_animationData[chunkIndex].boneChunkIndexOffset; }
+
+protected:
+	void UpdateDirtyChunkInternal(uint32_t index) override;
+	const void* AcquireDataPtr() const override { return &m_animationData[0]; }
+	uint32_t AcquireDataSize() const override { return sizeof(m_animationData); }
+
+protected:
+	AnimationData	m_animationData[MAXIMUM_OBJECTS];
+
+	friend class SkeletonAnimationInstance;
 };

@@ -17,9 +17,11 @@ public:
 	std::shared_ptr<Mesh> GetMesh() const { return m_pMesh; }
 	std::shared_ptr<SkeletonAnimation> GetAnimation() const { return m_pSkeletonAnimation; }
 	void SetBoneTransform(const std::wstring& boneName, const DualQuaternionf& dq);
+	uint32_t GetAnimationChunkIndex() const { return m_animationChunk; }
 
 protected:
 	std::shared_ptr<SkeletonAnimation>	m_pSkeletonAnimation;
 	std::shared_ptr<Mesh>				m_pMesh;
+	uint32_t							m_boneChunkIndexOffset;
 	uint32_t							m_animationChunk;
 };

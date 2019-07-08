@@ -736,6 +736,10 @@ bool BoneIndirectUniform::GetBoneCount(uint32_t chunkIndex, uint32_t& outBoneCou
 	return true;
 }
 
+void BoneIndirectUniform::UpdateDirtyChunkInternal(uint32_t index)
+{
+}
+
 std::vector<UniformVarList> BoneIndirectUniform::PrepareUniformVarList() const
 {
 	return
@@ -757,7 +761,96 @@ uint32_t BoneIndirectUniform::SetupDescriptorSet(const std::shared_ptr<Descripto
 	return bindingIndex;
 }
 
-void BoneIndirectUniform::UpdateDirtyChunkInternal(uint32_t index)
+bool PerMeshUniforms::Init(const std::shared_ptr<PerMeshUniforms>& pSelf)
 {
+	if (!ChunkBasedUniforms::Init(pSelf, sizeof(MeshData)))
+		return false;
+	return true;
+}
+
+std::shared_ptr<PerMeshUniforms> PerMeshUniforms::Create()
+{
+	std::shared_ptr<PerMeshUniforms> pPerMeshUniforms = std::make_shared<PerMeshUniforms>();
+	if (pPerMeshUniforms.get() && pPerMeshUniforms->Init(pPerMeshUniforms))
+		return pPerMeshUniforms;
+	return nullptr;
+}
+
+void PerMeshUniforms::SetBoneChunkIndexOffset(uint32_t chunkIndex, uint32_t boneChunkIndexOffset)
+{
+	m_meshData[chunkIndex].boneChunkIndexOffset = boneChunkIndexOffset;
+	SetChunkDirty(chunkIndex);
+}
+
+void PerMeshUniforms::UpdateDirtyChunkInternal(uint32_t index)
+{
+}
+
+std::vector<UniformVarList> PerMeshUniforms::PrepareUniformVarList() const
+{
+	return
+	{
+		{
+			DynamicShaderStorageBuffer,
+			"Per Mesh Uniforms",
+			{
+				{ OneUnit, "Bone chunk index offset" }
+			}
+		}
+	};
+}
+
+uint32_t PerMeshUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
+{
+	pDescriptorSet->UpdateShaderStorageBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
+
+	return bindingIndex;
+}
+
+
+bool PerAnimationUniforms::Init(const std::shared_ptr<PerAnimationUniforms>& pSelf)
+{
+	if (!ChunkBasedUniforms::Init(pSelf, sizeof(AnimationData)))
+		return false;
+	return true;
+}
+
+std::shared_ptr<PerAnimationUniforms> PerAnimationUniforms::Create()
+{
+	std::shared_ptr<PerAnimationUniforms> pPerAnimationUniforms = std::make_shared<PerAnimationUniforms>();
+	if (pPerAnimationUniforms.get() && pPerAnimationUniforms->Init(pPerAnimationUniforms))
+		return pPerAnimationUniforms;
+	return nullptr;
+}
+
+void PerAnimationUniforms::SetBoneChunkIndexOffset(uint32_t chunkIndex, uint32_t boneChunkIndexOffset)
+{
+	m_animationData[chunkIndex].boneChunkIndexOffset = boneChunkIndexOffset;
+	SetChunkDirty(chunkIndex);
+}
+
+void PerAnimationUniforms::UpdateDirtyChunkInternal(uint32_t index)
+{
+}
+
+std::vector<UniformVarList> PerAnimationUniforms::PrepareUniformVarList() const
+{
+	return
+	{
+		{
+			DynamicShaderStorageBuffer,
+			"Per Animation Uniforms",
+			{
+				{ OneUnit, "Bone chunk index offset" }
+			}
+		}
+	};
+}
+
+uint32_t PerAnimationUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
+{
+	pDescriptorSet->UpdateShaderStorageBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
+
+	return bindingIndex;
 }
 

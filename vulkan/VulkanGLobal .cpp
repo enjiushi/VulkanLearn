@@ -37,6 +37,7 @@
 #include "../class/Timer.h"
 #include "../component/FrustumJitter.h"
 #include "../class/AssimpSceneReader.h"
+#include "../component/AnimationController.h"
 
 bool PREBAKE_CB = true;
 
@@ -817,7 +818,8 @@ void VulkanGlobal::InitScene()
 	m_pSophiaObject = AssimpSceneReader::ReadAndAssemblyScene("../data/models/rp_sophia_animated_003_idling.FBX", { VertexFormatPNTCTB }, sceneInfo);
 	m_pSophiaMesh = sceneInfo.meshLinks[0].first;
 
-	m_pSophiaRenderer = MeshRenderer::Create(m_pSophiaMesh, { m_pSophiaMaterialInstance, m_pSkinnedShadowMapMaterialInstance });
+	std::shared_ptr<AnimationController> pAnimationController = m_pSophiaObject->GetComponent<AnimationController>();
+	m_pSophiaRenderer = MeshRenderer::Create(m_pSophiaMesh, { m_pSophiaMaterialInstance, m_pSkinnedShadowMapMaterialInstance }, pAnimationController);
 	sceneInfo.meshLinks[0].second->AddComponent(m_pSophiaRenderer);
 	m_pSophiaRenderer->SetName(L"hehe");
 	m_pSophiaObject->SetScale(0.005f);

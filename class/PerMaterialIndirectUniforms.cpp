@@ -35,8 +35,10 @@ std::vector<UniformVarList> PerMaterialIndirectUniforms::PrepareUniformVarList()
 			DynamicShaderStorageBuffer,
 			"PerMaterialIndirectIndex",
 			{
-				{ OneUnit, "PerObjectIndex" },
-				{ OneUnit, "PerMaterialIndex" },
+				{ OneUnit, "Per-object chunk index" },
+				{ OneUnit, "Per-material chunk index" },
+				{ OneUnit, "Per-mesh chunk index" },
+				{ OneUnit, "Per-animation chunk index" },
 			}
 		}
 	};

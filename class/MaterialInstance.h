@@ -47,7 +47,7 @@ public:
 		return m_pMaterial->GetParameter<T>(m_materialBufferChunkIndex, paramName);
 	}
 
-	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex);
+	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex);
 
 protected:
 	bool Init(const std::shared_ptr<MaterialInstance>& pMaterialInstance);
