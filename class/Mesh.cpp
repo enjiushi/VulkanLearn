@@ -210,7 +210,8 @@ std::shared_ptr<Mesh> Mesh::Create(const aiMesh* pMesh, uint32_t argumentedVerte
 		pIndices, pMesh->mNumFaces * 3, VK_INDEX_TYPE_UINT32
 	))
 	{
-		// todo
+		pRetMesh->m_boneCount = pMesh->mNumBones;
+
 		if (pMesh->mNumBones)
 			pRetMesh->m_meshBoneChunkIndexOffset = UniformData::GetInstance()->GetPerBoneIndirectUniforms()->AllocateConsecutiveChunks(pMesh->mNumBones);
 
