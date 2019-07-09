@@ -24,17 +24,10 @@ bool SkeletonAnimationInstance::Init(const std::shared_ptr<SkeletonAnimationInst
 
 	UniformData::GetInstance()->GetPerAnimationUniforms()->SetBoneChunkIndexOffset(m_animationChunk, m_boneChunkIndexOffset);
 	
-
-	uint32_t boneIndex;
-	for each (auto objectAnimation in pSkeletonAnimation->m_animationDataDiction[0].objectAnimationDiction)
+	for (uint32_t i = 0; i < m_pMesh->GetBoneCount(); i++)
 	{
-		// Animation bone and mesh bone doesn't match? quit
-		if (!UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneIndex(pMesh->GetMeshBoneChunkIndexOffset(), objectAnimation.objectName, boneIndex))
-			return false;
-
-		DualQuaternionf dq = { objectAnimation.rotationKeyFrames[0].transform, objectAnimation.translationKeyFrames[0].transform };
-
-		UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->SetBoneTransform(m_boneChunkIndexOffset, objectAnimation.objectName, boneIndex, dq);
+		const std::wstring& boneName = UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneName(m_pMesh->GetMeshBoneChunkIndexOffset(), i);
+		UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->SetBoneTransform(m_boneChunkIndexOffset, boneName, i, {});
 	}
 
 	return true;
