@@ -379,6 +379,8 @@ public:
 	bool GetBoneIndex(uint32_t chunkIndex, const std::wstring& boneName, uint32_t& outBoneIndex) const;
 	bool GetBoneCount(uint32_t chunkIndex, uint32_t& outBoneCount) const;
 
+	std::wstring GetBoneName(uint32_t chunkIndex, uint32_t index) const;
+
 	// Disable the visibility of these access functions, since meshChunkIndex is something internal only within mesh
 	// Let specific mesh to deal with these functions and make wrappers of them
 protected:

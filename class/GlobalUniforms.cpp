@@ -653,7 +653,7 @@ void BoneIndirectUniform::SetBoneTransform(uint32_t chunkIndex, const std::wstri
 		SetChunkDirty(boneIndex + chunkIndex);
 	}
 
-	pUniformBuffer->SetBoneOffsetTransform(boneChunkIndex, offsetDQ);
+	pUniformBuffer->SetBoneOffsetTransform(m_boneChunkIndex[boneIndex + chunkIndex], offsetDQ);
 }
 
 bool BoneIndirectUniform::GetBoneTransform(uint32_t chunkIndex, const std::wstring& boneName, DualQuaternionf& outBoneOffsetTransformDQ) const
@@ -666,7 +666,7 @@ bool BoneIndirectUniform::GetBoneTransform(uint32_t chunkIndex, const std::wstri
 	std::shared_ptr<PerBoneUniforms> pUniformBuffer = std::dynamic_pointer_cast<PerBoneUniforms>(UniformData::GetInstance()->GetUniformStorage((UniformData::UniformStorageType)m_boneBufferType));
 	ASSERTION(pUniformBuffer != nullptr);
 
-	outBoneOffsetTransformDQ = pUniformBuffer->GetBoneOffsetTransform(boneIndex + chunkIndex);
+	outBoneOffsetTransformDQ = pUniformBuffer->GetBoneOffsetTransform(m_boneChunkIndex[boneIndex + chunkIndex]);
 
 	return true;
 }
@@ -734,6 +734,18 @@ bool BoneIndirectUniform::GetBoneCount(uint32_t chunkIndex, uint32_t& outBoneCou
 
 	outBoneCount = iter0->second.size();
 	return true;
+}
+
+// Temporary implementation
+std::wstring BoneIndirectUniform::GetBoneName(uint32_t chunkIndex, uint32_t index) const
+{
+	auto iter0 = m_boneIndexLookupTables.find(chunkIndex);
+	for (auto it : iter0->second)
+	{
+		if (it.second == index)
+			return it.first;
+	}
+	return L"";
 }
 
 void BoneIndirectUniform::UpdateDirtyChunkInternal(uint32_t index)
