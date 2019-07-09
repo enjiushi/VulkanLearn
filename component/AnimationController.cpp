@@ -29,19 +29,24 @@ bool AnimationController::Init(const std::shared_ptr<AnimationController>& pAnim
 
 void AnimationController::CallbackFunc(std::shared_ptr<BaseObject>& pObject)
 {
-	std::shared_ptr<SkeletonAnimation> pAnimation = m_pAnimationInstance->GetAnimation();
-	auto iter = pAnimation->m_animationDataDiction[0].objectAnimationLookupTable.find(pObject->GetName());
-	if (iter == pAnimation->m_animationDataDiction[0].objectAnimationLookupTable.end())
+	DualQuaternionf boneOffsetDQ;
+
+	// Check if current object is a bone
+	if (!UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneTransform(m_pAnimationInstance->GetMesh()->GetMeshBoneChunkIndexOffset(), pObject->GetName(), boneOffsetDQ))
 		return;
 
-	Quaternionf& rotation = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames[0].transform;
-	Vector3f& translate = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].translationKeyFrames[0].transform;
+	std::shared_ptr<SkeletonAnimation> pAnimation = m_pAnimationInstance->GetAnimation();
+	auto iter = pAnimation->m_animationDataDiction[0].objectAnimationLookupTable.find(pObject->GetName());
 
-	pObject->SetRotation(rotation);
-	pObject->SetPos(translate);
+	// If current object contains animation information, it's local transform will be changed accordingly
+	if (iter != pAnimation->m_animationDataDiction[0].objectAnimationLookupTable.end())
+	{
+		Quaternionf& rotation = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames[0].transform;
+		Vector3f& translate = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].translationKeyFrames[0].transform;
 
-	DualQuaternionf boneOffsetDQ;
-	ASSERTION(UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneTransform(m_pAnimationInstance->GetMesh()->GetMeshBoneChunkIndexOffset(), pObject->GetName(), boneOffsetDQ));
+		pObject->SetRotation(rotation);
+		pObject->SetPos(translate);
+	}
 
 	Matrix4f animationRootTransform = GetBaseObject()->GetWorldTransform();
 
