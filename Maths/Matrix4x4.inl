@@ -154,6 +154,71 @@ Matrix4x4<T>& Matrix4x4<T>::operator*=(const Matrix3x3<T>& m)
 }
 
 template <typename T>
+Matrix4x4<T>& Matrix4x4<T>::operator += (const Matrix4x4<T>& m)
+{
+	*this = Matrix4x4<T>(
+		c[0] + m.c[0],
+		c[1] + m.c[1],
+		c[2] + m.c[2],
+		c[3] + m.c[3]
+		);
+
+	return *this;
+}
+
+template <typename T>
+Matrix4x4<T>& Matrix4x4<T>::operator -= (const Matrix4x4<T>& m)
+{
+	*this = Matrix4x4<T>(
+		c[0] - m.c[0],
+		c[1] - m.c[1],
+		c[2] - m.c[2],
+		c[3] - m.c[3]
+		);
+
+	return *this;
+}
+
+template <typename T>
+Matrix4x4<T>& Matrix4x4<T>::operator *= (T s)
+{
+	*this = Matrix4x4<T>(
+		c[0] * s,
+		c[1] * s,
+		c[2] * s,
+		c[3] * s
+		);
+
+	return *this;
+}
+
+template <typename T>
+Matrix4x4<T>& Matrix4x4<T>::operator += (T s)
+{
+	*this = Matrix4x4<T>(
+		c[0] + s,
+		c[1] + s,
+		c[2] + s,
+		c[3] + s
+		);
+
+	return *this;
+}
+
+template <typename T>
+Matrix4x4<T>& Matrix4x4<T>::operator -= (T s)
+{
+	*this = Matrix4x4<T>(
+		c[0] - s,
+		c[1] - s,
+		c[2] - s,
+		c[3] - s
+		);
+
+	return *this;
+}
+
+template <typename T>
 const Matrix4x4<T> Matrix4x4<T>::operator*(const Matrix4x4<T>& m) const
 {
 	Matrix4x4<T> ret = *this;
@@ -178,6 +243,46 @@ const Vector4<T> Matrix4x4<T>::operator*(const Vector4<T>& v) const
 	ret.y = x1 * v.x + y1 * v.y + z1 * v.z + w1 * v.w;
 	ret.z = x2 * v.x + y2 * v.y + z2 * v.z + w2 * v.w;
 	ret.w = x3 * v.x + y3 * v.y + z3 * v.z + w3 * v.w;
+	return ret;
+}
+
+template <typename T>
+const Matrix4x4<T> Matrix4x4<T>::operator + (const Matrix4x4<T>& m) const
+{
+	Matrix4x4<T> ret = *this;
+	ret += m;
+	return ret;
+}
+
+template <typename T>
+const Matrix4x4<T> Matrix4x4<T>::operator - (const Matrix4x4<T>& m) const
+{
+	Matrix4x4<T> ret = *this;
+	ret -= s;
+	return ret;
+}
+
+template <typename T>
+const Matrix4x4<T> Matrix4x4<T>::operator * (T s) const
+{
+	Matrix4x4<T> ret = *this;
+	ret *= s;
+	return ret;
+}
+
+template <typename T>
+const Matrix4x4<T> Matrix4x4<T>::operator + (T s) const
+{
+	Matrix4x4<T> ret = *this;
+	ret += s;
+	return ret;
+}
+
+template <typename T>
+const Matrix4x4<T> Matrix4x4<T>::operator - (T s) const
+{
+	Matrix4x4<T> ret = *this;
+	ret -= s;
 	return ret;
 }
 

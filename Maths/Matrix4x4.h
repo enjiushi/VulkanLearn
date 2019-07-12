@@ -32,9 +32,22 @@ public:
 
 	Matrix4x4<T>& operator *= (const Matrix4x4<T>& m);
 	Matrix4x4<T>& operator *= (const Matrix3x3<T>& m);
+	Matrix4x4<T>& operator += (const Matrix4x4<T>& m);
+	Matrix4x4<T>& operator -= (const Matrix4x4<T>& m);
+
+	Matrix4x4<T>& operator *= (T s);
+	Matrix4x4<T>& operator += (T s);
+	Matrix4x4<T>& operator -= (T s);
 
 	const Matrix4x4<T> operator * (const Matrix4x4<T>& m) const;
 	const Matrix4x4<T> operator * (const Matrix3x3<T>& m) const;
+	const Matrix4x4<T> operator + (const Matrix4x4<T>& m) const;
+	const Matrix4x4<T> operator - (const Matrix4x4<T>& m) const;
+
+	const Matrix4x4<T> operator * (T s) const;
+	const Matrix4x4<T> operator + (T s) const;
+	const Matrix4x4<T> operator - (T s) const;
+
 	const Vector4<T> operator * (const Vector4<T>& v) const;
 
 	Matrix4x4<T>& operator = (const Matrix3x3<T>& m);
