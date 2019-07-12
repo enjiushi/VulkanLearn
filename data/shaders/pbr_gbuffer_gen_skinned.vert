@@ -62,8 +62,7 @@ void main()
 	float len = length(result[0]);
 	result /= len;
 
-	vec3 animated_pos = DualQuaternionTransform(result, inPos);
-	//animated_pos = inPos;
+	vec3 animated_pos = DualQuaternionTransformPoint(result, inPos);
 
 	gl_Position = perObjectData[perObjectIndex].MVPN * vec4(animated_pos.xyz, 1.0);
 

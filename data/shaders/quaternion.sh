@@ -33,10 +33,16 @@ vec4 AcquireTranslation(mat2x4 dq)
 	return 2 * QuaternionMultiply(dq[1], revert_p);
 }
 
-vec3 DualQuaternionTransform(mat2x4 dq, vec3 p)
+vec3 DualQuaternionTransformPoint(mat2x4 dq, vec3 p)
 {
 	vec4 translate = AcquireTranslation(dq);
 	vec3 ret = QuaternionRotate(dq[0], p);
 	ret += translate.xyz;
+	return ret;
+}
+
+vec3 DualQuaternionTransformNormal(mat2x4 dq, vec3 n)
+{
+	vec3 ret = QuaternionRotate(dq[0], n);
 	return ret;
 }

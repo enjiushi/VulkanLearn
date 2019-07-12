@@ -49,7 +49,7 @@ void main()
 	float len = length(result[0]);
 	result /= len;
 
-	vec3 animated_pos = DualQuaternionTransform(result, inPos);
+	vec3 animated_pos = DualQuaternionTransformPoint(result, inPos);
 
 	gl_Position = globalData.mainLightVPN * perObjectData[perObjectIndex].model * vec4(animated_pos, 1.0);
 }
