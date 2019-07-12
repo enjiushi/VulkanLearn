@@ -27,13 +27,23 @@ public:
 	bool operator != (const DualQuaternion<T>& dq) const;
 
 	DualQuaternion<T>& operator *= (const DualQuaternion<T>& dq);
+	DualQuaternion<T>& operator += (const DualQuaternion<T>& dq);
+	DualQuaternion<T>& operator -= (const DualQuaternion<T>& dq);
+
 	DualQuaternion<T>& operator *= (T s);
+	DualQuaternion<T>& operator += (T s);
+	DualQuaternion<T>& operator -= (T s);
+
+	const DualQuaternion<T> operator * (const DualQuaternion<T>& dq) const;
+	const DualQuaternion<T> operator + (const DualQuaternion<T>& dq) const;
+	const DualQuaternion<T> operator - (const DualQuaternion<T>& dq) const;
+
+	const DualQuaternion<T> operator * (T s) const;
+	const DualQuaternion<T> operator + (T s) const;
+	const DualQuaternion<T> operator - (T s) const;
 
 	Quaternion<T> AcquireRotation() const;
 	Vector3<T> AcquireTranslation() const;
-
-	const DualQuaternion<T> operator * (const DualQuaternion<T>& dq) const;
-	const DualQuaternion<T> operator * (T s) const;
 
 	DualQuaternion<T>& Normalize();
 	const DualQuaternion<T> GetConjugate() const;

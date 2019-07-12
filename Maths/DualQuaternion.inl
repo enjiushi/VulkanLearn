@@ -81,18 +81,67 @@ DualQuaternion<T>& DualQuaternion<T>::operator *= (const DualQuaternion<T>& dq)
 }
 
 template<typename T>
-DualQuaternion<T>& operator *= (T s)
+DualQuaternion<T>& DualQuaternion<T>::operator += (const DualQuaternion<T>& dq)
 {
-	real *= s;
-	dual *= s
+	real += dq.real;
+	dual += dq.dual;
 	return *this;
 }
 
 template<typename T>
-const DualQuaternion<T> DualQuaternion<T>::operator * (const DualQuaternion<T>& dq)
+DualQuaternion<T>& DualQuaternion<T>::operator -= (const DualQuaternion<T>& dq)
+{
+	real -= dq.real;
+	dual -= dq.dual;
+	return *this;
+}
+
+template<typename T>
+DualQuaternion<T>& DualQuaternion<T>::operator *= (T s)
+{
+	real *= s;
+	dual *= s;
+	return *this;
+}
+
+template<typename T>
+DualQuaternion<T>& DualQuaternion<T>::operator += (T s)
+{
+	real += s;
+	dual += s;
+	return *this;
+}
+
+template<typename T>
+DualQuaternion<T>& DualQuaternion<T>::operator -= (T s)
+{
+	real -= s;
+	dual -= s;
+	return *this;
+}
+
+
+template<typename T>
+const DualQuaternion<T> DualQuaternion<T>::operator * (const DualQuaternion<T>& dq) const
 {
 	DualQuaternion<T> ret = *this;
 	ret *= dq;
+	return ret;
+}
+
+template<typename T>
+const DualQuaternion<T> DualQuaternion<T>::operator + (const DualQuaternion<T>& dq) const
+{
+	DualQuaternion<T> ret = *this;
+	ret += dq;
+	return ret;
+}
+
+template<typename T>
+const DualQuaternion<T> DualQuaternion<T>::operator - (const DualQuaternion<T>& dq) const
+{
+	DualQuaternion<T> ret = *this;
+	ret -= dq;
 	return ret;
 }
 
@@ -101,6 +150,22 @@ const DualQuaternion<T> DualQuaternion<T>::operator * (T s) const
 {
 	DualQuaternion<T> ret = *this;
 	ret *= s;
+	return ret;
+}
+
+template<typename T>
+const DualQuaternion<T> DualQuaternion<T>::operator + (T s) const
+{
+	DualQuaternion<T> ret = *this;
+	ret += s;
+	return ret;
+}
+
+template<typename T>
+const DualQuaternion<T> DualQuaternion<T>::operator - (T s) const
+{
+	DualQuaternion<T> ret = *this;
+	ret -= s;
 	return ret;
 }
 
