@@ -41,8 +41,8 @@ vec3 DualQuaternionTransformPoint(mat2x4 dq, vec3 p)
 	return ret;
 }
 
-vec3 DualQuaternionTransformNormal(mat2x4 dq, vec3 n)
+vec3 DualQuaternionTransformVector(mat2x4 dq, vec3 v)
 {
-	vec3 ret = QuaternionRotate(dq[0], n);
+	vec3 ret = QuaternionRotate(dq[0], v);
 	return ret;
 }

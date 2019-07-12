@@ -63,10 +63,12 @@ void main()
 	result /= len;
 
 	vec3 animated_pos = DualQuaternionTransformPoint(result, inPos);
+	vec3 animated_normal = DualQuaternionTransformVector(result, inNormal);
+	vec3 animated_tangent = DualQuaternionTransformVector(result, inTangent);
 
 	gl_Position = perObjectData[perObjectIndex].MVPN * vec4(animated_pos.xyz, 1.0);
 
-	outNormal = normalize(vec3(perObjectData[perObjectIndex].model * vec4(inNormal, 0.0)));
+	outNormal = normalize(vec3(perObjectData[perObjectIndex].model * vec4(animated_normal, 0.0)));
 	outWorldPos = (perObjectData[perObjectIndex].model * vec4(animated_pos.xyz, 1.0)).xyz;
 	outEyePos = (perFrameData.view * vec4(outWorldPos, 1.0)).xyz;
 	outScreenPos = gl_Position.xy / gl_Position.w;
@@ -74,7 +76,7 @@ void main()
 	outUv = inUv;
 	outUv.t = 1.0 - inUv.t;
 
-	outTangent = normalize(vec3(perObjectData[perObjectIndex].model * vec4(inTangent, 0.0)));
+	outTangent = normalize(vec3(perObjectData[perObjectIndex].model * vec4(animated_tangent, 0.0)));
 	outBitangent = normalize(cross(outNormal, outTangent));
 
 	perMaterialIndex = objectDataIndex[gl_DrawID].perMaterialIndex;
