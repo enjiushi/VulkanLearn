@@ -35,6 +35,20 @@ void main()
         bone_weights.z * dq2 +
         bone_weights.w * dq3;
 
+	// NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// Since minus dual quaternion equals original one:
+	// DQ = p + sigma * q, p = r, q = 0.5 * t * r
+	// r = cos(theta) + nsin(theta)
+	// r = -r
+	// =========>-r + sigma * 0.5 * t * (-r) = -r - sigma * 0.5 * t * r = -p - sigma * q = -DQ
+	// This proves minus DQ equals transform of original DQ
+	// However, linear combination will be changed, e.g:
+	// DQ0 * 0.3 + DQ1 * 0.7 ===> DQ0 * 0.3 + DQ1 * (-0.7)
+	// Though DQ1 and -DQ1 represent same transform, it still breaks linear combination that the result is no longer a normalized dual quaternion
+	// SO, WE HAVE TO RE NORMALIZE INTERPOLATED RESULT, WE HAVE TO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	float len = length(result[0]);
+	result /= len;
+
 	vec3 animated_pos = DualQuaternionTransform(result, inPos);
 
 	gl_Position = globalData.mainLightVPN * perObjectData[perObjectIndex].model * vec4(animated_pos, 1.0);
