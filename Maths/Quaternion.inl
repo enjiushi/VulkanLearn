@@ -144,33 +144,6 @@ Quaternion<T>& Quaternion<T>::operator *= (const Quaternion<T>& q)
 }
 
 template<typename T>
-Quaternion<T>& Quaternion<T>::operator *= (T s)
-{
-	x *= s;
-	y *= s;
-	z *= s;
-	w *= s;
-
-	return *this;
-}
-
-template<typename T>
-Quaternion<T> Quaternion<T>::operator * (const Quaternion<T>& q) const
-{
-	Quaternion<T> ret = *this;
-	ret *= q;
-	return ret;
-}
-
-template<typename T>
-Quaternion<T> Quaternion<T>::operator * (T s) const
-{
-	Quaternion<T> ret = *this;
-	ret *= s;
-	return ret;
-}
-
-template<typename T>
 Quaternion<T>& Quaternion<T>::operator += (const Quaternion<T>& q)
 {
 	x += q.x;
@@ -182,10 +155,94 @@ Quaternion<T>& Quaternion<T>::operator += (const Quaternion<T>& q)
 }
 
 template<typename T>
-Quaternion<T> Quaternion<T>::operator + (const Quaternion<T>& q) const
+Quaternion<T>& Quaternion<T>::operator -= (const Quaternion<T>& q)
+{
+	x -= q.x;
+	y -= q.y;
+	z -= q.z;
+	w -= q.w;
+
+	return *this;
+}
+
+template<typename T>
+const Quaternion<T> Quaternion<T>::operator * (const Quaternion<T>& q) const
+{
+	Quaternion<T> ret = *this;
+	ret *= q;
+	return ret;
+}
+
+template<typename T>
+const Quaternion<T> Quaternion<T>::operator + (const Quaternion<T>& q) const
 {
 	Quaternion<T> ret = *this;
 	ret += q;
+	return ret;
+}
+
+template<typename T>
+const Quaternion<T> Quaternion<T>::operator - (const Quaternion<T>& q) const
+{
+	Quaternion<T> ret = *this;
+	ret -= q;
+	return ret;
+}
+
+template<typename T>
+Quaternion<T>& Quaternion<T>::operator *= (T s)
+{
+	x *= s;
+	y *= s;
+	z *= s;
+	w *= s;
+
+	return *this;
+}
+
+template<typename T>
+Quaternion<T>& Quaternion<T>::operator += (T s)
+{
+	x += s;
+	y += s;
+	z += s;
+	w += s;
+
+	return *this;
+}
+
+template<typename T>
+Quaternion<T>& Quaternion<T>::operator -= (T s)
+{
+	x -= s;
+	y -= s;
+	z -= s;
+	w -= s;
+
+	return *this;
+}
+
+template<typename T>
+const Quaternion<T> Quaternion<T>::operator * (T s) const
+{
+	Quaternion<T> ret = *this;
+	ret *= s;
+	return ret;
+}
+
+template<typename T>
+const Quaternion<T> Quaternion<T>::operator + (T s) const
+{
+	Quaternion<T> ret = *this;
+	ret += s;
+	return ret;
+}
+
+template<typename T>
+const Quaternion<T> Quaternion<T>::operator - (T s) const
+{
+	Quaternion<T> ret = *this;
+	ret -= s;
 	return ret;
 }
 

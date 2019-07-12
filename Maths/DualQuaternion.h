@@ -25,15 +25,18 @@ public:
 
 	bool operator == (const DualQuaternion<T>& dq) const;
 	bool operator != (const DualQuaternion<T>& dq) const;
+
 	DualQuaternion<T>& operator *= (const DualQuaternion<T>& dq);
+	DualQuaternion<T>& operator *= (T s);
 
 	Quaternion<T> AcquireRotation() const;
 	Vector3<T> AcquireTranslation() const;
 
-	DualQuaternion<T> operator * (const DualQuaternion<T>& dq);
+	const DualQuaternion<T> operator * (const DualQuaternion<T>& dq) const;
+	const DualQuaternion<T> operator * (T s) const;
 
 	DualQuaternion<T>& Normalize();
-	DualQuaternion<T> GetConjugate() const;
+	const DualQuaternion<T> GetConjugate() const;
 	DualQuaternion<T>& Conjugate();
 
 	Vector3<T> Transform(const Vector3<T>& input);

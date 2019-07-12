@@ -81,10 +81,26 @@ DualQuaternion<T>& DualQuaternion<T>::operator *= (const DualQuaternion<T>& dq)
 }
 
 template<typename T>
-DualQuaternion<T> DualQuaternion<T>::operator * (const DualQuaternion<T>& dq)
+DualQuaternion<T>& operator *= (T s)
+{
+	real *= s;
+	dual *= s
+	return *this;
+}
+
+template<typename T>
+const DualQuaternion<T> DualQuaternion<T>::operator * (const DualQuaternion<T>& dq)
 {
 	DualQuaternion<T> ret = *this;
 	ret *= dq;
+	return ret;
+}
+
+template<typename T>
+const DualQuaternion<T> DualQuaternion<T>::operator * (T s) const
+{
+	DualQuaternion<T> ret = *this;
+	ret *= s;
 	return ret;
 }
 
@@ -100,7 +116,7 @@ DualQuaternion<T>& DualQuaternion<T>::Normalize()
 }
 
 template<typename T>
-DualQuaternion<T> DualQuaternion<T>::GetConjugate() const
+const DualQuaternion<T> DualQuaternion<T>::GetConjugate() const
 {
 	return DualQuaternion<T>(real.GetConjugate(), dual.GetConjugate());
 }

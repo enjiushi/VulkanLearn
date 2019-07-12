@@ -22,12 +22,22 @@ public:
 
 	bool operator == (const Quaternion<T>& q) const;
 	bool operator != (const Quaternion<T>& q) const;
+
 	Quaternion<T>& operator *= (const Quaternion<T>& q);
-	Quaternion<T>& operator *= (T s);
-	Quaternion<T> operator * (const Quaternion<T>& q) const;
-	Quaternion<T> operator * (T s) const;
 	Quaternion<T>& operator += (const Quaternion<T>& q);
-	Quaternion<T> operator + (const Quaternion<T>& q) const;
+	Quaternion<T>& operator -= (const Quaternion<T>& q);
+
+	const Quaternion<T> operator * (const Quaternion<T>& q) const;
+	const Quaternion<T> operator + (const Quaternion<T>& q) const;
+	const Quaternion<T> operator - (const Quaternion<T>& q) const;
+
+	Quaternion<T>& operator *= (T s);
+	Quaternion<T>& operator += (T s);
+	Quaternion<T>& operator -= (T s);
+
+	const Quaternion<T> operator * (T s) const;
+	const Quaternion<T> operator + (T s) const;
+	const Quaternion<T> operator - (T s) const;
 
 	T Mag() const;
 	Quaternion<T>& Normalize();
