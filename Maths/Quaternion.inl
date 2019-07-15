@@ -318,34 +318,43 @@ Vector3<T> Quaternion<T>::Rotate(const Vector3<T>& v)
 template<typename T>
 Quaternion<T> Quaternion<T>::SLerp(const Quaternion<T>& from, const Quaternion<T>& to, T factor)
 {
-	Quaternion<T> out;
+	Quaternion<T> out = to;
+
 	// calc cosine theta
-	T cosom = Dot<T>(from, to);
+	T cosom = from.x * to.x + from.y * to.y + from.z * to.z + from.w * to.w;
 
 	// adjust signs (if necessary)
-	Quaternion<T> end = to;
 	if (cosom < static_cast<T>(0.0))
 	{
 		cosom = -cosom;
-		end.x = -end.x;   // Reverse all signs
-		end.y = -end.y;
-		end.z = -end.z;
-		end.w = -end.w;
+		out.x = -out.x;   // Reverse all signs
+		out.y = -out.y;
+		out.z = -out.z;
+		out.w = -out.w;
 	}
 
 	// Calculate coefficients
 	T sclp, sclq;
-	// Standard case (slerp)
-	T omega, sinom;
-	omega = acos(cosom); // extract theta from dot product's cos theta
-	sinom = sin(omega);
-	sclp = sin((static_cast<T>(1.0) - factor) * omega) / sinom;
-	sclq = sin(factor * omega) / sinom;
+	if ((static_cast<T>(1.0) - cosom) > static_cast<T>(0.0001)) // 0.0001 -> some epsillon
+	{
+		// Standard case (slerp)
+		T omega, sinom;
+		omega = acos(cosom); // extract theta from dot product's cos theta
+		sinom = sin(omega);
+		sclp = sin((static_cast<T>(1.0) - factor) * omega) / sinom;
+		sclq = sin(factor * omega) / sinom;
+	}
+	else
+	{
+		// Very close, do linear interp (because it's faster)
+		sclp = static_cast<T>(1.0) - factor;
+		sclq = factor;
+	}
 
-	out.x = sclp * from.x + sclq * end.x;
-	out.y = sclp * from.y + sclq * end.y;
-	out.z = sclp * from.z + sclq * end.z;
-	out.w = sclp * from.w + sclq * end.w;
+	out.x = sclp * from.x + sclq * out.x;
+	out.y = sclp * from.y + sclq * out.y;
+	out.z = sclp * from.z + sclq * out.z;
+	out.w = sclp * from.w + sclq * out.w;
 
 	return out;
 }
