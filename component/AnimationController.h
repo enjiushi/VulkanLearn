@@ -10,10 +10,13 @@ class AnimationController : public BaseComponent
 
 public:
 	static std::shared_ptr<AnimationController> Create(const std::shared_ptr<SkeletonAnimationInstance>& pAnimationInstance = nullptr);
+	~AnimationController() { delete[] m_pCurrentAnimationIndices; }
 
 public:
 	void CallbackFunc(std::shared_ptr<BaseObject>& pObject);
 	std::shared_ptr<SkeletonAnimationInstance> GetAnimationInstance() const { return m_pAnimationInstance; }
+
+	void Update() override;
 
 protected:
 	bool Init(const std::shared_ptr<AnimationController>& pAnimationController, const std::shared_ptr<SkeletonAnimationInstance>& pAnimationInstance = nullptr);
@@ -23,4 +26,8 @@ protected:
 
 protected:
 	std::shared_ptr<SkeletonAnimationInstance>	m_pAnimationInstance;
+
+	float		m_animationPlayedTime;
+
+	uint32_t*	m_pCurrentAnimationIndices;
 };
