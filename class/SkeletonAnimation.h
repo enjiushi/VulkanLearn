@@ -56,7 +56,7 @@ public:
 
 protected:
 	static void AssemblyAnimationData(const aiAnimation* pAssimpAnimation, AnimationData& animationData);
-	static void AssemblyObjectAnimation(const aiNodeAnim* pAssimpNodeAnimation, ObjectAnimation& objectAnimation);
+	static void AssemblyObjectAnimation(const aiNodeAnim* pAssimpNodeAnimation, float ticksPerSecond, ObjectAnimation& objectAnimation);
 
 protected:
 	std::vector<AnimationData>			m_animationDataDiction;			// Entire animation dictionary, containing all the data of current assimp scene's animation

@@ -42,21 +42,21 @@ void SkeletonAnimation::AssemblyAnimationData(const aiAnimation* pAssimpAnimatio
 	for (uint32_t i = 0; i < pAssimpAnimation->mNumChannels; i++)
 	{
 		ObjectAnimation objectAnimation = {};
-		AssemblyObjectAnimation(pAssimpAnimation->mChannels[i], objectAnimation);
+		AssemblyObjectAnimation(pAssimpAnimation->mChannels[i], pAssimpAnimation->mTicksPerSecond, objectAnimation);
 
 		animationData.objectAnimationDiction.push_back(objectAnimation);
 		animationData.objectAnimationLookupTable[objectAnimation.objectName] = animationData.objectAnimationDiction.size() - 1;
 	}
 }
 
-void SkeletonAnimation::AssemblyObjectAnimation(const aiNodeAnim* pAssimpNodeAnimation, ObjectAnimation& objectAnimation)
+void SkeletonAnimation::AssemblyObjectAnimation(const aiNodeAnim* pAssimpNodeAnimation, float ticksPerSecond, ObjectAnimation& objectAnimation)
 {
 	objectAnimation.objectName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pAssimpNodeAnimation->mNodeName.C_Str());
 
 	for (uint32_t i = 0; i < pAssimpNodeAnimation->mNumRotationKeys; i++)
 	{
 		RotationKeyFrame rotationKeyFrame = {};
-		rotationKeyFrame.time = pAssimpNodeAnimation->mRotationKeys[i].mTime;
+		rotationKeyFrame.time = pAssimpNodeAnimation->mRotationKeys[i].mTime / ticksPerSecond;
 		rotationKeyFrame.transform = AssimpDataConverter::AcquireQuaternion(pAssimpNodeAnimation->mRotationKeys[i].mValue);
 		objectAnimation.rotationKeyFrames.push_back(rotationKeyFrame);
 	}
