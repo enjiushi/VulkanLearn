@@ -37,35 +37,12 @@
 #include "../class/PerMaterialUniforms.h"
 #include "RenderPassBase.h"
 
-bool Material::Init
+void Material::GeneralInit
 (
-	const std::shared_ptr<Material>& pSelf,
-	const std::vector<std::wstring>	shaderPaths,
-	const std::shared_ptr<RenderPassBase>& pRenderPass,
-	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
-	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat,
-	uint32_t vertexFormatInMem
-)
-{
-	return Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, {}, materialUniformVars, vertexFormat, vertexFormatInMem);
-}
-
-bool Material::Init
-(
-	const std::shared_ptr<Material>& pSelf,
-	const std::vector<std::wstring>	shaderPaths,
-	const std::shared_ptr<RenderPassBase>& pRenderPass,
-	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
-	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat,
-	uint32_t vertexFormatInMem
+	const std::vector<UniformVar>& materialUniformVars
 )
 {
-	if (!SelfRefBase<Material>::Init(pSelf))
-		return false;
-
 	m_materialVariableLayout.resize(MaterialUniformStorageTypeCount);
 	m_materialUniforms.resize(MaterialUniformStorageTypeCount);
 
@@ -90,7 +67,7 @@ bool Material::Init
 	// If there's no per material variable, I just simply add a dummy variable, for the sake of simplicity
 	if (m_materialVariableLayout[PerMaterialVariableBuffer].vars.size() == 0)
 	{
-		m_materialVariableLayout[PerMaterialVariableBuffer].vars = 
+		m_materialVariableLayout[PerMaterialVariableBuffer].vars =
 		{
 			{
 				OneUnit,
@@ -113,7 +90,7 @@ bool Material::Init
 	// Build vulkan layout bindings
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
 	for (auto & var : m_materialVariableLayout)
-	{ 
+	{
 		switch (var.type)
 		{
 		case DynamicUniformBuffer:
@@ -124,7 +101,7 @@ bool Material::Init
 				var.count,
 				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				nullptr
-			});
+				});
 
 			break;
 		case DynamicShaderStorageBuffer:
@@ -135,7 +112,7 @@ bool Material::Init
 				var.count,
 				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				nullptr
-			});
+				});
 
 			break;
 		case CombinedSampler:
@@ -146,7 +123,7 @@ bool Material::Init
 				var.count,
 				VK_SHADER_STAGE_FRAGMENT_BIT,
 				nullptr
-			});
+				});
 			break;
 		case InputAttachment:
 			bindings.push_back
@@ -171,19 +148,6 @@ bool Material::Init
 	// Create pipeline layout
 	m_pPipelineLayout = PipelineLayout::Create(GetDevice(), descriptorSetLayouts, pushConstsRanges);
 
-	// Init shaders
-	std::vector<std::shared_ptr<ShaderModule>> shaders;
-	
-	for (uint32_t i = 0; i < (uint32_t)ShaderModule::ShaderTypeCount; i++)
-	{
-		if (shaderPaths[i] != L"")
-			shaders.push_back(ShaderModule::Create(GetDevice(), shaderPaths[i], (ShaderModule::ShaderType)i, "main"));	//FIXME: hard-coded main
-	}
-
-	// Create pipeline
-	m_pPipeline = GraphicPipeline::Create(GetDevice(), pipelineCreateInfo, shaders, pRenderPass->GetRenderPass(), m_pPipelineLayout);
-
-	m_pRenderPass = pRenderPass;
 
 	// Prepare descriptor pool size according to resources used by this material
 	std::vector<uint32_t> counts(VK_DESCRIPTOR_TYPE_RANGE_SIZE);
@@ -231,6 +195,52 @@ bool Material::Init
 			m_cachedFrameOffsets[frameIndex].push_back(m_materialUniforms[i]->GetFrameOffset() * frameIndex);
 		}
 	}
+}
+
+bool Material::Init
+(
+	const std::shared_ptr<Material>& pSelf,
+	const std::vector<std::wstring>	shaderPaths,
+	const std::shared_ptr<RenderPassBase>& pRenderPass,
+	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
+	const std::vector<UniformVar>& materialUniformVars,
+	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem
+)
+{
+	return Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, {}, materialUniformVars, vertexFormat, vertexFormatInMem);
+}
+
+bool Material::Init
+(
+	const std::shared_ptr<Material>& pSelf,
+	const std::vector<std::wstring>	shaderPaths,
+	const std::shared_ptr<RenderPassBase>& pRenderPass,
+	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
+	const std::vector<VkPushConstantRange>& pushConstsRanges,
+	const std::vector<UniformVar>& materialUniformVars,
+	uint32_t vertexFormat,
+	uint32_t vertexFormatInMem
+)
+{
+	if (!SelfRefBase<Material>::Init(pSelf))
+		return false;
+
+	GeneralInit(pushConstsRanges, materialUniformVars);
+
+	// Init shaders
+	std::vector<std::shared_ptr<ShaderModule>> shaders;
+	
+	for (uint32_t i = 0; i < (uint32_t)ShaderModule::ShaderTypeCount; i++)
+	{
+		if (shaderPaths[i] != L"")
+			shaders.push_back(ShaderModule::Create(GetDevice(), shaderPaths[i], (ShaderModule::ShaderType)i, "main"));	//FIXME: hard-coded main
+	}
+
+	// Create pipeline
+	m_pGraphicPipeline = GraphicPipeline::Create(GetDevice(), pipelineCreateInfo, shaders, pRenderPass->GetRenderPass(), m_pPipelineLayout);
+
+	m_pRenderPass = pRenderPass;
 
 	m_pIndirectBuffer = SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT);
 

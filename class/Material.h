@@ -6,9 +6,11 @@
 #include "FrameBufferDiction.h"
 #include <map>
 #include "../common/Enums.h"
+#include "../Maths/Vector3.h"
 
 class PipelineLayout;
 class GraphicPipeline;
+class ComputePipeline;
 class DescriptorSetLayout;
 class DescriptorSet;
 class ShaderModule;
@@ -63,7 +65,8 @@ public:
 public:
 	std::shared_ptr<RenderPassBase> GetRenderPass() const { return m_pRenderPass; }
 	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
-	std::shared_ptr<GraphicPipeline> GetGraphicPipeline() const { return m_pPipeline; }
+	std::shared_ptr<GraphicPipeline> GetGraphicPipeline() const { return m_pGraphicPipeline; }
+	std::shared_ptr<ComputePipeline> GetComputePipeline() const { return m_pComputePipeline; }
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
 	uint32_t GetUniformBufferSize() const;
 	std::vector<std::vector<uint32_t>> Material::GetCachedFrameOffsets() const { return m_cachedFrameOffsets; }
@@ -113,12 +116,19 @@ public:
 
 	virtual void BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
 	virtual void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) = 0;
+	virtual void Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, const Vector3f& groupNum, const Vector3f& groupSize, uint32_t pingpong = 0) = 0;
 	virtual void AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
 
 	virtual void OnFrameBegin();
 	virtual void OnFrameEnd();
 
 protected:
+	void GeneralInit
+	(
+		const std::vector<VkPushConstantRange>& pushConstsRanges,
+		const std::vector<UniformVar>& materialUniformVars
+	);
+
 	bool Init
 	(
 		const std::shared_ptr<Material>& pSelf, 
@@ -142,6 +152,15 @@ protected:
 		uint32_t vertexFormatInMem
 	);
 
+	bool Init
+	(
+		const std::shared_ptr<Material>& pSelf,
+		const std::wstring& shaderPath,
+		const VkComputePipelineCreateInfo& pipelineCreateInfo,
+		const std::vector<VkPushConstantRange>& pushConstsRanges,
+		const std::vector<UniformVar>& materialUniformVars
+	);
+
 	virtual void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) {}
 	virtual void CustomizePoolSize(std::vector<uint32_t>& counts) {}
 
@@ -152,7 +171,8 @@ protected:
 	std::shared_ptr<RenderPassBase>						m_pRenderPass;
 
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
-	std::shared_ptr<GraphicPipeline>					m_pPipeline;
+	std::shared_ptr<GraphicPipeline>					m_pGraphicPipeline;
+	std::shared_ptr<ComputePipeline>					m_pComputePipeline;
 
 	std::shared_ptr<DescriptorSetLayout>				m_pDescriptorSetLayout;
 	std::shared_ptr<DescriptorSet>						m_pUniformStorageDescriptorSet;

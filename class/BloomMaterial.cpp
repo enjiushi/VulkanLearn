@@ -251,7 +251,7 @@ void BloomMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const st
 {
 	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
 
-	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetInfo().subpass, pFrameBuffer);
+	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
 
 	Vector2f size = { (float)pFrameBuffer->GetFramebufferInfo().width, (float)pFrameBuffer->GetFramebufferInfo().height };
 
