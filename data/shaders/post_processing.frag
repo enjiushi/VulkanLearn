@@ -43,7 +43,7 @@ void main()
 	
 	float motionMag = length(motionNeighborMax * globalData.gameWindowSize.xy) * MOTION_VEC_AMP;
 	float motionMix = clamp(motionMag - noneMotion, 0.0f, span) / span;
-	vec3 final = mix(noneMotionColor, fullMotionColor, motionMix);
+	vec3 final = mix(noneMotionColor, fullMotionColor, 0);
 
 	// Vignette
 	vec2 center = vec2(0.5f, 0.5f);

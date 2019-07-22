@@ -153,7 +153,7 @@ layout(set = 2, binding = 0) buffer PerObjectUniforms
 	PerObjectData perObjectData[];
 };
 
-layout(set = 3, binding = 0) buffer PerMaterialIndirectUniforms
+layout(set = 3, binding = 1) buffer PerMaterialIndirectUniforms
 {
 	ObjectDataIndex objectDataIndex[];
 };
