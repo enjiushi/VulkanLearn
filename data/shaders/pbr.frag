@@ -13,7 +13,7 @@ struct PBRTextures
 	float metallicIndex;
 };
 
-layout(set = 3, binding = 1) buffer MaterialUniforms
+layout(set = 3, binding = 0) buffer MaterialUniforms
 {
 	PBRTextures textures[];
 };

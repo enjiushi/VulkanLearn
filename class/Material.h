@@ -57,8 +57,8 @@ class Material : public SelfRefBase<Material>
 public:
 	enum MaterialUniformStorageType
 	{
-		PerMaterialIndirectVariableBuffer,
 		PerMaterialVariableBuffer,
+		PerMaterialIndirectVariableBuffer,
 		MaterialUniformStorageTypeCount
 	};
 
