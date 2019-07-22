@@ -126,7 +126,8 @@ protected:
 	void GeneralInit
 	(
 		const std::vector<VkPushConstantRange>& pushConstsRanges,
-		const std::vector<UniformVar>& materialUniformVars
+		const std::vector<UniformVar>& materialUniformVars,
+		bool includeIndirectBuffer
 	);
 
 	bool Init

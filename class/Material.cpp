@@ -40,19 +40,25 @@
 void Material::GeneralInit
 (
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
-	const std::vector<UniformVar>& materialUniformVars
+	const std::vector<UniformVar>& materialUniformVars,
+	bool includeIndirectBuffer
 )
 {
-	m_materialVariableLayout.resize(MaterialUniformStorageTypeCount);
-	m_materialUniforms.resize(MaterialUniformStorageTypeCount);
+	uint32_t materialUniformCount = includeIndirectBuffer ? MaterialUniformStorageTypeCount : 1;
+
+	m_materialVariableLayout.resize(materialUniformCount);
+	m_materialUniforms.resize(materialUniformCount);
 
 
 	std::vector<UniformVarList> _materialVariableLayout;
 
 	// Add per material indirect index uniform layout
-	m_materialUniforms[PerMaterialIndirectVariableBuffer] = PerMaterialIndirectUniforms::Create();
-	m_materialVariableLayout[PerMaterialIndirectVariableBuffer] = m_materialUniforms[PerMaterialIndirectVariableBuffer]->PrepareUniformVarList()[0];
-	m_pPerMaterialIndirectUniforms = std::dynamic_pointer_cast<PerMaterialIndirectUniforms>(m_materialUniforms[PerMaterialIndirectVariableBuffer]);
+	if (includeIndirectBuffer)
+	{
+		m_materialUniforms[PerMaterialIndirectVariableBuffer] = PerMaterialIndirectUniforms::Create();
+		m_materialVariableLayout[PerMaterialIndirectVariableBuffer] = m_materialUniforms[PerMaterialIndirectVariableBuffer]->PrepareUniformVarList()[0];
+		m_pPerMaterialIndirectUniforms = std::dynamic_pointer_cast<PerMaterialIndirectUniforms>(m_materialUniforms[PerMaterialIndirectVariableBuffer]);
+	}
 
 	// Add material variable layout
 	m_materialVariableLayout[PerMaterialVariableBuffer] =
@@ -179,7 +185,7 @@ void Material::GeneralInit
 
 	// Setup descriptor set
 	uint32_t bindingIndex = 0;
-	for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
+	for (uint32_t i = 0; i < materialUniformCount; i++)
 	{
 		bindingIndex = m_materialUniforms[i]->SetupDescriptorSet(m_pUniformStorageDescriptorSet, bindingIndex);
 	}
@@ -190,7 +196,7 @@ void Material::GeneralInit
 	for (uint32_t frameIndex = 0; frameIndex < GetSwapChain()->GetSwapChainImageCount(); frameIndex++)
 	{
 		std::vector<uint32_t> offsets;
-		for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
+		for (uint32_t i = 0; i < materialUniformCount; i++)
 		{
 			m_cachedFrameOffsets[frameIndex].push_back(m_materialUniforms[i]->GetFrameOffset() * frameIndex);
 		}
@@ -226,7 +232,7 @@ bool Material::Init
 	if (!SelfRefBase<Material>::Init(pSelf))
 		return false;
 
-	GeneralInit(pushConstsRanges, materialUniformVars);
+	GeneralInit(pushConstsRanges, materialUniformVars, true);
 
 	// Init shaders
 	std::vector<std::shared_ptr<ShaderModule>> shaders;
