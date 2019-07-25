@@ -12,6 +12,7 @@ layout (location = 5) flat in int perObjectIndex;
 layout (location = 6) in vec3 inWorldPos;
 layout (location = 7) in vec3 inEyePos;
 layout (location = 8) noperspective in vec2 inScreenPos;
+layout (location = 9) in vec3 inPrevWorldPos;
 
 layout (location = 0) out vec4 outGBuffer0;
 layout (location = 1) out vec4 outGBuffer1;
@@ -69,7 +70,7 @@ void main()
 	outGBuffer1 = vec4(albedo_roughness.rgb, 0);
 	outGBuffer2 = vec4(vec3(albedo_roughness.w, metalic, 0), normal_ao.a);
 
-	vec4 prevNDCPos = perFrameData.prevVPN * vec4(inWorldPos, 1.0f);
+	vec4 prevNDCPos = perFrameData.prevVPN * vec4(inPrevWorldPos, 1.0f);
 	vec2 prevTexCoord = (prevNDCPos.xy / prevNDCPos.w);
 
 	outMotionVec.rg = prevTexCoord - inScreenPos;
