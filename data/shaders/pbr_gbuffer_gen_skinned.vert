@@ -31,11 +31,15 @@ void main()
 	int perAnimationChunkIndex = objectDataIndex[gl_DrawID].perAnimationIndex;
 
 	vec4 bone_weights = inBoneWeight;
+	uvec4 boneIndices = uvec4(perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 0) & 255],
+								perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 8) & 255],
+								perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 16) & 255],
+								perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 24) & 255]);
 
-	mat2x4 dq0 = perFrameBoneData[perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 0) & 255]].currAnimationDQ;
-    mat2x4 dq1 = perFrameBoneData[perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 8) & 255]].currAnimationDQ;
-    mat2x4 dq2 = perFrameBoneData[perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 16) & 255]].currAnimationDQ;
-    mat2x4 dq3 = perFrameBoneData[perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 24) & 255]].currAnimationDQ;
+	mat2x4 dq0 = perFrameBoneData[boneIndices.x].currAnimationDQ;
+    mat2x4 dq1 = perFrameBoneData[boneIndices.y].currAnimationDQ;
+    mat2x4 dq2 = perFrameBoneData[boneIndices.z].currAnimationDQ;
+    mat2x4 dq3 = perFrameBoneData[boneIndices.w].currAnimationDQ;
 
     // Ensure all bone transforms are in the same neighbourhood
     if (dot(dq0[0], dq1[0]) < 0.0) bone_weights.y *= -1.0;
@@ -63,10 +67,12 @@ void main()
 	float len = length(currDQ[0]);
 	currDQ /= len;
 
-	dq0 = perFrameBoneData[perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 0) & 255]].prevAnimationDQ;
-    dq1 = perFrameBoneData[perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 8) & 255]].prevAnimationDQ;
-    dq2 = perFrameBoneData[perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 16) & 255]].prevAnimationDQ;
-    dq3 = perFrameBoneData[perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 24) & 255]].prevAnimationDQ;
+	bone_weights = inBoneWeight;
+
+	dq0 = perFrameBoneData[boneIndices.x].prevAnimationDQ;
+    dq1 = perFrameBoneData[boneIndices.y].prevAnimationDQ;
+    dq2 = perFrameBoneData[boneIndices.z].prevAnimationDQ;
+    dq3 = perFrameBoneData[boneIndices.w].prevAnimationDQ;
 
     // Ensure all bone transforms are in the same neighbourhood
     if (dot(dq0[0], dq1[0]) < 0.0) bone_weights.y *= -1.0;
