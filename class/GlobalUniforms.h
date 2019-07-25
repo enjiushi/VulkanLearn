@@ -327,7 +327,8 @@ protected:
 
 typedef struct _BoneData
 {
-	DualQuaternionf	boneOffsetDQ;
+	DualQuaternionf	currBoneOffsetDQ;
+	DualQuaternionf	prevBoneOffsetDQ;
 }BoneData;
 
 class BoneIndirectUniform;

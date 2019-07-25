@@ -572,13 +572,14 @@ std::shared_ptr<PerBoneUniforms> PerBoneUniforms::Create()
 
 void PerBoneUniforms::SetBoneOffsetTransform(uint32_t chunkIndex, const DualQuaternionf& offsetDQ)
 {
-	 m_boneData[chunkIndex].boneOffsetDQ = offsetDQ;
-	 SetChunkDirty(chunkIndex);
+	m_boneData[chunkIndex].prevBoneOffsetDQ = m_boneData[chunkIndex].currBoneOffsetDQ;
+	m_boneData[chunkIndex].currBoneOffsetDQ = offsetDQ;
+	SetChunkDirty(chunkIndex);
 }
 
 DualQuaternionf PerBoneUniforms::GetBoneOffsetTransform(uint32_t chunkIndex) const
 {
-	return m_boneData[chunkIndex].boneOffsetDQ;
+	return m_boneData[chunkIndex].currBoneOffsetDQ;
 }
 
 void PerBoneUniforms::UpdateDirtyChunkInternal(uint32_t index)
