@@ -36,6 +36,7 @@
 #include "../vulkan/Texture2D.h"
 #include "../class/PerMaterialUniforms.h"
 #include "RenderPassBase.h"
+#include "../vulkan/ComputePipeline.h"
 
 void Material::GeneralInit
 (
@@ -252,6 +253,26 @@ bool Material::Init
 
 	m_vertexFormat = vertexFormat;
 	m_vertexFormatInMem = vertexFormatInMem;
+
+	return true;
+}
+
+bool Material::Init
+(
+	const std::shared_ptr<Material>& pSelf,
+	const std::wstring& shaderPath,
+	const VkComputePipelineCreateInfo& pipelineCreateInfo,
+	const std::vector<VkPushConstantRange>& pushConstsRanges,
+	const std::vector<UniformVar>& materialUniformVars
+)
+{
+	GeneralInit(pushConstsRanges, materialUniformVars, false);
+
+	// Init shader
+	std::shared_ptr<ShaderModule> pShader = ShaderModule::Create(GetDevice(), shaderPath, ShaderModule::ShaderType::ShaderTypeCompute, "main");
+
+	// Create pipeline
+	m_pComputePipeline = ComputePipeline::Create(GetDevice(), pipelineCreateInfo, pShader, m_pPipelineLayout);
 
 	return true;
 }

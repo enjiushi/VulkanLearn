@@ -125,7 +125,7 @@ std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const Si
 
 void ForwardMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
 {
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
 
@@ -145,7 +145,7 @@ void ForwardMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const 
 
 void ForwardMaterial::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer)
 {
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
 

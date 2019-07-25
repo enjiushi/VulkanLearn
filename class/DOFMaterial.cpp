@@ -341,7 +341,7 @@ void DOFMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 
 void DOFMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
 {
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
 

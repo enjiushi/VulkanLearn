@@ -138,7 +138,7 @@ std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(bool
 
 void ShadowMapMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
 {
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocateSecondaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	// FIXME: Subpass index hard-coded
 	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);

@@ -47,12 +47,12 @@ std::shared_ptr<FrameManager> FrameManager::Create(const std::shared_ptr<Device>
 	return nullptr;
 }
 
-std::shared_ptr<PerFrameResource> FrameManager::AllocatePerFrameResource(uint32_t frameBinIndex, bool transientCBPool)
+std::shared_ptr<PerFrameResource> FrameManager::AllocatePerFrameResource(uint32_t frameBinIndex)
 {
 	if (frameBinIndex < 0 || frameBinIndex >= m_maxFrameCount)
 		return nullptr;
 
-	std::shared_ptr<PerFrameResource> pPerFrameRes = PerFrameResource::Create(GetDevice(), frameBinIndex, transientCBPool);
+	std::shared_ptr<PerFrameResource> pPerFrameRes = PerFrameResource::Create(GetDevice(), frameBinIndex);
 	m_frameResTable[frameBinIndex].push_back(pPerFrameRes);
 	return pPerFrameRes;
 }

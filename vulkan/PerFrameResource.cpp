@@ -7,15 +7,13 @@
 #include "GlobalDeviceObjects.h"
 #include "SwapChain.h"
 
-bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex, const std::shared_ptr<PerFrameResource>& pSelf, bool transientCBPool)
+bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex, const std::shared_ptr<PerFrameResource>& pSelf)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	if (transientCBPool)
-		m_pCommandPool = CommandPool::CreateTransientCBPool(pDevice, pSelf);
-	else
-		m_pCommandPool = CommandPool::Create(pDevice, pSelf);
+	m_pPersistantCBPool = CommandPool::Create(pDevice, pSelf);
+	m_pTransientCBPool = CommandPool::CreateTransientCBPool(pDevice, pSelf);
 
 	std::vector<VkDescriptorPoolSize> descPoolSize =
 	{
@@ -39,22 +37,32 @@ bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t fra
 	return true;
 }
 
-std::shared_ptr<PerFrameResource> PerFrameResource::Create(const std::shared_ptr<Device>& pDevice, uint32_t frameBinIndex, bool transientCBPool)
+std::shared_ptr<PerFrameResource> PerFrameResource::Create(const std::shared_ptr<Device>& pDevice, uint32_t frameBinIndex)
 {
 	std::shared_ptr<PerFrameResource> pPerFrameRes = std::make_shared<PerFrameResource>();
-	if (pPerFrameRes.get() && pPerFrameRes->Init(pDevice, frameBinIndex, pPerFrameRes, transientCBPool))
+	if (pPerFrameRes.get() && pPerFrameRes->Init(pDevice, frameBinIndex, pPerFrameRes))
 		return pPerFrameRes;
 	return nullptr;
 }
 
-std::shared_ptr<CommandBuffer> PerFrameResource::AllocatePrimaryCommandBuffer()
+std::shared_ptr<CommandBuffer> PerFrameResource::AllocatePersistantPrimaryCommandBuffer()
 {
-	return m_pCommandPool->AllocatePrimaryCommandBuffer();
+	return m_pPersistantCBPool->AllocatePrimaryCommandBuffer();
 }
 
-std::shared_ptr<CommandBuffer> PerFrameResource::AllocateSecondaryCommandBuffer()
+std::shared_ptr<CommandBuffer> PerFrameResource::AllocatePersistantSecondaryCommandBuffer()
 {
-	return m_pCommandPool->AllocateSecondaryCommandBuffer();
+	return m_pPersistantCBPool->AllocateSecondaryCommandBuffer();
+}
+
+std::shared_ptr<CommandBuffer> PerFrameResource::AllocateTransientPrimaryCommandBuffer()
+{
+	return m_pTransientCBPool->AllocatePrimaryCommandBuffer();
+}
+
+std::shared_ptr<CommandBuffer> PerFrameResource::AllocateTransientSecondaryCommandBuffer()
+{
+	return m_pTransientCBPool->AllocateSecondaryCommandBuffer();
 }
 
 

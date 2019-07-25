@@ -573,7 +573,7 @@ void VulkanGlobal::InitDescriptorSet()
 void VulkanGlobal::InitDrawCmdBuffers()
 {
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-		m_perFrameRes.push_back(FrameMgr()->AllocatePerFrameResource(i, !PREBAKE_CB));
+		m_perFrameRes.push_back(FrameMgr()->AllocatePerFrameResource(i));
 }
 
 void VulkanGlobal::InitSemaphore()
@@ -963,16 +963,27 @@ void VulkanGlobal::Draw()
 
 	RenderWorkManager::GetInstance()->OnFrameBegin();
 
-	if (!PREBAKE_CB || m_commandBufferList[cbIndex] == nullptr)
+	static bool newCBCreated = false;
+	if (!PREBAKE_CB)
 	{
-		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePrimaryCommandBuffer();
-		pDrawCmdBuffer->StartPrimaryRecording();
+		m_commandBufferList[cbIndex] = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocateTransientPrimaryCommandBuffer();
+		newCBCreated = true;
+	}
+	else if (m_commandBufferList[cbIndex] == nullptr)
+	{
+		m_commandBufferList[cbIndex] = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePersistantPrimaryCommandBuffer();
+		newCBCreated = true;
+	}
 
-		RenderWorkManager::GetInstance()->Draw(pDrawCmdBuffer, pingpong);
+	if (newCBCreated)
+	{
+		m_commandBufferList[cbIndex]->StartPrimaryRecording();
 
-		pDrawCmdBuffer->EndPrimaryRecording();
+		RenderWorkManager::GetInstance()->Draw(m_commandBufferList[cbIndex], pingpong);
 
-		m_commandBufferList[cbIndex] = pDrawCmdBuffer;
+		m_commandBufferList[cbIndex]->EndPrimaryRecording();
+
+		newCBCreated = false;
 	}
 
 	RenderWorkManager::GetInstance()->OnFrameEnd();

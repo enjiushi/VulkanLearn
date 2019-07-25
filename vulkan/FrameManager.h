@@ -33,7 +33,7 @@ class FrameManager : public DeviceObjectBase<FrameManager>
 	typedef std::map<uint32_t, std::vector<SubmissionInfo>> SubmissionInfoTable;
 
 public:
-	std::shared_ptr<PerFrameResource> AllocatePerFrameResource(uint32_t frameIndex, bool transientCBPool = false);
+	std::shared_ptr<PerFrameResource> AllocatePerFrameResource(uint32_t frameIndex);
 	uint32_t FrameIndex() const { return m_currentFrameIndex; }
 	uint32_t MaxFrameCount() const { return m_maxFrameCount; }
 
