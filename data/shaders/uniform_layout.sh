@@ -60,7 +60,8 @@ struct AnimationData
 
 struct PerFrameBoneData
 {
-	mat2x4 animationDQ;
+	mat2x4 currAnimationDQ;
+	mat2x4 prevAnimationDQ;
 };
 
 struct PerFrameData
