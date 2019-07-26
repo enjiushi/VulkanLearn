@@ -39,6 +39,7 @@ Variance reducing is the only solution.
 I created this project aiming to get familiar with Vulkan through varies common rendering technologies. It is also a minor engine that handles scene management and data to coordinate with underlay Vulkan and get things drawn on screen. I've already added a lot of functionalities helping to create a scene by a few lines of code. However, there's still a vast gap between this project and a common game engine, both in terms of utilities that helps to ease the work, and a UI editor to do things dynamically rather than code stuff and rebuild.
 ## Scene Graph
 The scene graph of this application is similar to unity. I mean I implemented them the way exactly as how unity works. The whole scene is combined with many objects and each of them might contain one or more components that handles varies kinds of work.
+
 ![Alt text](assets/vulkan_learn_scene_graph.png "Scene Graph")
 ## Render Graph
 ![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
