@@ -59,7 +59,7 @@ There'll be 32 chunks of memory in "Buffer Memory Pool", exactly the same as Vul
 
 ![Alt text](assets/vulkan_learn_mem_buffer_pool.png "Memory Pool For Buffers")
 #### Memory Management for images
-Image buffer memory is a lot simpler, since each image must bind a different memory object(I'm not sure why). So image buffer pool doesn't update a binding list for multiple images. And a binding info table is not necessary too. The only thing left same as buffer memory management is lookup table, which is used for key->memory node indexing. Do remember the key is also kept inside every image.
+Image buffer memory management is a lot simpler, since each image must bind a different memory object(I'm not sure why). So image buffer pool doesn't update a binding list for multiple images. And a binding info table is not necessary too. The only thing left same as buffer memory management is lookup table, which is used for key->memory node indexing. Do remember the key is also kept inside every image.
 
 ![Alt text](assets/vulkan_learn_mem_image_pool.png "Memory Pool For Images")
 ### Buffer & Image Level Management
