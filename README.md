@@ -36,11 +36,7 @@ Variance reducing is the only solution.
 
 # A Graphic Sample Rendered By Vulkan
 ## Introduction
-This project aims to get familiar with Vulkan through varies common rendering technology implementations. It also is a minor engine that handles scene management and data to coordinate with underlay Vulkan to get things drawn on screen. I've already added a lot of functionalities in it so that you can simply create scene by a few lines of code. However, there's still a vast gap between this project and a game engine, both in terms of many utilities that helps to ease the work, and a UI editor to do things dynamically rather than code stuff and rebuild.
-
-Despite all those above, I'm still gonna try to add as many stuff as I can so that one day perhaps I could make a small game out of it. This way I could play around vulkan and do something for fun.
-
-
+I created this project aiming to get familiar with Vulkan through varies common rendering technologies. It is also a minor engine that handles scene management and data to coordinate with underlay Vulkan and get things drawn on screen. I've already added a lot of functionalities helping to create a scene by a few lines of code. However, there's still a vast gap between this project and a common game engine, both in terms of utilities that helps to ease the work, and a UI editor to do things dynamically rather than code stuff and rebuild.
 ## Render Graph
 ![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
 
