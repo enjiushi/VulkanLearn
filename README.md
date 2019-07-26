@@ -59,6 +59,9 @@ There'll be 32 chunks of memory in "Buffer Memory Pool", exactly the same as Vul
 
 ![Alt text](assets/vulkan_learn_mem_buffer_pool.png "Memory Pool For Buffers")
 #### Memory Management for images
+Image buffer memory is a lot simpler, since each image must bind a different memory object(I'm not sure why). So image buffer pool doesn't update a binding list for multiple images. And a binding info table is not necessary too. The only thing left same as buffer memory management is lookup table, which is used for key->memory node indexing. Do remember the key is also kept inside every image.
+
+![Alt text](assets/vulkan_learn_mem_buffer_pool.png "Memory Pool For Images")
 ### Buffer & Image Level Management
 I created a class "SharedBufferManager" to manage a big buffer from which varies types of buffers will allocate. During the time of command buffer generation, this big buffer will be bound along with an offset and range. I do this to follow the best practice of NVdia's document, without knowing why;). I do know that for uniform buffers, binding them with "vkoffsets" is a lot cheaper than switching descriptor sets, not to mention update them. This way I can avoid either switching and updating descriptor sets, seems like a perfect path to go.
 
