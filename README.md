@@ -55,6 +55,8 @@ Memory management is sophisticated in my project. There're 2 levels of memory ma
 ### Memory Level Management
 Memory level management isn't actually general, since you can't just simply allocate a chunk of memory for everything. Buffers and Images must be bound to separate memory(At least validation layer told me so), and different images cannot share the same memory(Also told by validation layer). Therefore, I separated memory usage to buffer and image.
 #### Memory Management for buffers
+There'll be 32 chunks of memory in "Buffer Memory Pool", exactly the same as Vulkan physical device provided "VK_MAX_MEMORY_TYPES", and each of them consists of a size, data ptr, handle to Vulkan memory objects, and a KEY. The key here is very important as it acts as a role to index the actual binding information, and it'll be generated and kept by each buffer, to look up informations in binding table, and using "type index" to acquire Vulkan memory object from "Buffer Memory Pool"
+
 ![Alt text](assets/vulkan_learn_mem_buffer_pool.png "Memory Pool For Buffers")
 #### Memory Management for images
 ### Buffer & Image Level Management
