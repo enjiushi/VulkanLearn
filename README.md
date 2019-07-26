@@ -41,6 +41,15 @@ I created this project aiming to get familiar with Vulkan through varies common 
 The scene graph of this application is similar to unity. I mean I implemented them the way exactly as how unity works. The whole scene is combined with many objects and each of them might contain one or more components that handles varies kinds of work.
 
 ![Alt text](assets/vulkan_learn_scene_graph.png "Scene Graph")
+## Frame Graph
+### Frame Work
+I use triple ring swapchain images as a base count to organize rendering work per-frame. Each one of frames has its index used to acquire corresponding resources as well as synchronization primitives.
+
+![Alt text](assets/vulkan_learn_frame_work.png "Frame Work")
+### Frame Resources
+Every frame of a specific index 0, 1 and 2 holds its own resources, including command pool, frame buffers and synchronization primitives. I don't use per-frame descriptor pool however, since I allocated 3 times larger space of every uniforms and bind them with specific offset according to frame index, so that I don't really have to change descriptor sets and descriptor pools.
+
+![Alt text](assets/vulkan_learn_frame_res.png "Frame Resource")
 ## Render Graph
 ![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
 
