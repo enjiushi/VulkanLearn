@@ -33,3 +33,14 @@ Variance reducing is the only solution.
 ![Alt text](assets/dof_img1.png "Screen Shot 1")
 ![Alt text](assets/dof_img2.png "Screen Shot 2")
 ![Alt text](assets/dof_img3.png "Screen Shot 3")
+
+# A Graphic Sample Rendered By Vulkan
+## Introduction
+This project aims to get familiar with Vulkan through varies common rendering technology implementations. It also is a minor engine that handles scene management and data to coordinate with underlay Vulkan to get things drawn on screen. I've already added a lot of functionalities in it so that you can simply create scene by a few lines of code. However, there's still a vast gap between this project and a game engine, both in terms of many utilities that helps to ease the work, and a UI editor to do things dynamically rather than code stuff and rebuild.
+
+Despite all those above, I'm still gonna try to add as many stuff as I can so that one day perhaps I could make a small game out of it. This way I could play around vulkan and do something for fun.
+
+
+## Render Graph
+![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
+
