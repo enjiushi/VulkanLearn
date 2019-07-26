@@ -50,6 +50,22 @@ I use triple ring swapchain images as a base count to organize rendering work pe
 Every frame of a specific index 0, 1 and 2 holds its own resources, including command pool, frame buffers and synchronization primitives. I don't use per-frame descriptor pool however, since I allocated 3 times larger space of every uniforms and bind them with specific offset according to frame index, so that I don't really have to change descriptor sets and descriptor pools.
 
 ![Alt text](assets/vulkan_learn_frame_res.png "Frame Resource")
+## Memory Management
+Memory management is sophisticated in my project. There're 2 levels of memory management, memory level that is the management of relationship between memory and its holders(buffers, images), and buffer & image level, as the name suggests, it manages both buffers & images memory, to ease the use of them during rendering organization, and avoid per-frame operations to improve performance.
+### Memory Level Management
+Memory level management isn't actually general, since you can't just simply allocate a chunk of memory for everything. Buffers and Images must be bound to separate memory(At least validation layer told me so), and different images cannot share the same memory(Also told by validation layer). Therefore, I separated memory usage to buffer and image.
+#### Memory Management for buffers
+![Alt text](assets/vulkan_learn_mem_buffer_pool.png "Memory Pool For Buffers")
+#### Memory Management for images
+### Buffer & Image Level Management
+I created a class "SharedBufferManager" to manage a big buffer from which varies types of buffers will allocate. During the time of command buffer generation, this big buffer will be bound along with an offset and range. I do this to follow the best practice of NVdia's document, without knowing why;). I do know that for uniform buffers, binding them with "vkoffsets" is a lot cheaper than switching descriptor sets, not to mention update them. This way I can avoid either switching and updating descriptor sets, seems like a perfect path to go.
+
+ 1. Each vertex buffer is allocated from a specific shared buffer manager associated with a vertex format.
+ 2. Each index buffer is allocated from global shared buffer manager.
+ 3. Each indirect buffer is allocated from global shared buffer manager.
+ 4. Each uniform buffer is allocated from global shared buffer manager.
+ 5. Each shader storage buffer is allocated from global shared buffer manager.
+ 6. Each texture is allocated directly with a  segment of memory.
 ## Render Graph
 ![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
 
