@@ -86,6 +86,22 @@ There're multiple shared buffer managers, and each one of them is used with a sp
 Each material contains 4 descriptor sets, corresponding to global, per-frame, per-object and material.
 
 ![Alt text](assets/vulkan_learn_uniform_structure.png "Uniform Structure")
+
+ - **Global Uniform** is the most sophistic data set in my application, as most of data is not gonna change in both per-frame and per-object basis. It consists of some buffers and textures.
+	 - **Global Data**: Mostly stores something like projection matrix, camera settings and ssr settings which are configured globally.
+	 - **Per Bone Data**: This buffer stores all bones' default transformation in dual quaternion.
+	 - **Per Bone Indirect Data**: This buffer stores the indices of all bones' data in **Per Bone Data**.
+	 - **Per Frame Bone Indirect Data**: This buffer stores the indices of all per-frame bones' data in **Per Frame Bone Data**.
+	 - **Per Mesh Data**: This buffer stores all meshes' data.
+	 - **Per Animation Data**: This Buffer stores all animation instances' data.
+	 - **Global Textures**: All the textures and texture arrays are stored here.
+ - **Per-Frame Uniform**'s data will be changed in a per-frame basis.
+	 - **Per Frame Data**: This buffer stores something like view matrix, camera position & direction, delta time, etc.
+	 - **Per Frame Bone Data**: All the bone transforms calculated in a frame will be stored here. The data can be indexed by **Per Frame Bone Indirect Data** in **Global Uniform**
+ - **Per-Object Uniform** stores information in a per-object basis, like model matrix.
+ - **Per-Material Uniform** is somehow different. It's actually configurable rather than pre-defined. 
+	 - **Per-Material Data**: Since it's required that you have to provide a customized parameter layout if you wanna create a material, you can directly set data into the buffer through a key and a material chunk index(for different data instance of a same material), and material will automatically figure out where to store this data.
+	 - **Indirect Data**: This buffer stores all the indirect indices of an object, including per-object index, per-material index, per-mesh index and per-animation index.
  
 ## Render Graph
 ![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
