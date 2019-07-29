@@ -81,6 +81,11 @@ There're multiple shared buffer managers, and each one of them is used with a sp
  6. Each texture is allocated directly with a  segment of memory.
  
 ![Alt text](assets/vulkan_learn_shared_buffer_alloc.png "Shared Buffer Allocation")
+
+## Material Structure
+Each material contains 4 descriptor sets, corresponding to global, per-frame, per-object and material.
+
+![Alt text](assets/vulkan_learn_uniform_structure.png "Uniform Structure")
  
 ## Render Graph
 ![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
