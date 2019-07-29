@@ -35,6 +35,9 @@ Variance reducing is the only solution.
 ![Alt text](assets/dof_img3.png "Screen Shot 3")
 
 # A Scene Viewer Rendered By Vulkan
+
+[TOC]
+
 ## Introduction
 I created this project aiming to get familiar with Vulkan through varies common rendering technologies. It is also a minor engine that handles scene management and data to coordinate with underlay Vulkan and get things drawn on screen. I've already added a lot of functionalities helping to create a scene by a few lines of code. However, there's still a vast gap between this project and a common game engine, both in terms of utilities that helps to ease the work, and a UI editor to do things dynamically rather than code stuff and rebuild.
 ## Scene Graph
