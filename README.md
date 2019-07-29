@@ -65,20 +65,12 @@ Image buffer memory management is a lot simpler, since each image must bind a di
 ### Buffer & Image Level Management
 I created a class "SharedBufferManager" to manage a big buffer from which varies types of buffers will allocate. During the time of command buffer generation, this big buffer will be bound along with an offset and range. I do this to follow the best practice of NVdia's document, without knowing why;). I do know that for uniform buffers, binding them with "vkoffsets" is a lot cheaper than switching descriptor sets, not to mention update them. This way I can avoid either switching and updating descriptor sets, seems like a perfect path to go.
 
-Every buffer are I use is created from this "SharedBufferManager". It contains a key that is used to index to its owne sub-region of the "SharedBufferManager" buffer with information like "numBytes" and "offset". And the class  "SharedBufferManager" buffer is a normal buffer which also has another types of key that could be used to index in memory manager to find its information and Vulkan object "VkDeviceMemory". The final graph is something like this (Red one "Shared Buffer" stands for kind of buffer that the application actually use):
-
-![Alt text](assets/vulkan_learn_shared_buffer_mgr.png "Shared Buffer Management")
-
-There're multiple shared buffer managers, and each one of them is used with a specific purpose:
  1. Each vertex buffer is allocated from a specific shared buffer manager associated with a vertex format.
  2. Each index buffer is allocated from global shared buffer manager.
  3. Each indirect buffer is allocated from global shared buffer manager.
  4. Each uniform buffer is allocated from global shared buffer manager.
  5. Each shader storage buffer is allocated from global shared buffer manager.
  6. Each texture is allocated directly with a  segment of memory.
- 
-![Alt text](assets/vulkan_learn_shared_buffer_alloc.png "Shared Buffer Allocation")
- 
 ## Render Graph
 ![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
 
