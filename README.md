@@ -75,7 +75,14 @@ Each material contains 4 descriptor sets, corresponding to global, per-frame, pe
  - **Per-Material Uniform** is somehow different. It's actually configurable rather than pre-defined. 
 	 - **Per-Material Data**: Since it's required that you have to provide a customized parameter layout if you wanna create a material, you can directly set data into the buffer through a key and a material chunk index(for different data instance of a same material), and material will automatically figure out where to store this data.
 	 - **Indirect Data**: All the indirect indices of an object, including per-object index, per-material index, per-mesh index and per-animation index.
- 
+ ### Material to Mesh Renderer
+Simply a material class is not enough. I need multiple instances of the same material that holds different values, and a way to hookup these instances to actual mesh vertices.
+
+![Alt text](assets/vulkan_learn_material_structure.png "Material Structure")
+
+ - **Material**: Holds Descriptors of **Global Uniform**, **Per-Frame Uniform**, **Per-Object Uniform** and **Per-Material Uniform**. It also holds Vulkan objects like descriptor pipeline layout, descriptor pool and graphic(compute) pipeline, etc.
+ - **Material Instance**: It acquires a chunk index from **Material** when initialized, through which you can look for its instance data in **Material**'s **Per-Material Uniform**.
+ - **Mesh Renderer**: This class is a component class that is used to attached to an object, and will be updated per-frame. It holds a mesh class reference and one or more **Material Instance**s. **Mesh Renderer** will generate a indirect draw struct and add it to **Material**'s dedicated buffer, and add its own per-object chunk index, per-mesh chunk Index, per-animation chunk index and per-material chunk index into **Material**'s **Indirect Data**. Therefore, I'm able to look for any data I need through "gl_drawID"(e.g. "gl_drawID"->**Indirect Data-**>per-material chunk index->**Per-Material Uniform**->instance data).
 ## Render Graph
 ![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
 
