@@ -83,6 +83,11 @@ Simply a material class is not enough. I need multiple instances of the same mat
  - **Material**: Holds Descriptors of **Global Uniform**, **Per-Frame Uniform**, **Per-Object Uniform** and **Per-Material Uniform**. It also holds Vulkan objects like descriptor pipeline layout, descriptor pool and graphic(compute) pipeline, etc.
  - **Material Instance**: It acquires a chunk index from **Material** when initialized, through which you can look for its instance data in **Material**'s **Per-Material Uniform**.
  - **Mesh Renderer**: This class is a component class that is used to attached to an object, and will be updated per-frame. It holds a mesh class reference and one or more **Material Instance**s. **Mesh Renderer** will generate a indirect draw struct and add it to **Material**'s dedicated buffer, and add its own per-object chunk index, per-mesh chunk Index, per-animation chunk index and per-material chunk index into **Material**'s **Indirect Data**. Therefore, I'm able to look for any data I need through "gl_drawID"(e.g. "gl_drawID"->**Indirect Data-**>per-material chunk index->**Per-Material Uniform**->instance data).
+## Skeleton Animation System
+First I'd like to show the whole data structure of the database like skeleton animation system.
+
+![Alt text](assets/vulkan_learn_skeleton_animation_data_structure.png "Skeleton Animation Data Structure")
+
 ## Render Graph
 ![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
 
