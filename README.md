@@ -106,7 +106,8 @@ If you're interested in dual quaternion, I just happen to mark some concepts of 
 ## Render Graph
 ![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
 ### GBuffer Pass
-Here's the layout of my GBuffer. You can see some channels are marked as reserved. It's just because I'm lazy to remove, besides, I might add something that requires one or more channels:)
+Here's the layout of my GBuffer. You can see some channels are marked as reserved. It's just because I'm too lazy to remove, besides, I might add something that requires one or more channels in future:)
 
 ![Alt text](assets/vulkan_learn_gbuffer.png "GBuffer Layout")
 
+I've replaced world space position reconstruction from depth buffer, due to precision problem when I increase focus distance so that the FOV is shrinking. I might have to invesitgate this issue in future and get world space reconstruction back to save bandwidth.
