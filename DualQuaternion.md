@@ -1,1 +1,3 @@
-asdf
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{D}=\mathbf{p}&plus;\varepsilon&space;\mathbf{q}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{D}=\mathbf{p}&plus;\varepsilon&space;\mathbf{q}" title="\large \mathbf{D}=\mathbf{p}+\varepsilon \mathbf{q}" /></a>
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{p}=\mathbf{r}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{p}=\mathbf{r}" title="\large \mathbf{p}=\mathbf{r}" /></a>
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{q}=\frac{1}{2}\mathbf{rt}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{q}=\frac{1}{2}\mathbf{rt}" title="\large \mathbf{q}=\frac{1}{2}\mathbf{rt}" /></a>
