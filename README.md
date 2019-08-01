@@ -99,7 +99,7 @@ Both <img src="https://latex.codecogs.com/gif.latex?R" title="R" /> and <img src
 
 However, we can't just simply multiply all of them that easily. Since we need **Dual Quaternion Interpolation** to acquire a final bone transform among multiple bones. Therefore, result matrix of <img src="https://latex.codecogs.com/gif.latex?BR" title="BR" /> will be converted into dual quaternion and set to **Per-Frame Bone Data**, and vertex shader could get this through its bone indices and **Per-Frame Bone Indirect Data**. Shader will do interpolation and transform work, and the rest will be exactly the same as a normal model.
 
-If you're interested in dual quaternion, I just happen to mark some concepts of it down in here.
+If you're interested in dual quaternion, I just happen to mark some concepts of it down in [here](DualQuaternion.md).
 
 ## Render Graph
 ![Alt text](assets/vulkan_learn_render_graph.png "Render Graph")
