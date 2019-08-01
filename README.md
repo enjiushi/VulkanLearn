@@ -90,7 +90,7 @@ First I'd like to show the whole data structure of the database like skeleton an
 
 During initialization of a scene, if a bone structure is detected in a mesh, its information will be stored into Animation Diction(Animation information, per-object key frame information), Per-Bone Indirect Data(Used to index to per-bone data) and Per-Bone Data(Holds t-pos default bone transforms for all bones). When a model with skeleton animation is about to render, we have to acquire 2 transforms:
 
- 1. **T-Pos Reference Transform**($R$): Transforms default vertices into bone local space.
+ 1. **T-Pos Reference Transform**(<img src="https://latex.codecogs.com/gif.latex?R" title="R" />): Transforms default vertices into bone local space.
  2. **Blended Bone Transform**($B$): A transform that is blended according to a time and related 2 key frames.
 
 Both $R$ and $B$ combined with object's model view projection $PVM$ matrix, we can have final clip space position $c$ of a frame:
