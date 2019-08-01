@@ -1,10 +1,25 @@
 <a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{D}=\mathbf{p}&plus;\varepsilon&space;\mathbf{q}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{D}=\mathbf{p}&plus;\varepsilon&space;\mathbf{q}" title="\large \mathbf{D}=\mathbf{p}+\varepsilon \mathbf{q}" /></a>
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{p}=\mathbf{r}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{p}=\mathbf{r}" title="\large \mathbf{p}=\mathbf{r}" /></a>
-
-<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{q}=\frac{1}{2}\mathbf{rt}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{q}=\frac{1}{2}\mathbf{rt}" title="\large \mathbf{q}=\frac{1}{2}\mathbf{rt}" /></a>
-
 <a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{D}^{*}=\mathbf{p}^{*}&plus;\varepsilon&space;\mathbf{q}^{*}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{D}^{*}=\mathbf{p}^{*}&plus;\varepsilon&space;\mathbf{q}^{*}" title="\large \mathbf{D}^{*}=\mathbf{p}^{*}+\varepsilon \mathbf{q}^{*}" /></a>
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{D}^{\diamond}=\mathbf{p}^{*}-\varepsilon&space;\mathbf{q}^{*}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{D}^{\diamond}=\mathbf{p}^{*}-\varepsilon&space;\mathbf{q}^{*}" title="\large \mathbf{D}^{\diamond}=\mathbf{p}^{*}-\varepsilon \mathbf{q}^{*}" /></a>
 
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{p}=\mathbf{r}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{p}=\mathbf{r}" title="\large \mathbf{p}=\mathbf{r}" /></a>
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{q}=\frac{1}{2}\mathbf{tr}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{q}=\frac{1}{2}\mathbf{tr}" title="\large \mathbf{q}=\frac{1}{2}\mathbf{tr}" /></a>
+
+This stands for rotation followed by a translation:
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{D}^{\diamond&space;}=\mathbf{DvD}^{\diamond&space;}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{D}^{\diamond&space;}=\mathbf{DvD}^{\diamond&space;}" title="\large \mathbf{D}^{\diamond }=\mathbf{DvD}^{\diamond }" /></a>
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{v}^{'}=(\mathbf{p}&plus;\varepsilon&space;\mathbf{q})(1&plus;\varepsilon&space;\mathbf{v})(\mathbf{p}^{*}&plus;\varepsilon&space;\mathbf{q}^{*})" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{v}^{'}=(\mathbf{p}&plus;\varepsilon&space;\mathbf{q})(1&plus;\varepsilon&space;\mathbf{v})(\mathbf{p}^{*}&plus;\varepsilon&space;\mathbf{q}^{*})" title="\large \mathbf{v}^{'}=(\mathbf{p}+\varepsilon \mathbf{q})(1+\varepsilon \mathbf{v})(\mathbf{p}^{*}+\varepsilon \mathbf{q}^{*})" /></a>
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{v}^{'}=\mathbf{pp}^{*}&plus;\varepsilon&space;(-\mathbf{pq}^{*}&plus;(\mathbf{q}&plus;\mathbf{pv})\mathbf{p}^{*})" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{v}^{'}=\mathbf{pp}^{*}&plus;\varepsilon&space;(-\mathbf{pq}^{*}&plus;(\mathbf{q}&plus;\mathbf{pv})\mathbf{p}^{*})" title="\large \mathbf{v}^{'}=\mathbf{pp}^{*}+\varepsilon (-\mathbf{pq}^{*}+(\mathbf{q}+\mathbf{pv})\mathbf{p}^{*})" /></a>
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{v}^{'}=1&plus;\varepsilon&space;(\mathbf{qp}^{*}&plus;\mathbf{pvp}^{*}-\mathbf{pq}^{*})" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{v}^{'}=1&plus;\varepsilon&space;(\mathbf{qp}^{*}&plus;\mathbf{pvp}^{*}-\mathbf{pq}^{*})" title="\large \mathbf{v}^{'}=1+\varepsilon (\mathbf{qp}^{*}+\mathbf{pvp}^{*}-\mathbf{pq}^{*})" /></a>
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{v}^{'}=1&plus;\varepsilon&space;(\frac{1}{2}\mathbf{trr}^{*}&plus;\mathbf{rvr}^{*}-\frac{1}{2}\mathbf{rr}^{*}\mathbf{t}^{*})" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{v}^{'}=1&plus;\varepsilon&space;(\frac{1}{2}\mathbf{trr}^{*}&plus;\mathbf{rvr}^{*}-\frac{1}{2}\mathbf{rr}^{*}\mathbf{t}^{*})" title="\large \mathbf{v}^{'}=1+\varepsilon (\frac{1}{2}\mathbf{trr}^{*}+\mathbf{rvr}^{*}-\frac{1}{2}\mathbf{rr}^{*}\mathbf{t}^{*})" /></a>
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{v}^{'}=1&plus;\varepsilon&space;(\mathbf{rvr}^{*}&plus;\mathbf{t})" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{v}^{'}=1&plus;\varepsilon&space;(\mathbf{rvr}^{*}&plus;\mathbf{t})" title="\large \mathbf{v}^{'}=1+\varepsilon (\mathbf{rvr}^{*}+\mathbf{t})" /></a>
+
+Similarly, <a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\mathbf{q}=\frac{1}{2}\mathbf{rt}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\large&space;\mathbf{q}=\frac{1}{2}\mathbf{rt}" title="\large \mathbf{q}=\frac{1}{2}\mathbf{rt}" /></a> stands for a translation followed by a rotation.
