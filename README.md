@@ -2,10 +2,12 @@
 ![Alt text](assets/img1.png "Screen Shot 1")
 ![Alt text](assets/img2.png "Screen Shot 2")
 ![Alt text](assets/img3.png "Screen Shot 3")
-![Alt text](assets/dof_img0.png "Screen Shot 0")
-![Alt text](assets/dof_img1.png "Screen Shot 1")
-![Alt text](assets/dof_img2.png "Screen Shot 2")
-![Alt text](assets/dof_img3.png "Screen Shot 3")
+![Alt text](assets/dof_img0.png "DOF Screen Shot 0")
+![Alt text](assets/dof_img1.png "DOF Screen Shot 1")
+![Alt text](assets/dof_img2.png "DOF Screen Shot 2")
+![Alt text](assets/dof_img3.png "DOF Screen Shot 3")
+![Alt text](assets/dof_img4.png "DOF Screen Shot 4")
+![Alt text](assets/dof_img5.png "DOF Screen Shot 5")
 
 # A Scene Viewer Rendered By Vulkan
 
