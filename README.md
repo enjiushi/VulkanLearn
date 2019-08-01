@@ -91,11 +91,11 @@ First I'd like to show the whole data structure of the database like skeleton an
 During initialization of a scene, if a bone structure is detected in a mesh, its information will be stored into Animation Diction(Animation information, per-object key frame information), Per-Bone Indirect Data(Used to index to per-bone data) and Per-Bone Data(Holds t-pos default bone transforms for all bones). When a model with skeleton animation is about to render, we have to acquire 2 transforms:
 
  1. **T-Pos Reference Transform**(<img src="https://latex.codecogs.com/gif.latex?R" title="R" />): Transforms default vertices into bone local space.
- 2. **Blended Bone Transform**($B$): A transform that is blended according to a time and related 2 key frames.
+ 2. **Blended Bone Transform**(<img src="https://latex.codecogs.com/gif.latex?B" title="B" />): A transform that is blended according to a time and related 2 key frames.
 
-Both $R$ and $B$ combined with object's model view projection $PVM$ matrix, we can have final clip space position $c$ of a frame:
-$$c=PVMBR*p$$
-However, we can't just simply multiply all of them that easily. Since we need **Dual Quaternion Interpolation** to acquire a final bone transform among multiple bones. Therefore, result matrix of $BR$ will be converted into dual quaternion and set to **Per-Frame Bone Data**, and vertex shader could get this through its bone indices and **Per-Frame Bone Indirect Data**. Shader will do interpolation and transform work, and the rest will be exactly the same as a normal model.
+Both <img src="https://latex.codecogs.com/gif.latex?R" title="R" /> and <img src="https://latex.codecogs.com/gif.latex?B" title="B" /> combined with object's model view projection <img src="https://latex.codecogs.com/gif.latex?PVM" title="PVM" /> matrix, we can have final clip space position <img src="https://latex.codecogs.com/gif.latex?c" title="c" /> of a frame:
+<img src="https://latex.codecogs.com/gif.latex?c=PVMBR*p" title="c=PVMBR*p" />
+However, we can't just simply multiply all of them that easily. Since we need **Dual Quaternion Interpolation** to acquire a final bone transform among multiple bones. Therefore, result matrix of <img src="https://latex.codecogs.com/gif.latex?BR" title="BR" /> will be converted into dual quaternion and set to **Per-Frame Bone Data**, and vertex shader could get this through its bone indices and **Per-Frame Bone Indirect Data**. Shader will do interpolation and transform work, and the rest will be exactly the same as a normal model.
 
 If you're interested in dual quaternion, I just happen to mark some concepts of it down in here.
 
