@@ -49,16 +49,10 @@ void Camera::UpdateProjMatrix()
 
 	float tanFOV2 = std::tanf(m_cameraInfo.fov / 2.0f);
 
-	float A = -(m_cameraInfo.far + m_cameraInfo.near) / (m_cameraInfo.far - m_cameraInfo.near);
-	float B = -2.0f * m_cameraInfo.near * m_cameraInfo.far / (m_cameraInfo.far - m_cameraInfo.near);
+	float A = -1.0f;
+	float B = -m_cameraInfo.near;
 
 	Matrix4f proj;
-	proj.x0 = 1.0f / (m_cameraInfo.aspect * tanFOV2);
-	proj.y1 = 1.0f / (tanFOV2);
-	proj.z2 = A;
-	proj.z3 = -1.0f;
-	proj.w2 = B;
-	proj.w3 = 0.0f;
 
 	float height = 2.0f * tanFOV2 * m_cameraInfo.near;
 	float width = m_cameraInfo.aspect * height;
@@ -68,6 +62,7 @@ void Camera::UpdateProjMatrix()
 	{
 		proj.x0 = 2.0f * m_cameraInfo.near / width;	//	2 * n / (right - left)
 
+		proj.y1 = -2.0f * m_cameraInfo.near / height;
 		// 1). x2 = ((right + jitter_offset_near_plane) + (left + jitter_offset_near_plane)) / ((right + jitter_offset_near_plane) - (left + jitter_offset_near_plane))
 		// 2). x2 = (2 * jitter_offset_near_plane) / near_plane_width
 		// 3). jitter_offset_near_plane = jitter_offset / window_width * near_plane_width
@@ -75,9 +70,12 @@ void Camera::UpdateProjMatrix()
 		// 5). jitter_offset = jitter * window_width
 		// 6). x2 = 2 * jitter
 		proj.z0 = 2.0f * m_cameraInfo.jitterOffset.x;
-
-		proj.y1 = 2.0f * m_cameraInfo.near / height;
 		proj.z1 = 2.0f * m_cameraInfo.jitterOffset.y;
+		proj.z2 = A;
+		proj.z3 = -1.0f;
+
+		proj.w2 = B;
+		proj.w3 = 0.0f;
 
 		UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraJitterOffset(m_cameraInfo.jitterOffset);
 	}

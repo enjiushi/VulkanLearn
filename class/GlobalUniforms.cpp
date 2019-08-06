@@ -19,12 +19,6 @@ bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 	if (!UniformDataStorage::Init(pSelf, sizeof(m_globalVariables), false))
 		return false;
 
-	// NDC space Y axis is reversed in Vulkan compared to OpenGL
-	m_globalVariables.vulkanNDC.c[1].y = -1.0f;
-
-	// NDC space z ranges from 0 to 1 in Vulkan compared to OpenGL's -1 to 1
-	m_globalVariables.vulkanNDC.c[2].z = m_globalVariables.vulkanNDC.c[3].z = 0.5f;
-
 	SetGameWindowSize({ (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height });
 	SetEnvGenWindowSize({ (float)FrameBufferDiction::ENV_GEN_WINDOW_SIZE, (float)FrameBufferDiction::ENV_GEN_WINDOW_SIZE });
 	SetShadowGenWindowSize({ (float)FrameBufferDiction::SHADOW_GEN_WINDOW_SIZE, (float)FrameBufferDiction::SHADOW_GEN_WINDOW_SIZE });
@@ -119,7 +113,7 @@ void GlobalUniforms::SetMotionTileSize(const Vector2f& size)
 void GlobalUniforms::UpdateUniformDataInternal()
 {
 	m_globalVariables.prevPN = m_globalVariables.PN;
-	m_globalVariables.PN = m_globalVariables.vulkanNDC * m_globalVariables.projectionMatrix;
+	m_globalVariables.PN = m_globalVariables.projectionMatrix;
 
 	m_globalVariables.DOFSettings0.z = m_globalVariables.mainCameraSettings0.w * m_globalVariables.mainCameraSettings0.w / 
 		(m_globalVariables.mainCameraSettings1.y * (m_globalVariables.mainCameraSettings1.x - m_globalVariables.mainCameraSettings0.w) * m_globalVariables.mainCameraSettings0.y * 2.0f);
@@ -143,7 +137,7 @@ void GlobalUniforms::SetMainLightColor(const Vector3f& color)
 
 void GlobalUniforms::SetMainLightVP(const Matrix4f& vp)
 {
-	m_globalVariables.mainLightVPN = GetVulkanNDCMatrix() * vp;
+	m_globalVariables.mainLightVPN = vp;
 	SetDirty();
 }
 

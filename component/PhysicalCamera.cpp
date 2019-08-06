@@ -48,8 +48,13 @@ void PhysicalCamera::UpdateProjMatrix()
 	if (!m_projDirty)
 		return;
 
-	float A = -(m_props.farPlane + m_supplementProps.fixedNearPlane) / (m_props.farPlane - m_supplementProps.fixedNearPlane);
-	float B = -2.0f * m_supplementProps.fixedNearPlane * m_props.farPlane / (m_props.farPlane - m_supplementProps.fixedNearPlane);
+	// Vulkan ndc depth ranges from 0 to 1
+	// Depth range from near plane 0 to infinite far plane 1
+	// A = f / (n - f), B = fn / (n - f)
+	// When f approaches infinite
+	// A = -1, B = -n
+	float A = -1;
+	float B = -m_supplementProps.fixedNearPlane;
 
 	Matrix4f proj;
 
@@ -62,7 +67,8 @@ void PhysicalCamera::UpdateProjMatrix()
 	// 6). x2 = 2 * jitter
 	proj.z0 = 2.0f * m_jitterOffset.x;
 
-	proj.y1 = 2.0f * m_supplementProps.fixedNearPlane / m_supplementProps.fixedNearPlaneHeight;
+	// Since vulkan ndc is right hand and Y axis is upside down, we need to reverse it
+	proj.y1 = -2.0f * m_supplementProps.fixedNearPlane / m_supplementProps.fixedNearPlaneHeight;
 	proj.z1 = 2.0f * m_jitterOffset.y;
 
 	proj.z2 = A;
