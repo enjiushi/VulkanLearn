@@ -19,11 +19,7 @@ typedef struct _GlobalVariables
 {
 	// Camera settings
 	Matrix4f	projectionMatrix;
-	Matrix4f	vulkanNDC;
-	Matrix4f	PN;		// vulkanNDC * projectionMatrix
-
 	Matrix4f	prevProjectionMatrix;
-	Matrix4f	prevPN;
 
 	// Windows settings
 	Vector4f	gameWindowSize;
@@ -52,7 +48,7 @@ typedef struct _GlobalVariables
 	/*******************************************************************
 	* DESCRIPTION: Main directional light vpn matrix
 	*/
-	Matrix4f	mainLightVPN;
+	Matrix4f	mainLightVP;
 
 	/*******************************************************************
 	* DESCRIPTION: Camera parameters
@@ -183,9 +179,6 @@ class GlobalUniforms : public UniformDataStorage
 public:
 	void SetProjectionMatrix(const Matrix4f& proj);
 	Matrix4f GetProjectionMatrix() const { return m_globalVariables.projectionMatrix; }
-	void SetVulkanNDCMatrix(const Matrix4f& vndc);
-	Matrix4f GetVulkanNDCMatrix() const { return m_globalVariables.vulkanNDC; }
-	Matrix4f GetPNMatrix() const { return m_globalVariables.PN; }
 
 	void SetGameWindowSize(const Vector2f& size);
 	Vector2f GetGameWindowSize() const { return { m_globalVariables.gameWindowSize.x, m_globalVariables.gameWindowSize.y }; }
@@ -206,7 +199,7 @@ public:
 	void SetMainLightColor(const Vector3f& color);
 	Vector4f GetMainLightColor() const { return m_globalVariables.mainLightColor; }
 	void SetMainLightVP(const Matrix4f& vp);
-	Matrix4f GetmainLightVPN() const { return m_globalVariables.mainLightVPN; }
+	Matrix4f GetmainLightVP() const { return m_globalVariables.mainLightVP; }
 
 	void SetMainCameraSettings0(const Vector4f& settings);
 	Vector4f GetMainCameraSettings0() const { return m_globalVariables.mainCameraSettings0; }

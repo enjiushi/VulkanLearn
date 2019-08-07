@@ -51,5 +51,5 @@ void main()
 
 	vec3 animated_pos = DualQuaternionTransformPoint(result, inPos);
 
-	gl_Position = globalData.mainLightVPN * perObjectData[perObjectIndex].model * vec4(animated_pos, 1.0);
+	gl_Position = globalData.mainLightVP * perObjectData[perObjectIndex].model * vec4(animated_pos, 1.0);
 }

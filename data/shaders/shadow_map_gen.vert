@@ -11,5 +11,5 @@ void main()
 {
 	int perObjectIndex = objectDataIndex[gl_DrawID].perObjectIndex;
 
-	gl_Position = globalData.mainLightVPN * perObjectData[perObjectIndex].model * vec4(inPos.xyz, 1.0);
+	gl_Position = globalData.mainLightVP * perObjectData[perObjectIndex].model * vec4(inPos.xyz, 1.0);
 }

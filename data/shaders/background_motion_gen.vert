@@ -18,8 +18,8 @@ void main()
 	vec3 viewSpacePos = vec3((perFrameData.eyeSpaceSize.xy / 2.0f) * gl_Position.xy, -perFrameData.nearFarAB.x);
 	vec4 worldSpacePos = perFrameData.viewCoordSystem * vec4(viewSpacePos, 0.0f);
 	vec3 prevViewSpacePos = (perFrameData.prevView * worldSpacePos).xyz;
-	prevClipSpacePos = (globalData.PN * vec4(prevViewSpacePos, 1.0f)).xyw;
-	currClipSpacePos = (globalData.PN * vec4(viewSpacePos, 1.0f)).xyw;
+	prevClipSpacePos = (globalData.projection * vec4(prevViewSpacePos, 1.0f)).xyw;
+	currClipSpacePos = (globalData.projection * vec4(viewSpacePos, 1.0f)).xyw;
 	gl_Position.y *= -1.0f;
 	outUv.y = 1.0f - outUv.y;
 }

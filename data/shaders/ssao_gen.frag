@@ -61,8 +61,8 @@ vec4 RayMarch(vec3 sampleNormal, vec3 normal, vec3 position, vec3 wsViewRay)
 
 	vec4 csRayEnd = csRayOrigin + csReflectDir * rayLength;
 
-	vec4 clipRayOrigin = globalData.PN * csRayOrigin;
-	vec4 clipRayEnd = globalData.PN * csRayEnd;
+	vec4 clipRayOrigin = globalData.projection * csRayOrigin;
+	vec4 clipRayEnd = globalData.projection * csRayEnd;
 
 	float k0 = 1.0f / clipRayOrigin.w;
 	float k1 = 1.0f / clipRayEnd.w;
@@ -177,7 +177,7 @@ void main()
 		vec3 sampleDir = TBN * globalData.SSAOSamples[i].xyz;
 		vec3 samplePos = position + sampleDir * SSAO_RADIUS;
 
-		vec4 clipSpaceSample = perFrameData.VPN * vec4(samplePos, 1.0f);
+		vec4 clipSpaceSample = perFrameData.VP * vec4(samplePos, 1.0f);
 		clipSpaceSample = clipSpaceSample / clipSpaceSample.w;
 		clipSpaceSample.xy = clipSpaceSample.xy * 0.5f + 0.5f;
 

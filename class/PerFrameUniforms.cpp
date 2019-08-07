@@ -114,8 +114,8 @@ void PerFrameUniforms::SetHaltonIndexX256Jitter(const Vector2f& haltonX256Jitter
 void PerFrameUniforms::UpdateUniformDataInternal()
 {
 	// Using curr proj matrix here, to get rid of camera jitter effect
-	m_perFrameVariables.prevVPN = UniformData::GetInstance()->GetGlobalUniforms()->GetPNMatrix() * m_perFrameVariables.prevView;
-	m_perFrameVariables.VPN = UniformData::GetInstance()->GetGlobalUniforms()->GetPNMatrix() * m_perFrameVariables.viewMatrix;
+	m_perFrameVariables.prevVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perFrameVariables.prevView;
+	m_perFrameVariables.VP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perFrameVariables.viewMatrix;
 }
 
 void PerFrameUniforms::SetDirtyInternal()
@@ -134,7 +134,7 @@ std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList() const
 				{ Mat4Unit, "ViewCoordSystem" },
 				{ Mat4Unit, "ViewProjMatrix" },
 				{ Mat4Unit, "prevViewMatrix" },
-				{ Mat4Unit, "prevVPN" },
+				{ Mat4Unit, "prevVP" },
 				{ Vec4Unit, "CameraPosition_Padding" },
 				{ Vec4Unit, "CameraDirection_FrameIndex" },
 				{ Vec4Unit, "EyeSpaceSize" },

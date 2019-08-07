@@ -94,7 +94,7 @@ void main()
 	vec3 animated_normal = DualQuaternionTransformVector(currDQ, inNormal);
 	vec3 animated_tangent = DualQuaternionTransformVector(currDQ, inTangent);
 
-	gl_Position = perObjectData[perObjectIndex].MVPN * vec4(animated_pos.xyz, 1.0);
+	gl_Position = perObjectData[perObjectIndex].MVP * vec4(animated_pos.xyz, 1.0);
 
 	outNormal = normalize(vec3(perObjectData[perObjectIndex].model * vec4(animated_normal, 0.0)));
 	outWorldPos = (perObjectData[perObjectIndex].model * vec4(animated_pos.xyz, 1.0)).xyz;

@@ -4,11 +4,7 @@ struct GlobalData
 {
 	// Camera Settings
 	mat4 projection;
-	mat4 vulkanNDC;
-	mat4 PN;
-
 	mat4 prevProj;
-	mat4 prevPN;
 
 	// Window settings
 	vec4 gameWindowSize;
@@ -21,7 +17,7 @@ struct GlobalData
 	// Scene Settings
 	vec4 mainLightDir;
 	vec4 mainLightColor;
-	mat4 mainLightVPN;
+	mat4 mainLightVP;
 
 	// Main camera settings
 	vec4 MainCameraSettings0;
@@ -68,9 +64,9 @@ struct PerFrameData
 {
 	mat4 view;
 	mat4 viewCoordSystem;
-	mat4 VPN;
+	mat4 VP;
 	mat4 prevView;
-	mat4 prevVPN;
+	mat4 prevVP;
 	vec4 camPos;
 	vec4 camDir;
 	vec4 eyeSpaceSize;
@@ -86,10 +82,10 @@ struct PerFrameData
 struct PerObjectData
 {
 	mat4 model;
-	mat4 MVPN;
+	mat4 MVP;
 
 	mat4 prevModel;
-	mat4 prevMVPN;
+	mat4 prevMVP;
 };
 
 struct ObjectDataIndex
@@ -470,7 +466,7 @@ struct GBufferVariables
 
 float AcquireShadowFactor(vec4 world_position, sampler2D ShadowMapDepthBuffer)
 {
-	vec4 light_space_pos = globalData.mainLightVPN * world_position;
+	vec4 light_space_pos = globalData.mainLightVP * world_position;
 	light_space_pos /= light_space_pos.w;
 	light_space_pos.xy = light_space_pos.xy * 0.5f + 0.5f;	// NOTE: Don't do this to z, as it's already within [0, 1] after vulkan ndc transform
 

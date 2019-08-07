@@ -11,17 +11,17 @@ typedef struct _PerFrameVariables
 {
 	Matrix4f	viewMatrix;
 	Matrix4f	viewCoordSystem;	// view coord system, i.e. viewMatrix inverse
-	Matrix4f	VPN;	// vulkanNDC * view * projection
+	Matrix4f	VP;					// view * projection
 	Matrix4f	prevView;
-	Matrix4f	prevVPN;
+	Matrix4f	prevVP;
 	Vector3f	cameraPosition;
 	float		padding0;
 	Vector3f	cameraDirection;
 	float		frameIndex;
-	Vector4f	eyeSpaceSize;	// xy: eye space size, zw: inverted eye space size
+	Vector4f	eyeSpaceSize;		// xy: eye space size, zw: inverted eye space size
 	Vector4f	nearFarAB;
 	Vector2f	cameraJitterOffset;
-	Vector2f	time;		//x: delta time, y: SineTime
+	Vector2f	time;				//x: delta time, y: SineTime
 
 	Vector2f	haltonX8Jitter;
 	Vector2f	haltonX16Jitter;
@@ -40,9 +40,9 @@ public:
 public:
 	void SetViewMatrix(const Matrix4f& viewMatrix);
 	Matrix4f GetViewMatrix() const { return m_perFrameVariables.viewMatrix; }
-	Matrix4f GetVPNMatrix() const { return m_perFrameVariables.VPN; }
+	Matrix4f GetVPMatrix() const { return m_perFrameVariables.VP; }
 	Matrix4f GetPrevViewMatrix() const { return m_perFrameVariables.prevView; }
-	Matrix4f GetPrevVPNMatrix() const { return m_perFrameVariables.prevVPN; }
+	Matrix4f GetPrevVPMatrix() const { return m_perFrameVariables.prevVP; }
 	void SetCameraPosition(const Vector3f& camPos);
 	Vector3f GetCameraPosition() const { return m_perFrameVariables.cameraPosition; }
 	void SetCameraDirection(const Vector3f& camDir);

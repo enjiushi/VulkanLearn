@@ -8,10 +8,10 @@ class DescriptorSet;
 typedef struct _PerObjectVariables
 {
 	Matrix4f modelMatrix;
-	Matrix4f MVPN;	//vulkanNDC * projection * view * model
+	Matrix4f MVP;	// projection * view * model
 
 	Matrix4f prevModelMatrix;
-	Matrix4f prevMVPN;
+	Matrix4f prevMVP;
 }PerObjectVariables;
 
 
@@ -26,7 +26,7 @@ public:
 public:
 	void SetModelMatrix(uint32_t index, const Matrix4f& modelMatrix);
 	Matrix4f GetModelMatrix(uint32_t index) const { return m_perObjectVariables[index].modelMatrix; }
-	Matrix4f GetMVPN(uint32_t index) const { return m_perObjectVariables[index].MVPN; }
+	Matrix4f GetMVP(uint32_t index) const { return m_perObjectVariables[index].MVP; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;

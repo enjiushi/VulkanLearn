@@ -70,7 +70,7 @@ void main()
 	outGBuffer1 = vec4(albedo_roughness.rgb, 0);
 	outGBuffer2 = vec4(vec3(albedo_roughness.w, metalic, 0), normal_ao.a);
 
-	vec4 prevNDCPos = perFrameData.prevVPN * vec4(inPrevWorldPos, 1.0f);
+	vec4 prevNDCPos = perFrameData.prevVP * vec4(inPrevWorldPos, 1.0f);
 	vec2 prevTexCoord = (prevNDCPos.xy / prevNDCPos.w);
 
 	outMotionVec.rg = prevTexCoord - inScreenPos;

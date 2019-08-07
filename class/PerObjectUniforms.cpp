@@ -32,8 +32,8 @@ void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4f& modelMatr
 
 void PerObjectUniforms::UpdateDirtyChunkInternal(uint32_t index)
 {
-	m_perObjectVariables[index].prevMVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetPrevVPNMatrix() * m_perObjectVariables[index].prevModelMatrix;
-	m_perObjectVariables[index].MVPN = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPNMatrix() * m_perObjectVariables[index].modelMatrix;
+	m_perObjectVariables[index].prevMVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetPrevVPMatrix() * m_perObjectVariables[index].prevModelMatrix;
+	m_perObjectVariables[index].MVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPMatrix() * m_perObjectVariables[index].modelMatrix;
 }
 
 std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList() const
@@ -42,10 +42,12 @@ std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList() const
 	{
 		{
 			DynamicShaderStorageBuffer,
-			"PerFrameUniforms",
+			"PerObjectUniforms",
 			{
 				{ Mat4Unit, "modelMatrix" },
 				{ Mat4Unit, "MVP" },
+				{ Mat4Unit, "prevModelMatrix" },
+				{ Mat4Unit, "prevMVP" },
 			}
 		}
 	};

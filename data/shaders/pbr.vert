@@ -25,7 +25,7 @@ void main()
 {
 	int perObjectIndex = objectDataIndex[gl_DrawID].perObjectIndex;
 
-	gl_Position = perObjectData[perObjectIndex].MVPN * vec4(inPos.xyz, 1.0);
+	gl_Position = perObjectData[perObjectIndex].MVP * vec4(inPos.xyz, 1.0);
 
 	outNormal = normalize(vec3(perObjectData[perObjectIndex].model * vec4(inNormal, 0.0)));
 	outWorldPos = vec3(perObjectData[perObjectIndex].model * vec4(inPos, 1.0));

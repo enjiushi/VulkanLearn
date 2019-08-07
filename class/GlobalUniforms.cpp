@@ -49,12 +49,6 @@ void GlobalUniforms::SetProjectionMatrix(const Matrix4f& proj)
 	SetDirty();
 }
 
-void GlobalUniforms::SetVulkanNDCMatrix(const Matrix4f& vndc) 
-{ 
-	m_globalVariables.vulkanNDC = vndc;
-	SetDirty();
-}
-
 void GlobalUniforms::SetGameWindowSize(const Vector2f& size)
 {
 	m_globalVariables.gameWindowSize.x = size.x;
@@ -112,9 +106,6 @@ void GlobalUniforms::SetMotionTileSize(const Vector2f& size)
 
 void GlobalUniforms::UpdateUniformDataInternal()
 {
-	m_globalVariables.prevPN = m_globalVariables.PN;
-	m_globalVariables.PN = m_globalVariables.projectionMatrix;
-
 	m_globalVariables.DOFSettings0.z = m_globalVariables.mainCameraSettings0.w * m_globalVariables.mainCameraSettings0.w / 
 		(m_globalVariables.mainCameraSettings1.y * (m_globalVariables.mainCameraSettings1.x - m_globalVariables.mainCameraSettings0.w) * m_globalVariables.mainCameraSettings0.y * 2.0f);
 }
@@ -137,7 +128,7 @@ void GlobalUniforms::SetMainLightColor(const Vector3f& color)
 
 void GlobalUniforms::SetMainLightVP(const Matrix4f& vp)
 {
-	m_globalVariables.mainLightVPN = vp;
+	m_globalVariables.mainLightVP = vp;
 	SetDirty();
 }
 
@@ -427,19 +418,7 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				},
 				{
 					Mat4Unit,
-					"VulkanNDCMatrix"
-				},
-				{
-					Mat4Unit,
-					"ProjectionVulkanNDC"
-				},
-				{
-					Mat4Unit,
 					"PrevProjectionMatrix"
-				},
-				{
-					Mat4Unit,
-					"PrevPN"
 				},
 				{
 					Vec4Unit,
@@ -475,7 +454,7 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				},
 				{
 					Mat4Unit,
-					"MainLightVPN"
+					"MainLightVP"
 				},
 				{
 					Vec4Unit,
