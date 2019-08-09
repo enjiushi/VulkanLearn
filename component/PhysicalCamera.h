@@ -29,7 +29,7 @@ public:
 		float		verticalFOV_2;			// Half vertical FOV in radius
 		float		apertureDiameter;
 
-		float		fixedNearPlane = 0.2f;	// Near plane is fixed, focal length & film width decide only fov
+		float		fixedNearPlane = 0.01f;	// Near plane is fixed, focal length & film width decide only fov
 		float		fixedNearPlaneWidth;	// The size of near plane is fixed
 		float		fixedNearPlaneHeight;	// The size of near plane is fixed
 	}PhysicalCameraSupplementProps;
