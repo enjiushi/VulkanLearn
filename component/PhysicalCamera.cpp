@@ -53,8 +53,20 @@ void PhysicalCamera::UpdateProjMatrix()
 	// A = f / (n - f), B = fn / (n - f)
 	// When f approaches infinite
 	// A = -1, B = -n
-	float A = -1;
-	float B = -m_supplementProps.fixedNearPlane;
+	//float A = -1;
+	//float B = -m_supplementProps.fixedNearPlane;
+
+	// Reverse depth range from 0~1 to 1~0
+	// Since depth is nonlinear, and float in range 0~1 is nonlinear too
+	// Both of them tends to have more accuracy towards 0
+	// Reversing depth could let float nonlinearity balance depth nonlinearity
+	// This method seems like to be the best approach to keep depth accuracy when using a float depth buffer
+	// _z = -z + 1
+	// so a identity matrix z2 = -1, w2 = 1
+	// Let this matrix post multiply with projection matrix
+	// Which leads to this:
+	float A = 0;
+	float B = m_supplementProps.fixedNearPlane;
 
 	Matrix4f proj;
 

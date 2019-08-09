@@ -49,8 +49,8 @@ void Camera::UpdateProjMatrix()
 
 	float tanFOV2 = std::tanf(m_cameraInfo.fov / 2.0f);
 
-	float A = -1.0f;
-	float B = -m_cameraInfo.near;
+	float A = 0;
+	float B = m_cameraInfo.near;
 
 	Matrix4f proj;
 

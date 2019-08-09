@@ -30,7 +30,7 @@ bool RenderPassDiction::Init()
 		case  PipelineRenderPassMotionNeighborMax:
 			m_pipelineRenderPasses[PipelineRenderPassMotionNeighborMax] = CustomizedRenderPass::Create({ { FrameBufferDiction::OFFSCREEN_MOTION_TILE_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0 } } }); break;
 		case  PipelineRenderPassShadowMap:
-			m_pipelineRenderPasses[PipelineRenderPassShadowMap] = CustomizedRenderPass::Create({ { FrameBufferDiction::OFFSCREEN_DEPTH_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 1 } } }); break;
+			m_pipelineRenderPasses[PipelineRenderPassShadowMap] = CustomizedRenderPass::Create({ { FrameBufferDiction::OFFSCREEN_DEPTH_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0 } } }); break;
 		case PipelineRenderPassSSAOSSR:
 			m_pipelineRenderPasses[PipelineRenderPassSSAOSSR] = CustomizedRenderPass::Create({ 
 				{ FrameBufferDiction::SSAO_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0 } },

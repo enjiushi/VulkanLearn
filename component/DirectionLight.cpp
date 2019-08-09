@@ -41,12 +41,12 @@ Matrix4f DirectionLight::AcquireProjectionMatrix() const
 	// Reverse y top side down for vulkan ndc
 	proj.c11 = -1.0f / m_frustumSize.y;
 
-	// -1 <= -z / fz <= 1
-	// 0 <= -z / fz + 1 <= 2
-	// 0 <= 0.5(-z / fz + 1) <= 1
-	// 0 <= -0.5z / fz + 0.5 <= 1
+	// -1 <= z / fz <= 1
+	// 0 <= z / fz + 1 <= 2
+	// 0 <= 0.5(z / fz + 1) <= 1
+	// 0 <= 0.5z / fz + 0.5 <= 1
 	// Convert to range 0~1 for vulkan ndc depth
-	proj.c22 = -0.5f / m_frustumSize.z;
+	proj.c22 = 0.5f / m_frustumSize.z;
 	proj.c32 = 0.5f;
 
 	return proj * view;

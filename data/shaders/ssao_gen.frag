@@ -141,13 +141,14 @@ vec4 RayMarch(vec3 sampleNormal, vec3 normal, vec3 position, vec3 wsViewRay)
 	vec4 rayHitInfo;
 
 	rayHitInfo.rg = hit;
-	rayHitInfo.b = stepCount;
 
 	vec3 hitNormal;
 	float roughness;
 	UnpackNormalRoughness(ivec2(hit), hitNormal, roughness);
 
+	rayHitInfo.b = stepCount;
 	rayHitInfo.a = float((ZMax < sampleZ) && (ZMin > sampleZ - rayTraceHitThickness) && (dot(hitNormal, wsReflectDir) < 0));
+
 
 	return rayHitInfo;
 }

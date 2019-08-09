@@ -13,7 +13,7 @@ void main()
 {
 	outUv = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
 
-	gl_Position = vec4(outUv * 2.0f - 1.0f, 1.0f - 0.00001f, 1.0f);
+	gl_Position = vec4(outUv * 2.0f - 1.0f, 0.00001f, 1.0f);
 
 	vec3 viewSpacePos = vec3((perFrameData.eyeSpaceSize.xy / 2.0f) * gl_Position.xy, -perFrameData.nearFarAB.x);
 	vec4 worldSpacePos = perFrameData.viewCoordSystem * vec4(viewSpacePos, 0.0f);

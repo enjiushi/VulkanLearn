@@ -271,7 +271,7 @@ vec3 Uncharted2Tonemap(vec3 x)
 
 float ReconstructLinearDepth(float sampledDepth)
 {
-	return (perFrameData.nearFarAB.x * perFrameData.nearFarAB.y) / (sampledDepth * (perFrameData.nearFarAB.y - perFrameData.nearFarAB.x) - perFrameData.nearFarAB.y);
+	return -1.0f * perFrameData.nearFarAB.x / sampledDepth;
 }
 
 vec3 ReconstructPosition(in ivec2 coord, in vec3 worldSpaceViewRay, in sampler2D DepthBuffer, out float linearDepth)
@@ -476,33 +476,33 @@ float AcquireShadowFactor(vec4 world_position, sampler2D ShadowMapDepthBuffer)
 	float bias = -0.0005f;
 
 	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(-1, -1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
+	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
 
 	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, -1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
 
 	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(1, -1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
+	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
 
 	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(-1, 0) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
 
 	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, 0) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.195346;
+	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.195346;
 
 	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(1, 0) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
 
 	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(-1, 1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
+	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
 
 	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, 1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.123317;
+	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
 
 	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(1, 1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * 0.077847;
+	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
 
-	//return 1.0f - (light_space_pos.z > pcfDepth ? 1.0 : 0.0) * texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, 0) * texelSize).r;
+	//return 1.0f - (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, 0) * texelSize).r;
 	return 1.0f - shadowFactor;
 }
 
