@@ -22,12 +22,12 @@ void main()
 	gl_Position = vec4(outUv * 2.0f - 1.0f, 0.0f, 1.0f);
 
 #if defined(ENABLE_WS_POS_RECONSTRUCTION)
-	outOneNearPosition = vec2((perFrameData.eyeSpaceSize.xy / 2.0f * gl_Position.xy + perFrameData.cameraJitterOffset) / -perFrameData.nearFarAB.x);
+	outOneNearPosition = vec2((perFrameData.eyeSpaceSize.xy / 2.0f * gl_Position.xy) / -perFrameData.nearFarAB.x);
 #endif
 
 #if defined(ENABLE_WS_VIEW_RAY)
 	// Get eye space ray from camera to each quad vertex
-	vec3 viewSpaceRay = vec3(perFrameData.eyeSpaceSize.xy / 2.0f * gl_Position.xy + perFrameData.cameraJitterOffset, -perFrameData.nearFarAB.x);	// I should be careful that near is +, but it should be - in eye space
+	vec3 viewSpaceRay = vec3(perFrameData.eyeSpaceSize.xy / 2.0f * gl_Position.xy, -perFrameData.nearFarAB.x);	// I should be careful that near is +, but it should be - in eye space
 
 	// Transform ray from eye space to world space
 	outWsViewRay = (perFrameData.viewCoordSystem * vec4(viewSpaceRay, 0.0)).xyz;

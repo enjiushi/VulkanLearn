@@ -114,7 +114,7 @@ void main()
 {
 	ivec2 coord = ivec2(floor(inUv * globalData.gameWindowSize.xy));
 
-	GBufferVariables vars = UnpackGBuffers(coord, inUv, inOneNearPosition, GBuffer0[index], GBuffer1[index], GBuffer2[index], GBuffer3[index], DepthStencilBuffer[index], BlurredSSAOBuffer[index], ShadowMapDepthBuffer[index]);
+	GBufferVariables vars = UnpackGBuffers(coord, inUv, inOneNearPosition, GBuffer0[index], GBuffer1[index], GBuffer2[index], DepthStencilBuffer[index], BlurredSSAOBuffer[index], ShadowMapDepthBuffer[index]);
 
 	if (length(vars.normal_ao.xyz) > 1.1f)
 		discard;

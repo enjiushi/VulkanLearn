@@ -296,10 +296,6 @@ vec3 ReconstructWSPosition(in ivec2 coord, in vec2 oneNearPosition, in sampler2D
 	float window_z = texelFetch(DepthBuffer, coord, 0).r;
 	float csLinearDepth = ReconstructLinearDepth(window_z);
 
-	// Acquire half camera space size of near plane of view frustum, with ratio of near plane length 1
-	vec2 oneHalfSize = perFrameData.eyeSpaceSize.xy * 0.5f / -perFrameData.nearFarAB.x;
-	// Get uv
-	vec2 uv = coord / globalData.gameWindowSize.xy;
 	// 1. Let interpolated position multiplied with camera space linear depth to reconstruct camera space position
 	// 2. Multiply with camera space coord system matrix, we have world space position reconstructed
 	vec4 wsPosition = perFrameData.viewCoordSystem * vec4(oneNearPosition * csLinearDepth, csLinearDepth, 1.0f);
@@ -544,36 +540,6 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord, vec2 oneNearPosition
 
 	float linearDepth;
 	vars.world_position = vec4(ReconstructWSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0);
-
-	vars.metalic = gbuffer2.g;
-
-	vars.shadowFactor = AcquireShadowFactor(vars.world_position, ShadowMapDepthBuffer);
-
-	vars.ssaoFactor = texture(BlurredSSAOBuffer, texcoord).r;
-	vars.ssaoFactor = min(1.0f, vars.ssaoFactor);
-	vars.ssaoFactor = pow(vars.ssaoFactor, 0.6f) * 1.1f;
-
-	return vars;
-}
-
-GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord, vec2 oneNearPosition, sampler2D GBuffer0, sampler2D GBuffer1, sampler2D GBuffer2, sampler2D GBuffer3, sampler2D DepthStencilBuffer, sampler2D BlurredSSAOBuffer, sampler2D ShadowMapDepthBuffer)
-{
-	GBufferVariables vars;
-
-	vec4 gbuffer0 = texelFetch(GBuffer0, coord, 0);
-	vec4 gbuffer1 = texelFetch(GBuffer1, coord, 0);
-	vec4 gbuffer2 = texelFetch(GBuffer2, coord, 0);
-	vec4 gbuffer3 = texelFetch(GBuffer3, coord, 0);
-
-	vars.albedo_roughness.rgb = gbuffer1.rgb;
-	vars.albedo_roughness.a = gbuffer2.r;
-
-	vars.normal_ao.xyz = gbuffer0.xyz * 2.0f - 1.0f;
-	vars.normal_ao.w = gbuffer2.a;
-
-	float linearDepth;
-	vars.world_position = vec4(gbuffer3.xyz, 1.0);
-	//vars.world_position = vec4(gbuffer3.xyz * 2.0f - 1.0f, 1.0) - vec4(ReconstructWSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0);
 
 	vars.metalic = gbuffer2.g;
 
