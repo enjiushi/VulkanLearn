@@ -7,7 +7,7 @@
 
 layout (set = 3, binding = 2) uniform sampler2D MotionVector[3];
 layout (set = 3, binding = 3) uniform sampler2D ShadingResult[3];
-layout (set = 3, binding = 4) uniform sampler2D GBuffer3[3];
+layout (set = 3, binding = 4) uniform sampler2D GBuffer1[3];
 layout (set = 3, binding = 5) uniform sampler2D MotionNeighborMax[3];
 layout (set = 3, binding = 6) uniform sampler2D TemporalResult[2];
 layout (set = 3, binding = 7) uniform sampler2D TemporalCoC[2];
@@ -112,5 +112,5 @@ void main()
 	float motionNeighborMaxLength = length(motionNeighborMaxFetch + diff) * currMotionImpactAmp;
 
 	outTemporalResult = ResolveColor(ShadingResult[index], TemporalResult[pingpong], unjitteredUV, motionVec, motionNeighborMaxLength);
-	outTemporalCoC = vec4(ResolveCoC(GBuffer3[index], TemporalCoC[pingpong], MotionVector[index], unjitteredUV));
+	outTemporalCoC = vec4(ResolveCoC(GBuffer1[index], TemporalCoC[pingpong], MotionVector[index], unjitteredUV));
 }

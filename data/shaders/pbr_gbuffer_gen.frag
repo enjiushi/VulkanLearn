@@ -79,5 +79,5 @@ void main()
 	outGBuffer3.rgb = inWorldPos;
 
 	// Calculate circle of confusion
-	outGBuffer3.a = CalculateCoC(-inEyePos.z);
+	outGBuffer1.a = CalculateCoC(-inEyePos.z);
 }
