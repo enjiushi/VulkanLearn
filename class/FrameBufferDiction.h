@@ -59,7 +59,6 @@ public:
 		GBuffer0,
 		GBuffer1,
 		GBuffer2,
-		GBuffer3,
 		MotionVector,
 		GBufferCount
 	};

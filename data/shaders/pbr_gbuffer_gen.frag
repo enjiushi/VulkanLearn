@@ -17,8 +17,7 @@ layout (location = 9) in vec3 inPrevWorldPos;
 layout (location = 0) out vec4 outGBuffer0;
 layout (location = 1) out vec4 outGBuffer1;
 layout (location = 2) out vec4 outGBuffer2;
-layout (location = 3) out vec4 outGBuffer3;
-layout (location = 4) out vec4 outMotionVec;
+layout (location = 3) out vec4 outMotionVec;
 
 #include "uniform_layout.sh"
 
@@ -75,8 +74,6 @@ void main()
 
 	outMotionVec.rg = prevTexCoord - inScreenPos;
 	outMotionVec.rg = outMotionVec.rg * 0.5f;
-
-	outGBuffer3.rgb = inWorldPos;
 
 	// Calculate circle of confusion
 	outGBuffer1.a = CalculateCoC(-inEyePos.z);

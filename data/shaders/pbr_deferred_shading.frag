@@ -8,13 +8,12 @@
 layout (set = 3, binding = 2) uniform sampler2D GBuffer0[3];
 layout (set = 3, binding = 3) uniform sampler2D GBuffer1[3];
 layout (set = 3, binding = 4) uniform sampler2D GBuffer2[3];
-layout (set = 3, binding = 5) uniform sampler2D GBuffer3[3];
-layout (set = 3, binding = 6) uniform sampler2D MotionVector[3];
-layout (set = 3, binding = 7) uniform sampler2D DepthStencilBuffer[3];
-layout (set = 3, binding = 8) uniform sampler2D ShadowMapDepthBuffer[3];
-layout (set = 3, binding = 9) uniform sampler2D BlurredSSAOBuffer[3];
-layout (set = 3, binding = 10) uniform sampler2D SSRInfo[3];
-layout (set = 3, binding = 11) uniform sampler2D TemporalResult[2];
+layout (set = 3, binding = 5) uniform sampler2D MotionVector[3];
+layout (set = 3, binding = 6) uniform sampler2D DepthStencilBuffer[3];
+layout (set = 3, binding = 7) uniform sampler2D ShadowMapDepthBuffer[3];
+layout (set = 3, binding = 8) uniform sampler2D BlurredSSAOBuffer[3];
+layout (set = 3, binding = 9) uniform sampler2D SSRInfo[3];
+layout (set = 3, binding = 10) uniform sampler2D TemporalResult[2];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
@@ -72,8 +71,7 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 		vec3 SSRSurfColor = textureLod(RGBA16_SCREEN_SIZE_MIP_2DARRAY, vec3(hitUV + motionVec, 0), mip).rgb * hitFlag;
 
 		float SSRSurfDepth;
-		//vec3 SSRSurfPosition = ReconstructWSPosition(ivec2(SSRHitInfo.xy), DepthStencilBuffer[index], SSRSurfDepth);
-		vec3 SSRSurfPosition = texelFetch(GBuffer3[index], ivec2(SSRHitInfo.xy), 0).xyz;
+		vec3 SSRSurfPosition = ReconstructWSPosition(ivec2(SSRHitInfo.xy), inOneNearPosition, DepthStencilBuffer[index], SSRSurfDepth);
 
 		vec3 l = normalize(SSRSurfPosition.xyz - wsPosition);
 		vec3 h = normalize(l + v);

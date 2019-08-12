@@ -7,8 +7,7 @@
 
 layout (set = 3, binding = 2) uniform sampler2D GBuffer0[3];
 layout (set = 3, binding = 3) uniform sampler2D GBuffer2[3];
-layout (set = 3, binding = 4) uniform sampler2D GBuffer3[3];
-layout (set = 3, binding = 5) uniform sampler2D DepthStencilBuffer[3];
+layout (set = 3, binding = 4) uniform sampler2D DepthStencilBuffer[3];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
@@ -162,7 +161,7 @@ void main()
 	UnpackNormalRoughness(coord, normal, roughness);
 
 	float linearDepth;
-	vec3 position = texelFetch(GBuffer3[index], coord, 0).xyz;
+	vec3 position = ReconstructWSPosition(coord, inOneNearPosition, DepthStencilBuffer[index], linearDepth);
 
 	vec3 tangent = texture(SSAO_RANDOM_ROTATIONS, inUv * globalData.SSAOWindowSize.xy / textureSize(SSAO_RANDOM_ROTATIONS, 0)).xyz * 2.0f - 1.0f;
 	tangent = normalize(tangent - dot(normal, tangent) * normal);

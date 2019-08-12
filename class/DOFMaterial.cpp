@@ -406,28 +406,6 @@ void DOFMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& p
 
 	barriers.push_back(imgBarrier);
 
-	if (m_DOFPass == DOFPass_Prefilter)
-	{
-		std::shared_ptr<Image> pGBuffer3 = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer)->GetColorTarget(FrameBufferDiction::GBuffer3);
-
-		subresourceRange = {};
-		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		subresourceRange.baseMipLevel = 0;
-		subresourceRange.levelCount = pGBuffer3->GetImageInfo().mipLevels;
-		subresourceRange.layerCount = pGBuffer3->GetImageInfo().arrayLayers;
-
-		imgBarrier = {};
-		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		imgBarrier.image = pGBuffer3->GetDeviceHandle();
-		imgBarrier.subresourceRange = subresourceRange;
-		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-		barriers.push_back(imgBarrier);
-	}
-
 	if (m_DOFPass == DOFPass_Combine)
 	{
 		std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(FrameBufferDiction::ShadingResult);

@@ -40,7 +40,7 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 
 	attachmentDescs[3].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[3].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	attachmentDescs[3].format = FrameBufferDiction::GetGBufferFormat(FrameBufferDiction::GBuffer3);
+	attachmentDescs[3].format = FrameBufferDiction::GetGBufferFormat(FrameBufferDiction::MotionVector);
 	attachmentDescs[3].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[3].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[3].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -49,21 +49,12 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 
 	attachmentDescs[4].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[4].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	attachmentDescs[4].format = FrameBufferDiction::GetGBufferFormat(FrameBufferDiction::MotionVector);
+	attachmentDescs[4].format = FrameBufferDiction::OFFSCREEN_DEPTH_STENCIL_FORMAT;
 	attachmentDescs[4].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[4].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachmentDescs[4].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	attachmentDescs[4].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachmentDescs[4].samples = VK_SAMPLE_COUNT_1_BIT;
-
-	attachmentDescs[5].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachmentDescs[5].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	attachmentDescs[5].format = FrameBufferDiction::OFFSCREEN_DEPTH_STENCIL_FORMAT;
-	attachmentDescs[5].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachmentDescs[5].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	attachmentDescs[5].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachmentDescs[5].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachmentDescs[5].samples = VK_SAMPLE_COUNT_1_BIT;
 
 	std::vector<VkAttachmentReference> GBufferPassColorAttach(5);
 	GBufferPassColorAttach[0].attachment = 0;
@@ -74,11 +65,9 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 	GBufferPassColorAttach[2].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	GBufferPassColorAttach[3].attachment = 3;
 	GBufferPassColorAttach[3].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	GBufferPassColorAttach[4].attachment = 4;
-	GBufferPassColorAttach[4].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentReference depthAttachment = {};
-	depthAttachment.attachment = 5;
+	depthAttachment.attachment = 4;
 	depthAttachment.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription GBufferSubPass = {};
@@ -90,7 +79,7 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 	std::vector<VkAttachmentReference> backgroundMotionAttach(2);
 	backgroundMotionAttach[0].attachment = 1;
 	backgroundMotionAttach[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	backgroundMotionAttach[1].attachment = 4;
+	backgroundMotionAttach[1].attachment = 3;
 	backgroundMotionAttach[1].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription backgroundMotionSubPass = {};
@@ -162,7 +151,6 @@ std::vector<VkClearValue> GBufferPass::GetClearValue()
 {
 	return
 	{
-		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 0.0f, 0.0f, 0.0f, 0.0f },
