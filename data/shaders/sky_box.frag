@@ -13,5 +13,5 @@ void main()
 {
 	vec3 final = texture(RGBA16_1024_MIP_CUBE_SKYBOX, normalize(inSampleDir)).xyz;
 
-	outFragColor0 = vec4(final, 1.0);
+	outFragColor0 = vec4(final, 0.0);
 }

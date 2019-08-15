@@ -123,22 +123,12 @@ typedef struct _GlobalVariables
 	/*******************************************************************
 	* DESCRIPTION: Parameters for temporal filter
 	*
-	* X: Prev motion impact
-	* Y: Curr motion impact
-	* Z: Max clipped prev ratio
-	* W: Reserved
-	*/
-	Vector4f	TemporalSettings0;	// x: Prev motion impact, y: Curr motion impac, z: Max clipped prev ratio, w: Reserved
-
-	/*******************************************************************
-	* DESCRIPTION: Parameters for temporal filter
-	*
 	* X: Motion impact lower bound
 	* Y: Motion impact upper bound
 	* Z: Reserved
 	* W: Reserved
 	*/
-	Vector4f    TemporalSettings1;
+	Vector4f    TemporalSettings0;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for bloom
@@ -266,18 +256,10 @@ public:
 
 	void SetTemporalSettings0(const Vector4f& setting);
 	Vector4f GetTemporalSettings0() const { return m_globalVariables.TemporalSettings0; }
-	void SetTemporalSettings1(const Vector4f& setting);
-	Vector4f GetTemporalSettings1() const { return m_globalVariables.TemporalSettings1; }
-	void SetPrevMotionImpact(float prevMotionImpact);
-	float GetPrevMotionImpact() const { return m_globalVariables.TemporalSettings0.x; }
-	void SetCurrMotionImpact(float currMotionImpact);
-	float GetCurrMotionImpact() const { return m_globalVariables.TemporalSettings0.y; }
-	void SetMaxClippedPrevRatio(float maxClippedPrevRatio);
-	float GetMaxClippedPrevRatio() const { return m_globalVariables.TemporalSettings0.z; }
 	void SetMotionImpactLowerBound(float motionImpactLowerBound);
-	float GetMotionImpactLowerBound() const { return m_globalVariables.TemporalSettings1.x; }
+	float GetMotionImpactLowerBound() const { return m_globalVariables.TemporalSettings0.x; }
 	void SetMotionImpactUpperBound(float motionImpactUpperBound);
-	float GetMotionImpactUpperBound() const { return m_globalVariables.TemporalSettings1.y; }
+	float GetMotionImpactUpperBound() const { return m_globalVariables.TemporalSettings0.y; }
 
 	void SetBloomSettings0(const Vector4f& setting);
 	Vector4f GetBloomSettings0() const { return m_globalVariables.BloomSettings0; }

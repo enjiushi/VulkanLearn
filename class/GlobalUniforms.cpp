@@ -318,39 +318,15 @@ void GlobalUniforms::SetTemporalSettings0(const Vector4f& setting)
 	SetDirty();
 }
 
-void GlobalUniforms::SetTemporalSettings1(const Vector4f& setting)
-{
-	m_globalVariables.TemporalSettings1 = setting;
-	SetDirty();
-}
-
-void GlobalUniforms::SetPrevMotionImpact(float prevMotionImpact)
-{
-	m_globalVariables.TemporalSettings0.x = prevMotionImpact;
-	SetDirty();
-}
-
-void GlobalUniforms::SetCurrMotionImpact(float currMotionImpact)
-{
-	m_globalVariables.TemporalSettings0.y = currMotionImpact;
-	SetDirty();
-}
-
-void GlobalUniforms::SetMaxClippedPrevRatio(float maxClippedPrevRatio)
-{
-	m_globalVariables.TemporalSettings0.z = maxClippedPrevRatio;
-	SetDirty();
-}
-
 void GlobalUniforms::SetMotionImpactLowerBound(float motionImpactLowerBound)
 {
-	m_globalVariables.TemporalSettings1.x = motionImpactLowerBound;
+	m_globalVariables.TemporalSettings0.x = motionImpactLowerBound;
 	SetDirty();
 }
 
 void GlobalUniforms::SetMotionImpactUpperBound(float motionImpactUpperBound)
 {
-	m_globalVariables.TemporalSettings1.y = motionImpactUpperBound;
+	m_globalVariables.TemporalSettings0.y = motionImpactUpperBound;
 	SetDirty();
 }
 

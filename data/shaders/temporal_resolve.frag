@@ -21,11 +21,8 @@ layout (location = 1) out vec4 outTemporalCoC;
 int index = int(perFrameData.camDir.a + 0.5f);
 int pingpong = int(perFrameData.camPos.a + 0.5f);
 
-float prevMotionImpactAmp = globalData.TemporalSettings0.x;
-float currMotionImpactAmp = globalData.TemporalSettings0.y;
-float maxClippedPrevRatio = globalData.TemporalSettings0.z;
-float motionImpactLowerBound = globalData.TemporalSettings1.x;	// FIXME: This should be impact by frame rate
-float motionImpactUpperBound = globalData.TemporalSettings1.y;	// FIXME: This should be impact by frame rate
+float motionImpactLowerBound = globalData.TemporalSettings0.x;	// FIXME: This should be impact by frame rate
+float motionImpactUpperBound = globalData.TemporalSettings0.y;	// FIXME: This should be impact by frame rate
 
 vec4 ResolveColor(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec, float motionNeighborMaxLength)
 {
@@ -33,7 +30,11 @@ vec4 ResolveColor(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredU
 	float currMaxMotionLen = max(motionNeighborMaxLength, prevMotionLen);
 	float prevMotionImpact = abs(prevMotionLen - motionNeighborMaxLength);
 
-	vec3 curr = texture(currSampler, unjitteredUV).rgb;
+	vec4 currFragment = texture(currSampler, unjitteredUV);
+
+	float roughness = currFragment.a;
+
+	vec3 curr = currFragment.rgb;
 	vec3 prev = texture(prevSampler, inUv + motionVec).rgb;
 
 	vec2 u = vec2(globalData.gameWindowSize.z, 0);
@@ -66,8 +67,8 @@ vec4 ResolveColor(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredU
 	vec3 ghostRemovalFinal = mix(curr, clippedPrev, feedback);
 	vec3 ghostIgnoreFinal = mix(curr, prev, 0.98f);
 
-	float factorCurr = smoothstep(0.00001f, 0.0001f, motionNeighborMaxLength);
-	float factorPrev = smoothstep(0.00001f, 0.0001f, prevMotionLen);
+	float factorCurr = smoothstep(0.00001f, mix(motionImpactLowerBound, motionImpactUpperBound, roughness), motionNeighborMaxLength);
+	float factorPrev = smoothstep(0.00001f, mix(motionImpactLowerBound, motionImpactUpperBound, roughness), prevMotionLen);
 
 	return vec4(mix(ghostIgnoreFinal, ghostRemovalFinal, min(factorCurr + factorPrev, 1.0f)), motionNeighborMaxLength);
 }

@@ -862,11 +862,8 @@ void VulkanGlobal::InitScene()
 	uint32_t smaller = FrameBufferDiction::WINDOW_HEIGHT < FrameBufferDiction::WINDOW_WIDTH ? FrameBufferDiction::WINDOW_HEIGHT : FrameBufferDiction::WINDOW_WIDTH;
 	UniformData::GetInstance()->GetGlobalUniforms()->SetScreenSizeMipLevel(log2(smaller) + 1);
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetPrevMotionImpact(16.7f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetCurrMotionImpact(50.0f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxClippedPrevRatio(0.8f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactLowerBound(0.002f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.007f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactLowerBound(0.001f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.05f);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingLowerBound(0.99f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingUpperBound(1.1f);

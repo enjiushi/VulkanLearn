@@ -159,5 +159,5 @@ void main()
 	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * min(1.0f, GGX_D(NdotH, vars.albedo_roughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
 	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
-	outShadingColor = vec4(punctualRadiance + ambient, fresnel_roughness.r);
+	outShadingColor = vec4(punctualRadiance + ambient, vars.albedo_roughness.a);
 }

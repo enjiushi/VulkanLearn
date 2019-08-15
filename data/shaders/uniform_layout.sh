@@ -30,7 +30,6 @@ struct GlobalData
 	vec4 SSRSettings1;
 	vec4 SSRSettings2;
 	vec4 TemporalSettings0;
-	vec4 TemporalSettings1;
 	vec4 BloomSettings0;
 	vec4 BloomSettings1;
 	vec4 DOFSettings0;
