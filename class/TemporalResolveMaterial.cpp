@@ -286,7 +286,7 @@ void TemporalResolveMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 
 void TemporalResolveMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 {
-	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * 2);
+	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * 4 + 2 * 2);
 }
 
 void TemporalResolveMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
