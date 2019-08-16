@@ -475,7 +475,7 @@ void DeferredShadingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 
 void DeferredShadingMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 {
-	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (FrameBufferDiction::GBufferCount + 1));
+	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (FrameBufferDiction::GBufferCount + 4));
 }
 
 void DeferredShadingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
