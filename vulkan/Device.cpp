@@ -40,6 +40,8 @@ bool Device::Init(const std::shared_ptr<Instance>& pInst, const std::shared_ptr<
 	enabledFeatures.drawIndirectFirstInstance = 1;
 	enabledFeatures.multiDrawIndirect = 1;
 	enabledFeatures.fullDrawIndexUint32 = 1;
+	enabledFeatures.vertexPipelineStoresAndAtomics = 1;
+	enabledFeatures.fragmentStoresAndAtomics = 1;
 	deviceCreateInfo.pEnabledFeatures = &enabledFeatures;
 
 	RETURN_FALSE_VK_RESULT(vkCreateDevice(m_pPhysicalDevice->GetDeviceHandle(), &deviceCreateInfo, nullptr, &m_device));
