@@ -15,7 +15,7 @@ bool RenderPassDiction::Init()
 		return false;
 
 	m_pForwardRenderPass = ForwardRenderPass::CreateForwardScreen();
-	m_pForwardRenderPassOffScreen = ForwardRenderPass::CreateForwardOffScreen(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	m_pForwardRenderPassOffScreen = ForwardRenderPass::CreateForwardOffScreen(FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	m_pipelineRenderPasses.resize(PipelineRenderPassCount);
 

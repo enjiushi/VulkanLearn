@@ -21,7 +21,7 @@ bool ForwardRenderPass::Init(const std::shared_ptr<ForwardRenderPass>& pSelf, Vk
 	attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
 
 	attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	attachmentDescs[1].format = FrameBufferDiction::OFFSCREEN_DEPTH_STENCIL_FORMAT;
 	attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;

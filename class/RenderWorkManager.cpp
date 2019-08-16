@@ -67,7 +67,7 @@ bool RenderWorkManager::Init()
 	info = {};
 	info.shaderPaths = { L"../data/shaders/background_motion_gen.vert.spv", L"", L"", L"", L"../data/shaders/background_motion_gen.frag.spv", L"" };
 	info.materialUniformVars = {};
-	info.vertexFormat = VertexFormatP;
+	info.vertexFormat = 0;
 	info.vertexFormatInMem = VertexFormatP;
 	info.subpassIndex = 1;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
