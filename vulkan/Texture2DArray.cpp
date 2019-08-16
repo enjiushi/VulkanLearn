@@ -18,7 +18,6 @@ bool Texture2DArray::Init(const std::shared_ptr<Device>& pDevice, const std::sha
 
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	textureCreateInfo.flags = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT_KHR;
 	textureCreateInfo.format = format;
 	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	textureCreateInfo.arrayLayers = layers;
@@ -45,7 +44,6 @@ bool Texture2DArray::Init(const std::shared_ptr<Device>& pDevice, const std::sha
 
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	textureCreateInfo.flags = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT_KHR;
 	textureCreateInfo.format = format;
 	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	textureCreateInfo.extent.depth = 1;
@@ -72,7 +70,6 @@ bool Texture2DArray::Init(const std::shared_ptr<Device>& pDevice, const std::sha
 
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	textureCreateInfo.flags = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT_KHR;
 	textureCreateInfo.format = format;
 	textureCreateInfo.usage = usage;
 	textureCreateInfo.extent.depth = 1;
