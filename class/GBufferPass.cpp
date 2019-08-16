@@ -9,7 +9,7 @@
 
 bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 {
-	std::vector<VkAttachmentDescription> attachmentDescs(6);
+	std::vector<VkAttachmentDescription> attachmentDescs(5);
 
 	attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -56,7 +56,7 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 	attachmentDescs[4].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachmentDescs[4].samples = VK_SAMPLE_COUNT_1_BIT;
 
-	std::vector<VkAttachmentReference> GBufferPassColorAttach(5);
+	std::vector<VkAttachmentReference> GBufferPassColorAttach(4);
 	GBufferPassColorAttach[0].attachment = 0;
 	GBufferPassColorAttach[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	GBufferPassColorAttach[1].attachment = 1;
