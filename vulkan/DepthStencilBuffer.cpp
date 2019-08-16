@@ -29,7 +29,7 @@ std::shared_ptr<DepthStencilBuffer> DepthStencilBuffer::Create(const std::shared
 	dsCreateInfo.extent.width = width;
 	dsCreateInfo.extent.height = height;
 	dsCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	dsCreateInfo.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	dsCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	dsCreateInfo.mipLevels = 1;
 	dsCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	dsCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;

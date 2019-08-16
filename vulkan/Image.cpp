@@ -98,8 +98,12 @@ void Image::EnsureImageLayout()
 	subresourceRange.levelCount = m_info.mipLevels;
 	subresourceRange.layerCount = m_info.arrayLayers;
 
-	if (m_info.usage == VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+	if (m_info.format == VK_FORMAT_D24_UNORM_S8_UINT
+		|| m_info.format == VK_FORMAT_D32_SFLOAT_S8_UINT)
 		subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+	if (m_info.format == VK_FORMAT_D32_SFLOAT)
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 
 	VkImageMemoryBarrier imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
