@@ -81,11 +81,10 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 	m_pCameraObj = GenerateIBLGenOffScreenCamera(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	m_pRootObj->AddChild(m_pCameraObj);
 
-	m_pMesh0 = GenerateQuadMesh();
-	m_pMaterial0 = GenerateBRDFLUTGenMaterial(m_pMesh0);
+	m_pMaterial0 = GenerateBRDFLUTGenMaterial();
 	m_pMaterialInstance0 = m_pMaterial0->CreateMaterialInstance();
 	m_pMaterialInstance0->SetRenderMask(1 << RenderWorkManager::BrdfLutGen);
-	m_pMeshRenderer0 = MeshRenderer::Create(m_pMesh0, { m_pMaterialInstance0 });
+	m_pMeshRenderer0 = MeshRenderer::Create(nullptr, { m_pMaterialInstance0 });
 
 	std::shared_ptr<BaseObject> pQuadObj = BaseObject::Create();
 	pQuadObj->AddComponent(m_pMeshRenderer0);
@@ -285,13 +284,11 @@ std::shared_ptr<ForwardMaterial> SceneGenerator::GeneratePrefilterEnvGenMaterial
 	return ForwardMaterial::CreateDefaultMaterial(info);
 }
 
-std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateBRDFLUTGenMaterial(const std::shared_ptr<Mesh>& pMesh)
+std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateBRDFLUTGenMaterial()
 {
 	SimpleMaterialCreateInfo info = {};
 	info.shaderPaths = { L"../data/shaders/brdf_lut.vert.spv", L"", L"", L"", L"../data/shaders/brdf_lut.frag.spv", L"" };
 	info.materialUniformVars = {};
-	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
-	info.vertexFormatInMem = pMesh->GetVertexBuffer()->GetVertexFormat();
 	info.subpassIndex = 0;
 	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen();
 	info.frameBufferType = FrameBufferDiction::FrameBufferType_EnvGenOffScreen;

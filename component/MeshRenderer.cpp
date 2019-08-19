@@ -73,7 +73,10 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 		uint32_t key = val->AddMeshRenderer(std::dynamic_pointer_cast<MeshRenderer>(GetSelfSharedPtr()));
 		m_materialInstances.push_back({ val, key });
 
-		ASSERTION(m_pMesh->GetVertexFormat() == val->GetMaterial()->GetVertexFormatInMem());
+#if defined(_DEBUG)
+		if (m_pMesh != nullptr)
+			ASSERTION(m_pMesh->GetVertexFormat() == val->GetMaterial()->GetVertexFormatInMem());
+#endif
 	}
 
 	m_perObjectBufferIndex = UniformData::GetInstance()->GetPerObjectUniforms()->AllocatePerObjectChunk();
@@ -89,6 +92,9 @@ void MeshRenderer::Update()
 
 void MeshRenderer::LateUpdate()
 {
+	if (m_pMesh == nullptr)
+		return;
+
 	if (m_pAnimationController != nullptr)
 		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, m_pAnimationController->GetBaseObject()->GetWorldTransform());
 	else
