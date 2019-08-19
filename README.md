@@ -110,4 +110,4 @@ Here's the layout of my GBuffer. You can see some channels are marked as reserve
 
 ![Alt text](assets/vulkan_learn_gbuffer.png "GBuffer Layout")
 
-I've replaced world space position reconstruction from depth buffer, due to precision problem when I increase focus distance so that the FOV is shrinking. I might have to invesitgate this issue in future and get world space reconstruction back to save bandwidth.
+You could notice that there's no position in GBuffer, since I use position reconstruction through depth buffer, it saves tons of bandwidth per-frame. In order to acquire an accurate world space position that is pretty far away from camera, I use reverted depth buffer, i.e. near plane depth 1 and infinite far plane 0. The reason doing this is that floating point tends to spend more of its bits towards 0. If you don't use reversed depth, the nonlinear depth output from a projection matrix plus a non-uniform accuracy distribution of float is gonna ruin the whole reconstruction. However, a reverse would completely change the whole situation, as they two will cancel out each other's distribution, resulting a more balanced distribution(still not uniform though).
