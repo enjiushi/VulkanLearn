@@ -12,13 +12,14 @@ protected:
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 		const std::vector<UniformVar>& materialUniformVars,
 		uint32_t vertexFormat,
-		uint32_t vertexFormatInMem);
+		uint32_t vertexFormatInMem,
+		uint32_t pingpong);
 
 	void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) override;
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;
 
 public:
-	static std::shared_ptr<TemporalResolveMaterial> CreateDefaultMaterial();
+	static std::shared_ptr<TemporalResolveMaterial> CreateDefaultMaterial(uint32_t pingpong);
 
 public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) override;

@@ -377,6 +377,9 @@ void GlobalTextures::InsertScreenSizeTexture(const TextureDesc& desc)
 
 void GlobalTextures::InsertTextureDesc(const TextureDesc& desc, TextureArrayDesc& textureArr, uint32_t& emptySlot)
 {
+	if (textureArr.lookupTable.find(desc.textureName) != textureArr.lookupTable.end())
+		return;
+
 	emptySlot = textureArr.currentEmptySlot;
 	textureArr.textureDescriptions[emptySlot] = desc;
 	textureArr.lookupTable[desc.textureName] = emptySlot;	// Record lookup table

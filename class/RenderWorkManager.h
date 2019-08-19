@@ -76,7 +76,7 @@ protected:
 	std::shared_ptr<GaussianBlurMaterial>		m_pSSAOBlurHMaterial;
 	std::shared_ptr<DeferredShadingMaterial>	m_pShadingMaterial;
 	std::shared_ptr<ForwardMaterial>			m_pSkyBoxMaterial;
-	std::shared_ptr<TemporalResolveMaterial>	m_pTemporalResolveMaterial;
+	std::vector<std::shared_ptr<TemporalResolveMaterial>>	m_pTemporalResolveMaterials;
 	std::vector<std::shared_ptr<DOFMaterial>>	m_DOFMaterials;
 	std::vector<std::shared_ptr<BloomMaterial>>	m_bloomDownsampleMaterials;
 	std::vector<std::shared_ptr<BloomMaterial>>	m_bloomUpsampleMaterials;

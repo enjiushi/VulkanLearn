@@ -9,8 +9,8 @@ layout (set = 3, binding = 2) uniform sampler2D MotionVector[3];
 layout (set = 3, binding = 3) uniform sampler2D ShadingResult[3];
 layout (set = 3, binding = 4) uniform sampler2D GBuffer1[3];
 layout (set = 3, binding = 5) uniform sampler2D MotionNeighborMax[3];
-layout (set = 3, binding = 6) uniform sampler2D TemporalResult[2];
-layout (set = 3, binding = 7) uniform sampler2D TemporalCoC[2];
+layout (set = 3, binding = 6) uniform sampler2D TemporalResult;
+layout (set = 3, binding = 7) uniform sampler2D TemporalCoC;
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
@@ -19,7 +19,6 @@ layout (location = 0) out vec4 outTemporalResult;
 layout (location = 1) out vec4 outTemporalCoC;
 
 int index = int(perFrameData.camDir.a + 0.5f);
-int pingpong = int(perFrameData.camPos.a + 0.5f);
 
 float motionImpactLowerBound = globalData.TemporalSettings0.x;	// FIXME: This should be impact by frame rate
 float motionImpactUpperBound = globalData.TemporalSettings0.y;	// FIXME: This should be impact by frame rate
@@ -109,6 +108,6 @@ void main()
 	vec2 motionVec = texture(MotionVector[index], unjitteredUV).rg;
 	vec2 motionNeighborMaxFetch = abs(texelFetch(MotionNeighborMax[index], ivec2(unjitteredUV * globalData.motionTileWindowSize.zw), 0).rg);
 
-	outTemporalResult = ResolveColor(ShadingResult[index], TemporalResult[pingpong], unjitteredUV, motionVec, length(motionNeighborMaxFetch));
-	outTemporalCoC = vec4(ResolveCoC(GBuffer1[index], TemporalCoC[pingpong], MotionVector[index], unjitteredUV));
+	outTemporalResult = ResolveColor(ShadingResult[index], TemporalResult, unjitteredUV, motionVec, length(motionNeighborMaxFetch));
+	outTemporalCoC = vec4(ResolveCoC(GBuffer1[index], TemporalCoC, MotionVector[index], unjitteredUV));
 }

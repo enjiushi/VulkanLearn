@@ -32,7 +32,8 @@ bool RenderWorkManager::Init()
 	m_pMotionTileMaxMaterial		= MotionTileMaxMaterial::CreateDefaultMaterial();
 	m_pMotionNeighborMaxMaterial	= MotionNeighborMaxMaterial::CreateDefaultMaterial();
 	m_pShadingMaterial				= DeferredShadingMaterial::CreateDefaultMaterial();
-	m_pTemporalResolveMaterial		= TemporalResolveMaterial::CreateDefaultMaterial();
+	m_pTemporalResolveMaterials.push_back(TemporalResolveMaterial::CreateDefaultMaterial(0));
+	m_pTemporalResolveMaterials.push_back(TemporalResolveMaterial::CreateDefaultMaterial(1));
 	for (uint32_t i = 0; i < DOFMaterial::DOFPass_Count; i++)
 	{
 		m_DOFMaterials.push_back(DOFMaterial::CreateDefaultMaterial((DOFMaterial::DOFPass)i));
@@ -208,13 +209,13 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	m_pShadingMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	m_pTemporalResolveMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	m_pTemporalResolveMaterials[pingpong]->BeforeRenderPass(pDrawCmdBuffer, pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (FrameMgr()->FrameIndex() + 1) % GetSwapChain()->GetSwapChainImageCount(), (pingpong + 1) % 2));
 	GetGlobalVulkanStates()->SetViewport({ 0, 0, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y, 0, 1 });
 	GetGlobalVulkanStates()->SetScissorRect({ 0, 0, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y });
-	m_pTemporalResolveMaterial->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (FrameMgr()->FrameIndex() + 1) % GetSwapChain()->GetSwapChainImageCount(), (pingpong + 1) % 2));
+	m_pTemporalResolveMaterials[pingpong]->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (FrameMgr()->FrameIndex() + 1) % GetSwapChain()->GetSwapChainImageCount(), (pingpong + 1) % 2));
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->EndRenderPass(pDrawCmdBuffer);
-	m_pTemporalResolveMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
+	m_pTemporalResolveMaterials[pingpong]->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 	for (uint32_t i = 0; i < DOFMaterial::DOFPass_Count; i++)
 	{
