@@ -193,9 +193,9 @@ void Character::OnRotate(uint32_t dir, float delta)
 	Matrix3f rotate_around_up;
 
 	if (dir & CharMoveDir::Leftward)
-		rotate_around_up = Matrix3f::Rotation(3.5f * m_charVars.rotateSpeed, Vector3f::Upward());		//FIXME: Need profiler to replace hard-code delta
+		rotate_around_up = Matrix3f::Rotation(delta * m_charVars.rotateSpeed, Vector3f::Upward());		//FIXME: Need profiler to replace hard-code delta
 	if (dir & CharMoveDir::Rightward)
-		rotate_around_up = Matrix3f::Rotation(-3.5f * m_charVars.rotateSpeed, Vector3f::Upward());		//FIXME: Need profiler to replace hard-code delta
+		rotate_around_up = Matrix3f::Rotation(-delta * m_charVars.rotateSpeed, Vector3f::Upward());		//FIXME: Need profiler to replace hard-code delta
 
 	m_pObject.lock()->SetRotation(rotate_around_up * m_pObject.lock()->GetLocalRotationM());
 }
@@ -261,6 +261,6 @@ void Character::Update()
 		OnRotate({ interpolate_position.x / width, (height - interpolate_position.y) / height }, m_isOperationInRotation);
 	}
 
-	Move(m_moveFlag, Timer::GetEverageElapsedTime());
-	OnRotate(m_rotateFlag, Timer::GetEverageElapsedTime());
+	Move(m_moveFlag, Timer::GetElapsedTime());
+	OnRotate(m_rotateFlag, Timer::GetElapsedTime());
 }
