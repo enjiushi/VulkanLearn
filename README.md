@@ -111,3 +111,9 @@ Here's the layout of my GBuffer. You can see some channels are marked as reserve
 ![Alt text](assets/vulkan_learn_gbuffer.png "GBuffer Layout")
 
 You could notice that there's no position in GBuffer, since positions are reconstructed using depth buffer, and it saves tons of bandwidth per-frame. In order to acquire an accurate world space position that is pretty far away from camera, I use reverted depth buffer, i.e. near plane depth 1 and infinite far plane 0. The reason doing this is that floating point tends to spend more of its bits towards 0. If you don't use reversed depth, the nonlinear depth output from a projection matrix plus a non-uniform accuracy distribution of float is gonna ruin the whole reconstruction. However, a reverse would completely change the whole situation, as they two will cancel out each other's distribution, resulting a more balanced distribution(still not uniform though).
+### Skinned GBuffer Pass
+This pass does exactly the same job as **GBuffer Pass**, except that it deals only with meshes that has bones and weighted skin vertices.
+### Background Motion Pass
+We can render motion vector through various objects shown on the screen. However for those pixels that are never touched by any of them, no motion vectors will be produced. This doesn't seem like a problem for skybox since it doesn't move with character. But it'll fail if a character rotates its view direction, motion blur is not able to apply here. Therefore, an extra pass here to fill the gap, to record motion only caused by view rotation.
+### Motion Tile Max Pass && Motion Neighborhood Max
+These 2 passes mainly converts per pixel motion into tile, and each tile contains larges motion it records within its rect. The result is used both in **Temporal Resolve Pass** and **Post Process Pass**.
