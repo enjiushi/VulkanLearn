@@ -64,16 +64,7 @@ protected:
 	uint32_t			m_moveFlag = 0;
 	uint32_t			m_rotateFlag = 0;
 
-	// Variables for mouse position interpolation
-	// Since mouse position acquired from system is unstable in terms of both position & interval
-	// Character needs to process them and produce smooth value in between just in order to make mouse rotation smooth
 	bool				m_isControlInRotation = false;
-	bool				m_isOperationInRotation = false;
 
 	Vector2f			m_lastSampleCursorPosition;
-	Vector2f			m_currentTargetPosition;
-	Vector2f			m_rotationStartPosition;
-
-	double				m_sampleInterval = 60.0f;
-	double				m_elapsedSinceLastSample = 0.0f;
 };

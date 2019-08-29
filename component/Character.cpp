@@ -83,12 +83,9 @@ void Character::ProcessMouse(KeyState keyState, const Vector2f& mousePosition)
 	{
 	case KEY_DOWN:
 		m_isControlInRotation = true;
-		m_rotationStartPosition = mousePosition;
-		m_currentTargetPosition = mousePosition;
 		break;
 	case KEY_UP:
 		m_isControlInRotation = false;
-		m_lastSampleCursorPosition = mousePosition;
 		break;
 	default:
 		break;
@@ -97,9 +94,6 @@ void Character::ProcessMouse(KeyState keyState, const Vector2f& mousePosition)
 
 void Character::ProcessMouse(const Vector2f& mousePosition)
 {
-	if (!m_isControlInRotation)
-		return;
-
 	m_lastSampleCursorPosition = mousePosition;
 }
 
@@ -232,34 +226,7 @@ void Character::Rotate(const Vector2f& v)
 
 void Character::Update()
 {
-	if (m_isControlInRotation || m_isOperationInRotation)
-	{
-		m_isOperationInRotation = true;
-
-		Vector2f interpolate_position;
-		if (m_elapsedSinceLastSample >= m_sampleInterval)
-		{
-			m_elapsedSinceLastSample = 0;
-
-			interpolate_position = m_currentTargetPosition;
-			m_rotationStartPosition = interpolate_position;
-
-			if (m_isControlInRotation)
-				m_currentTargetPosition = m_lastSampleCursorPosition;
-			else
-				m_isOperationInRotation = false;
-		}
-		else
-		{
-			double step = m_elapsedSinceLastSample / m_sampleInterval;
-			interpolate_position = m_rotationStartPosition * (1.0 - step) + m_currentTargetPosition * step;
-			m_elapsedSinceLastSample += Timer::GetElapsedTime();
-		}
-
-		float width = GetPhysicalDevice()->GetSurfaceCap().currentExtent.width;
-		float height = GetPhysicalDevice()->GetSurfaceCap().currentExtent.height;
-		OnRotate({ interpolate_position.x / width, (height - interpolate_position.y) / height }, m_isOperationInRotation);
-	}
+	OnRotate({ m_lastSampleCursorPosition.x / GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, (GetPhysicalDevice()->GetSurfaceCap().currentExtent.height - m_lastSampleCursorPosition.y) / GetPhysicalDevice()->GetSurfaceCap().currentExtent.height }, m_isControlInRotation);
 
 	Move(m_moveFlag, Timer::GetElapsedTime());
 	OnRotate(m_rotateFlag, Timer::GetElapsedTime());

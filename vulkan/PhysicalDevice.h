@@ -30,7 +30,7 @@ public:
 
 	const VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surfaceFormats[0]; }
 	const std::vector<VkPresentModeKHR>& GetPresentModes() const { return m_presentModes; }
-	const VkSurfaceCapabilitiesKHR GetSurfaceCap() const { return m_surfaceCap; }
+	const VkSurfaceCapabilitiesKHR& GetSurfaceCap() const { return m_surfaceCap; }
 
 public:
 	static std::shared_ptr<PhysicalDevice> Create(const std::shared_ptr<Instance>& pVulkanInstance, HINSTANCE hInst, HWND hWnd);
