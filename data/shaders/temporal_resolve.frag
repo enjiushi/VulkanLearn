@@ -92,7 +92,7 @@ vec4 ResolveSSRResult(sampler2D currSampler, sampler2D prevSampler, vec2 unjitte
 
 	vec4 lowResponseSSR = mix(curr, prev, 0.98f);
 	vec4 highResponseSSR = mix(curr, clippedPrev, 0.98f);
-	highResponseSSR = mix(lowResponseSSR, highResponseSSR, 0.4f);
+	highResponseSSR = mix(lowResponseSSR, highResponseSSR, 0.7f);
 
 	float currMotionFactor = currMotion / motionImpactUpperBound;
 	float prevMotionFactor = prevMotion / motionImpactUpperBound;
