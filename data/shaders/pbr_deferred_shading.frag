@@ -44,7 +44,7 @@ float BorderFading(vec2 hitUV)
 	return smoothstep(0.0f, rayTraceBorderFadeDist, borderDist);
 }
 
-vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosition, float metalic)
+vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosition, float metalic, vec3 skyBoxReflection)
 {
 	ivec2 coord = ivec2(inUv * globalData.gameWindowSize.xy);
 
@@ -82,7 +82,7 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 
 		float weight = 1.0f;
 		if (hitFlag < 0.5f)
-			SSRSurfColor = vec3(0);
+			SSRSurfColor = skyBoxReflection;
 
 		// Reenable this when I figure how to deal with none-hit pixels
 		//if (hitFlag > 0.5f)
@@ -149,7 +149,7 @@ void main()
 
 	// Here we use NdotV rather than LdotH, since L's direction is based on punctual light, and here ambient reflection calculation
 	// requires reflection vector dot with N, which is RdotN, equals NdotV
-	vec4 SSRRadiance = CalculateSSR(n, v, NdotV, vars.albedo_roughness, vars.world_position.xyz, vars.metalic);
+	vec4 SSRRadiance = CalculateSSR(n, v, NdotV, vars.albedo_roughness, vars.world_position.xyz, vars.metalic, reflect);
 
 	float aoFactor = min(vars.normal_ao.a, 1.0f - vars.ssaoFactor);
 
