@@ -510,12 +510,10 @@ void VulkanGlobal::InitUniforms()
 
 	gli::texture_cube gliSkyBox(gli::load("../data/textures/hdr/gcanyon_cube.ktx"));
 	UniformData::GetInstance()->GetGlobalTextures()->InitIBLTextures(gliSkyBox);
-	//UniformData::GetInstance()->GetGlobalUniforms()->GetGlobalTextures()->GetIBLTextureCube(IBLTextureType::RGBA16_1024_SkyBox)->UpdateByteStream({ { gliSkyBox } });
 	
 	
 	m_pSkyBoxTex = TextureCube::Create(m_pDevice, "../data/textures/hdr/gcanyon_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT);
 	
-	//m_pSimpleTex = Texture2D::Create(m_pDevice, "../data/textures/cerberus/albedo.ktx", VK_FORMAT_R8G8B8A8_UNORM);
 	m_pSimpleTex = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
 	m_pIrradianceTex = TextureCube::CreateEmptyTextureCube(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
 	m_pPrefilterEnvTex = TextureCube::CreateEmptyTextureCube(m_pDevice, OffScreenSize, OffScreenSize, std::log2(OffScreenSize) + 1, VK_FORMAT_R16G16B16A16_SFLOAT);
@@ -530,11 +528,6 @@ void VulkanGlobal::InitDescriptorSetLayout()
 
 void VulkanGlobal::InitPipelineCache()
 {
-	/*
-	VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
-	pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-	CHECK_VK_ERROR(vkCreatePipelineCache(m_pDevice->GetDeviceHandle(), &pipelineCacheCreateInfo, nullptr, &m_pipelineCache));
-	*/
 }
 
 void VulkanGlobal::InitPipeline()
@@ -700,8 +693,6 @@ void VulkanGlobal::AddBoneBox(const std::shared_ptr<BaseObject>& pObject)
 	m_boneBoxRenderers.push_back(MeshRenderer::Create(m_pPBRBoxMesh, pInst));
 
 	pObject->AddComponent(m_boneBoxRenderers.back());
-	//pObject->SetScale(0.11f);
-	//pObject->SetPos(0, 0, 0);
 
 	for (uint32_t i = 0; i < pObject->GetChildrenCount(); i++)
 	{
@@ -882,18 +873,16 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteAmplify(0.7f);
 }
 
-class RoughnessChanger : public IInputListener
+class VariableChanger : public IInputListener
 {
 public:
 	void ProcessKey(KeyState keyState, uint8_t keyCode) override;
 	void ProcessMouse(KeyState keyState, const Vector2f& mousePosition) override {}
 	void ProcessMouse(const Vector2f& mousePosition) override {}
 	float var = 0.0;
-	float SSRVar = 0.5f;
-	uint64_t frameCount = 0;
 };
 
-void RoughnessChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
+void VariableChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 {
 	static float interval = 0.01f;
 	static float varInterval = 0.005f;
@@ -907,20 +896,9 @@ void RoughnessChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 		var -= varInterval;
 		var = var < 0 ? 0 : var;
 	}
-
-	if (keyCode == KEY_G)
-	{
-		SSRVar += interval;
-		SSRVar = SSRVar > 1.0f ? 1.0f : SSRVar;
-	}
-	if (keyCode == KEY_K)
-	{
-		SSRVar -= interval;
-		SSRVar = SSRVar < 0.05f ? 0.05f : SSRVar;
-	}
 }
 
-std::shared_ptr<RoughnessChanger> c;
+std::shared_ptr<VariableChanger> c;
 
 void VulkanGlobal::EndSetup()
 {
@@ -930,14 +908,14 @@ void VulkanGlobal::EndSetup()
 	m_pRootObject->Awake();
 	m_pRootObject->Start();
 
-	c = std::make_shared<RoughnessChanger>();
+	c = std::make_shared<VariableChanger>();
 	InputHub::GetInstance()->Register(c);
 }
 
 void VulkanGlobal::Draw()
 {
 	static uint32_t pingpong = 0;
-
+	static uint32_t frameCount = 0;
 
 	GetSwapChain()->AcquireNextImage();
 
@@ -948,17 +926,14 @@ void VulkanGlobal::Draw()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::GetTotalTime()));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(pingpong);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRMip(c->SSRVar);
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX8Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x8, c->frameCount));
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX16Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x16, c->frameCount));
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX32Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x32, c->frameCount));
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX256Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x256, c->frameCount));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX8Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x8, frameCount));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX16Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x16, frameCount));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX32Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x32, frameCount));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX256Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x256, frameCount));
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
 	m_pCameraComp->SetFocalLength((1.0f - c->var) * 0.035f + c->var * 0.2f);
-	//m_pQuadMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.7f, 0.7f, 0.7f, c->roughness));
-	//m_pCameraComp->SetNearPlane(c->var);
 
 	m_pRootObject->Update();
 	m_pRootObject->LateUpdate();
@@ -998,7 +973,7 @@ void VulkanGlobal::Draw()
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 
 	pingpong = (pingpong + 1) % 2;
-	c->frameCount++;
+	frameCount++;
 }
 
 void VulkanGlobal::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)
