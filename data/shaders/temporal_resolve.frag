@@ -100,8 +100,7 @@ vec4 ResolveSSRResult(sampler2D currSampler, sampler2D prevSampler, vec2 unjitte
 
 	float factor = min(ssrFactor + currMotionFactor + prevMotionFactor, 1.0f);
 
-	vec4 final = vec4(mix(lowResponseSSR.rgb, highResponseSSR.rgb, factor), currMotion);
-	return final;
+	return vec4(mix(lowResponseSSR.rgb, highResponseSSR.rgb, factor), currMotion);
 }
 
 float ResolveCoC(sampler2D currSampler, sampler2D prevSampler, sampler2D motionVecSampler, vec2 unjitteredUV)

@@ -166,6 +166,6 @@ void main()
 	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
 
-	outShadingColor = vec4(punctualRadiance, clamp(vars.albedo_roughness.a / 0.4f, 0, 1));
+	outShadingColor = vec4(punctualRadiance, vars.albedo_roughness.a);
 	outSSRColor = vec4(skyBoxAmbient, SSRRadiance.a);
 }
