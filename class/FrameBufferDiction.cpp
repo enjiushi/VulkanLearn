@@ -239,9 +239,10 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffe
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pShadingResult = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pSSResult = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
 		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = m_frameBuffers[FrameBufferType_GBuffer][0][i]->GetDepthStencilTarget();
-		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()));
+		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pShadingResult, pSSResult }, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()));
 	}
 
 	return frameBuffers;
@@ -253,6 +254,18 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFr
 	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
 	std::vector<std::shared_ptr<Image>> temporalShadingResult =
+	{
+		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
+		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	};
+
+	std::vector<std::shared_ptr<Image>> temporalSSRResult =
+	{
+		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
+		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	};
+
+	std::vector<std::shared_ptr<Image>> temporalResult =
 	{
 		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
 		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
@@ -271,6 +284,8 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFr
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(),
 			{
 				temporalShadingResult[i % 2],
+				temporalSSRResult[i % 2],
+				temporalResult[i % 2],
 				temporalCoC[i % 2],
 			}, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->GetRenderPass()));
 	}

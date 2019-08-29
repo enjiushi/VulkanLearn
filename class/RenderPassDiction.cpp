@@ -45,6 +45,8 @@ bool RenderPassDiction::Init()
 		case PipelineRenderPassTemporalResolve:
 			m_pipelineRenderPasses[PipelineRenderPassTemporalResolve] = CustomizedRenderPass::Create( { 
 				{ FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, { 0, 0, 0, 0 } },
+				{ FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0, 0, 0, 0 } },
+				{ FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,{ 0, 0, 0, 0 } },
 				{ FrameBufferDiction::COC_FORMAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, { 0 } } 
 				}); break;
 		case PipelineRenderPassDOF:

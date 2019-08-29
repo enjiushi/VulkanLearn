@@ -178,9 +178,9 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 				std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
 
 				srcImgs.push_back({
-					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult),
-					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateLinearClampToEdgeSampler(),
-					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateDefaultImageView()
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CombinedResult),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateLinearClampToEdgeSampler(),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateDefaultImageView()
 					});
 
 				temporalCoC.push_back({
@@ -237,9 +237,9 @@ bool DOFMaterial::Init(const std::shared_ptr<DOFMaterial>& pSelf,
 				std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
 
 				shadingResults.push_back({
-					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult),
-					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateLinearClampToEdgeSampler(),
-					pTemporalResult->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateDefaultImageView()
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CombinedResult),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateLinearClampToEdgeSampler(),
+					pTemporalResult->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateDefaultImageView()
 					});
 
 				CoCResults.push_back({
@@ -371,7 +371,7 @@ void DOFMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& p
 	switch (m_DOFPass)
 	{
 	case DOFPass_Prefilter:
-		pBarrierImg = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(0);
+		pBarrierImg = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(FrameBufferDiction::CombinedResult);
 		break;
 	case DOFPass_Blur:
 		pBarrierImg = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, DOFPass_Prefilter)->GetColorTarget(0);
@@ -406,9 +406,30 @@ void DOFMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& p
 
 	barriers.push_back(imgBarrier);
 
-	if (m_DOFPass == DOFPass_Combine)
+	if (m_DOFPass == DOFPass_Prefilter)
 	{
-		std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(FrameBufferDiction::ShadingResult);
+		std::shared_ptr<Image> pCoCResult = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(FrameBufferDiction::CoC);
+
+		subresourceRange = {};
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.levelCount = pCoCResult->GetImageInfo().mipLevels;
+		subresourceRange.layerCount = pCoCResult->GetImageInfo().arrayLayers;
+
+		imgBarrier = {};
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = pCoCResult->GetDeviceHandle();
+		imgBarrier.subresourceRange = subresourceRange;
+		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		barriers.push_back(imgBarrier);
+	}
+	else if (m_DOFPass == DOFPass_Combine)
+	{
+		std::shared_ptr<Image> pShadingResult = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(FrameBufferDiction::CombinedResult);
 
 		subresourceRange = {};
 		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

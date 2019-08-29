@@ -66,6 +66,8 @@ public:
 	enum TemporalFrameBuffer
 	{
 		ShadingResult,
+		SSRResult,
+		CombinedResult,
 		CoC,
 		TemporalFrameBufferCount
 	};

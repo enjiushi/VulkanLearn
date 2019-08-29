@@ -13,17 +13,17 @@ layout (set = 3, binding = 6) uniform sampler2D DepthStencilBuffer[3];
 layout (set = 3, binding = 7) uniform sampler2D ShadowMapDepthBuffer[3];
 layout (set = 3, binding = 8) uniform sampler2D BlurredSSAOBuffer[3];
 layout (set = 3, binding = 9) uniform sampler2D SSRInfo[3];
-layout (set = 3, binding = 10) uniform sampler2D TemporalResult[2];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
 
 layout (location = 0) out vec4 outShadingColor;
+layout (location = 1) out vec4 outSSRColor;
 
 int index = int(perFrameData.camDir.a);
 int pingpong = int(perFrameData.camPos.a);
 
-float rayTraceMaxStep = 200.0f;
+float rayTraceMaxStep = globalData.SSRSettings1.z;
 float rayTraceBorderFadeDist = globalData.SSRSettings2.x;
 float rayTraceMaxStepFadeDist = globalData.SSRSettings2.y;
 float screenSizeMiplevel = globalData.SSRSettings2.z;
@@ -150,14 +150,22 @@ void main()
 	// Here we use NdotV rather than LdotH, since L's direction is based on punctual light, and here ambient reflection calculation
 	// requires reflection vector dot with N, which is RdotN, equals NdotV
 	vec4 SSRRadiance = CalculateSSR(n, v, NdotV, vars.albedo_roughness, vars.world_position.xyz, vars.metalic);
-	vec4 radiance = vec4(mix(reflect, SSRRadiance.rgb, SSRRadiance.a), min(vars.normal_ao.a, 1.0f - vars.ssaoFactor));
-	radiance.rgb *= (brdf_lut.x * fresnel_roughness + brdf_lut.y);
-	vec3 ambient = (irradiance * kD_roughness + radiance.rgb) * radiance.a;
-	//vec3 ambient = radiance.rgb;
+
+	float aoFactor = min(vars.normal_ao.a, 1.0f - vars.ssaoFactor);
+
+	vec3 skyBoxRadiance = mix(reflect, SSRRadiance.rgb, SSRRadiance.a);
+	vec3 brdfFactor = brdf_lut.x * fresnel_roughness + brdf_lut.y;
+
+	skyBoxRadiance *= brdfFactor;
+	irradiance *= kD_roughness;
+
+	vec3 skyBoxAmbient	= (irradiance + skyBoxRadiance) * aoFactor;
 	//----------------------------------------------
 
 	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * min(1.0f, GGX_D(NdotH, vars.albedo_roughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
 	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
-	outShadingColor = vec4(punctualRadiance + ambient, vars.albedo_roughness.a);
+
+	outShadingColor = vec4(punctualRadiance, clamp(vars.albedo_roughness.a / 0.4f, 0, 1));
+	outSSRColor = vec4(skyBoxAmbient, SSRRadiance.a);
 }

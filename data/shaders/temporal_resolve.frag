@@ -7,69 +7,101 @@
 
 layout (set = 3, binding = 2) uniform sampler2D MotionVector[3];
 layout (set = 3, binding = 3) uniform sampler2D ShadingResult[3];
-layout (set = 3, binding = 4) uniform sampler2D GBuffer1[3];
-layout (set = 3, binding = 5) uniform sampler2D MotionNeighborMax[3];
-layout (set = 3, binding = 6) uniform sampler2D TemporalResult;
-layout (set = 3, binding = 7) uniform sampler2D TemporalCoC;
+layout (set = 3, binding = 4) uniform sampler2D SSRResult[3];
+layout (set = 3, binding = 5) uniform sampler2D GBuffer1[3];
+layout (set = 3, binding = 6) uniform sampler2D MotionNeighborMax[3];
+layout (set = 3, binding = 7) uniform sampler2D TemporalShadingResult;
+layout (set = 3, binding = 8) uniform sampler2D TemporalSSRResult;
+layout (set = 3, binding = 9) uniform sampler2D TemporalResult;
+layout (set = 3, binding = 10) uniform sampler2D TemporalCoC;
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
 
-layout (location = 0) out vec4 outTemporalResult;
-layout (location = 1) out vec4 outTemporalCoC;
+layout (location = 0) out vec4 outTemporalShadingResult;
+layout (location = 1) out vec4 outTemporalSSRResult;
+layout (location = 2) out vec4 outTemporalResult;
+layout (location = 3) out vec4 outTemporalCoC;
 
 int index = int(perFrameData.camDir.a + 0.5f);
+int pingpong = int(perFrameData.camPos.a + 0.5f);
 
-float motionImpactLowerBound = globalData.TemporalSettings0.x;	// FIXME: This should be impact by frame rate
-float motionImpactUpperBound = globalData.TemporalSettings0.y;	// FIXME: This should be impact by frame rate
+float motionImpactLowerBound = globalData.TemporalSettings0.x;
+float motionImpactUpperBound = globalData.TemporalSettings0.y;
 
-vec4 ResolveColor(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec, float motionNeighborMaxLength)
+vec4 ResolveShadingResult(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec)
 {
-	float prevMotionLen = texture(prevSampler, unjitteredUV).a;
-	float currMaxMotionLen = max(motionNeighborMaxLength, prevMotionLen);
-	float prevMotionImpact = abs(prevMotionLen - motionNeighborMaxLength);
-
-	vec4 currFragment = texture(currSampler, unjitteredUV);
-
-	float roughness = currFragment.a;
-
-	vec3 curr = currFragment.rgb;
-	vec3 prev = texture(prevSampler, inUv + motionVec).rgb;
+	vec4 curr = texture(currSampler, unjitteredUV);
+	vec4 prev = texture(prevSampler, inUv + motionVec);
 
 	vec2 u = vec2(globalData.gameWindowSize.z, 0);
 	vec2 v = vec2(0, globalData.gameWindowSize.w);
 
-	vec3 bl = texture(currSampler, unjitteredUV - u - v).rgb;
-	vec3 bm = texture(currSampler, unjitteredUV - v).rgb;
-	vec3 br = texture(currSampler, unjitteredUV + u - v).rgb;
-	vec3 ml = texture(currSampler, unjitteredUV - u).rgb;
-	vec3 mr = texture(currSampler, unjitteredUV + u).rgb;
-	vec3 tl = texture(currSampler, unjitteredUV - u + v).rgb;
-	vec3 tm = texture(currSampler, unjitteredUV + v).rgb;
-	vec3 tr = texture(currSampler, unjitteredUV + u + v).rgb;
+	vec4 bl = texture(currSampler, unjitteredUV - u - v);
+	vec4 bm = texture(currSampler, unjitteredUV - v);
+	vec4 br = texture(currSampler, unjitteredUV + u - v);
+	vec4 ml = texture(currSampler, unjitteredUV - u);
+	vec4 mr = texture(currSampler, unjitteredUV + u);
+	vec4 tl = texture(currSampler, unjitteredUV - u + v);
+	vec4 tm = texture(currSampler, unjitteredUV + v);
+	vec4 tr = texture(currSampler, unjitteredUV + u + v);
 
-	vec3 minColor = min(bl, min(bm, min(br, min(ml, min(mr, min(tl, min(tm, min(tr, curr))))))));
-	vec3 maxColor = max(bl, max(bm, max(br, max(ml, max(mr, max(tl, max(tm, max(tr, curr))))))));
+	vec4 minColor = min(bl, min(bm, min(br, min(ml, min(mr, min(tl, min(tm, min(tr, curr))))))));
+	vec4 maxColor = max(bl, max(bm, max(br, max(ml, max(mr, max(tl, max(tm, max(tr, curr))))))));
 
 	// min max suppress to reduce temporal ghosting effect
-	vec3 clippedPrev = clip_aabb(minColor, maxColor, prev);
+	vec3 clippedPrev = clip_aabb(minColor.rgb, maxColor.rgb, prev.rgb);
 
-	float currLum = Luminance(curr);
-	float prevLum = Luminance(prev);
+	float currLum = Luminance(curr.rgb);
+	float prevLum = Luminance(prev.rgb);
 
-	// No point doing this
 	float unbiasedDiff = abs(currLum - prevLum) / max(currLum, max(prevLum, 0.2f));
 	float unbiasedWeight = 1.0 - unbiasedDiff;
 	float unbiasedWeightSQR = unbiasedWeight * unbiasedWeight;
 	float feedback = mix(0.87f, 0.97f, unbiasedWeightSQR);
 
-	vec3 ghostRemovalFinal = mix(curr, clippedPrev, feedback);
-	vec3 ghostIgnoreFinal = mix(curr, prev, 0.98f);
+	return vec4(mix(curr.rgb, clippedPrev, feedback), 1.0f);
+}
 
-	float factorCurr = smoothstep(0.00001f, mix(motionImpactLowerBound, motionImpactUpperBound, roughness), motionNeighborMaxLength);
-	float factorPrev = smoothstep(0.00001f, mix(motionImpactLowerBound, motionImpactUpperBound, roughness), prevMotionLen);
+vec4 ResolveSSRResult(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec, float currMotion)
+{
+	vec4 curr = texture(currSampler, unjitteredUV);
+	vec4 prev = texture(prevSampler, inUv + motionVec);
 
-	return vec4(mix(ghostIgnoreFinal, ghostRemovalFinal, min(factorCurr + factorPrev, 1.0f)), motionNeighborMaxLength);
+	float currSSRMask = curr.a;
+	float prevMotion = prev.a;
+
+	vec2 u = vec2(globalData.gameWindowSize.z, 0);
+	vec2 v = vec2(0, globalData.gameWindowSize.w);
+
+	vec4 bl = texture(currSampler, unjitteredUV - u - v);
+	vec4 bm = texture(currSampler, unjitteredUV - v);
+	vec4 br = texture(currSampler, unjitteredUV + u - v);
+	vec4 ml = texture(currSampler, unjitteredUV - u);
+	vec4 mr = texture(currSampler, unjitteredUV + u);
+	vec4 tl = texture(currSampler, unjitteredUV - u + v);
+	vec4 tm = texture(currSampler, unjitteredUV + v);
+	vec4 tr = texture(currSampler, unjitteredUV + u + v);
+
+	vec4 minColor = min(bl, min(bm, min(br, min(ml, min(mr, min(tl, min(tm, min(tr, curr))))))));
+	vec4 maxColor = max(bl, max(bm, max(br, max(ml, max(mr, max(tl, max(tm, max(tr, curr))))))));
+
+	vec4 clippedPrev;
+	clippedPrev.rgb = clip_aabb(minColor.rgb, maxColor.rgb, prev.rgb);
+	clippedPrev.a = clamp(prev.a, minColor.a, maxColor.a);
+
+	vec4 lowResponseSSR = mix(curr, prev, 0.98f);
+	vec4 highResponseSSR = mix(curr, clippedPrev, 0.98f);
+	highResponseSSR = mix(lowResponseSSR, highResponseSSR, 0.4f);
+
+	float currMotionFactor = currMotion / motionImpactUpperBound;
+	float prevMotionFactor = prevMotion / motionImpactUpperBound;
+	float ssrFactor = 1.0f - min(currSSRMask, 0.000001f) / 0.000001f;
+
+	float factor = min(ssrFactor + currMotionFactor + prevMotionFactor, 1.0f);
+
+	vec4 final = vec4(mix(lowResponseSSR.rgb, highResponseSSR.rgb, factor), currMotion);
+	return final;
 }
 
 float ResolveCoC(sampler2D currSampler, sampler2D prevSampler, sampler2D motionVecSampler, vec2 unjitteredUV)
@@ -108,6 +140,9 @@ void main()
 	vec2 motionVec = texture(MotionVector[index], unjitteredUV).rg;
 	vec2 motionNeighborMaxFetch = abs(texelFetch(MotionNeighborMax[index], ivec2(unjitteredUV * globalData.motionTileWindowSize.zw), 0).rg);
 
-	outTemporalResult = ResolveColor(ShadingResult[index], TemporalResult, unjitteredUV, motionVec, length(motionNeighborMaxFetch));
+	outTemporalShadingResult = ResolveShadingResult(ShadingResult[index], TemporalShadingResult, unjitteredUV, motionVec);
+	outTemporalSSRResult = ResolveSSRResult(SSRResult[index], TemporalSSRResult, unjitteredUV, motionVec, length(motionNeighborMaxFetch));
 	outTemporalCoC = vec4(ResolveCoC(GBuffer1[index], TemporalCoC, MotionVector[index], unjitteredUV));
+
+	outTemporalResult = outTemporalShadingResult + outTemporalSSRResult;
 }

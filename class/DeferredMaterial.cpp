@@ -381,20 +381,6 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 3, SSRInfoBuffers);
 
-	std::vector<CombinedImage> TemporalResultBuffers;
-	for (uint32_t j = 0; j < 2; j++)
-	{
-		std::shared_ptr<FrameBuffer> pFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
-
-		TemporalResultBuffers.push_back({
-			pFrameBuffer->GetColorTarget(0),
-			pFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
-			pFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
-			});
-	}
-
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + FrameBufferDiction::GBufferCount + 4, TemporalResultBuffers);
-
 	return true;
 }
 
@@ -462,14 +448,6 @@ void DeferredShadingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 		"SSRInfo",
 		{},
 		GetSwapChain()->GetSwapChainImageCount()
-	});
-
-	materialLayout.push_back(
-	{
-		CombinedSampler,
-		"TemporalResult",
-		{},
-		2
 	});
 }
 
@@ -553,25 +531,6 @@ void DeferredShadingMaterial::AttachResourceBarriers(const std::shared_ptr<Comma
 	imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	imgBarrier.image = pSSRInfoBuffer->GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-	barriers.push_back(imgBarrier);
-
-	std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong)->GetColorTarget(0);
-
-	subresourceRange = {};
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pTemporalResult->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pTemporalResult->GetImageInfo().arrayLayers;
-
-	imgBarrier = {};
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pTemporalResult->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
