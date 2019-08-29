@@ -28,6 +28,7 @@ int pingpong = int(perFrameData.camPos.a + 0.5f);
 
 float motionImpactLowerBound = globalData.TemporalSettings0.x;
 float motionImpactUpperBound = globalData.TemporalSettings0.y;
+float lowResponseSSRPortion = globalData.TemporalSettings0.z;
 
 vec4 ResolveShadingResult(sampler2D currSampler, sampler2D prevSampler, vec2 unjitteredUV, vec2 motionVec)
 {
@@ -92,7 +93,7 @@ vec4 ResolveSSRResult(sampler2D currSampler, sampler2D prevSampler, vec2 unjitte
 
 	vec4 lowResponseSSR = mix(curr, prev, 0.98f);
 	vec4 highResponseSSR = mix(curr, clippedPrev, 0.98f);
-	highResponseSSR = mix(lowResponseSSR, highResponseSSR, 0.7f);
+	highResponseSSR = mix(lowResponseSSR, highResponseSSR, lowResponseSSRPortion);
 
 	float currMotionFactor = currMotion / motionImpactUpperBound;
 	float prevMotionFactor = prevMotion / motionImpactUpperBound;

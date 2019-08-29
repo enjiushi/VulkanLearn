@@ -14,30 +14,28 @@ layout (location = 0) out vec4 outScreen;
 
 int index = int(perFrameData.camDir.a);
 
-const float MOTION_VEC_AMP = 0.06f;
-const float MOTION_VEC_SAMPLE_COUNT = 16;
-float vignetteMinDist = 0.2f;
-float vignetteMaxDist = 0.8f;
-float vignettAmp = 0.7f;
+float vignetteMinDist = globalData.VignetteSettings.x;
+float vignetteMaxDist = globalData.VignetteSettings.y;
+float vignettAmp = globalData.VignetteSettings.z;
 
 void main() 
 {
-	float motionAmp = MOTION_VEC_AMP * perFrameData.time.x;
+	float motionAmp = globalData.MotionBlurSettings.x * perFrameData.time.x;
 
 	vec3 noneMotionColor = texture(CombineResult[index], inUv).rgb;
 
 	// Motion Blur
 	vec3 fullMotionColor = vec3(0);
 	vec2 motionNeighborMax = texture(MotionNeighborMax[index], inUv).rg;
-	vec2 step = motionNeighborMax / MOTION_VEC_SAMPLE_COUNT;	// either side samples a pre-defined amount of colors
+	vec2 step = motionNeighborMax / globalData.MotionBlurSettings.y;	// either side samples a pre-defined amount of colors
 	vec2 startPos = inUv + step * 0.5f * PDsrand(inUv + vec2(perFrameData.time.y));	// Randomize starting position
 
-	for (int i = int(-MOTION_VEC_SAMPLE_COUNT / 2.0f); i <= int(MOTION_VEC_SAMPLE_COUNT / 2.0f); i++)
+	for (int i = int(-globalData.MotionBlurSettings.y / 2.0f); i <= int(globalData.MotionBlurSettings.y / 2.0f); i++)
 	{
 		fullMotionColor += texture(CombineResult[index], startPos + step * i).rgb;
 	}
 
-	fullMotionColor /= MOTION_VEC_SAMPLE_COUNT;
+	fullMotionColor /= globalData.MotionBlurSettings.y;
 
 	const float noneMotion = 2.0f;
 	const float fullMotion = 15.0f;

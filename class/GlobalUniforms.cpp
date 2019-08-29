@@ -330,6 +330,12 @@ void GlobalUniforms::SetMotionImpactUpperBound(float motionImpactUpperBound)
 	SetDirty();
 }
 
+void GlobalUniforms::SetHighResponseSSRPortion(float highResponseSSRPortion)
+{
+	m_globalVariables.TemporalSettings0.z = highResponseSSRPortion;
+	SetDirty();
+}
+
 void GlobalUniforms::SetBloomSettings0(const Vector4f& setting)
 {
 	m_globalVariables.BloomSettings0 = setting;
@@ -378,6 +384,49 @@ void GlobalUniforms::SetMaxCOC(float maxCOC)
 	m_globalVariables.DOFSettings0.y = 1 / maxCOC;
 	SetDirty();
 }
+
+void GlobalUniforms::SetMotionBlurSettings(const Vector4f& settings)
+{
+	m_globalVariables.MotionBlurSettings = settings;
+	SetDirty();
+}
+
+void GlobalUniforms::SetMotionBlurAmplify(float motionBlurAmplify)
+{
+	m_globalVariables.MotionBlurSettings.x = motionBlurAmplify;
+	SetDirty();
+}
+
+void GlobalUniforms::SetMotionBlurSampleCount(uint32_t sampleCount)
+{
+	m_globalVariables.MotionBlurSettings.y = (float)sampleCount;
+	SetDirty();
+}
+
+void GlobalUniforms::SetVignetteSettings(const Vector4f& settings)
+{
+	m_globalVariables.VignetteSettings = settings;
+	SetDirty();
+}
+
+void GlobalUniforms::SetVignetteMinDist(float minDist)
+{
+	m_globalVariables.VignetteSettings.x = minDist;
+	SetDirty();
+}
+
+void GlobalUniforms::SetVignetteMaxDist(float maxDist)
+{
+	m_globalVariables.VignetteSettings.y = maxDist;
+	SetDirty();
+}
+
+void GlobalUniforms::SetVignetteAmplify(float vignetteAmplify)
+{
+	m_globalVariables.VignetteSettings.z = vignetteAmplify;
+	SetDirty();
+}
+
 
 
 std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const

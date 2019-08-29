@@ -125,7 +125,7 @@ typedef struct _GlobalVariables
 	*
 	* X: Motion impact lower bound
 	* Y: Motion impact upper bound
-	* Z: Reserved
+	* Z: The portion of high response SSR in a moving region, to slightly reduce ssr noise
 	* W: Reserved
 	*/
 	Vector4f    TemporalSettings0;
@@ -159,6 +159,26 @@ typedef struct _GlobalVariables
 	* W: Reserved
 	*/
 	Vector4f	DOFSettings0;
+
+	/*******************************************************************
+	* DESCRIPTION: Parameters for motion blur
+	*
+	* X: Motion blur amplify factor, to enhance or reduce motion blur effect
+	* Y: Motion blur sample count
+	* Z: Reserved
+	* W: Reserved
+	*/
+	Vector4f	MotionBlurSettings;
+
+	/*******************************************************************
+	* DESCRIPTION: Parameters for vignette
+	*
+	* X: Vignette min distance
+	* Y: Vignette max distance
+	* Z: Vignette amplify factor
+	* W: Reserved
+	*/
+	Vector4f	VignetteSettings;
 
 	// SSAO settings
 	Vector4f	SSAOSamples[SSAO_SAMPLE_COUNT];
@@ -260,6 +280,8 @@ public:
 	float GetMotionImpactLowerBound() const { return m_globalVariables.TemporalSettings0.x; }
 	void SetMotionImpactUpperBound(float motionImpactUpperBound);
 	float GetMotionImpactUpperBound() const { return m_globalVariables.TemporalSettings0.y; }
+	void SetHighResponseSSRPortion(float highResponseSSRPortion);
+	float GetHighResponseSSRPortion() const { return m_globalVariables.TemporalSettings0.z; }
 
 	void SetBloomSettings0(const Vector4f& setting);
 	Vector4f GetBloomSettings0() const { return m_globalVariables.BloomSettings0; }
@@ -280,6 +302,20 @@ public:
 	float GetMaxCOC() const { return m_globalVariables.DOFSettings0.x; }
 	float GetRcpMaxCOC() const { return m_globalVariables.DOFSettings0.y; }
 	float GetCOCCoeff() const { return m_globalVariables.DOFSettings0.z; }
+
+	void SetMotionBlurSettings(const Vector4f& settings);
+	void SetMotionBlurAmplify(float motionBlurAmplify);
+	float GetMotionBlurAmplify() const { return m_globalVariables.MotionBlurSettings.x; }
+	void SetMotionBlurSampleCount(uint32_t sampleCount);
+	uint32_t GetMotionBlurSampleCount() const { return (uint32_t)m_globalVariables.MotionBlurSettings.y; }
+
+	void SetVignetteSettings(const Vector4f& settings);
+	void SetVignetteMinDist(float minDist);
+	float GetVignetteMinDist() const { return m_globalVariables.VignetteSettings.x; }
+	void SetVignetteMaxDist(float maxDist);
+	float GetVignetteMaxDist() const { return m_globalVariables.VignetteSettings.y; }
+	void SetVignetteAmplify(float vignetteAmplify);
+	float GetVignetteAmplify() const { return m_globalVariables.VignetteSettings.z; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

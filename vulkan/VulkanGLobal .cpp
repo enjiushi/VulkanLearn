@@ -864,6 +864,7 @@ void VulkanGlobal::InitScene()
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactLowerBound(0.0001f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.003f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetHighResponseSSRPortion(0.7f);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingLowerBound(0.99f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingUpperBound(1.1f);
@@ -872,6 +873,13 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomSlope(1.0f);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxCOC(16.0f / FrameBufferDiction::WINDOW_WIDTH);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionBlurAmplify(0.06f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionBlurSampleCount(16);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMinDist(0.2f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMaxDist(0.8f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteAmplify(0.7f);
 }
 
 class RoughnessChanger : public IInputListener

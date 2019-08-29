@@ -33,6 +33,8 @@ struct GlobalData
 	vec4 BloomSettings0;
 	vec4 BloomSettings1;
 	vec4 DOFSettings0;
+	vec4 MotionBlurSettings;
+	vec4 VignetteSettings;
 
 	// SSAO Settings
 	vec4 SSAOSamples[64];
