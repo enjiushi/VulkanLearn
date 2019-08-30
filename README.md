@@ -116,4 +116,4 @@ This pass does exactly the same job as **GBuffer Pass**, except that it deals on
 ### Background Motion Pass
 We can render motion vector through various objects shown on the screen. However for those pixels that are never touched by any of them, no motion vectors will be produced. This doesn't seem like a problem for skybox since it doesn't move with character. But it'll fail if a character rotates its view direction, motion blur is not able to apply here. Therefore, an extra pass here to fill the gap, to record motion only caused by view rotation.
 ### Motion Tile Max Pass && Motion Neighborhood Max
-These 2 passes mainly converts per pixel motion into tile, and each tile contains larges motion it records within its rect. The result is used both in **Temporal Resolve Pass** and **Post Process Pass**.
+These 2 passes mainly convert per pixel motion into tile, and each tile contains larges motion it records within its rect. The result is used both in **Temporal Resolve Pass** and **Post Process Pass**.
