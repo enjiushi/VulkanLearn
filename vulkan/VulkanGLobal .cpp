@@ -359,45 +359,7 @@ void VulkanGlobal::InitVertices()
 {
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
-	float cubeVertices[] = {
-		// front
-		-1.0, -1.0,  1.0,
-		1.0, -1.0,  1.0,
-		1.0,  1.0,  1.0,
-		-1.0,  1.0,  1.0,
-		// back
-		-1.0, -1.0, -1.0,
-		1.0, -1.0, -1.0,
-		1.0,  1.0, -1.0,
-		-1.0,  1.0, -1.0,
-	};
-
-	uint32_t cubeIndices[] = {
-		// front
-		0, 2, 1,
-		2, 0, 3,
-		// top
-		1, 6, 5,
-		6, 1, 2,
-		// back
-		7, 5, 6,
-		5, 7, 4,
-		// bottom
-		4, 3, 0,
-		3, 4, 7,
-		// left
-		4, 1, 5,
-		1, 4, 0,
-		// right
-		3, 6, 2,
-		6, 3, 7,
-	};
-
-	m_pCubeMesh = Mesh::Create
-	(
-		cubeVertices, 8, 1 << VAFPosition,
-		cubeIndices, 36, VK_INDEX_TYPE_UINT32
-	);
+	m_pCubeMesh = SceneGenerator::GenerateBoxMesh();
 
 	m_pPBRBoxMesh = SceneGenerator::GeneratePBRBoxMesh();
 }

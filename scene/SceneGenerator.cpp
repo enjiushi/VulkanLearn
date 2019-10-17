@@ -95,7 +95,6 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 
 std::shared_ptr<Mesh> SceneGenerator::GenerateBoxMesh()
 {
-	// FIXME: Put this into utility classes
 	float cubeVertices[] = {
 		// front
 		-1.0, -1.0,  1.0,
