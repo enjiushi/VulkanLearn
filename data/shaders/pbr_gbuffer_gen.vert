@@ -23,7 +23,9 @@ layout (location = 9) out vec3 outPrevWorldPos;
 
 void main() 
 {
-	perObjectIndex = objectDataIndex[gl_DrawID].perObjectIndex;
+	int indirectIndex = GetIndirectIndex(gl_DrawID, gl_InstanceIndex);
+
+	perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
 	gl_Position = perObjectData[perObjectIndex].MVP * vec4(inPos.xyz, 1.0);
 
@@ -39,5 +41,5 @@ void main()
 	outTangent = normalize(vec3(perObjectData[perObjectIndex].model * vec4(inTangent, 0.0)));
 	outBitangent = normalize(cross(outNormal, outTangent));
 
-	perMaterialIndex = objectDataIndex[gl_DrawID].perMaterialIndex;
+	perMaterialIndex = objectDataIndex[indirectIndex].perMaterialIndex;
 }

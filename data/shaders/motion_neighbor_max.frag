@@ -5,7 +5,7 @@
 
 #include "uniform_layout.sh"
 
-layout (set = 3, binding = 2) uniform sampler2D motionTileMax[3];
+layout (set = 3, binding = 3) uniform sampler2D motionTileMax[3];
 
 layout (location = 0) in vec2 inUv;
 

@@ -8,6 +8,46 @@
 #include "UniformData.h"
 #include "Material.h"
 
+bool PerMaterialIndirectOffsetUniforms::Init(const std::shared_ptr<PerMaterialIndirectOffsetUniforms>& pSelf)
+{
+	if (!UniformDataStorage::Init(pSelf, sizeof(m_indirectOffsets), true))
+		return false;
+	return true;
+}
+
+std::shared_ptr<PerMaterialIndirectOffsetUniforms> PerMaterialIndirectOffsetUniforms::Create()
+{
+	std::shared_ptr<PerMaterialIndirectOffsetUniforms> pPerMaterialIndirectOffsetUniforms = std::make_shared<PerMaterialIndirectOffsetUniforms>();
+	if (pPerMaterialIndirectOffsetUniforms.get() && pPerMaterialIndirectOffsetUniforms->Init(pPerMaterialIndirectOffsetUniforms))
+		return pPerMaterialIndirectOffsetUniforms;
+	return nullptr;
+}
+
+void PerMaterialIndirectOffsetUniforms::UpdateDirtyChunkInternal(uint32_t index)
+{
+}
+
+std::vector<UniformVarList> PerMaterialIndirectOffsetUniforms::PrepareUniformVarList() const
+{
+	return
+	{
+		{
+			DynamicShaderStorageBuffer,
+			"PerMaterialIndirectOffset",
+			{
+				{ OneUnit, "Indirect offset acquired by draw id" }
+			}
+		}
+	};
+}
+
+uint32_t PerMaterialIndirectOffsetUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
+{
+	pDescriptorSet->UpdateShaderStorageBufferDynamic(bindingIndex++, std::dynamic_pointer_cast<ShaderStorageBuffer>(GetBuffer()));
+
+	return bindingIndex;
+}
+
 bool PerMaterialIndirectUniforms::Init(const std::shared_ptr<PerMaterialIndirectUniforms>& pSelf)
 {
 	if (!UniformDataStorage::Init(pSelf, sizeof(m_perMaterialIndirectIndex), true))

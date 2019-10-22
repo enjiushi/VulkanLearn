@@ -56,6 +56,10 @@ void Material::GeneralInit
 	// Add per material indirect index uniform layout
 	if (includeIndirectBuffer)
 	{
+		m_materialUniforms[PerMaterialIndirectOffsetBuffer] = PerMaterialIndirectOffsetUniforms::Create();
+		m_materialVariableLayout[PerMaterialIndirectOffsetBuffer] = m_materialUniforms[PerMaterialIndirectOffsetBuffer]->PrepareUniformVarList()[0];
+		m_pPerMaterialIndirectOffset = std::dynamic_pointer_cast<PerMaterialIndirectOffsetUniforms>(m_materialUniforms[PerMaterialIndirectOffsetBuffer]);
+
 		m_materialUniforms[PerMaterialIndirectVariableBuffer] = PerMaterialIndirectUniforms::Create();
 		m_materialVariableLayout[PerMaterialIndirectVariableBuffer] = m_materialUniforms[PerMaterialIndirectVariableBuffer]->PrepareUniformVarList()[0];
 		m_pPerMaterialIndirectUniforms = std::dynamic_pointer_cast<PerMaterialIndirectUniforms>(m_materialUniforms[PerMaterialIndirectVariableBuffer]);
@@ -412,6 +416,9 @@ void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex)
 {
 	m_pIndirectBuffer->SetIndirectCmd(m_indirectIndex, cmd);
+
+	// FIXME: Make this right later
+	m_pPerMaterialIndirectOffset->SetIndirectOffset(m_indirectIndex, m_indirectIndex);
 
 	m_pPerMaterialIndirectUniforms->SetPerObjectIndex(m_indirectIndex, perObjectIndex);
 	m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(m_indirectIndex, perMaterialIndex);

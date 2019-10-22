@@ -9,7 +9,7 @@ layout (location = 0) in vec3 inPos;
 
 void main() 
 {
-	int perObjectIndex = objectDataIndex[gl_DrawID].perObjectIndex;
+	int perObjectIndex = objectDataIndex[GetIndirectIndex(gl_DrawID, gl_InstanceIndex)].perObjectIndex;
 
 	gl_Position = globalData.mainLightVP * perObjectData[perObjectIndex].model * vec4(inPos.xyz, 1.0);
 }

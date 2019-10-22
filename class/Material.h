@@ -23,6 +23,7 @@ class CommandBuffer;
 class Image;
 class SharedIndirectBuffer;
 class PerMaterialIndirectUniforms;
+class PerMaterialIndirectOffsetUniforms;
 class FrameBuffer;
 class RenderPassBase;
 
@@ -58,6 +59,7 @@ public:
 	enum MaterialUniformStorageType
 	{
 		PerMaterialVariableBuffer,
+		PerMaterialIndirectOffsetBuffer,
 		PerMaterialIndirectVariableBuffer,
 		MaterialUniformStorageTypeCount
 	};
@@ -185,6 +187,7 @@ protected:
 	std::vector<std::shared_ptr<UniformDataStorage>>	m_materialUniforms;
 	std::vector<std::vector<uint32_t>>					m_cachedFrameOffsets;
 
+	std::shared_ptr<PerMaterialIndirectOffsetUniforms>	m_pPerMaterialIndirectOffset;
 	std::shared_ptr<PerMaterialIndirectUniforms>		m_pPerMaterialIndirectUniforms;
 	std::shared_ptr<PerMaterialUniforms>				m_pPerMaterialUniforms;
 

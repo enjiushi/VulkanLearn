@@ -12,9 +12,11 @@ layout (location = 6) in uint inBoneIndices;
 
 void main() 
 {
-	int perObjectIndex = objectDataIndex[gl_DrawID].perObjectIndex;
+	int indirectIndex = GetIndirectIndex(gl_DrawID, gl_InstanceIndex);
 
-	int perAnimationChunkIndex = objectDataIndex[gl_DrawID].perAnimationIndex;
+	int perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
+
+	int perAnimationChunkIndex = objectDataIndex[indirectIndex].perAnimationIndex;
 
 	vec4 bone_weights = inBoneWeight;
 
