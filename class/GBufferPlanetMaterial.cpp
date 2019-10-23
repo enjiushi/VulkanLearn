@@ -1,4 +1,4 @@
-#include "MotionTileMaxMaterial.h"
+#include "GBufferPlanetMaterial.h"
 #include "../vulkan/RenderPass.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/CommandBuffer.h"
@@ -16,23 +16,47 @@
 #include "RenderPassBase.h"
 #include "RenderPassDiction.h"
 #include "RenderWorkManager.h"
-#include "GBufferPass.h"
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 
-std::shared_ptr<MotionTileMaxMaterial> MotionTileMaxMaterial::CreateDefaultMaterial()
+std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMaterial()
 {
-	SimpleMaterialCreateInfo simpleMaterialInfo = {};
-	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/motion_tile_max.frag.spv", L"" };
-	simpleMaterialInfo.vertexFormat = VertexFormatNul;
-	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
-	simpleMaterialInfo.subpassIndex = 0;
-	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_MotionTileMax;
-	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionTileMax);
-	simpleMaterialInfo.depthTestEnable = false;
-	simpleMaterialInfo.depthWriteEnable = false;
+	std::vector<UniformVar> vars =
+	{
+		{
+			{
+				Vec4Unit,
+				"AlbedoRoughness"
+			},
+			{
+				Vec2Unit,
+				"AOMetalic"
+			},
+			{
+				OneUnit,
+				"AlbedoRoughnessTextureIndex"
+			},
+			{
+				OneUnit,
+				"NormalAOTextureIndex"
+			},
+			{
+				OneUnit,
+				"MetallicTextureIndex"
+			}
+		}
+	};
 
-	std::shared_ptr<MotionTileMaxMaterial> pMotionTileMaxMaterial = std::make_shared<MotionTileMaxMaterial>();
+	SimpleMaterialCreateInfo simpleMaterialInfo = {};
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/pbr_gbuffer_planet.vert.spv", L"", L"", L"", L"../data/shaders/pbr_gbuffer_planet.frag.spv", L"" };
+	simpleMaterialInfo.materialUniformVars = vars;
+	simpleMaterialInfo.vertexFormat =  VertexFormatP;
+	simpleMaterialInfo.vertexFormatInMem = VertexFormatP;
+	simpleMaterialInfo.subpassIndex = 0;
+	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_GBuffer;
+	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
+
+	std::shared_ptr<GBufferPlanetMaterial> pGBufferPlanetMaterial = std::make_shared<GBufferPlanetMaterial>();
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
@@ -43,7 +67,7 @@ std::shared_ptr<MotionTileMaxMaterial> MotionTileMaxMaterial::CreateDefaultMater
 	{
 		blendStatesInfo.push_back(
 			{
-				VK_FALSE,							// blend enabled
+				simpleMaterialInfo.isTransparent,	// blend enabled
 
 				VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
 				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
@@ -66,8 +90,9 @@ std::shared_ptr<MotionTileMaxMaterial> MotionTileMaxMaterial::CreateDefaultMater
 
 	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
 	depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilCreateInfo.depthTestEnable = VK_FALSE;
-	depthStencilCreateInfo.depthWriteEnable = VK_FALSE;
+	depthStencilCreateInfo.depthTestEnable = simpleMaterialInfo.depthTestEnable;
+	depthStencilCreateInfo.depthWriteEnable = simpleMaterialInfo.depthWriteEnable;
+	depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
 
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
 	assemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -129,84 +154,10 @@ std::shared_ptr<MotionTileMaxMaterial> MotionTileMaxMaterial::CreateDefaultMater
 	createInfo.pViewportState = &viewportStateCreateInfo;
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
-	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
+	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
-	if (pMotionTileMaxMaterial.get() && pMotionTileMaxMaterial->Init(pMotionTileMaxMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
-		return pMotionTileMaxMaterial;
-
+	if (pGBufferPlanetMaterial.get() && pGBufferPlanetMaterial->Init(pGBufferPlanetMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem, true))
+		return pGBufferPlanetMaterial;
 	return nullptr;
-}
-
-bool MotionTileMaxMaterial::Init(const std::shared_ptr<MotionTileMaxMaterial>& pSelf,
-	const std::vector<std::wstring>	shaderPaths,
-	const std::shared_ptr<RenderPassBase>& pRenderPass,
-	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
-	const std::vector<UniformVar>& materialUniformVars,
-	uint32_t vertexFormat,
-	uint32_t vertexFormatInMem)
-{
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat, vertexFormatInMem, false))
-		return false;
-
-	std::vector<CombinedImage> motionVector;
-	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
-	{
-		std::shared_ptr<FrameBuffer> pGBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
-
-		motionVector.push_back({
-			pGBuffer->GetColorTarget(FrameBufferDiction::MotionVector),
-			pGBuffer->GetColorTarget(FrameBufferDiction::MotionVector)->CreateLinearClampToEdgeSampler(),
-			pGBuffer->GetColorTarget(FrameBufferDiction::MotionVector)->CreateDefaultImageView()
-		});
-	}
-
-	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, motionVector);
-
-	return true;
-}
-
-void MotionTileMaxMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
-{
-		m_materialVariableLayout.push_back(
-			{
-				CombinedSampler,
-				"MotionVector",
-				{},
-				GetSwapChain()->GetSwapChainImageCount()
-			});
-}
-
-void MotionTileMaxMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
-{
-	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount());
-}
-
-void MotionTileMaxMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
-{
-	std::shared_ptr<Image> pMotionVector = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::MotionVector);
-
-	VkImageSubresourceRange subresourceRange = {};
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = pMotionVector->GetImageInfo().mipLevels;
-	subresourceRange.layerCount = pMotionVector->GetImageInfo().arrayLayers;
-
-	VkImageMemoryBarrier imgBarrier = {};
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pMotionVector->GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-	pCmdBuffer->AttachBarriers
-	(
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-		{},
-		{},
-		{ imgBarrier }
-	);
 }

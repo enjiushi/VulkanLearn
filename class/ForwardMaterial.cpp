@@ -118,7 +118,7 @@ std::shared_ptr<ForwardMaterial> ForwardMaterial::CreateDefaultMaterial(const Si
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
-	if (pForwardMaterial.get() && pForwardMaterial->Init(pForwardMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem))
+	if (pForwardMaterial.get() && pForwardMaterial->Init(pForwardMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem, true))
 		return pForwardMaterial;
 	return nullptr;
 }

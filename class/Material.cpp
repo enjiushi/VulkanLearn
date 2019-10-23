@@ -43,28 +43,25 @@ void Material::GeneralInit
 (
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
+
+	// Don't remove this, will be useful later
 	bool includeIndirectBuffer
 )
 {
-	uint32_t materialUniformCount = includeIndirectBuffer ? MaterialUniformStorageTypeCount : 1;
-
-	m_materialVariableLayout.resize(materialUniformCount);
-	m_materialUniforms.resize(materialUniformCount);
+	m_materialVariableLayout.resize(MaterialUniformStorageTypeCount);
+	m_materialUniforms.resize(MaterialUniformStorageTypeCount);
 
 
 	std::vector<UniformVarList> _materialVariableLayout;
 
 	// Add per material indirect index uniform layout
-	if (includeIndirectBuffer)
-	{
-		m_materialUniforms[PerMaterialIndirectOffsetBuffer] = PerMaterialIndirectOffsetUniforms::Create();
-		m_materialVariableLayout[PerMaterialIndirectOffsetBuffer] = m_materialUniforms[PerMaterialIndirectOffsetBuffer]->PrepareUniformVarList()[0];
-		m_pPerMaterialIndirectOffset = std::dynamic_pointer_cast<PerMaterialIndirectOffsetUniforms>(m_materialUniforms[PerMaterialIndirectOffsetBuffer]);
+	m_materialUniforms[PerMaterialIndirectOffsetBuffer] = PerMaterialIndirectOffsetUniforms::Create();
+	m_materialVariableLayout[PerMaterialIndirectOffsetBuffer] = m_materialUniforms[PerMaterialIndirectOffsetBuffer]->PrepareUniformVarList()[0];
+	m_pPerMaterialIndirectOffset = std::dynamic_pointer_cast<PerMaterialIndirectOffsetUniforms>(m_materialUniforms[PerMaterialIndirectOffsetBuffer]);
 
-		m_materialUniforms[PerMaterialIndirectVariableBuffer] = PerMaterialIndirectUniforms::Create();
-		m_materialVariableLayout[PerMaterialIndirectVariableBuffer] = m_materialUniforms[PerMaterialIndirectVariableBuffer]->PrepareUniformVarList()[0];
-		m_pPerMaterialIndirectUniforms = std::dynamic_pointer_cast<PerMaterialIndirectUniforms>(m_materialUniforms[PerMaterialIndirectVariableBuffer]);
-	}
+	m_materialUniforms[PerMaterialIndirectVariableBuffer] = PerMaterialIndirectUniforms::Create();
+	m_materialVariableLayout[PerMaterialIndirectVariableBuffer] = m_materialUniforms[PerMaterialIndirectVariableBuffer]->PrepareUniformVarList()[0];
+	m_pPerMaterialIndirectUniforms = std::dynamic_pointer_cast<PerMaterialIndirectUniforms>(m_materialUniforms[PerMaterialIndirectVariableBuffer]);
 
 	// Add material variable layout
 	m_materialVariableLayout[PerMaterialVariableBuffer] =
@@ -191,7 +188,7 @@ void Material::GeneralInit
 
 	// Setup descriptor set
 	uint32_t bindingIndex = 0;
-	for (uint32_t i = 0; i < materialUniformCount; i++)
+	for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
 	{
 		bindingIndex = m_materialUniforms[i]->SetupDescriptorSet(m_pUniformStorageDescriptorSet, bindingIndex);
 	}
@@ -202,7 +199,7 @@ void Material::GeneralInit
 	for (uint32_t frameIndex = 0; frameIndex < GetSwapChain()->GetSwapChainImageCount(); frameIndex++)
 	{
 		std::vector<uint32_t> offsets;
-		for (uint32_t i = 0; i < materialUniformCount; i++)
+		for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
 		{
 			m_cachedFrameOffsets[frameIndex].push_back(m_materialUniforms[i]->GetFrameOffset() * frameIndex);
 		}
@@ -217,10 +214,11 @@ bool Material::Init
 	const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<UniformVar>& materialUniformVars,
 	uint32_t vertexFormat,
-	uint32_t vertexFormatInMem
+	uint32_t vertexFormatInMem,
+	bool includeIndirectBuffer
 )
 {
-	return Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, {}, materialUniformVars, vertexFormat, vertexFormatInMem);
+	return Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, {}, materialUniformVars, vertexFormat, vertexFormatInMem, includeIndirectBuffer);
 }
 
 bool Material::Init
@@ -232,13 +230,14 @@ bool Material::Init
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
 	uint32_t vertexFormat,
-	uint32_t vertexFormatInMem
+	uint32_t vertexFormatInMem,
+	bool includeIndirectBuffer
 )
 {
 	if (!SelfRefBase<Material>::Init(pSelf))
 		return false;
 
-	GeneralInit(pushConstsRanges, materialUniformVars, true);
+	GeneralInit(pushConstsRanges, materialUniformVars, includeIndirectBuffer);
 
 	// Init shaders
 	std::vector<std::shared_ptr<ShaderModule>> shaders;
@@ -254,7 +253,8 @@ bool Material::Init
 
 	m_pRenderPass = pRenderPass;
 
-	m_pIndirectBuffer = SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT);
+	if (includeIndirectBuffer)
+		m_pIndirectBuffer = SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT);
 
 	m_vertexFormat = vertexFormat;
 	m_vertexFormatInMem = vertexFormatInMem;
@@ -488,6 +488,9 @@ void Material::PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecond
 
 void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
 {
+	if (m_pIndirectBuffer == nullptr)
+		return;
+
 	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
@@ -518,6 +521,9 @@ void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, con
 
 void Material::OnFrameBegin()
 {
+	if (m_pIndirectBuffer == nullptr)
+		return;
+
 	uint32_t drawID = 0;
 	uint32_t offset = 0;
 	VkDrawIndexedIndirectCommand cmd;
