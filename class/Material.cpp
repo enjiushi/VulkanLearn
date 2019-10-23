@@ -441,20 +441,6 @@ void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_
 	auto& renderData = m_cachedMeshRenderData[iter->second];
 	std::get<1>(renderData) += 1;
 	std::get<2>(renderData).push_back({ perObjectIndex, perMaterialIndex, perMeshIndex, perAnimationIndex });
-
-	//VkDrawIndexedIndirectCommand cmd;
-	//pMesh->PrepareIndirectCmd(cmd);
-	//m_pIndirectBuffer->SetIndirectCmd(m_indirectIndex, cmd);
-
-	//// FIXME: Make this right later
-	//m_pPerMaterialIndirectOffset->SetIndirectOffset(m_indirectIndex, m_indirectIndex);
-
-	//m_pPerMaterialIndirectUniforms->SetPerObjectIndex(m_indirectIndex, perObjectIndex);
-	//m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(m_indirectIndex, perMaterialIndex);
-	//m_pPerMaterialIndirectUniforms->SetPerMeshIndex(m_indirectIndex, perMeshIndex);
-	//m_pPerMaterialIndirectUniforms->SetPerAnimationIndex(m_indirectIndex, perAnimationIndex);
-
-	//m_indirectIndex += 1;
 }
 
 void Material::BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)

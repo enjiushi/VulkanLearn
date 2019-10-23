@@ -205,7 +205,6 @@ protected:
 
 	std::vector<std::weak_ptr<MaterialInstance>>		m_generatedInstances;
 	std::shared_ptr<SharedIndirectBuffer>				m_pIndirectBuffer;
-	uint32_t											m_indirectIndex = 0;
 	uint32_t											m_vertexFormat;
 	uint32_t											m_vertexFormatInMem;
 	friend class MaterialInstance;
