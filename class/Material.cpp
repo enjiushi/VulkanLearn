@@ -452,24 +452,32 @@ void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, ui
 {
 }
 
-void Material::PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
+void Material::PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
 {
-	pSecondaryCmdBuf->SetViewports(
-		{ 
+	if (overrideVP)
+	{ 
+		pSecondaryCmdBuf->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
+		pSecondaryCmdBuf->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
+	}
+	else
+	{
+		pSecondaryCmdBuf->SetViewports(
 			{
-				0, 0,
-				(float)pFrameBuffer->GetFramebufferInfo().width, (float)pFrameBuffer->GetFramebufferInfo().height,
-				0, 1
-			} 
-		});
+				{
+					0, 0,
+					(float)pFrameBuffer->GetFramebufferInfo().width, (float)pFrameBuffer->GetFramebufferInfo().height,
+					0, 1
+				}
+			});
 
-	pSecondaryCmdBuf->SetScissors(
-		{ 
+		pSecondaryCmdBuf->SetScissors(
 			{
-				0, 0,
-				pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
-			}
-		});
+				{
+					0, 0,
+					pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
+				}
+			});
+	}
 
 	BindPipeline(pSecondaryCmdBuf);
 	BindDescriptorSet(pSecondaryCmdBuf);
@@ -478,13 +486,13 @@ void Material::PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecond
 	CustomizeSecondaryCmd(pSecondaryCmdBuf, pFrameBuffer, pingpong);
 }
 
-void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
+void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
 {
 	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
 
-	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong);
+	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong, overrideVP);
 
 	pSecondaryCmd->DrawIndexedIndirect(m_pIndirectBuffer, 0, m_cachedMeshRenderData.size());
 
@@ -493,13 +501,13 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 	pCmdBuf->Execute({ pSecondaryCmd });
 }
 
-void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
+void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
 {
 	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
 
-	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong);
+	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong, overrideVP);
 
 	pSecondaryCmd->Draw(3, 1, 0, 0);
 

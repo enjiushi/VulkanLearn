@@ -160,9 +160,6 @@ void GlobalTextures::InitIrradianceTexture()
 			UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 		};
 
-		GetGlobalVulkanStates()->SetViewport(viewport);
-		GetGlobalVulkanStates()->SetScissorRect(scissorRect);
-
 		SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
 
 		SceneGenerator::GetInstance()->GetRootObject()->Update();
@@ -257,7 +254,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 
 			SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer);
 			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]);
-			SceneGenerator::GetInstance()->GetMaterial0()->DrawIndirect(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_EnvGenOffScreen));
+			SceneGenerator::GetInstance()->GetMaterial0()->DrawIndirect(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_EnvGenOffScreen), 0, true);
 			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer);
 			SceneGenerator::GetInstance()->GetMaterial0()->AfterRenderPass(pDrawCmdBuffer);
 
@@ -297,9 +294,6 @@ void GlobalTextures::InitBRDFLUTTexture()
 		0, 0,
 		UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 	};
-
-	GetGlobalVulkanStates()->SetViewport(viewport);
-	GetGlobalVulkanStates()->SetScissorRect(scissorRect);
 
 	SceneGenerator::GetInstance()->GetRootObject()->Update();
 	SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
