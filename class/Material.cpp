@@ -454,8 +454,22 @@ void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, ui
 
 void Material::PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
 {
-	pSecondaryCmdBuf->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
-	pSecondaryCmdBuf->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
+	pSecondaryCmdBuf->SetViewports(
+		{ 
+			{
+				0, 0,
+				(float)pFrameBuffer->GetFramebufferInfo().width, (float)pFrameBuffer->GetFramebufferInfo().height,
+				0, 1
+			} 
+		});
+
+	pSecondaryCmdBuf->SetScissors(
+		{ 
+			{
+				0, 0,
+				pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
+			}
+		});
 
 	BindPipeline(pSecondaryCmdBuf);
 	BindDescriptorSet(pSecondaryCmdBuf);
