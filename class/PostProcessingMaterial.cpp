@@ -146,7 +146,7 @@ bool PostProcessingMaterial::Init(const std::shared_ptr<PostProcessingMaterial>&
 	uint32_t vertexFormat,
 	uint32_t vertexFormatInMem)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat, vertexFormatInMem))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat, vertexFormatInMem, false))
 		return false;
 
 	std::vector<CombinedImage> resultTargets;

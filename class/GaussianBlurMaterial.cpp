@@ -159,7 +159,7 @@ bool GaussianBlurMaterial::Init(const std::shared_ptr<GaussianBlurMaterial>& pSe
 	const std::vector<std::shared_ptr<Image>>& inputTextures,
 	GaussianBlurParams params)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat, vertexFormatInMem))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat, vertexFormatInMem, false))
 		return false;
 
 	std::vector<CombinedImage> combinedImages;

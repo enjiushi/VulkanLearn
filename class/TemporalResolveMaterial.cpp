@@ -148,7 +148,7 @@ bool TemporalResolveMaterial::Init(const std::shared_ptr<TemporalResolveMaterial
 	uint32_t vertexFormatInMem,
 	uint32_t pingpong)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat, vertexFormatInMem))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat, vertexFormatInMem, false))
 		return false;
 
 	std::vector<CombinedImage> motionVectors;

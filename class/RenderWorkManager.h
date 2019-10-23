@@ -22,6 +22,7 @@ class PostProcessingMaterial;
 class MaterialInstance;
 class CommandBuffer;
 class DOFMaterial;
+class GBufferPlanetMaterial;
 
 class RenderWorkManager : public Singleton<RenderWorkManager>
 {
@@ -51,6 +52,7 @@ public:
 
 	std::shared_ptr<MaterialInstance> AcquirePBRMaterialInstance() const;
 	std::shared_ptr<MaterialInstance> AcquirePBRSkinnedMaterialInstance() const;
+	std::shared_ptr<MaterialInstance> AcquirePBRPlanetMaterialInstance() const;
 	std::shared_ptr<MaterialInstance> AcquireShadowMaterialInstance() const;
 	std::shared_ptr<MaterialInstance> AcquireSkinnedShadowMaterialInstance() const;
 	std::shared_ptr<MaterialInstance> AcquireSkyBoxMaterialInstance() const;
@@ -64,8 +66,9 @@ public:
 protected:
 	uint32_t m_renderStateMask;
 	
-	std::shared_ptr<GBufferMaterial>			m_PBRGbufferMaterial;
-	std::shared_ptr<GBufferMaterial>			m_PBRSkinnedGbufferMaterial;
+	std::shared_ptr<GBufferMaterial>			m_pPBRGBufferMaterial;
+	std::shared_ptr<GBufferMaterial>			m_pPBRSkinnedGbufferMaterial;
+	std::shared_ptr<GBufferPlanetMaterial>		m_pPBRPlanetGBufferMaterial;
 	std::shared_ptr<ForwardMaterial>			m_pBackgroundMotionMaterial;
 	std::shared_ptr<MotionTileMaxMaterial>		m_pMotionTileMaxMaterial;
 	std::shared_ptr<MotionNeighborMaxMaterial>	m_pMotionNeighborMaxMaterial;

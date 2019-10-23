@@ -149,7 +149,7 @@ bool CombineMaterial::Init(const std::shared_ptr<CombineMaterial>& pSelf,
 	uint32_t vertexFormat,
 	uint32_t vertexFormatInMem)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat, vertexFormatInMem))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, pushConstsRanges, materialUniformVars, vertexFormat, vertexFormatInMem, false))
 		return false;
 
 	std::vector<CombinedImage> DOFResults;

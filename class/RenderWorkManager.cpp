@@ -20,6 +20,7 @@
 #include "CombineMaterial.h"
 #include "PostProcessingMaterial.h"
 #include "DOFMaterial.h"
+#include "GBufferPlanetMaterial.h"
 #include "MaterialInstance.h"
 
 bool RenderWorkManager::Init()
@@ -27,8 +28,9 @@ bool RenderWorkManager::Init()
 	if (!Singleton<RenderWorkManager>::Init())
 		return false;
 
-	m_PBRGbufferMaterial			= GBufferMaterial::CreateDefaultMaterial();
-	m_PBRSkinnedGbufferMaterial		= GBufferMaterial::CreateDefaultMaterial(true);
+	m_pPBRGBufferMaterial			= GBufferMaterial::CreateDefaultMaterial();
+	m_pPBRSkinnedGbufferMaterial	= GBufferMaterial::CreateDefaultMaterial(true);
+	m_pPBRPlanetGBufferMaterial		= GBufferPlanetMaterial::CreateDefaultMaterial();
 	m_pMotionTileMaxMaterial		= MotionTileMaxMaterial::CreateDefaultMaterial();
 	m_pMotionNeighborMaxMaterial	= MotionNeighborMaxMaterial::CreateDefaultMaterial();
 	m_pShadingMaterial				= DeferredShadingMaterial::CreateDefaultMaterial();
@@ -82,14 +84,21 @@ bool RenderWorkManager::Init()
 
 std::shared_ptr<MaterialInstance> RenderWorkManager::AcquirePBRMaterialInstance() const
 {
-	std::shared_ptr<MaterialInstance> pMaterialInstance = m_PBRGbufferMaterial->CreateMaterialInstance();
+	std::shared_ptr<MaterialInstance> pMaterialInstance = m_pPBRGBufferMaterial->CreateMaterialInstance();
 	pMaterialInstance->SetRenderMask(1 << Scene);
 	return pMaterialInstance;
 }
 
 std::shared_ptr<MaterialInstance> RenderWorkManager::AcquirePBRSkinnedMaterialInstance() const
 {
-	std::shared_ptr<MaterialInstance> pMaterialInstance = m_PBRSkinnedGbufferMaterial->CreateMaterialInstance();
+	std::shared_ptr<MaterialInstance> pMaterialInstance = m_pPBRSkinnedGbufferMaterial->CreateMaterialInstance();
+	pMaterialInstance->SetRenderMask(1 << Scene);
+	return pMaterialInstance;
+}
+
+std::shared_ptr<MaterialInstance> RenderWorkManager::AcquirePBRPlanetMaterialInstance() const
+{
+	std::shared_ptr<MaterialInstance> pMaterialInstance = m_pPBRPlanetGBufferMaterial->CreateMaterialInstance();
 	pMaterialInstance->SetRenderMask(1 << Scene);
 	return pMaterialInstance;
 }
@@ -117,26 +126,26 @@ std::shared_ptr<MaterialInstance> RenderWorkManager::AcquireSkyBoxMaterialInstan
 
 void RenderWorkManager::SyncMaterialData()
 {
-	m_PBRGbufferMaterial->SyncBufferData();
-	m_PBRSkinnedGbufferMaterial->SyncBufferData();
+	m_pPBRGBufferMaterial->SyncBufferData();
+	m_pPBRSkinnedGbufferMaterial->SyncBufferData();
 	m_pShadowMapMaterial->SyncBufferData();
 	m_pSkinnedShadowMapMaterial->SyncBufferData();
 }
 
 void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffer, uint32_t pingpong)
 {
-	m_PBRGbufferMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	m_PBRSkinnedGbufferMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	m_pPBRGBufferMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	m_pPBRSkinnedGbufferMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
 	m_pBackgroundMotionMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer));
-	m_PBRGbufferMaterial->DrawIndirect(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer), pingpong);
-	m_PBRSkinnedGbufferMaterial->DrawIndirect(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer), pingpong);
+	m_pPBRGBufferMaterial->DrawIndirect(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer), pingpong);
+	m_pPBRSkinnedGbufferMaterial->DrawIndirect(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer), pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->NextSubpass(pDrawCmdBuffer);
 	m_pBackgroundMotionMaterial->DrawScreenQuad(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer));
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->EndRenderPass(pDrawCmdBuffer);
 	m_pBackgroundMotionMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
-	m_PBRSkinnedGbufferMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
-	m_PBRGbufferMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
+	m_pPBRSkinnedGbufferMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
+	m_pPBRGBufferMaterial->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
 	m_pMotionTileMaxMaterial->BeforeRenderPass(pDrawCmdBuffer, pingpong);
@@ -255,8 +264,8 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 
 void RenderWorkManager::OnFrameBegin()
 {
-	m_PBRGbufferMaterial->OnFrameBegin();
-	m_PBRSkinnedGbufferMaterial->OnFrameBegin();
+	m_pPBRGBufferMaterial->OnFrameBegin();
+	m_pPBRSkinnedGbufferMaterial->OnFrameBegin();
 	m_pShadowMapMaterial->OnFrameBegin();
 	m_pSkinnedShadowMapMaterial->OnFrameBegin();
 	m_pSkyBoxMaterial->OnFrameBegin();
@@ -267,6 +276,6 @@ void RenderWorkManager::OnFrameEnd()
 	m_pSkyBoxMaterial->OnFrameEnd();
 	m_pSkinnedShadowMapMaterial->OnFrameEnd();
 	m_pShadowMapMaterial->OnFrameEnd();
-	m_PBRSkinnedGbufferMaterial->OnFrameEnd();
-	m_PBRGbufferMaterial->OnFrameEnd();
+	m_pPBRSkinnedGbufferMaterial->OnFrameEnd();
+	m_pPBRGBufferMaterial->OnFrameEnd();
 }

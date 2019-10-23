@@ -146,7 +146,7 @@ bool MotionNeighborMaxMaterial::Init(const std::shared_ptr<MotionNeighborMaxMate
 	uint32_t vertexFormat,
 	uint32_t vertexFormatInMem)
 {
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat, vertexFormatInMem))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, materialUniformVars, vertexFormat, vertexFormatInMem, false))
 		return false;
 
 	std::vector<CombinedImage> motionTileMax;

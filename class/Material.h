@@ -145,7 +145,8 @@ protected:
 		const VkGraphicsPipelineCreateInfo& pipelineCreateInfo,
 		const std::vector<UniformVar>& materialUniformVars,
 		uint32_t vertexFormat,
-		uint32_t vertexFormatInMem
+		uint32_t vertexFormatInMem,
+		bool includeIndirectBuffer
 	);
 
 	bool Init
@@ -157,7 +158,8 @@ protected:
 		const std::vector<VkPushConstantRange>& pushConstsRanges,
 		const std::vector<UniformVar>& materialUniformVars,
 		uint32_t vertexFormat,
-		uint32_t vertexFormatInMem
+		uint32_t vertexFormatInMem,
+		bool includeIndirectBuffer
 	);
 
 	bool Init
@@ -202,6 +204,8 @@ protected:
 	// First: mesh, second: mesh instance count, third: indirect indices for each instance
 	typedef std::tuple<std::shared_ptr<Mesh>, uint32_t, std::vector<PerMaterialIndirectVariables>> MeshRenderData;
 	std::vector<MeshRenderData>							m_cachedMeshRenderData;
+
+	bool												m_isScreenMaterial;
 
 	std::vector<std::weak_ptr<MaterialInstance>>		m_generatedInstances;
 	std::shared_ptr<SharedIndirectBuffer>				m_pIndirectBuffer;

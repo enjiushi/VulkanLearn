@@ -148,7 +148,7 @@ bool SSAOMaterial::Init(const std::shared_ptr<SSAOMaterial>& pSelf,
 {
 	VkPushConstantRange pushConstantRange = { VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(float) };
 
-	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, { pushConstantRange }, materialUniformVars, vertexFormat, vertexFormatInMem))
+	if (!Material::Init(pSelf, shaderPaths, pRenderPass, pipelineCreateInfo, { pushConstantRange }, materialUniformVars, vertexFormat, vertexFormatInMem, false))
 		return false;
 
 	std::vector<CombinedImage> gbuffer0;

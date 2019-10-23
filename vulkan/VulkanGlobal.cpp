@@ -629,7 +629,7 @@ void VulkanGlobal::InitMaterials()
 	m_pBoxMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pBoxMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
-	m_pIcoMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
+	m_pIcoMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRPlanetMaterialInstance();
 	m_pIcoMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pIcoMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.0f, 1.0f, 1.0f, 0.1f));
 	m_pIcoMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.9f));
@@ -717,7 +717,7 @@ void VulkanGlobal::InitScene()
 	m_pBoxRenderer0 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
-	//m_pIcoRenderer = MeshRenderer::Create(m_pPBRIcosahedron, { m_pIcoMaterialInstance, m_pShadowMapMaterialInstance });
+	m_pIcoRenderer = MeshRenderer::Create(m_pPBRIcosahedron, { m_pIcoMaterialInstance, m_pShadowMapMaterialInstance });
 
 	AssimpSceneReader::SceneInfo sceneInfo;
 
@@ -773,9 +773,9 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject2->SetScale(0.15f);
 	m_pBoxObject2->SetPos(-0.2f, -0.25f, 0.5f);
 	
-	//m_pIcoObject->AddComponent(m_pIcoRenderer);
-	//m_pIcoObject->SetScale(0.4);
-	//m_pIcoObject->SetPos(-1.9f, 0.0f, -1.0f);
+	m_pIcoObject->AddComponent(m_pIcoRenderer);
+	m_pIcoObject->SetScale(0.4);
+	m_pIcoObject->SetPos(-1.9f, 0.0f, -1.0f);
 
 	Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
 	m_pQuadObject->SetRotation(Quaternionf(Vector3f(1, 0, 0), -1.57));

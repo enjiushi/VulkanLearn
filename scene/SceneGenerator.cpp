@@ -254,6 +254,78 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateQuadMesh()
 	);
 }
 
+typedef struct _PBRPlanetVertex
+{
+	Vector3f position;
+}PBRPlanetVertex;
+
+static PBRPlanetVertex GeneratePBRIcoVertex(const Vector3f& icoVertex)
+{
+	return
+	{
+		icoVertex
+	};
+}
+
+// FIXME: code for testing, will remove later
+std::shared_ptr<Mesh> SceneGenerator::GenPBRIcosahedronMesh()
+{
+	float ratio = (1.0f + sqrt(5.0f)) / 2.0f;
+	float scale = 1.0f / glm::length(glm::vec2(ratio, 1.0f));
+	ratio *= scale;
+
+	PBRPlanetVertex icoVertices[] = 
+	{
+		GeneratePBRIcoVertex({ ratio, 0, -scale }),			//rf 0
+		GeneratePBRIcoVertex({ -ratio, 0, -scale }),		//lf 1
+		GeneratePBRIcoVertex({ ratio, 0, scale }),			//rb 2
+		GeneratePBRIcoVertex({ -ratio, 0, scale }),			//lb 3
+												 
+		GeneratePBRIcoVertex({ 0, -scale, ratio }),			//db 4
+		GeneratePBRIcoVertex({ 0, -scale, -ratio }),		//df 5
+		GeneratePBRIcoVertex({ 0, scale, ratio }),			//ub 6
+		GeneratePBRIcoVertex({ 0, scale, -ratio }),			//uf 7
+												 
+		GeneratePBRIcoVertex({ -scale, ratio, 0 }),			//lu 8
+		GeneratePBRIcoVertex({ -scale, -ratio, 0 }),		//ld 9
+		GeneratePBRIcoVertex({ scale, ratio, 0 }),			//ru 10
+		GeneratePBRIcoVertex({ scale, -ratio, 0 })			//rd 11
+	};
+
+	uint32_t indices[20 * 3] =
+	{
+		1, 3, 8,
+		3, 1, 9,
+		0, 10, 2,
+		2, 11, 0,
+
+		5, 7, 0,
+		7, 5, 1,
+		4, 2, 6,
+		6, 3, 4,
+
+		9, 11, 4,
+		11, 9, 5,
+		8, 6, 10,
+		10, 7, 8,
+
+		1, 8, 7,
+		5, 9, 1,
+		0, 7, 10,
+		5, 0, 11,
+
+		3, 6, 8,
+		4, 3, 9,
+		2, 10, 6,
+		4, 11, 2
+	};
+
+	return Mesh::Create
+	(
+		&icoVertices[0], 12, VertexFormatP,
+		&indices[0], 20 * 3, VK_INDEX_TYPE_UINT32
+	);
+}
 
 std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateIrradianceGenMaterial(const std::shared_ptr<Mesh>& pMesh)
 {
