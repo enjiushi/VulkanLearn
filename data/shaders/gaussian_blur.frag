@@ -12,7 +12,7 @@ struct GaussianBlurParams
 	float strength;
 };
 
-layout (set = 3, binding = 2) uniform sampler2D InputTexture[3];
+layout (set = 3, binding = 3) uniform sampler2D InputTexture[3];
 
 layout(push_constant) uniform PushConsts {
 	layout (offset = 0) GaussianBlurParams params;

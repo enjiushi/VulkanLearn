@@ -11,7 +11,7 @@ layout (location = 0) out vec2 outUv;
 
 void main() 
 {
-	gl_Position = perObjectData[gl_DrawID].MVP * vec4(inPos.xyz, 1.0);
+	gl_Position = perObjectData[GetIndirectIndex(gl_DrawID, gl_InstanceIndex)].MVP * vec4(inPos.xyz, 1.0);
 
 	outUv = inUv.st;
 	outUv.t = 1.0 - outUv.t;

@@ -5,15 +5,15 @@
 
 #include "uniform_layout.sh"
 
-layout (set = 3, binding = 2) uniform sampler2D MotionVector[3];
-layout (set = 3, binding = 3) uniform sampler2D ShadingResult[3];
-layout (set = 3, binding = 4) uniform sampler2D SSRResult[3];
-layout (set = 3, binding = 5) uniform sampler2D GBuffer1[3];
-layout (set = 3, binding = 6) uniform sampler2D MotionNeighborMax[3];
-layout (set = 3, binding = 7) uniform sampler2D TemporalShadingResult;
-layout (set = 3, binding = 8) uniform sampler2D TemporalSSRResult;
-layout (set = 3, binding = 9) uniform sampler2D TemporalResult;
-layout (set = 3, binding = 10) uniform sampler2D TemporalCoC;
+layout (set = 3, binding = 3) uniform sampler2D MotionVector[3];
+layout (set = 3, binding = 4) uniform sampler2D ShadingResult[3];
+layout (set = 3, binding = 5) uniform sampler2D SSRResult[3];
+layout (set = 3, binding = 6) uniform sampler2D GBuffer1[3];
+layout (set = 3, binding = 7) uniform sampler2D MotionNeighborMax[3];
+layout (set = 3, binding = 8) uniform sampler2D TemporalShadingResult;
+layout (set = 3, binding = 9) uniform sampler2D TemporalSSRResult;
+layout (set = 3, binding = 10) uniform sampler2D TemporalResult;
+layout (set = 3, binding = 11) uniform sampler2D TemporalCoC;
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;

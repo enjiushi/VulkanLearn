@@ -336,25 +336,6 @@ void TemporalResolveMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * 4 + 2);
 }
 
-void TemporalResolveMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
-{
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
-
-	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
-
-	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
-	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
-
-	BindPipeline(pDrawCmdBuffer);
-	BindDescriptorSet(pDrawCmdBuffer);
-
-	pDrawCmdBuffer->Draw(3, 1, 0, 0);
-
-	pDrawCmdBuffer->EndSecondaryRecording();
-
-	pCmdBuf->Execute({ pDrawCmdBuffer });
-}
-
 void TemporalResolveMaterial::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
 {
 	Material::AfterRenderPass(pCmdBuf, pingpong);

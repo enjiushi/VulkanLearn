@@ -362,6 +362,8 @@ void VulkanGlobal::InitVertices()
 	m_pCubeMesh = SceneGenerator::GenerateBoxMesh();
 
 	m_pPBRBoxMesh = SceneGenerator::GeneratePBRBoxMesh();
+
+	m_pPBRIcosahedron = SceneGenerator::GenPBRIcosahedronMesh();
 }
 
 // Replace rgbTex's alpha channel with rTex's red channel
@@ -627,6 +629,14 @@ void VulkanGlobal::InitMaterials()
 	m_pBoxMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pBoxMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
+	m_pIcoMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
+	m_pIcoMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pIcoMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.0f, 1.0f, 1.0f, 0.1f));
+	m_pIcoMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.9f));
+	m_pIcoMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pIcoMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pIcoMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+
 	m_pSophiaMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRSkinnedMaterialInstance();
 	m_pSophiaMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pSophiaMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
@@ -701,11 +711,13 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject0 = BaseObject::Create();
 	m_pBoxObject1 = BaseObject::Create();
 	m_pBoxObject2 = BaseObject::Create();
+	m_pIcoObject = BaseObject::Create();
 
 	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer0 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
+	//m_pIcoRenderer = MeshRenderer::Create(m_pPBRIcosahedron, { m_pIcoMaterialInstance, m_pShadowMapMaterialInstance });
 
 	AssimpSceneReader::SceneInfo sceneInfo;
 
@@ -760,6 +772,10 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject2->AddComponent(m_pBoxRenderer2);
 	m_pBoxObject2->SetScale(0.15f);
 	m_pBoxObject2->SetPos(-0.2f, -0.25f, 0.5f);
+	
+	//m_pIcoObject->AddComponent(m_pIcoRenderer);
+	//m_pIcoObject->SetScale(0.4);
+	//m_pIcoObject->SetPos(-1.9f, 0.0f, -1.0f);
 
 	Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
 	m_pQuadObject->SetRotation(Quaternionf(Vector3f(1, 0, 0), -1.57));
@@ -791,6 +807,7 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pBoxObject0);
 	m_pRootObject->AddChild(m_pBoxObject1);
 	m_pRootObject->AddChild(m_pBoxObject2);
+	//m_pRootObject->AddChild(m_pIcoObject);
 	m_pRootObject->AddChild(m_pSophiaObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pDirLightObj);

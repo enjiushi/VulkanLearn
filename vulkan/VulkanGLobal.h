@@ -114,6 +114,7 @@ public:
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
 	std::shared_ptr<Mesh>				m_pPBRBoxMesh;
+	std::shared_ptr<Mesh>				m_pPBRIcosahedron;
 
 	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
 
@@ -154,6 +155,7 @@ public:
 	std::shared_ptr<BaseObject>			m_pBoxObject0;
 	std::shared_ptr<BaseObject>			m_pBoxObject1;
 	std::shared_ptr<BaseObject>			m_pBoxObject2;
+	std::shared_ptr<BaseObject>			m_pIcoObject;
 	std::shared_ptr<BaseObject>			m_pSophiaObject;
 	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer;
 	std::shared_ptr<MeshRenderer>		m_pSphereRenderer0;
@@ -166,6 +168,7 @@ public:
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer0;
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer1;
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer2;
+	std::shared_ptr<MeshRenderer>		m_pIcoRenderer;
 	std::vector<std::shared_ptr<MeshRenderer>> m_boneBoxRenderers;
 	std::vector<std::shared_ptr<MaterialInstance>> m_boneBoxMaterialInstances;
 	std::shared_ptr<MeshRenderer>		m_pSophiaRenderer;
@@ -182,6 +185,7 @@ public:
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance1;
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance2;
 	std::shared_ptr<MaterialInstance>	m_pSophiaMaterialInstance;
+	std::shared_ptr<MaterialInstance>	m_pIcoMaterialInstance;
 
 	std::shared_ptr<MaterialInstance>	m_pShadowMapMaterialInstance;
 	std::shared_ptr<MaterialInstance>	m_pSkinnedShadowMapMaterialInstance;

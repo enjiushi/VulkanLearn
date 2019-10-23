@@ -135,24 +135,3 @@ std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(bool
 		return pShadowMapMaterial;
 	return nullptr;
 }
-
-void ShadowMapMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
-{
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
-
-	// FIXME: Subpass index hard-coded
-	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
-
-	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
-	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
-
-	BindPipeline(pDrawCmdBuffer);
-	BindDescriptorSet(pDrawCmdBuffer);
-	BindMeshData(pDrawCmdBuffer);
-
-	pDrawCmdBuffer->DrawIndexedIndirect(m_pIndirectBuffer, 0, m_indirectIndex);
-
-	pDrawCmdBuffer->EndSecondaryRecording();
-
-	pCmdBuf->Execute({ pDrawCmdBuffer });
-}

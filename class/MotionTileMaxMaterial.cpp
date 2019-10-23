@@ -182,38 +182,6 @@ void MotionTileMaxMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount());
 }
 
-void MotionTileMaxMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
-{
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
-
-	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
-
-	VkViewport viewport =
-	{
-		0, 0,
-		pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
-		0, 1
-	};
-
-	VkRect2D scissorRect =
-	{
-		0, 0,
-		pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
-	};
-
-	pDrawCmdBuffer->SetViewports({ viewport });
-	pDrawCmdBuffer->SetScissors({ scissorRect });
-
-	BindPipeline(pDrawCmdBuffer);
-	BindDescriptorSet(pDrawCmdBuffer);
-
-	pDrawCmdBuffer->Draw(3, 1, 0, 0);
-
-	pDrawCmdBuffer->EndSecondaryRecording();
-
-	pCmdBuf->Execute({ pDrawCmdBuffer });
-}
-
 void MotionTileMaxMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
 {
 	std::shared_ptr<Image> pMotionVector = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::MotionVector);

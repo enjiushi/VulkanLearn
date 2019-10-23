@@ -165,27 +165,6 @@ std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(bool ski
 	return nullptr;
 }
 
-void GBufferMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
-{
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
-
-	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
-	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
-
-	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
-	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
-
-	BindPipeline(pDrawCmdBuffer);
-	BindDescriptorSet(pDrawCmdBuffer);
-	BindMeshData(pDrawCmdBuffer);
-
-	pDrawCmdBuffer->DrawIndexedIndirect(m_pIndirectBuffer, 0, m_indirectIndex);
-
-	pDrawCmdBuffer->EndSecondaryRecording();
-
-	pCmdBuf->Execute({ pDrawCmdBuffer });
-}
-
 std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultMaterial()
 {
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
@@ -454,26 +433,6 @@ void DeferredShadingMaterial::CustomizeMaterialLayout(std::vector<UniformVarList
 void DeferredShadingMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 {
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (FrameBufferDiction::GBufferCount + 4));
-}
-
-void DeferredShadingMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
-{
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
-
-	// FIXME: Hard-coded subpass index, which should be defined somewhere as an enum
-	pDrawCmdBuffer->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
-
-	pDrawCmdBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
-	pDrawCmdBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
-
-	BindPipeline(pDrawCmdBuffer);
-	BindDescriptorSet(pDrawCmdBuffer);
-
-	pDrawCmdBuffer->Draw(3, 1, 0, 0);
-
-	pDrawCmdBuffer->EndSecondaryRecording();
-
-	pCmdBuf->Execute({ pDrawCmdBuffer });
 }
 
 void DeferredShadingMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)

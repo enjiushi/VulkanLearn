@@ -5,8 +5,8 @@
 
 #include "uniform_layout.sh"
 
-layout (set = 3, binding = 2) uniform sampler2D DOFResults[3];
-layout (set = 3, binding = 3) uniform sampler2D BloomTextures[3];
+layout (set = 3, binding = 3) uniform sampler2D DOFResults[3];
+layout (set = 3, binding = 4) uniform sampler2D BloomTextures[3];
 
 layout(push_constant) uniform PushConsts {
 	layout (offset = 0) float camDirtTexIndex;

@@ -26,9 +26,11 @@ layout (location = 9) out vec3 outPrevWorldPos;
 
 void main() 
 {
-	perObjectIndex = objectDataIndex[gl_DrawID].perObjectIndex;
+	int indirectIndex = GetIndirectIndex(gl_DrawID, gl_InstanceIndex);
 
-	int perAnimationChunkIndex = objectDataIndex[gl_DrawID].perAnimationIndex;
+	perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
+
+	int perAnimationChunkIndex = objectDataIndex[indirectIndex].perAnimationIndex;
 
 	vec4 bone_weights = inBoneWeight;
 	uvec4 boneIndices = uvec4(perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 0) & 255],
@@ -108,5 +110,5 @@ void main()
 	outTangent = normalize(vec3(perObjectData[perObjectIndex].model * vec4(animated_tangent, 0.0)));
 	outBitangent = normalize(cross(outNormal, outTangent));
 
-	perMaterialIndex = objectDataIndex[gl_DrawID].perMaterialIndex;
+	perMaterialIndex = objectDataIndex[indirectIndex].perMaterialIndex;
 }

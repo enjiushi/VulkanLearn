@@ -89,6 +89,11 @@ struct PerObjectData
 	mat4 prevMVP;
 };
 
+struct IndirectOffset
+{
+	int offset;
+};
+
 struct ObjectDataIndex
 {
 	int perObjectIndex;
@@ -151,7 +156,12 @@ layout(set = 2, binding = 0) buffer PerObjectUniforms
 	PerObjectData perObjectData[];
 };
 
-layout(set = 3, binding = 1) buffer PerMaterialIndirectUniforms
+layout(set = 3, binding = 1) buffer PerMaterialIndirectUniformOffset
+{
+	IndirectOffset indirectOffsets[];
+};
+
+layout(set = 3, binding = 2) buffer PerMaterialIndirectUniforms
 {
 	ObjectDataIndex objectDataIndex[];
 };
@@ -579,5 +589,10 @@ float CalculateCoC(float eyeDepth)
 {
 	float coc = (eyeDepth - globalData.MainCameraSettings1.x) * globalData.DOFSettings0.z / max(eyeDepth, 1e-5);
 	return clamp(coc * 0.5f * globalData.DOFSettings0.y + 0.5f, 0, 1);
+}
+
+int GetIndirectIndex(int drawID, int instanceID)
+{
+	return indirectOffsets[drawID].offset + instanceID;
 }
 
