@@ -363,7 +363,7 @@ void VulkanGlobal::InitVertices()
 
 	m_pPBRBoxMesh = SceneGenerator::GeneratePBRBoxMesh();
 
-	m_pPBRIcosahedron = SceneGenerator::GenPBRIcosahedronMesh();
+	//m_pPBRIcosahedron = SceneGenerator::GenPBRIcosahedronMesh();
 }
 
 // Replace rgbTex's alpha channel with rTex's red channel
