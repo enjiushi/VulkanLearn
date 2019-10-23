@@ -37,6 +37,7 @@
 #include "../class/PerMaterialUniforms.h"
 #include "RenderPassBase.h"
 #include "../vulkan/ComputePipeline.h"
+#include "Mesh.h"
 
 void Material::GeneralInit
 (
@@ -413,19 +414,47 @@ void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 	pCmdBuffer->BindIndexBuffer(IndexBufferMgr()->GetBuffer(), VK_INDEX_TYPE_UINT32);
 }
 
-void Material::InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex)
+void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex)
 {
-	m_pIndirectBuffer->SetIndirectCmd(m_indirectIndex, cmd);
+	auto iter = m_perFrameMeshRefTable.find(pMesh);
 
-	// FIXME: Make this right later
-	m_pPerMaterialIndirectOffset->SetIndirectOffset(m_indirectIndex, m_indirectIndex);
+	// If a mesh is not yet added to ref table of current frame
+	if (iter == m_perFrameMeshRefTable.end())
+	{
+		// First all the info into cached mesh render data
+		m_cachedMeshRenderData.push_back
+		(
+			{
+				pMesh,
+				1,
+				std::vector<PerMaterialIndirectVariables>(1, {perObjectIndex, perMaterialIndex, perMeshIndex, perAnimationIndex})
+			}
+		);
 
-	m_pPerMaterialIndirectUniforms->SetPerObjectIndex(m_indirectIndex, perObjectIndex);
-	m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(m_indirectIndex, perMaterialIndex);
-	m_pPerMaterialIndirectUniforms->SetPerMeshIndex(m_indirectIndex, perMeshIndex);
-	m_pPerMaterialIndirectUniforms->SetPerAnimationIndex(m_indirectIndex, perAnimationIndex);
+		// Then add mesh to ref table, as well as its index in render data table
+		m_perFrameMeshRefTable[pMesh] = m_cachedMeshRenderData.size() - 1;
 
-	m_indirectIndex += 1;
+		return;
+	}
+
+	// If a mesh is already recorded, add instance count by 1
+	auto& renderData = m_cachedMeshRenderData[iter->second];
+	std::get<1>(renderData) += 1;
+	std::get<2>(renderData).push_back({ perObjectIndex, perMaterialIndex, perMeshIndex, perAnimationIndex });
+
+	//VkDrawIndexedIndirectCommand cmd;
+	//pMesh->PrepareIndirectCmd(cmd);
+	//m_pIndirectBuffer->SetIndirectCmd(m_indirectIndex, cmd);
+
+	//// FIXME: Make this right later
+	//m_pPerMaterialIndirectOffset->SetIndirectOffset(m_indirectIndex, m_indirectIndex);
+
+	//m_pPerMaterialIndirectUniforms->SetPerObjectIndex(m_indirectIndex, perObjectIndex);
+	//m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(m_indirectIndex, perMaterialIndex);
+	//m_pPerMaterialIndirectUniforms->SetPerMeshIndex(m_indirectIndex, perMeshIndex);
+	//m_pPerMaterialIndirectUniforms->SetPerAnimationIndex(m_indirectIndex, perAnimationIndex);
+
+	//m_indirectIndex += 1;
 }
 
 void Material::BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
@@ -437,14 +466,86 @@ void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, ui
 {
 }
 
+void Material::PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
+{
+	pSecondaryCmdBuf->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
+	pSecondaryCmdBuf->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
+
+	BindPipeline(pSecondaryCmdBuf);
+	BindDescriptorSet(pSecondaryCmdBuf);
+	BindMeshData(pSecondaryCmdBuf);
+
+	CustomizeSecondaryCmd(pSecondaryCmdBuf, pFrameBuffer, pingpong);
+}
+
+void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
+{
+	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
+
+	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
+
+	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong);
+
+	pSecondaryCmd->DrawIndexedIndirect(m_pIndirectBuffer, 0, m_cachedMeshRenderData.size());
+
+	pSecondaryCmd->EndSecondaryRecording();
+
+	pCmdBuf->Execute({ pSecondaryCmd });
+}
+
+void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
+{
+	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
+
+	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
+
+	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong);
+
+	pSecondaryCmd->Draw(3, 1, 0, 0);
+
+	pSecondaryCmd->EndSecondaryRecording();
+
+	pCmdBuf->Execute({ pSecondaryCmd });
+}
+
 void Material::OnFrameBegin()
 {
+	uint32_t drawID = 0;
+	uint32_t offset = 0;
+	VkDrawIndexedIndirectCommand cmd;
 
+	// Contruct indirect buffer for current frame
+	for each(auto& meshRenderData in m_cachedMeshRenderData)
+	{
+		// Prepare mesh indirect data
+		std::get<0>(meshRenderData)->PrepareIndirectCmd(cmd);
+		cmd.instanceCount = std::get<1>(meshRenderData);
+		m_pIndirectBuffer->SetIndirectCmd(drawID, cmd);
+
+		// Prepare indirect offset
+		m_pPerMaterialIndirectOffset->SetIndirectOffset(drawID, offset);
+
+		// Prepare indirect indices for all data
+		for (uint32_t instanceCount = 0; instanceCount < std::get<2>(meshRenderData).size(); instanceCount++)
+		{
+			m_pPerMaterialIndirectUniforms->SetPerObjectIndex(offset,		std::get<2>(meshRenderData)[instanceCount].perObjectIndex);
+			m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(offset,		std::get<2>(meshRenderData)[instanceCount].perMaterialIndex);
+			m_pPerMaterialIndirectUniforms->SetPerMeshIndex(offset,			std::get<2>(meshRenderData)[instanceCount].perMeshIndex);
+			m_pPerMaterialIndirectUniforms->SetPerAnimationIndex(offset,	std::get<2>(meshRenderData)[instanceCount].perAnimationIndex);
+			offset++;
+		}
+
+		drawID++;
+	}
 }
 
 void Material::OnFrameEnd()
 {
-	m_indirectIndex = 0;
+	//m_indirectIndex = 0;
+
+	// Clear tables that are used to construct indirect buffer of current frame
+	m_perFrameMeshRefTable.clear();
+	m_cachedMeshRenderData.clear();
 }
 
 void Material::SetPerObjectIndex(uint32_t indirectIndex, uint32_t perObjectIndex)

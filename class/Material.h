@@ -5,8 +5,10 @@
 #include "PerMaterialUniforms.h"
 #include "FrameBufferDiction.h"
 #include <map>
+#include  <unordered_map>
 #include "../common/Enums.h"
 #include "../Maths/Vector3.h"
+#include "PerMaterialIndirectUniforms.h"
 
 class PipelineLayout;
 class GraphicPipeline;
@@ -22,8 +24,6 @@ class ShaderStorageBuffer;
 class CommandBuffer;
 class Image;
 class SharedIndirectBuffer;
-class PerMaterialIndirectUniforms;
-class PerMaterialIndirectOffsetUniforms;
 class FrameBuffer;
 class RenderPassBase;
 
@@ -71,7 +71,7 @@ public:
 	std::shared_ptr<ComputePipeline> GetComputePipeline() const { return m_pComputePipeline; }
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
 	uint32_t GetUniformBufferSize() const;
-	std::vector<std::vector<uint32_t>> Material::GetCachedFrameOffsets() const { return m_cachedFrameOffsets; }
+	std::vector<std::vector<uint32_t>> GetCachedFrameOffsets() const { return m_cachedFrameOffsets; }
 	uint32_t GetVertexFormat() const { return m_vertexFormat; }
 	uint32_t GetVertexFormatInMem() const { return m_vertexFormatInMem; }
 
@@ -117,7 +117,12 @@ public:
 	virtual void SyncBufferData();
 
 	virtual void BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
-	virtual void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) = 0;
+
+	virtual void PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0);
+	virtual void CustomizeSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) {}
+	virtual void DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0);
+	virtual void DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0);
+
 	virtual void Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, const Vector3f& groupNum, const Vector3f& groupSize, uint32_t pingpong = 0) = 0;
 	virtual void AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
 
@@ -168,7 +173,7 @@ protected:
 	virtual void CustomizePoolSize(std::vector<uint32_t>& counts) {}
 
 	static uint32_t GetByteSize(std::vector<UniformVar>& UBOLayout);
-	void InsertIntoRenderQueue(const VkDrawIndexedIndirectCommand& cmd, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex);
+	void InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex);
 
 protected:
 	std::shared_ptr<RenderPassBase>						m_pRenderPass;
@@ -190,6 +195,13 @@ protected:
 	std::shared_ptr<PerMaterialIndirectOffsetUniforms>	m_pPerMaterialIndirectOffset;
 	std::shared_ptr<PerMaterialIndirectUniforms>		m_pPerMaterialIndirectUniforms;
 	std::shared_ptr<PerMaterialUniforms>				m_pPerMaterialUniforms;
+
+	// key: mesh, value: mesh index at "m_cachedMeshRenderData"
+	std::unordered_map<std::shared_ptr<Mesh>, uint32_t>	m_perFrameMeshRefTable;
+
+	// First: mesh, second: mesh instance count, third: indirect indices for each instance
+	typedef std::tuple<std::shared_ptr<Mesh>, uint32_t, std::vector<PerMaterialIndirectVariables>> MeshRenderData;
+	std::vector<MeshRenderData>							m_cachedMeshRenderData;
 
 	std::vector<std::weak_ptr<MaterialInstance>>		m_generatedInstances;
 	std::shared_ptr<SharedIndirectBuffer>				m_pIndirectBuffer;
