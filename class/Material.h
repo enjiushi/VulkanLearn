@@ -77,12 +77,7 @@ public:
 
 	std::shared_ptr<DescriptorSet> GetDescriptorSet() const { return m_pUniformStorageDescriptorSet; }
 
-	virtual void BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
-	virtual void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	virtual void SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture);
-	virtual void BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
-
-	virtual void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong = 0) {}
 
 	template <typename T>
 	void SetParameter(uint32_t chunkIndex, uint32_t parameterIndex, T val)
@@ -118,8 +113,7 @@ public:
 
 	virtual void BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
 
-	virtual void PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
-	virtual void CustomizeSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) {}
+	virtual void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false) = 0;
 	virtual void DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
 	virtual void DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
 
@@ -128,6 +122,16 @@ public:
 
 	virtual void OnFrameBegin();
 	virtual void OnFrameEnd();
+
+protected:
+	virtual void BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	virtual void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+	virtual void BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
+
+	virtual void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong = 0) {}
+
+	virtual void PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
+	virtual void CustomizeSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) {}
 
 protected:
 	void GeneralInit

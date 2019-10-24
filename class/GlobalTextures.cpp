@@ -165,13 +165,14 @@ void GlobalTextures::InitIrradianceTexture()
 		SceneGenerator::GetInstance()->GetRootObject()->Update();
 		SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 		UniformData::GetInstance()->SyncDataBuffer();
+		SceneGenerator::GetInstance()->GetMaterial0()->SyncBufferData();
 
 		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameBegin();
 		pDrawCmdBuffer->StartPrimaryRecording();
 
 		SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer);
 		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]);
-		SceneGenerator::GetInstance()->GetMaterial0()->DrawIndirect(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_EnvGenOffScreen));
+		SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_EnvGenOffScreen));
 		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer);
 		SceneGenerator::GetInstance()->GetMaterial0()->AfterRenderPass(pDrawCmdBuffer);
 
@@ -248,13 +249,14 @@ void GlobalTextures::InitPrefilterEnvTexture()
 			SceneGenerator::GetInstance()->GetRootObject()->Update();
 			SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 			UniformData::GetInstance()->SyncDataBuffer();
+			SceneGenerator::GetInstance()->GetMaterial0()->SyncBufferData();
 
 			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameBegin();
 			pDrawCmdBuffer->StartPrimaryRecording();
 
 			SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer);
 			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]);
-			SceneGenerator::GetInstance()->GetMaterial0()->DrawIndirect(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_EnvGenOffScreen), 0, true);
+			SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_EnvGenOffScreen), 0, true);
 			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer);
 			SceneGenerator::GetInstance()->GetMaterial0()->AfterRenderPass(pDrawCmdBuffer);
 
@@ -298,6 +300,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 	SceneGenerator::GetInstance()->GetRootObject()->Update();
 	SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 	UniformData::GetInstance()->SyncDataBuffer();
+	SceneGenerator::GetInstance()->GetMaterial0()->SyncBufferData();
 
 	SceneGenerator::GetInstance()->GetMaterial0()->OnFrameBegin();
 	pDrawCmdBuffer->StartPrimaryRecording();

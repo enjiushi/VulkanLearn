@@ -385,6 +385,37 @@ uint32_t Material::GetUniformBufferSize() const
 
 void Material::SyncBufferData()
 {
+	if (m_pIndirectBuffer != nullptr)
+	{
+		uint32_t drawID = 0;
+		uint32_t offset = 0;
+		VkDrawIndexedIndirectCommand cmd;
+
+		// Contruct indirect buffer for current frame
+		for each(auto& meshRenderData in m_cachedMeshRenderData)
+		{
+			// Prepare mesh indirect data
+			std::get<0>(meshRenderData)->PrepareIndirectCmd(cmd);
+			cmd.instanceCount = std::get<1>(meshRenderData);
+			m_pIndirectBuffer->SetIndirectCmd(drawID, cmd);
+
+			// Prepare indirect offset
+			m_pPerMaterialIndirectOffset->SetIndirectOffset(drawID, offset);
+
+			// Prepare indirect indices for all data
+			for (uint32_t instanceCount = 0; instanceCount < std::get<2>(meshRenderData).size(); instanceCount++)
+			{
+				m_pPerMaterialIndirectUniforms->SetPerObjectIndex(offset, std::get<2>(meshRenderData)[instanceCount].perObjectIndex);
+				m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(offset, std::get<2>(meshRenderData)[instanceCount].perMaterialIndex);
+				m_pPerMaterialIndirectUniforms->SetPerMeshIndex(offset, std::get<2>(meshRenderData)[instanceCount].perMeshIndex);
+				m_pPerMaterialIndirectUniforms->SetPerAnimationIndex(offset, std::get<2>(meshRenderData)[instanceCount].perAnimationIndex);
+				offset++;
+			}
+
+			drawID++;
+		}
+	}
+
 	for (auto & var : m_materialUniforms)
 		if (var != nullptr)
 			var->SyncBufferData();
@@ -521,36 +552,6 @@ void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, con
 
 void Material::OnFrameBegin()
 {
-	if (m_pIndirectBuffer == nullptr)
-		return;
-
-	uint32_t drawID = 0;
-	uint32_t offset = 0;
-	VkDrawIndexedIndirectCommand cmd;
-
-	// Contruct indirect buffer for current frame
-	for each(auto& meshRenderData in m_cachedMeshRenderData)
-	{
-		// Prepare mesh indirect data
-		std::get<0>(meshRenderData)->PrepareIndirectCmd(cmd);
-		cmd.instanceCount = std::get<1>(meshRenderData);
-		m_pIndirectBuffer->SetIndirectCmd(drawID, cmd);
-
-		// Prepare indirect offset
-		m_pPerMaterialIndirectOffset->SetIndirectOffset(drawID, offset);
-
-		// Prepare indirect indices for all data
-		for (uint32_t instanceCount = 0; instanceCount < std::get<2>(meshRenderData).size(); instanceCount++)
-		{
-			m_pPerMaterialIndirectUniforms->SetPerObjectIndex(offset,		std::get<2>(meshRenderData)[instanceCount].perObjectIndex);
-			m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(offset,		std::get<2>(meshRenderData)[instanceCount].perMaterialIndex);
-			m_pPerMaterialIndirectUniforms->SetPerMeshIndex(offset,			std::get<2>(meshRenderData)[instanceCount].perMeshIndex);
-			m_pPerMaterialIndirectUniforms->SetPerAnimationIndex(offset,	std::get<2>(meshRenderData)[instanceCount].perAnimationIndex);
-			offset++;
-		}
-
-		drawID++;
-	}
 }
 
 void Material::OnFrameEnd()
