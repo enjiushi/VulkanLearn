@@ -131,57 +131,6 @@ bool RenderWorkManager::Init()
 		}
 	}
 
-	/*m_pPBRGBufferMaterial			= GBufferMaterial::CreateDefaultMaterial();
-	m_pPBRSkinnedGbufferMaterial	= GBufferMaterial::CreateDefaultMaterial(true);
-	m_pPBRPlanetGBufferMaterial		= GBufferPlanetMaterial::CreateDefaultMaterial();
-	m_pMotionTileMaxMaterial		= MotionTileMaxMaterial::CreateDefaultMaterial();
-	m_pMotionNeighborMaxMaterial	= MotionNeighborMaxMaterial::CreateDefaultMaterial();
-	m_pShadingMaterial				= DeferredShadingMaterial::CreateDefaultMaterial();
-	m_pTemporalResolveMaterials.push_back(TemporalResolveMaterial::CreateDefaultMaterial(0));
-	m_pTemporalResolveMaterials.push_back(TemporalResolveMaterial::CreateDefaultMaterial(1));
-	for (uint32_t i = 0; i < DOFMaterial::DOFPass_Count; i++)
-	{
-		m_DOFMaterials.push_back(DOFMaterial::CreateDefaultMaterial((DOFMaterial::DOFPass)i));
-	}
-	m_pShadowMapMaterial			= ShadowMapMaterial::CreateDefaultMaterial();
-	m_pSkinnedShadowMapMaterial		= ShadowMapMaterial::CreateDefaultMaterial(true);
-	m_pSSAOMaterial					= SSAOMaterial::CreateDefaultMaterial();
-	for (uint32_t i = 0; i < BLOOM_ITER_COUNT; i++)
-	{
-		BloomMaterial::BloomPass bloomPass = (i == 0) ? BloomMaterial::BloomPass_Prefilter : BloomMaterial::BloomPass_DownSampleBox13;
-
-		m_bloomDownsampleMaterials.push_back(BloomMaterial::CreateDefaultMaterial(bloomPass, i));
-		m_bloomUpsampleMaterials.push_back(BloomMaterial::CreateDefaultMaterial(BloomMaterial::BloomPass_UpSampleTent, i));
-	}
-	m_pSSAOBlurVMaterial			= GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOSSR, FrameBufferDiction::FrameBufferType_SSAOBlurV, RenderPassDiction::PipelineRenderPassSSAOBlurV, { true, 1, 1 });
-	m_pSSAOBlurHMaterial			= GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOBlurV, FrameBufferDiction::FrameBufferType_SSAOBlurH, RenderPassDiction::PipelineRenderPassSSAOBlurH, { false, 1, 1 });
-	m_pCombineMaterial				= CombineMaterial::CreateDefaultMaterial();
-	m_pPostProcessMaterial			= PostProcessingMaterial::CreateDefaultMaterial();
-
-	SimpleMaterialCreateInfo info = {};
-	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" };
-	info.materialUniformVars = {};
-	info.vertexFormat = VertexFormatP;
-	info.vertexFormatInMem = VertexFormatP;
-	info.subpassIndex = 1;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
-	info.depthWriteEnable = false;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_Shading;
-
-	m_pSkyBoxMaterial = ForwardMaterial::CreateDefaultMaterial(info);
-
-	info = {};
-	info.shaderPaths = { L"../data/shaders/background_motion_gen.vert.spv", L"", L"", L"", L"../data/shaders/background_motion_gen.frag.spv", L"" };
-	info.materialUniformVars = {};
-	info.vertexFormat = 0;
-	info.vertexFormatInMem = 0;
-	info.subpassIndex = 1;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
-	info.depthWriteEnable = false;
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_GBuffer;
-
-	m_pBackgroundMotionMaterial = ForwardMaterial::CreateDefaultMaterial(info);*/
-
 	return true;
 }
 
