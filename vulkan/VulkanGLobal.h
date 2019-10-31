@@ -48,6 +48,7 @@
 #include "../class/BloomMaterial.h"
 #include "../class/PostProcessingMaterial.h"
 #include "../component/PhysicalCamera.h"
+#include "../component/PlanetGenerator.h"
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
@@ -133,6 +134,8 @@ public:
 	std::shared_ptr<BaseObject>			m_pDirLightObj;
 	std::shared_ptr<DirectionLight>		m_pDirLight;
 
+	std::shared_ptr<PlanetGenerator>	m_pPlanetGenerator;
+
 	std::shared_ptr<Texture2D>			m_pAlbedoRoughness;
 	std::shared_ptr<Texture2D>			m_pNormalAO;
 	std::shared_ptr<Texture2D>			m_pMetalic;
@@ -201,6 +204,8 @@ public:
 	std::shared_ptr<MeshRenderer>		m_pTestRenderer;
 	std::shared_ptr<Material>			m_pTestMaterial;
 	std::shared_ptr<MaterialInstance>	m_pTestMaterialInstance;
+
+	std::shared_ptr<BaseObject>			m_pPlanetObject;
 
 	std::shared_ptr<BaseObject>			m_pRootObject;
 

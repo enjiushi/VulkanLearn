@@ -38,6 +38,7 @@
 #include "../component/FrustumJitter.h"
 #include "../class/AssimpSceneReader.h"
 #include "../component/AnimationController.h"
+#include "../class/PerFrameData.h"
 
 bool PREBAKE_CB = true;
 
@@ -363,7 +364,7 @@ void VulkanGlobal::InitVertices()
 
 	m_pPBRBoxMesh = SceneGenerator::GeneratePBRBoxMesh();
 
-	//m_pPBRIcosahedron = SceneGenerator::GenPBRIcosahedronMesh();
+	m_pPBRIcosahedron = SceneGenerator::GenPBRIcosahedronMesh();
 }
 
 // Replace rgbTex's alpha channel with rTex's red channel
@@ -717,7 +718,9 @@ void VulkanGlobal::InitScene()
 	m_pBoxRenderer0 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
-	m_pIcoRenderer = MeshRenderer::Create(m_pPBRIcosahedron, { m_pIcoMaterialInstance, m_pShadowMapMaterialInstance });
+	m_pIcoRenderer = MeshRenderer::Create(m_pPBRIcosahedron, { m_pIcoMaterialInstance });
+
+	m_pPlanetGenerator = PlanetGenerator::Create();
 
 	AssimpSceneReader::SceneInfo sceneInfo;
 
@@ -797,6 +800,9 @@ void VulkanGlobal::InitScene()
 	//AddBoneBox(m_pSophiaObject);
 	sceneInfo.meshLinks.clear();
 
+	m_pPlanetObject = BaseObject::Create();
+	m_pPlanetObject->AddComponent(m_pPlanetGenerator);
+
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pGunObject);
 	m_pRootObject->AddChild(m_pSphere0);
@@ -807,7 +813,7 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pBoxObject0);
 	m_pRootObject->AddChild(m_pBoxObject1);
 	m_pRootObject->AddChild(m_pBoxObject2);
-	//m_pRootObject->AddChild(m_pIcoObject);
+	m_pRootObject->AddChild(m_pIcoObject);
 	m_pRootObject->AddChild(m_pSophiaObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pDirLightObj);
@@ -919,6 +925,7 @@ void VulkanGlobal::Draw()
 
 	UniformData::GetInstance()->SyncDataBuffer();
 	RenderWorkManager::GetInstance()->SyncMaterialData();
+	PerFrameData::GetInstance()->SyncDataBuffer();
 
 	RenderWorkManager::GetInstance()->OnFrameBegin();
 
