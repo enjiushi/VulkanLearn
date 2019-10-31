@@ -179,9 +179,16 @@ protected:
 	virtual void CustomizePoolSize(std::vector<uint32_t>& counts) {}
 
 	static uint32_t GetByteSize(std::vector<UniformVar>& UBOLayout);
-	void InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex);
+	void InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, bool allowAutoInstancedRendering);
 
 protected:
+	typedef struct _MeshRenderData
+	{
+		std::shared_ptr<Mesh>						pMesh;
+		uint32_t									instanceCount;
+		std::vector<PerMaterialIndirectVariables>	indirectIndices;
+	}MeshRenderData;
+
 	std::shared_ptr<RenderPassBase>						m_pRenderPass;
 
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
@@ -205,8 +212,6 @@ protected:
 	// key: mesh, value: mesh index at "m_cachedMeshRenderData"
 	std::unordered_map<std::shared_ptr<Mesh>, uint32_t>	m_perFrameMeshRefTable;
 
-	// First: mesh, second: mesh instance count, third: indirect indices for each instance
-	typedef std::tuple<std::shared_ptr<Mesh>, uint32_t, std::vector<PerMaterialIndirectVariables>> MeshRenderData;
 	std::vector<MeshRenderData>							m_cachedMeshRenderData;
 
 	bool												m_isScreenMaterial;
