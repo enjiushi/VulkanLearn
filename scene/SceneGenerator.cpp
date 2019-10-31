@@ -254,44 +254,6 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateQuadMesh()
 	);
 }
 
-typedef struct _PBRPlanetVertex
-{
-	Vector3f position;
-}PBRPlanetVertex;
-
-typedef struct _PBRPlanetTriangleInstance
-{
-	Vector3f a;
-	Vector3f r;
-	Vector3f s;
-}PBRPlanetTriangleInstance;
-
-static PBRPlanetVertex GeneratePBRIcoVertex(const Vector3f& icoVertex)
-{
-	return
-	{
-		icoVertex
-	};
-}
-
-static uint32_t LEVEL = 1;
-static void SubDivide(uint32_t level, const Vector3f& a, const Vector3f& b, const Vector3f& c, std::vector<PBRPlanetTriangleInstance>& outputVertices)
-{
-	if (level == LEVEL)
-	{
-		outputVertices.push_back({ a, b, c });
-		return;
-	}
-	Vector3f A = b + (c - b) * 0.5f;
-	Vector3f B = a + (c - a) * 0.5f;
-	Vector3f C = a + (b - a) * 0.5f;
-
-	SubDivide(level + 1, a, C, B, outputVertices);
-	SubDivide(level + 1, C, b, A, outputVertices);
-	SubDivide(level + 1, B, A, c, outputVertices);
-	SubDivide(level + 1, A, B, C, outputVertices);
-}
-
 // FIXME: code for testing, will remove later
 std::shared_ptr<Mesh> SceneGenerator::GenPBRIcosahedronMesh()
 {
@@ -301,22 +263,22 @@ std::shared_ptr<Mesh> SceneGenerator::GenPBRIcosahedronMesh()
 	float scale = 1.0f / glm::length(glm::vec2(ratio, 1.0f));
 	ratio *= scale;
 
-	PBRPlanetVertex icoVertices[] = 
+	Vector3f icoVertices[] = 
 	{
-		GeneratePBRIcoVertex({ ratio, 0, -scale }),			//rf 0
-		GeneratePBRIcoVertex({ -ratio, 0, -scale }),		//lf 1
-		GeneratePBRIcoVertex({ ratio, 0, scale }),			//rb 2
-		GeneratePBRIcoVertex({ -ratio, 0, scale }),			//lb 3
+		{ ratio, 0, -scale },			//rf 0
+		{ -ratio, 0, -scale },		//lf 1
+		{ ratio, 0, scale },			//rb 2
+		{ -ratio, 0, scale },			//lb 3
 												 
-		GeneratePBRIcoVertex({ 0, -scale, ratio }),			//db 4
-		GeneratePBRIcoVertex({ 0, -scale, -ratio }),		//df 5
-		GeneratePBRIcoVertex({ 0, scale, ratio }),			//ub 6
-		GeneratePBRIcoVertex({ 0, scale, -ratio }),			//uf 7
+		{ 0, -scale, ratio },			//db 4
+		{ 0, -scale, -ratio },		//df 5
+		{ 0, scale, ratio },			//ub 6
+		{ 0, scale, -ratio },			//uf 7
 												 
-		GeneratePBRIcoVertex({ -scale, ratio, 0 }),			//lu 8
-		GeneratePBRIcoVertex({ -scale, -ratio, 0 }),		//ld 9
-		GeneratePBRIcoVertex({ scale, ratio, 0 }),			//ru 10
-		GeneratePBRIcoVertex({ scale, -ratio, 0 })			//rd 11
+		{ -scale, ratio, 0 },			//lu 8
+		{ -scale, -ratio, 0 },		//ld 9
+		{ scale, ratio, 0 },			//ru 10
+		{ scale, -ratio, 0 }			//rd 11
 	};
 
 	uint32_t indices[20 * 3] =
@@ -346,16 +308,6 @@ std::shared_ptr<Mesh> SceneGenerator::GenPBRIcosahedronMesh()
 		2, 10, 6,
 		4, 11, 2
 	};
-
-	std::vector<PBRPlanetVertex> finalVertices;
-	std::vector<uint32_t> finalIndices;
-
-	std::vector<std::vector<PBRPlanetTriangleInstance>> trees(20);
-
-	for (uint32_t treeID = 0; treeID < 20; treeID++)
-	{
-		SubDivide(0, icoVertices[treeID * 3].position, icoVertices[treeID * 3 + 1].position, icoVertices[treeID * 3 + 2].position, trees[treeID]);
-	}
 
 	return Mesh::Create
 	(
