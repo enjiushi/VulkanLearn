@@ -1,28 +1,18 @@
 #include "ShaderStorageBuffer.h"
 #include "GlobalDeviceObjects.h"
-#include "SharedBuffer.h"
-#include "SwapChain.h"
 
 bool ShaderStorageBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<ShaderStorageBuffer>& pSelf, uint32_t numBytes)
 {
-	m_info = {};
-	m_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	m_info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+	VkBufferCreateInfo info = {};
+	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 
 	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minStorageBufferOffsetAlignment;
-	uint32_t alignedBytes = numBytes / minAlign * minAlign + (numBytes % minAlign > 0 ? minAlign : 0);
-	uint32_t totalUniformBytes = alignedBytes;
+	uint32_t totalUniformBytes = numBytes / minAlign * minAlign + (numBytes % minAlign > 0 ? minAlign : 0);
 
-	m_info.size = totalUniformBytes;
+	info.size = totalUniformBytes;
 
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
-		return false;
-
-	m_pBufferKey = ShaderStorageBufferMgr()->AllocateBuffer(m_info.size);
-	if (!m_pBufferKey.get())
-		return false;
-
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
+	if (!SharedBuffer::Init(pDevice, pSelf, info))
 		return false;
 
 	// FIXME: add them back when necessary
@@ -44,12 +34,7 @@ std::shared_ptr<ShaderStorageBuffer> ShaderStorageBuffer::Create(const std::shar
 	return nullptr;
 }
 
-void ShaderStorageBuffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes)
+std::shared_ptr<BufferKey>	ShaderStorageBuffer::AcquireBuffer(uint32_t numBytes)
 {
-	m_pBufferKey->GetSharedBufferMgr()->UpdateByteStream(pData, std::static_pointer_cast<SharedBuffer>(GetSelfSharedPtr()), m_pBufferKey, offset, numBytes);
-}
-
-uint32_t ShaderStorageBuffer::GetBufferOffset() const
-{
-	return m_pBufferKey->GetSharedBufferMgr()->GetOffset(m_pBufferKey);
+	return ShaderStorageBufferMgr()->AllocateBuffer(numBytes);
 }

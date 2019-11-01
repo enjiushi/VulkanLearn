@@ -1,7 +1,5 @@
 #include "UniformBuffer.h"
-#include "SharedBuffer.h"
 #include "GlobalDeviceObjects.h"
-#include "SwapChain.h"
 
 bool UniformBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<UniformBuffer>& pSelf, uint32_t numBytes)
 {
