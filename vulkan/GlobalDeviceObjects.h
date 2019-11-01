@@ -60,6 +60,7 @@ public:
 	const std::shared_ptr<SharedBufferManager> GetUniformBufferMgr() const { return m_pUniformBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetShaderStorageBufferMgr() const { return m_pShaderStorageBufferMgr; }
 	const std::shared_ptr<SharedBufferManager> GetIndirectBufferMgr() const { return m_pIndirectBufferMgr; }
+	const std::shared_ptr<SharedBufferManager> GetStreamingBufferMgr() const { return m_pStreamingBufferMgr; }
 	const std::shared_ptr<ThreadTaskQueue> GetThreadTaskQueue() const { return m_pThreadTaskQueue; }
 	const std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates() const { return m_pGlobalVulkanStates; }
 	const std::shared_ptr<PerFrameResource> GetMainThreadPerFrameRes() const;
@@ -82,6 +83,8 @@ protected:
 	std::shared_ptr<SharedBufferManager>	m_pUniformBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pShaderStorageBufferMgr;
 	std::shared_ptr<SharedBufferManager>	m_pIndirectBufferMgr;
+	std::shared_ptr<SharedBufferManager>	m_pStreamingBufferMgr;
+
 	// Key: vertex format, value: vertex buffer manager
 	std::map<uint32_t, std::shared_ptr<SharedBufferManager>>	m_vertexAttribBufferMgrs;
 
