@@ -1,11 +1,10 @@
 #pragma once
 
-#include "VertexBuffer.h"
-#include "SharedBufferManager.h"
+#include "SharedBuffer.h"
 
-class SharedVertexBuffer : public VertexBuffer
+class SharedVertexBuffer : public SharedBuffer
 {
-public:
+protected:
 	bool Init(const std::shared_ptr<Device>& pDevice,
 		const std::shared_ptr<SharedVertexBuffer>& pSelf,
 		uint32_t numBytes,
@@ -13,9 +12,7 @@ public:
 
 public:
 	uint32_t GetNumVertices() const { return m_numVertices; }
-	VkBuffer GetDeviceHandle() const override { return m_pBufferKey->GetSharedBufferMgr()->GetBuffer()->GetDeviceHandle(); }
-	void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes) override;
-	uint32_t GetBufferOffset() const override;
+	uint32_t GetVertexFormat() const { return m_vertexFormat; }
 
 public:
 	static std::shared_ptr<SharedVertexBuffer> Create(const std::shared_ptr<Device>& pDevice,
@@ -23,5 +20,9 @@ public:
 		uint32_t vertexFormat);
 
 protected:
-	std::shared_ptr<BufferKey>	m_pBufferKey;
+	virtual std::shared_ptr<BufferKey>	AcquireBuffer(uint32_t numBytes) override;
+
+protected:
+	uint32_t					m_numVertices;
+	uint32_t					m_vertexFormat;
 };

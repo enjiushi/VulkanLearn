@@ -4,12 +4,13 @@
 
 class PerFrameResource;
 class CommandBuffer;
+class BufferBase;
 
 class StagingBufferManager : public DeviceObjectBase<StagingBufferManager>
 {
 	typedef struct _PendingBufferInfo
 	{
-		std::shared_ptr<Buffer> pBuffer;
+		std::shared_ptr<BufferBase> pBuffer;
 		uint32_t dstOffset;
 		uint32_t srcOffset;
 		uint32_t numBytes;
@@ -25,7 +26,7 @@ public:
 	void RecordDataFlush(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 protected:
-	void UpdateByteStream(const std::shared_ptr<Buffer>& pBuffer, const void* pData, uint32_t offset, uint32_t numBytes);
+	void UpdateByteStream(const std::shared_ptr<BufferBase>& pBuffer, const void* pData, uint32_t offset, uint32_t numBytes);
 
 protected:
 	std::shared_ptr<StagingBuffer>	m_pStagingBufferPool;

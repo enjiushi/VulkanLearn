@@ -111,7 +111,7 @@ void CommandBuffer::PrepareNormalDrawCommands(const DrawCmdData& data)
 	m_drawCmdData = data;
 }
 
-void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Buffer>& pDst, const std::vector<VkBufferCopy>& regions)
+void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<BufferBase>& pSrc, const std::shared_ptr<BufferBase>& pDst, const std::vector<VkBufferCopy>& regions)
 {
 	std::vector<VkBufferMemoryBarrier> bufferBarriers;
 
@@ -162,7 +162,7 @@ void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc,
 	);
 }
 
-void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Buffer>& pDst, const std::vector<VkBufferCopy>& regions)
+void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<BufferBase>& pSrc, const std::shared_ptr<BufferBase>& pDst, const std::vector<VkBufferCopy>& regions)
 {
 	std::vector<VkBufferMemoryBarrier> bufferBarriers;
 
@@ -213,7 +213,7 @@ void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pSrc, 
 	);
 }
 
-void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions) 
+void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<BufferBase>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions) 
 {
 	std::vector<VkBufferMemoryBarrier> bufferBarriers;
 	
@@ -276,7 +276,7 @@ void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc,
 		imgBarriers
 	);
 }
-void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions) 
+void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<BufferBase>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions)
 {
 	std::vector<VkBufferMemoryBarrier> bufferBarriers;
 
@@ -564,7 +564,7 @@ void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Image>& pSrc, c
 	);
 }
 
-void CommandBuffer::CopyBuffer(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Buffer>& pDst, const std::vector<VkBufferCopy>& regions)
+void CommandBuffer::CopyBuffer(const std::shared_ptr<BufferBase>& pSrc, const std::shared_ptr<BufferBase>& pDst, const std::vector<VkBufferCopy>& regions)
 {
 	IssueBarriersBeforeCopy(pSrc, pDst, regions);
 
@@ -873,7 +873,7 @@ void CommandBuffer::BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeli
 	AddToReferenceTable(pPipeline);
 }
 
-void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<Buffer>>& vertexBuffers)
+void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<BufferBase>>& vertexBuffers)
 {
 	std::vector<VkBuffer> rawVertexBuffers;
 	std::vector<VkDeviceSize> offsets;

@@ -29,5 +29,5 @@ std::shared_ptr<StagingBuffer> StagingBuffer::Create(const std::shared_ptr<Devic
 
 void StagingBuffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes)
 {
-	DeviceMemMgr()->UpdateBufferMemChunk(m_pMemKey, m_memProperty, pData, offset, numBytes);
+	DeviceMemMgr()->UpdateBufferMemChunk(m_pMemKey, pData, offset, numBytes);
 }

@@ -1,5 +1,6 @@
 #include "ShaderStorageBuffer.h"
 #include "GlobalDeviceObjects.h"
+#include "SharedBuffer.h"
 #include "SwapChain.h"
 
 bool ShaderStorageBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<ShaderStorageBuffer>& pSelf, uint32_t numBytes)
@@ -45,7 +46,7 @@ std::shared_ptr<ShaderStorageBuffer> ShaderStorageBuffer::Create(const std::shar
 
 void ShaderStorageBuffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes)
 {
-	m_pBufferKey->GetSharedBufferMgr()->UpdateByteStream(pData, GetSelfSharedPtr(), m_pBufferKey, offset, numBytes);
+	m_pBufferKey->GetSharedBufferMgr()->UpdateByteStream(pData, std::static_pointer_cast<SharedBuffer>(GetSelfSharedPtr()), m_pBufferKey, offset, numBytes);
 }
 
 uint32_t ShaderStorageBuffer::GetBufferOffset() const

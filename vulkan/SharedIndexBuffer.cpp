@@ -1,4 +1,5 @@
 #include "SharedIndexBuffer.h"
+#include "SharedBuffer.h"
 
 bool SharedIndexBuffer::Init(const std::shared_ptr<Device>& pDevice,
 	const std::shared_ptr<IndexBuffer>& pSelf,
@@ -50,7 +51,7 @@ std::shared_ptr<SharedIndexBuffer> SharedIndexBuffer::Create(const std::shared_p
 
 void SharedIndexBuffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes)
 {
-	m_pBufferKey->GetSharedBufferMgr()->UpdateByteStream(pData, GetSelfSharedPtr(), m_pBufferKey, offset, numBytes);
+	m_pBufferKey->GetSharedBufferMgr()->UpdateByteStream(pData, std::static_pointer_cast<SharedBuffer>(GetSelfSharedPtr()), m_pBufferKey, offset, numBytes);
 }
 
 uint32_t SharedIndexBuffer::GetBufferOffset() const

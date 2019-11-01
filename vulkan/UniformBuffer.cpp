@@ -1,4 +1,5 @@
 #include "UniformBuffer.h"
+#include "SharedBuffer.h"
 #include "GlobalDeviceObjects.h"
 #include "SwapChain.h"
 
@@ -44,7 +45,7 @@ std::shared_ptr<UniformBuffer> UniformBuffer::Create(const std::shared_ptr<Devic
 
 void UniformBuffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes)
 {
-	m_pBufferKey->GetSharedBufferMgr()->UpdateByteStream(pData, GetSelfSharedPtr(), m_pBufferKey, offset, numBytes);
+	m_pBufferKey->GetSharedBufferMgr()->UpdateByteStream(pData, std::static_pointer_cast<SharedBuffer>(GetSelfSharedPtr()), m_pBufferKey, offset, numBytes);
 }
 
 uint32_t UniformBuffer::GetBufferOffset() const
