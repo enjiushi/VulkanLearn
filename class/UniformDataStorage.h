@@ -5,7 +5,7 @@
 #include "UniformBase.h"
 
 class DescriptorSet;
-class Buffer;
+class BufferBase;
 class UniformBuffer;
 class ShaderStorageBuffer;
 
@@ -19,7 +19,7 @@ public:
 public:
 	uint32_t GetFrameOffset() const { return m_frameOffset; }
 	void SyncBufferData();
-	std::shared_ptr<Buffer> GetBuffer() const;
+	std::shared_ptr<BufferBase> GetBuffer() const;
 
 protected:
 	virtual void UpdateUniformDataInternal() = 0;

@@ -48,7 +48,7 @@ void UniformDataStorage::SetDirty()
 	SetDirtyInternal();
 }
 
-std::shared_ptr<Buffer> UniformDataStorage::GetBuffer() const
+std::shared_ptr<BufferBase> UniformDataStorage::GetBuffer() const
 {
 	if (m_pUniformBuffer)
 		return m_pUniformBuffer;

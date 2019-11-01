@@ -20,7 +20,7 @@ public:
 		uint32_t vertexFormat);
 
 protected:
-	virtual std::shared_ptr<BufferKey>	AcquireBuffer(uint32_t numBytes) override;
+	std::shared_ptr<BufferKey>	AcquireBuffer(uint32_t numBytes) override;
 
 protected:
 	uint32_t					m_numVertices;
