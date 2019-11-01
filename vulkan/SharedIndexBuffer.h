@@ -1,13 +1,12 @@
 #pragma once
 
-#include "IndexBuffer.h"
-#include "SharedBufferManager.h"
+#include "SharedBuffer.h"
 
-class SharedIndexBuffer : public IndexBuffer
+class SharedIndexBuffer : public SharedBuffer
 {
 protected:
 	bool Init(const std::shared_ptr<Device>& pDevice, 
-		const std::shared_ptr<IndexBuffer>& pSelf,
+		const std::shared_ptr<SharedIndexBuffer>& pSelf,
 		uint32_t numBytes,
 		VkIndexType type);
 
@@ -16,10 +15,14 @@ public:
 		uint32_t numBytes,
 		VkIndexType type);
 
-	VkBuffer GetDeviceHandle() const override { return m_pBufferKey->GetSharedBufferMgr()->GetBuffer()->GetDeviceHandle(); }
-	void UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes) override;
-	uint32_t GetBufferOffset() const override;
+public:
+	VkIndexType GetType() const { return m_type; }
+	uint32_t GetCount() const { return m_count; }
 
 protected:
-	std::shared_ptr<BufferKey> m_pBufferKey;
+	std::shared_ptr<BufferKey>	AcquireBuffer(uint32_t numBytes) override;
+
+protected:
+	VkIndexType m_type;
+	uint32_t	m_count;
 };
