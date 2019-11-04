@@ -107,7 +107,7 @@ void MeshRenderer::LateUpdate()
 
 		uint32_t animationChunkIndex = m_pAnimationController == nullptr ? 0 : m_pAnimationController->GetAnimationInstance()->GetAnimationChunkIndex();
 
-		m_materialInstances[i].first->InsertIntoRenderQueue(m_pMesh, m_perObjectBufferIndex, m_pMesh->GetMeshChunkIndex(), animationChunkIndex, m_allowAutoInstancedRendering);
+		m_materialInstances[i].first->InsertIntoRenderQueue(m_pMesh, m_perObjectBufferIndex, m_pMesh->GetMeshChunkIndex(), animationChunkIndex, m_instanceCount, m_instanceDataOffset);
 	}
 }
 

@@ -179,13 +179,14 @@ protected:
 	virtual void CustomizePoolSize(std::vector<uint32_t>& counts) {}
 
 	static uint32_t GetByteSize(std::vector<UniformVar>& UBOLayout);
-	void InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, bool allowAutoInstancedRendering);
+	void InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, uint32_t instanceCount, uint32_t instanceDataOffset);
 
 protected:
 	typedef struct _MeshRenderData
 	{
 		std::shared_ptr<Mesh>						pMesh;
 		uint32_t									instanceCount;
+		uint32_t									instanceDataOffset;
 		std::vector<PerMaterialIndirectVariables>	indirectIndices;
 	}MeshRenderData;
 

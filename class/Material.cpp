@@ -397,6 +397,7 @@ void Material::SyncBufferData()
 			// Prepare mesh indirect data
 			meshRenderData.pMesh->PrepareIndirectCmd(cmd);
 			cmd.instanceCount = meshRenderData.instanceCount;
+			cmd.firstInstance = meshRenderData.instanceDataOffset;
 			m_pIndirectBuffer->SetIndirectCmd(drawID, cmd);
 
 			// Prepare indirect offset
@@ -445,19 +446,25 @@ void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 	pCmdBuffer->BindIndexBuffer(IndexBufferMgr()->GetBuffer(), VK_INDEX_TYPE_UINT32);
 }
 
-void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, bool allowAutoInstancedRendering)
+void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, uint32_t instanceCount, uint32_t instanceDataOffset)
 {
+	ASSERTION(instanceCount > 0);
+
 	auto iter = m_perFrameMeshRefTable.find(pMesh);
 
+	// Instance count greater than 1 means manually instanced rendering
+	bool manualInstance = instanceCount > 1;
+
 	// If a mesh is not yet added to ref table of current frame
-	if (iter == m_perFrameMeshRefTable.end() || !allowAutoInstancedRendering)
+	if (iter == m_perFrameMeshRefTable.end() || manualInstance)
 	{
 		// First all the info into cached mesh render data
 		m_cachedMeshRenderData.push_back
 		(
 			{
 				pMesh,
-				1,
+				instanceCount,
+				instanceDataOffset,
 				std::vector<PerMaterialIndirectVariables>(1, {perObjectIndex, perMaterialIndex, perMeshIndex, perAnimationIndex})
 			}
 		);
@@ -465,7 +472,8 @@ void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_
 		// Then add mesh to ref table, as well as its index in render data table
 		// Ref table is only updated when auto instanced rendering is enabled
 		// Or there's no need to search this mesh and add it to instance count
-		if (allowAutoInstancedRendering)
+		// NOTE: Only add to ref table if it's not manual instanced rendering
+		if (!manualInstance)
 			m_perFrameMeshRefTable[pMesh] = m_cachedMeshRenderData.size() - 1;
 
 		return;

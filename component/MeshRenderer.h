@@ -26,8 +26,10 @@ public:
 
 	std::shared_ptr<Mesh> GetMesh() const { return m_pMesh; }
 
-	bool GetAllowAutoInstancedRendering() const { return m_allowAutoInstancedRendering; }
-	void SetAllowAutoInstancedRendering(bool val) { m_allowAutoInstancedRendering = val; }
+	uint32_t GetInstanceCount() const { return m_instanceCount; }
+	void SetInstanceCount(uint32_t instanceCount) { m_instanceCount = instanceCount; }
+	uint32_t GetInstanceDataOffset() const { return m_instanceDataOffset; }
+	uint32_t SetInstanceDataOffset(uint32_t offset) { m_instanceDataOffset = offset; }
 
 protected:
 	bool Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances, const std::shared_ptr<AnimationController>& pAnimationController);
@@ -46,11 +48,12 @@ protected:
 	// And a special procedure is invented to use both "DrawID" and "InstanceID" to redirect to the right per-object data chunk
 	// However, when it comes to the need of rendering something with a customized amount of instances, the whole mechanism goes south
 	//
-	// Good thing is, customized instance rendering mostly likely do jobs as drawing many things with same geometry, and each one of them is 
+	// Good thing is, customized instance rendering most likely do jobs as drawing many things with same geometry, and each one of them is 
 	// distinguished by per-instanced vertex attribute or uniform buffer, indexed by instance id.
-	// Since this works completely differently, we can have this variable to mark current mesh renderer and let it decide to join either auto
-	// instancing, or generate its own indirect command and assign instance count manually
+	// Since this works completely differently, we can have these 2 variables to let it decide to join either auto
+	// instancing, or generate its own indirect command and assign instance count manually ( With 0 or 1 means auto instancing)
 	//
-	// Everything is default to be auto instanced
-	bool					m_allowAutoInstancedRendering = true;
+	// Everything is default to be auto instanced;
+	uint32_t				m_instanceCount = 1;
+	uint32_t				m_instanceDataOffset = 0;
 };

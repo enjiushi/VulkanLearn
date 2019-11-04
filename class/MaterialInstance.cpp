@@ -60,7 +60,7 @@ void MaterialInstance::Draw()
 		FrameMgr()->AddJobToFrame(std::bind(&BaseComponent::Draw, pRenderer.lock().get(), std::placeholders::_1));
 }
 
-void MaterialInstance::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, bool allowAutoInstancedRendering)
+void MaterialInstance::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, uint32_t instanceCount, uint32_t instanceDataOffset)
 {
-	m_pMaterial->InsertIntoRenderQueue(pMesh, perObjectIndex, m_materialBufferChunkIndex, perMeshIndex, perAnimationIndex, allowAutoInstancedRendering);
+	m_pMaterial->InsertIntoRenderQueue(pMesh, perObjectIndex, m_materialBufferChunkIndex, perMeshIndex, perAnimationIndex, instanceCount, instanceDataOffset);
 }
