@@ -2,7 +2,7 @@
 
 #include "../Maths/Matrix.h"
 #include "ChunkBasedUniforms.h"
-#include "UniformBase.h"
+#include "IMaterialUniformOperator.h"
 
 class DescriptorSet;
 

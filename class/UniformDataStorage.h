@@ -3,7 +3,7 @@
 #include "../Maths/Matrix.h"
 #include "../Base/Base.h"
 #include "PerFrameDataStorage.h"
-#include "UniformBase.h"
+#include "IMaterialUniformOperator.h"
 
 class BufferBase;
 

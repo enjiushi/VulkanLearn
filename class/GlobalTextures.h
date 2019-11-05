@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UniformBase.h"
+#include "IMaterialUniformOperator.h"
 #include <gli\gli.hpp>
 #include <map>
 

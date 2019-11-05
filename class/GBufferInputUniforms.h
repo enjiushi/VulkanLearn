@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Maths/Matrix.h"
-#include "UniformBase.h"
+#include "IMaterialUniformOperator.h"
 
 class DescriptorSet;
 class Texture2D;
