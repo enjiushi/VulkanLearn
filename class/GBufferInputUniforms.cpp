@@ -10,7 +10,7 @@
 
 bool GBufferInputUniforms::Init(const std::shared_ptr<GBufferInputUniforms>& pSelf)
 {
-	if (!UniformBase::Init(pSelf))
+	if (!SelfRefBase<GBufferInputUniforms>::Init(pSelf))
 		return false;
 
 	return true;

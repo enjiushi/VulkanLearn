@@ -6,7 +6,7 @@
 class DescriptorSet;
 class Texture2D;
 
-class GBufferInputUniforms : public UniformBase
+class GBufferInputUniforms : public SelfRefBase<GBufferInputUniforms>, public IMaterialUniformOperator
 {
 public:
 	bool Init(const std::shared_ptr<GBufferInputUniforms>& pSelf);

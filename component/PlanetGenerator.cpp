@@ -69,7 +69,7 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf)
 
 	memcpy_s(&m_icosahedronIndices, sizeof(m_icosahedronIndices), &indices, sizeof(indices));
 
-	m_pKey = PerFrameData::GetInstance()->AllocateBuffer(sizeof(IcoTriangle) * 5120);
+	//m_pKey = PerFrameData::GetInstance()->AllocateBuffer(sizeof(IcoTriangle) * 5120);
 
 	return true;
 }

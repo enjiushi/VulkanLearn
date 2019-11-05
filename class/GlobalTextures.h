@@ -46,7 +46,7 @@ typedef struct _TextureArrayDesc
 	std::map<std::string, uint32_t> lookupTable;
 }TextureArrayDesc;
 
-class GlobalTextures : public UniformBase
+class GlobalTextures : public SelfRefBase<GlobalTextures>, public IMaterialUniformOperator
 {
 public:
 	const static uint32_t SSAO_RANDOM_ROTATION_COUNT = 16;

@@ -10,7 +10,7 @@ std::shared_ptr<PerFrameBuffer> PerFrameBuffer::Create(uint32_t size)
 
 bool PerFrameBuffer::Init(const std::shared_ptr<PerFrameBuffer>& pSelf, uint32_t size)
 {
-	if (!UniformDataStorage::Init(pSelf, size, true))
+	if (!PerFrameDataStorage::Init(pSelf, size, PerFrameDataStorage::Streaming))
 		return false;
 
 	m_pData = new uint8_t[GetFrameOffset()];

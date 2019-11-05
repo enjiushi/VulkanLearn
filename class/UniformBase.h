@@ -36,11 +36,8 @@ typedef struct _UniformVarList
 	uint32_t					count = 1;
 }UniformVarList;
 
-class UniformBase : public SelfRefBase<UniformBase>
+class IMaterialUniformOperator
 {
-public:
-	bool Init(const std::shared_ptr<UniformBase>& pSelf);
-
 public:
 	virtual std::vector<UniformVarList> PrepareUniformVarList() const = 0;
 	virtual uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const = 0;		// Returns next available binding index

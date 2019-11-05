@@ -16,7 +16,7 @@
 
 bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 {
-	if (!UniformDataStorage::Init(pSelf, sizeof(m_globalVariables), false))
+	if (!UniformDataStorage::Init(pSelf, sizeof(m_globalVariables), PerFrameDataStorage::Uniform))
 		return false;
 
 	SetGameWindowSize({ (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height });

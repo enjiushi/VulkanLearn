@@ -4,7 +4,7 @@
 #include "../common/Singleton.h"
 #include "UniformDataStorage.h"
 
-class PerFrameBuffer : public UniformDataStorage
+class PerFrameBuffer : public PerFrameDataStorage
 {
 public:
 	static std::shared_ptr<PerFrameBuffer> Create(uint32_t size);
@@ -22,10 +22,6 @@ protected:
 	void SetDirtyInternal() override {}
 	const void* AcquireDataPtr() const { return m_pData; }
 	uint32_t AcquireDataSize() const override { return GetFrameOffset(); }
-
-	// Useless interfaces for this class
-	std::vector<UniformVarList> PrepareUniformVarList() const override { return {}; }
-	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override { return 0; }
 
 private:
 	void*	m_pData;
