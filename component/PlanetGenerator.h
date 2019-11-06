@@ -31,6 +31,5 @@ private:
 	Vector3f	m_icosahedronVertices[20];
 	uint32_t	m_icosahedronIndices[20 * 3];
 
-	std::shared_ptr<PerFrameData::PerFrameDataKey> m_pKey;
 	IcoTriangle	m_test[80];
 };

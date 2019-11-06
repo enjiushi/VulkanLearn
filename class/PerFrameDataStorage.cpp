@@ -2,6 +2,7 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/UniformBuffer.h"
 #include "../vulkan/ShaderStorageBuffer.h"
+#include "../vulkan/StreamingBuffer.h"
 #include "PerFrameDataStorage.h"
 
 bool PerFrameDataStorage::Init(const std::shared_ptr<PerFrameDataStorage>& pSelf, uint32_t numBytes, StorageType storageType)
@@ -23,11 +24,9 @@ bool PerFrameDataStorage::Init(const std::shared_ptr<PerFrameDataStorage>& pSelf
 	case ShaderStorage:
 		m_pBuffer = ShaderStorageBuffer::Create(GetDevice(), totalUniformBytes);
 		break;
-
-	// Later
-	//case StreamingVertexBuffer:
-	//	m_pBuffer = StreamingVertexBuffer::Create(GetDevice(), totalUniformBytes);
-	//	break;
+	case Streaming:
+		m_pBuffer = StreamingBuffer::Create(GetDevice(), totalUniformBytes);
+		break;
 
 	default:
 		ASSERTION(false);

@@ -97,7 +97,7 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, uint32_t targetLevel, con
 
 void PlanetGenerator::Update()
 {
-	IcoTriangle* pTriangles = (IcoTriangle*)PerFrameData::GetInstance()->GetPerFrameBuffer(m_pKey)->DataPtr();
+	/*IcoTriangle* pTriangles = (IcoTriangle*)PerFrameData::GetInstance()->GetPerFrameBuffer(m_pKey)->DataPtr();
 	for (uint32_t i = 0; i < 20; i++)
-		SubDivide(0, 1, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);
+		SubDivide(0, 1, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);*/
 }

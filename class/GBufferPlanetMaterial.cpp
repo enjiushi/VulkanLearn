@@ -158,6 +158,9 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 	createInfo.subpass = simpleMaterialInfo.subpassIndex;
 	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
 
+	// FIXME: Magic number
+	pGBufferPlanetMaterial->m_pKey = PerFrameData::GetInstance()->AllocateBuffer(9 * 1024);
+
 	if (pGBufferPlanetMaterial.get() && pGBufferPlanetMaterial->Init(pGBufferPlanetMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem, true))
 		return pGBufferPlanetMaterial;
 	return nullptr;

@@ -1,5 +1,6 @@
 #pragma once
 #include "Material.h"
+#include "PerFrameData.h"
 
 class RenderPassBase;
 class ShaderStorageBuffer;
@@ -14,5 +15,5 @@ public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false) override;
 
 private:
-	std::shared_ptr<ShaderStorageBuffer>	m_pData;
+	std::shared_ptr<PerFrameData::PerFrameDataKey> m_pKey;
 };
