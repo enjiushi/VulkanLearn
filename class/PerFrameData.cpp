@@ -27,6 +27,11 @@ PerFrameBuffer::~PerFrameBuffer()
 	}
 }
 
+void PerFrameBuffer::SetDirty()
+{
+	PerFrameDataStorage::SetDirty();
+}
+
 PerFrameData::PerFrameDataKey::~PerFrameDataKey()
 {
 	PerFrameData::GetInstance()->DeallocateBuffer(key);
@@ -40,7 +45,11 @@ void PerFrameData::SyncDataBuffer()
 
 std::shared_ptr<PerFrameData::PerFrameDataKey> PerFrameData::AllocateBuffer(uint32_t size)
 {
-	m_storageBuffers.push_back(PerFrameBuffer::Create(size));
+	std::shared_ptr<PerFrameBuffer> pPerFrameBuffer = PerFrameBuffer::Create(size);
+	if (pPerFrameBuffer == nullptr)
+		return nullptr;
+
+	m_storageBuffers.push_back(pPerFrameBuffer);
 	return std::make_shared<PerFrameData::PerFrameDataKey>((uint32_t)m_storageBuffers.size() - 1);
 }
 

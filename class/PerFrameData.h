@@ -17,11 +17,12 @@ public:
 protected:
 	bool Init(const std::shared_ptr<PerFrameBuffer>& pSelf, uint32_t size);
 
-protected:
+public:
 	void UpdateUniformDataInternal() override {}
 	void SetDirtyInternal() override {}
 	const void* AcquireDataPtr() const { return m_pData; }
 	uint32_t AcquireDataSize() const override { return GetFrameOffset(); }
+	void SetDirty();
 
 private:
 	void*	m_pData;

@@ -1,4 +1,5 @@
 #include "PlanetGenerator.h"
+#include "../class/PlanetGeoDataManager.h"
 
 DEFINITE_CLASS_RTTI(PlanetGenerator, BaseComponent);
 
@@ -69,8 +70,6 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf)
 
 	memcpy_s(&m_icosahedronIndices, sizeof(m_icosahedronIndices), &indices, sizeof(indices));
 
-	//m_pKey = PerFrameData::GetInstance()->AllocateBuffer(sizeof(IcoTriangle) * 5120);
-
 	return true;
 }
 
@@ -97,7 +96,13 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, uint32_t targetLevel, con
 
 void PlanetGenerator::Update()
 {
-	/*IcoTriangle* pTriangles = (IcoTriangle*)PerFrameData::GetInstance()->GetPerFrameBuffer(m_pKey)->DataPtr();
+	IcoTriangle* pTriangles = (IcoTriangle*)PlanetGeoDataManager::GetInstance()->AcquireDataPtr();
+	uint8_t* startPtr = (uint8_t*)pTriangles;
+
 	for (uint32_t i = 0; i < 20; i++)
-		SubDivide(0, 1, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);*/
+	{
+		SubDivide(0, 2, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);
+	}
+
+	PlanetGeoDataManager::GetInstance()->FinishDataUpdate((uint8_t*)pTriangles - startPtr);
 }
