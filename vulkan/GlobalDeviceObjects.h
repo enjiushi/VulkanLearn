@@ -36,6 +36,7 @@ std::shared_ptr<SharedBufferManager> IndexBufferMgr();
 std::shared_ptr<SharedBufferManager> UniformBufferMgr();
 std::shared_ptr<SharedBufferManager> ShaderStorageBufferMgr();
 std::shared_ptr<SharedBufferManager> IndirectBufferMgr();
+std::shared_ptr<SharedBufferManager> StreamingBufferMgr();
 std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue();
 std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates();
 std::shared_ptr<PerFrameResource> MainThreadPerFrameRes();
