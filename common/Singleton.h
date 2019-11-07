@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 template <typename T>
 class Singleton
@@ -6,21 +7,18 @@ class Singleton
 public:
 	static T* GetInstance()
 	{
-		if (m_instance)
-			return m_instance;
+		if (m_pInstance != nullptr)
+			return m_pInstance.get();
 
-		m_instance = new T;
-		if (m_instance->Init())
-			return m_instance;
+		m_pInstance = std::make_shared<T>();
+		if (m_pInstance->Init())
+			return m_pInstance.get();
 		else
 			return nullptr;
 	}
 
 	static void Free()
 	{
-		if (m_instance)
-			delete m_instance;
-		m_instance = nullptr;
 	}
 
 protected:
@@ -29,8 +27,8 @@ protected:
 	virtual bool Init() { return true; }
 
 protected:
-	static T* m_instance;
+	static std::shared_ptr<T> m_pInstance;
 };
 
 template <typename T>
-T* Singleton<T>::m_instance = nullptr;
+std::shared_ptr<T> Singleton<T>::m_pInstance = nullptr;

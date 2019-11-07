@@ -1,14 +1,14 @@
 #pragma once
 
 #include "../common/Singleton.h"
-#include "../Base/FrameEventListener.h"
+#include "FrameEventListener.h"
 #include <memory>
 #include <unordered_set>
 
 class FrameEventManager : public Singleton<FrameEventManager>
 {
 public:
-	bool Init() {}
+	bool Init() { return true; }
 
 public:
 	// Maybe more

@@ -1,4 +1,5 @@
 #include "PlanetGeoDataManager.h"
+#include "FrameEventManager.h"
 
 bool PlanetGeoDataManager::Init()
 {
@@ -7,6 +8,9 @@ bool PlanetGeoDataManager::Init()
 
 	// FIXME: Magic number
 	m_pBufferKey = PerFrameData::GetInstance()->AllocateBuffer(1024 * 1024);
+
+	FrameEventManager::GetInstance()->Register(m_pInstance);
+
 	return m_pBufferKey != nullptr;
 }
 
@@ -17,6 +21,16 @@ void* PlanetGeoDataManager::AcquireDataPtr() const
 
 void PlanetGeoDataManager::FinishDataUpdate(uint32_t size)
 {
-	//m_updatedSize += size;
+	m_updatedSize += size;
 	PerFrameData::GetInstance()->GetPerFrameBuffer(m_pBufferKey)->SetDirty();
+}
+
+void PlanetGeoDataManager::OnFrameBegin()
+{
+
+}
+
+void PlanetGeoDataManager::OnFrameEnd()
+{
+	m_updatedSize = 0;
 }
