@@ -14,8 +14,9 @@ bool PlanetGeoDataManager::Init()
 	return m_pBufferKey != nullptr;
 }
 
-void* PlanetGeoDataManager::AcquireDataPtr() const
+void* PlanetGeoDataManager::AcquireDataPtr(uint32_t& offsetInBytes) const
 {
+	offsetInBytes = m_updatedSize;
 	return (uint8_t*)PerFrameData::GetInstance()->GetPerFrameBuffer(m_pBufferKey)->DataPtr() + m_updatedSize;
 }
 

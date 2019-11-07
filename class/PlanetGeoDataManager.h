@@ -10,7 +10,7 @@ public:
 	bool Init();
 
 public:
-	void* AcquireDataPtr() const;
+	void* AcquireDataPtr(uint32_t& offsetInBytes) const;
 	void FinishDataUpdate(uint32_t size);
 
 public:

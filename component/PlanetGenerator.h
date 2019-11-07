@@ -3,6 +3,8 @@
 #include "../Maths/Matrix.h"
 #include "../class/PerFrameData.h"
 
+class MeshRenderer;
+
 class PlanetGenerator : public BaseComponent
 {
 	DECLARE_CLASS_RTTI(PlanetGenerator);
@@ -25,11 +27,12 @@ protected:
 	static void SubDivide(uint32_t currentLevel, uint32_t targetLevel, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles);
 
 public:
+	void Start() override;
 	void Update() override;
 
 private:
 	Vector3f	m_icosahedronVertices[20];
 	uint32_t	m_icosahedronIndices[20 * 3];
 
-	IcoTriangle	m_test[80];
+	std::shared_ptr<MeshRenderer>	m_pMeshRenderer;
 };

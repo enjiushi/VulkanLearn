@@ -447,7 +447,7 @@ void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 	pCmdBuffer->BindIndexBuffer(IndexBufferMgr()->GetBuffer(), VK_INDEX_TYPE_UINT32);
 }
 
-void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, uint32_t instanceCount, uint32_t instanceDataOffset)
+void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, uint32_t instanceCount, uint32_t startInstance)
 {
 	ASSERTION(instanceCount > 0);
 
@@ -465,7 +465,7 @@ void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_
 			{
 				pMesh,
 				instanceCount,
-				instanceDataOffset,
+				startInstance,
 				std::vector<PerMaterialIndirectVariables>(1, {perObjectIndex, perMaterialIndex, perMeshIndex, perAnimationIndex})
 			}
 		);

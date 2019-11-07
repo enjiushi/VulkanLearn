@@ -28,8 +28,8 @@ public:
 
 	uint32_t GetInstanceCount() const { return m_instanceCount; }
 	void SetInstanceCount(uint32_t instanceCount) { m_instanceCount = instanceCount; }
-	uint32_t GetInstanceDataOffset() const { return m_instanceDataOffset; }
-	uint32_t SetInstanceDataOffset(uint32_t offset) { m_instanceDataOffset = offset; }
+	uint32_t GetStartInstance() const { return m_startInstance; }
+	void SetStartInstance(uint32_t startInstance) { m_startInstance = startInstance; }
 
 protected:
 	bool Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances, const std::shared_ptr<AnimationController>& pAnimationController);
@@ -55,5 +55,5 @@ protected:
 	//
 	// Everything is default to be auto instanced;
 	uint32_t				m_instanceCount = 1;
-	uint32_t				m_instanceDataOffset = 0;
+	uint32_t				m_startInstance = 0;
 };

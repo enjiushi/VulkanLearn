@@ -1,5 +1,8 @@
 #include "PlanetGenerator.h"
+#include "MeshRenderer.h"
+#include "../Base/BaseObject.h"
 #include "../class/PlanetGeoDataManager.h"
+
 
 DEFINITE_CLASS_RTTI(PlanetGenerator, BaseComponent);
 
@@ -73,6 +76,12 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf)
 	return true;
 }
 
+void PlanetGenerator::Start()
+{
+	m_pMeshRenderer = GetComponent<MeshRenderer>();
+	//ASSERTION(m_pMeshRenderer != nullptr);
+}
+
 void PlanetGenerator::SubDivide(uint32_t currentLevel, uint32_t targetLevel, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles)
 {
 	if (currentLevel == targetLevel)
@@ -96,7 +105,9 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, uint32_t targetLevel, con
 
 void PlanetGenerator::Update()
 {
-	IcoTriangle* pTriangles = (IcoTriangle*)PlanetGeoDataManager::GetInstance()->AcquireDataPtr();
+	uint32_t offsetInBytes;
+
+	IcoTriangle* pTriangles = (IcoTriangle*)PlanetGeoDataManager::GetInstance()->AcquireDataPtr(offsetInBytes);
 	uint8_t* startPtr = (uint8_t*)pTriangles;
 
 	for (uint32_t i = 0; i < 20; i++)
@@ -104,5 +115,13 @@ void PlanetGenerator::Update()
 		SubDivide(0, 2, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);
 	}
 
-	PlanetGeoDataManager::GetInstance()->FinishDataUpdate((uint8_t*)pTriangles - startPtr);
+	uint32_t updatedSize = (uint8_t*)pTriangles - startPtr;
+
+	PlanetGeoDataManager::GetInstance()->FinishDataUpdate(updatedSize);
+	
+	if (m_pMeshRenderer != nullptr)
+	{
+		m_pMeshRenderer->SetStartInstance(offsetInBytes / sizeof(IcoTriangle));
+		m_pMeshRenderer->SetInstanceCount(updatedSize / sizeof(IcoTriangle));
+	}
 }
