@@ -39,6 +39,7 @@
 #include "../class/AssimpSceneReader.h"
 #include "../component/AnimationController.h"
 #include "../class/PerFrameData.h"
+#include "../class/FrameEventManager.h"
 
 bool PREBAKE_CB = true;
 
@@ -814,6 +815,7 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pBoxObject1);
 	m_pRootObject->AddChild(m_pBoxObject2);
 	m_pRootObject->AddChild(m_pIcoObject);
+	m_pRootObject->AddChild(m_pPlanetObject);
 	m_pRootObject->AddChild(m_pSophiaObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pDirLightObj);
@@ -907,6 +909,8 @@ void VulkanGlobal::Draw()
 	uint32_t frameIndex = FrameMgr()->FrameIndex();
 	uint32_t cbIndex = frameIndex * 2 + pingpong;
 
+	FrameEventManager::GetInstance()->OnFrameBegin();
+
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetDeltaTime(Timer::GetElapsedTime());
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::GetTotalTime()));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
@@ -960,6 +964,8 @@ void VulkanGlobal::Draw()
 
 	pingpong = (pingpong + 1) % 2;
 	frameCount++;
+
+	FrameEventManager::GetInstance()->OnFrameEnd();
 }
 
 void VulkanGlobal::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)
