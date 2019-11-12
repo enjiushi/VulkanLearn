@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../Base/Base.h"
 #include "../Base/BaseObject.h"
 #include "../Base/BaseComponent.h"
