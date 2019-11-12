@@ -160,7 +160,7 @@ protected:
 protected:
 	std::vector<std::shared_ptr<BaseComponent>>		m_components;
 	std::vector<std::shared_ptr<BaseObject>>		m_children;
-	std::shared_ptr<BaseObject>						m_pParent;
+	std::weak_ptr<BaseObject>						m_pParent;
 
 	Vector3f	m_localPosition;
 	Vector3f	m_localScale;

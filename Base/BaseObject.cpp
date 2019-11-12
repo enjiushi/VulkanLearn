@@ -134,8 +134,9 @@ void BaseObject::UpdateLocalTransform()
 Vector3f BaseObject::GetWorldPosition() const
 {
 	Matrix4f parentWorldTransform;
-	if (m_pParent.get())
-		parentWorldTransform = m_pParent->GetWorldTransform();
+
+	if (!m_pParent.expired())
+		parentWorldTransform = m_pParent.lock()->GetWorldTransform();
 
 	//get world transform
 	return (parentWorldTransform * Vector4f(m_localPosition, 1.0f)).xyz();
@@ -144,8 +145,8 @@ Vector3f BaseObject::GetWorldPosition() const
 Matrix4f BaseObject::GetWorldTransform() const 
 { 
 	Matrix4f parentWorldTransform;
-	if (m_pParent.get())
-		parentWorldTransform = m_pParent->GetWorldTransform();
+	if (!m_pParent.expired())
+		parentWorldTransform = m_pParent.lock()->GetWorldTransform();
 
 	return parentWorldTransform * m_localTransform;
 }
@@ -153,8 +154,8 @@ Matrix4f BaseObject::GetWorldTransform() const
 Matrix3f BaseObject::GetWorldRotationM() const
 { 
 	Matrix3f parentWorldRotationM;
-	if (m_pParent.get())
-		parentWorldRotationM = m_pParent->GetWorldRotationM();
+	if (!m_pParent.expired())
+		parentWorldRotationM = m_pParent.lock()->GetWorldRotationM();
 
 	return parentWorldRotationM * m_localRotationM;
 }
