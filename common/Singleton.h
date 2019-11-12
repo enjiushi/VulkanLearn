@@ -19,6 +19,7 @@ public:
 
 	static void Free()
 	{
+		m_pInstance = nullptr;
 	}
 
 protected:
