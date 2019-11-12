@@ -60,7 +60,7 @@ void SharedBufferManager::FreeBuffer(uint32_t index)
 	m_lookupTable.erase(index);
 	m_bufferTable.erase(m_bufferTable.begin() + bufferChunkIndex);
 
-	// Update lookup table since one record is removed, all records after it must go forward
+	// Update lookup table since one record is removed, all records after it must be decreased
 	for (auto& value : m_lookupTable)
 	{
 		if (value.second > bufferChunkIndex)
@@ -80,6 +80,13 @@ std::shared_ptr<BufferKey> SharedBufferManager::AllocateBuffer(uint32_t numBytes
 		endByte = offset + numBytes - 1;
 		if (endByte < m_bufferTable[i].offset)
 		{
+			// Update lookup table since one record is inserted, all records after it must be increased
+			for (auto& value : m_lookupTable)
+			{
+				if (value.second >= i)
+					value.second++;
+			}
+
 			// Insert buffer chunk
 			info.offset = offset;
 			info.range = numBytes;
