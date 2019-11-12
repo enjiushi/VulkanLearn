@@ -55,10 +55,6 @@ std::shared_ptr<MeshRenderer> MeshRenderer::Create()
 MeshRenderer::~MeshRenderer()
 {
 	UniformData::GetInstance()->GetPerObjectUniforms()->FreePreObjectChunk(m_perObjectBufferIndex);
-
-	// Remove mesh renderer references
-	for (auto & val : m_materialInstances)
-		val.first->DelMeshRenderer(val.second);
 }
 
 bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances, const std::shared_ptr<AnimationController>& pAnimationController)
@@ -70,8 +66,7 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 
 	for (auto & val : materialInstances)
 	{
-		uint32_t key = val->AddMeshRenderer(std::dynamic_pointer_cast<MeshRenderer>(GetSelfSharedPtr()));
-		m_materialInstances.push_back({ val, key });
+		m_materialInstances.push_back(val);
 
 #if defined(_DEBUG)
 		if (m_pMesh != nullptr)
@@ -102,12 +97,12 @@ void MeshRenderer::LateUpdate()
 
 	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
 	{
-		if ((RenderWorkManager::GetInstance()->GetRenderStateMask() & m_materialInstances[i].first->GetRenderMask()) == 0)
+		if ((RenderWorkManager::GetInstance()->GetRenderStateMask() & m_materialInstances[i]->GetRenderMask()) == 0)
 			continue;
 
 		uint32_t animationChunkIndex = m_pAnimationController == nullptr ? 0 : m_pAnimationController->GetAnimationInstance()->GetAnimationChunkIndex();
 
-		m_materialInstances[i].first->InsertIntoRenderQueue(m_pMesh, m_perObjectBufferIndex, m_pMesh->GetMeshChunkIndex(), animationChunkIndex, m_instanceCount, m_startInstance);
+		m_materialInstances[i]->InsertIntoRenderQueue(m_pMesh, m_perObjectBufferIndex, m_pMesh->GetMeshChunkIndex(), animationChunkIndex, m_instanceCount, m_startInstance);
 	}
 }
 
