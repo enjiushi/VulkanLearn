@@ -23,7 +23,8 @@ bool GlobalDeviceObjects::InitObjects(const std::shared_ptr<Device>& pDevice)
 
 	m_pMainThreadCmdPool = CommandPool::Create(pDevice);
 
-	m_pDeviceMemMgr = DeviceMemoryManager::Create(pDevice);
+	if (m_pDeviceMemMgr == nullptr)
+		m_pDeviceMemMgr = DeviceMemoryManager::Create(pDevice);
 
 	m_pStaingBufferMgr = StagingBufferManager::Create(pDevice);
 

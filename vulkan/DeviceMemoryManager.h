@@ -6,19 +6,22 @@
 
 class Buffer;
 class Image;
+class DeviceMemoryManager;
 
 class MemoryKey
 {
 public:
-	static std::shared_ptr<MemoryKey> Create(bool bufferOrImage);
+	static std::shared_ptr<MemoryKey> Create(const std::shared_ptr<DeviceMemoryManager>& pDeviceMemMgr, bool bufferOrImage);
 	~MemoryKey();
 private:
-	bool Init(bool bufferOrImage);
+	bool Init(const std::shared_ptr<DeviceMemoryManager>& pDeviceMemMgr, bool bufferOrImage);
 
 private:
 	uint32_t		m_key;
 	bool			m_bufferOrImage;		//true: buffer, false: image
 	static uint32_t m_allocatedKeys;
+
+	std::shared_ptr<DeviceMemoryManager>	m_pDeviceMemMgr;
 
 	friend class DeviceMemoryManager;
 };
