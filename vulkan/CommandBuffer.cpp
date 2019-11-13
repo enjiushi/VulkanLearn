@@ -873,25 +873,20 @@ void CommandBuffer::BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeli
 	AddToReferenceTable(pPipeline);
 }
 
-void CommandBuffer::BindVertexBuffer(const std::shared_ptr<BufferBase>& pBuffer, uint32_t startIndex)
+void CommandBuffer::BindVertexBuffer(const std::shared_ptr<BufferBase>& pBuffer, uint32_t offset, uint32_t startSlot)
 {
 	VkBuffer rawBuffer = pBuffer->GetDeviceHandle();
-	VkDeviceSize offset = pBuffer->GetBufferOffset();
-	vkCmdBindVertexBuffers(GetDeviceHandle(), startIndex, 1, &rawBuffer, &offset);
+	VkDeviceSize _offset = pBuffer->GetBufferOffset() + offset;
+	vkCmdBindVertexBuffers(GetDeviceHandle(), startSlot, 1, &rawBuffer, &_offset);
+	AddToReferenceTable(pBuffer);
 }
 
-void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<BufferBase>>& vertexBuffers, uint32_t startIndex)
+void CommandBuffer::BindVertexBuffers(const std::vector<std::shared_ptr<BufferBase>>& vertexBuffers, uint32_t startSlot)
 {
-	std::vector<VkBuffer> rawVertexBuffers;
-	std::vector<VkDeviceSize> offsets;
 	for (uint32_t i = 0; i < vertexBuffers.size(); i++)
 	{
-		rawVertexBuffers.push_back(vertexBuffers[i]->GetDeviceHandle());
-		offsets.push_back(vertexBuffers[i]->GetBufferOffset());
-		AddToReferenceTable(vertexBuffers[i]);
+		BindVertexBuffer(vertexBuffers[i], 0, startSlot);
 	}
-
-	vkCmdBindVertexBuffers(GetDeviceHandle(), startIndex, rawVertexBuffers.size(), rawVertexBuffers.data(), offsets.data());
 }
 
 void CommandBuffer::BindIndexBuffer(const std::shared_ptr<BufferBase>& pIndexBuffer, VkIndexType type)
