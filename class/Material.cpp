@@ -443,7 +443,7 @@ void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 		return;
 
 	// FIXME: Hard-coded 0 as a starting binding slot. Will improve when there's need
-	pCmdBuffer->BindVertexBuffer(VertexAttribBufferMgr(m_vertexFormatInMem)->GetBuffer(), 0, 0);
+	pCmdBuffer->BindVertexBuffer(VertexAttribBufferMgr(m_vertexFormatInMem)->GetBuffer(), 0, ReservedVBBindingSlot_MeshData);
 	pCmdBuffer->BindIndexBuffer(IndexBufferMgr()->GetBuffer(), VK_INDEX_TYPE_UINT32);
 }
 

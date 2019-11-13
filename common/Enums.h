@@ -21,3 +21,11 @@ enum VertexFormat
 	VertexFormatPNTCT = (1 << VAFPosition) | (1 << VAFNormal) | (1 << VAFTexCoord) | (1 << VAFTangent),
 	VertexFormatPNTCTB = (1 << VAFPosition) | (1 << VAFNormal) | (1 << VAFTexCoord) | (1 << VAFTangent) | (1 << VAFBone)
 };
+
+// Reserved vertex buffer binding slot, don't use these slot
+enum ReservedVBBindingSlot
+{
+	ReservedVBBindingSlot_MeshData,
+	// Maybe more in future
+	ReservedVBBindingSlotCount
+};

@@ -63,13 +63,13 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType)->GetColorTargets().size();
+	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
 		blendStatesInfo.push_back(
 			{
-				simpleMaterialInfo.isTransparent,	// blend enabled
+				false,								// blend enabled
 
 				VK_BLEND_FACTOR_SRC_ALPHA,			// src color blend factor
 				VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,// dst color blend factor
@@ -92,8 +92,8 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 
 	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
 	depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilCreateInfo.depthTestEnable = simpleMaterialInfo.depthTestEnable;
-	depthStencilCreateInfo.depthWriteEnable = simpleMaterialInfo.depthWriteEnable;
+	depthStencilCreateInfo.depthTestEnable = true;
+	depthStencilCreateInfo.depthWriteEnable = true;
 	depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
 
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -136,8 +136,8 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
+		vertexBindingsInfo.push_back(GenerateReservedVBBindingDesc(simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateReservedVBAttribDesc(simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -156,10 +156,18 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 	createInfo.pViewportState = &viewportStateCreateInfo;
 	createInfo.pDynamicState = &dynamicStatesCreateInfo;
 	createInfo.pVertexInputState = &vertexInputCreateInfo;
-	createInfo.subpass = simpleMaterialInfo.subpassIndex;
-	createInfo.renderPass = simpleMaterialInfo.pRenderPass->GetRenderPass()->GetDeviceHandle();
+	createInfo.subpass = 0;	// FIXME
+	createInfo.renderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->GetRenderPass()->GetDeviceHandle();
 
-	if (pGBufferPlanetMaterial.get() && pGBufferPlanetMaterial->Init(pGBufferPlanetMaterial, simpleMaterialInfo.shaderPaths, simpleMaterialInfo.pRenderPass, createInfo, simpleMaterialInfo.materialUniformVars, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem, true))
+	if (pGBufferPlanetMaterial.get() && pGBufferPlanetMaterial->Init(
+		pGBufferPlanetMaterial, 
+		{ L"../data/shaders/pbr_gbuffer_planet.vert.spv", L"", L"", L"", L"../data/shaders/pbr_gbuffer_planet.frag.spv", L"" }, 
+		RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer),
+		createInfo, 
+		simpleMaterialInfo.materialUniformVars, 
+		simpleMaterialInfo.vertexFormat,
+		simpleMaterialInfo.vertexFormatInMem, 
+		true))
 		return pGBufferPlanetMaterial;
 	return nullptr;
 }
