@@ -17,6 +17,18 @@ public:
 			return nullptr;
 	}
 
+	static std::shared_ptr<T> GetSharedInstance()
+	{
+		if (m_pInstance != nullptr)
+			return m_pInstance;
+
+		m_pInstance = std::make_shared<T>();
+		if (m_pInstance->Init())
+			return m_pInstance;
+		else
+			return nullptr;
+	}
+
 	static void Free()
 	{
 		m_pInstance = nullptr;

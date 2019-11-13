@@ -26,6 +26,11 @@ void PlanetGeoDataManager::FinishDataUpdate(uint32_t size)
 	PerFrameData::GetInstance()->GetPerFrameBuffer(m_pBufferKey)->SetDirty();
 }
 
+std::shared_ptr<PerFrameBuffer> PlanetGeoDataManager::GetPerFrameBuffer() const
+{
+	return PerFrameData::GetInstance()->GetPerFrameBuffer(m_pBufferKey);
+}
+
 void PlanetGeoDataManager::OnFrameBegin()
 {
 

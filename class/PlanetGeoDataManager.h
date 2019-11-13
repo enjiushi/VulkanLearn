@@ -13,6 +13,8 @@ public:
 	void* AcquireDataPtr(uint32_t& offsetInBytes) const;
 	void FinishDataUpdate(uint32_t size);
 
+	std::shared_ptr<PerFrameBuffer> GetPerFrameBuffer() const;
+
 public:
 	void OnFrameBegin() override;
 	void OnFrameEnd() override;

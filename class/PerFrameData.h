@@ -34,11 +34,13 @@ public:
 	class PerFrameDataKey
 	{
 	public:
-		PerFrameDataKey(uint32_t inputKey) : key(inputKey) {}
+		PerFrameDataKey(uint32_t inputKey, const std::shared_ptr<PerFrameData>& pPerFrameData) 
+			: key(inputKey), m_pPerFrameData(pPerFrameData) {}
 		~PerFrameDataKey();
 
 	private:
-		uint32_t	key;
+		uint32_t						key;
+		std::shared_ptr<PerFrameData>	m_pPerFrameData;
 
 		friend class PerFrameData;
 	};

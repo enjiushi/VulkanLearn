@@ -19,6 +19,7 @@
 #include "FrameBufferDiction.h"
 #include "../common/Util.h"
 #include "../vulkan/ShaderStorageBuffer.h"
+#include "../class/PlanetGeoDataManager.h"
 
 std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMaterial()
 {
@@ -179,4 +180,10 @@ void GBufferPlanetMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, 
 	pSecondaryCmd->EndSecondaryRecording();
 
 	pCmdBuf->Execute({ pSecondaryCmd });
+}
+
+void GBufferPlanetMaterial::CustomizeSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
+{
+	std::shared_ptr<PerFrameBuffer> pPerFrameBuffer = PlanetGeoDataManager::GetInstance()->GetPerFrameBuffer();
+	pSecondaryCmdBuf->BindVertexBuffer(pPerFrameBuffer->GetBuffer(), FrameMgr()->FrameIndex() * pPerFrameBuffer->GetFrameOffset(), 1);
 }
