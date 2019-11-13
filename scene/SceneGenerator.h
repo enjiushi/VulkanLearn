@@ -31,6 +31,7 @@ public:
 	std::shared_ptr<MeshRenderer> GetMeshRenderer0() const { return m_pMeshRenderer0; }
 
 public:
+	static std::shared_ptr<Mesh> GenerateTriangleMesh();
 	static std::shared_ptr<Mesh> GenerateBoxMesh();
 	static std::shared_ptr<Mesh> GenerateQuadMesh();
 	static std::shared_ptr<Mesh> GeneratePBRQuadMesh();

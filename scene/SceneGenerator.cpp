@@ -93,6 +93,27 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 	StagingBufferMgr()->FlushDataMainThread();
 }
 
+std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh()
+{
+	float triangleVertices[] = {
+		-1.0, -1.0,  0.5,
+		1.0, -1.0,  0.5,
+		0.0,  1.0,  0.5,
+	};
+
+	uint32_t cubeIndices[] = {
+		0, 1, 2
+	};
+
+	std::shared_ptr<Mesh> pTriangleMesh = Mesh::Create
+	(
+		triangleVertices, 3, VertexFormatP,
+		cubeIndices, 3, VK_INDEX_TYPE_UINT32
+	);
+
+	return pTriangleMesh;
+}
+
 std::shared_ptr<Mesh> SceneGenerator::GenerateBoxMesh()
 {
 	float cubeVertices[] = {
