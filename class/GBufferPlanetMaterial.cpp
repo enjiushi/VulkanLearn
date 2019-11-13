@@ -164,24 +164,6 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 	return nullptr;
 }
 
-void GBufferPlanetMaterial::Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
-{
-	if (m_pIndirectBuffer == nullptr)
-		return;
-
-	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
-
-	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
-
-	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong, overrideVP);
-
-	pSecondaryCmd->DrawIndexedIndirect(m_pIndirectBuffer, 0, m_cachedMeshRenderData.size());
-
-	pSecondaryCmd->EndSecondaryRecording();
-
-	pCmdBuf->Execute({ pSecondaryCmd });
-}
-
 void GBufferPlanetMaterial::CustomizeSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
 {
 	std::shared_ptr<PerFrameBuffer> pPerFrameBuffer = PlanetGeoDataManager::GetInstance()->GetPerFrameBuffer();
