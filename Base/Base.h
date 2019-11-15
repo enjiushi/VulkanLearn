@@ -17,7 +17,7 @@ public:
 
 protected:
 	std::wstring						m_name;
-	std::size_t							m_nameHashCode;
+	std::size_t							m_nameHashCode = 0;
 	std::vector<std::shared_ptr<Base>>	m_referenceTable;
 };
 
