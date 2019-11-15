@@ -43,7 +43,7 @@ void AnimationController::CallbackFunc(std::shared_ptr<BaseObject>& pObject)
 	DualQuaternionf boneOffsetDQ;
 
 	// Check if current object is a bone
-	if (!UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneTransform(m_pAnimationInstance->GetMesh()->GetMeshBoneChunkIndexOffset(), pObject->GetName(), boneOffsetDQ))
+	if (!UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneTransform(m_pAnimationInstance->GetMesh()->GetMeshBoneChunkIndexOffset(), pObject->GetNameHashCode(), boneOffsetDQ))
 		return;
 
 	std::shared_ptr<SkeletonAnimation> pAnimation = m_pAnimationInstance->GetAnimation();
@@ -116,7 +116,7 @@ void AnimationController::CallbackFunc(std::shared_ptr<BaseObject>& pObject)
 
 	boneTransform = boneTransform * Matrix4f(boneOffsetDQ.AcquireRotation().Matrix(), boneOffsetDQ.AcquireTranslation());
 
-	m_pAnimationInstance->SetBoneTransform(pObject->GetName(), DualQuaternionf(boneTransform.RotationMatrix(), boneTransform.TranslationVector()));
+	m_pAnimationInstance->SetBoneTransform(pObject->GetNameHashCode(), DualQuaternionf(boneTransform.RotationMatrix(), boneTransform.TranslationVector()));
 }
 
 void AnimationController::OnAddedToObjectInternal(const std::shared_ptr<BaseObject>& pObject)

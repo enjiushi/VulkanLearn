@@ -26,8 +26,8 @@ bool SkeletonAnimationInstance::Init(const std::shared_ptr<SkeletonAnimationInst
 	
 	for (uint32_t i = 0; i < m_pMesh->GetBoneCount(); i++)
 	{
-		const std::wstring& boneName = UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneName(m_pMesh->GetMeshBoneChunkIndexOffset(), i);
-		UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->SetBoneTransform(m_boneChunkIndexOffset, boneName, i, {});
+		std::size_t hashCode = UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneHashCode(m_pMesh->GetMeshBoneChunkIndexOffset(), i);
+		UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->SetBoneTransform(m_boneChunkIndexOffset, hashCode, i, {});
 	}
 
 	return true;
@@ -42,13 +42,13 @@ std::shared_ptr<SkeletonAnimationInstance> SkeletonAnimationInstance::Create(con
 	return nullptr;
 }
 
-void SkeletonAnimationInstance::SetBoneTransform(const std::wstring& boneName, const DualQuaternionf& dq)
+void SkeletonAnimationInstance::SetBoneTransform(std::size_t hashCode, const DualQuaternionf& dq)
 {
 	uint32_t boneIndex;
 
 	// Animation bone and mesh bone doesn't match? quit
-	if (!UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneIndex(m_pMesh->GetMeshBoneChunkIndexOffset(), boneName, boneIndex))
+	if (!UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneIndex(m_pMesh->GetMeshBoneChunkIndexOffset(), hashCode, boneIndex))
 		return;
 
-	UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->SetBoneTransform(m_boneChunkIndexOffset, boneName, boneIndex, dq);
+	UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->SetBoneTransform(m_boneChunkIndexOffset, hashCode, boneIndex, dq);
 }
