@@ -87,15 +87,28 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, uint32_t targetLevel, con
 	if (currentLevel == targetLevel)
 	{
 		pOutputTriangles->p = a;
-		pOutputTriangles->v0 = b - a;
-		pOutputTriangles->v1 = c - a;
+		pOutputTriangles->v0 = b;
+		pOutputTriangles->v1 = c;
+		pOutputTriangles->v0 -= a;
+		pOutputTriangles->v1 -= a;
 		pOutputTriangles++;
 		return;
 	}
 
-	Vector3f A = b + (c - b) * 0.5f;
-	Vector3f B = a + (c - a) * 0.5f;
-	Vector3f C = a + (b - a) * 0.5f;
+	Vector3f A = c;
+	A -= b;
+	A *= 0.5f;
+	A += b;
+
+	Vector3f B = c;
+	B -= a;
+	B *= 0.5f;
+	B += a;
+
+	Vector3f C = b;
+	C -= a;
+	C *= 0.5f;
+	C += a;
 
 	SubDivide(currentLevel + 1, targetLevel, a, C, B, pOutputTriangles);
 	SubDivide(currentLevel + 1, targetLevel, C, b, A, pOutputTriangles);

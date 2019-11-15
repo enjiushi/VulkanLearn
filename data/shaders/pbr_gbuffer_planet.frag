@@ -13,6 +13,7 @@ layout (location = 6) in vec3 inWorldPos;
 layout (location = 7) in vec3 inEyePos;
 layout (location = 8) noperspective in vec2 inScreenPos;
 layout (location = 9) in vec3 inPrevWorldPos;
+layout (location = 10) in vec3 inDistToEdge;
 
 layout (location = 0) out vec4 outGBuffer0;
 layout (location = 1) out vec4 outGBuffer1;
@@ -38,30 +39,17 @@ layout(set = 3, binding = 0) buffer MaterialUniforms
 
 void main() 
 {
-	float metalic = textures[perMaterialIndex].AOMetalic.g;
-	if (textures[perMaterialIndex].metallicIndex >= 0)
-		metalic *= texture(R8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].metallicIndex), 0.0).r * textures[perMaterialIndex].AOMetalic.g;
+	float metalic = 0.9f;
 
-	vec4 normal_ao = vec4(vec3(0), textures[perMaterialIndex].AOMetalic.x);
-	if (textures[perMaterialIndex].normalAOIndex < 0)
-	{
-		normal_ao.xyz = normalize(inNormal);
-	}
-	else
-	{
-		normal_ao = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].normalAOIndex), 0.0);
+	vec4 normal_ao = vec4(vec3(0), 1);
+	normal_ao.xyz = normalize(inNormal);
 
-		vec3 pertNormal = normalize(normal_ao.xyz * 2.0 - 1.0);
-		mat3 TBN = mat3(normalize(inTangent), normalize(inBitangent), normalize(inNormal));
-		pertNormal = TBN * pertNormal;
-
-		normal_ao.xyz = pertNormal.xyz;
-		normal_ao.w *= textures[perMaterialIndex].AOMetalic.x;
-	}
-
-	vec4 albedo_roughness = textures[perMaterialIndex].albedoRougness;
-	if (textures[perMaterialIndex].albedoRoughnessIndex >= 0)
-		albedo_roughness *= texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].albedoRoughnessIndex), 0.0);
+	vec4 albedo_roughness = vec4(vec3(1), 0.2f);
+	vec3 edgeFactor = 1.0f - inDistToEdge;
+	edgeFactor = step(vec3(0.99f), edgeFactor);
+	float edge = max(max(edgeFactor.x, edgeFactor.y), edgeFactor.z);
+	metalic = mix(metalic, 0, edge);
+	albedo_roughness.w = mix(albedo_roughness.w, 1, edge);
 
 	outGBuffer0.xyz = normal_ao.xyz * 0.5f + 0.5f;
 	outGBuffer0.w = albedo_roughness.w;

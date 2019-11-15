@@ -111,6 +111,7 @@ public:
 	std::vector<std::shared_ptr<Mesh>>	m_innerBallMeshes;
 	std::vector<std::shared_ptr<Mesh>>	m_bunnyMeshes;
 	std::vector<std::shared_ptr<Mesh>>	m_dragonMeshes;
+	std::shared_ptr<Mesh>				m_pTriangleMesh;
 	std::shared_ptr<Mesh>				m_pSphereMesh;
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
@@ -175,6 +176,7 @@ public:
 	std::vector<std::shared_ptr<MeshRenderer>> m_boneBoxRenderers;
 	std::vector<std::shared_ptr<MaterialInstance>> m_boneBoxMaterialInstances;
 	std::shared_ptr<MeshRenderer>		m_pSophiaRenderer;
+	std::shared_ptr<MeshRenderer>       m_pPlanetRenderer;
 
 	std::shared_ptr<MaterialInstance>	m_pGunMaterialInstance;
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance0;
@@ -189,6 +191,7 @@ public:
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance2;
 	std::shared_ptr<MaterialInstance>	m_pSophiaMaterialInstance;
 	std::shared_ptr<MaterialInstance>	m_pIcoMaterialInstance;
+	std::shared_ptr<MaterialInstance>   m_pPlanetMaterialInstance;
 
 	std::shared_ptr<MaterialInstance>	m_pShadowMapMaterialInstance;
 	std::shared_ptr<MaterialInstance>	m_pSkinnedShadowMapMaterialInstance;

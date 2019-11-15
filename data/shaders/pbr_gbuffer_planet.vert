@@ -5,6 +5,10 @@
 
 layout (location = 0) in vec3 inPos;
 
+layout (location = 1) in vec3 inTrianglePos;
+layout (location = 2) in vec3 inTriangleEdgeV0;
+layout (location = 3) in vec3 inTriangleEdgeV1;
+
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outNormal;
 layout (location = 2) out vec3 outTangent;
@@ -15,25 +19,45 @@ layout (location = 6) out vec3 outWorldPos;
 layout (location = 7) out vec3 outEyePos;
 layout (location = 8) noperspective out vec2 outScreenPos;
 layout (location = 9) out vec3 outPrevWorldPos;
+layout (location = 10) out vec3 outDistToEdge;
 
 #include "uniform_layout.sh"
 
 void main() 
 {
-	int indirectIndex = GetIndirectIndex(gl_DrawID, gl_InstanceIndex);
+	int indirectIndex = GetIndirectIndex(gl_DrawID, 0);
 
 	perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
-	gl_Position = perObjectData[perObjectIndex].MVP * vec4(inPos.xyz, 1.0);
+	vec3 position;
+	if (gl_VertexIndex == 0)
+	{
+		position = inTrianglePos;
+		outDistToEdge = vec3(0, 0, 1);
+	}
+	else if (gl_VertexIndex == 1)
+	{
+		position = inTrianglePos + inTriangleEdgeV0;
+		outDistToEdge = vec3(1, 0, 0);
+	}
+	else
+	{
+		position = inTrianglePos + inTriangleEdgeV1;
+		outDistToEdge = vec3(0, 1, 0);
+	}
 
-	vec3 localNormal = normalize(inPos.xyz);
+	position = normalize(position);
+
+	gl_Position = perObjectData[perObjectIndex].MVP * vec4(position, 1.0);
+
+	vec3 localNormal = normalize(position);
 	vec3 localTangent = vec3(-localNormal.y, localNormal.x, 0);
 	localTangent = normalize(localTangent);
 	vec3 localBiTangent = cross(localNormal, localTangent);
 
 	outNormal = normalize(vec3(perObjectData[perObjectIndex].model * vec4(localNormal, 0.0)));
-	outWorldPos = (perObjectData[perObjectIndex].model * vec4(inPos.xyz, 1.0)).xyz;
-	outPrevWorldPos = (perObjectData[perObjectIndex].prevModel * vec4(inPos.xyz, 1.0)).xyz;
+	outWorldPos = (perObjectData[perObjectIndex].model * vec4(position, 1.0)).xyz;
+	outPrevWorldPos = (perObjectData[perObjectIndex].prevModel * vec4(position, 1.0)).xyz;
 	outEyePos = (perFrameData.view * vec4(outWorldPos, 1.0)).xyz;
 	outScreenPos = gl_Position.xy / gl_Position.w;
 

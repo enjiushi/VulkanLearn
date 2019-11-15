@@ -138,6 +138,33 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 	{
 		vertexBindingsInfo.push_back(GenerateReservedVBBindingDesc(simpleMaterialInfo.vertexFormatInMem));
 		vertexAttributesInfo = GenerateReservedVBAttribDesc(simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
+
+		VkVertexInputBindingDescription bindingDesc = {};
+		bindingDesc.binding = 1;
+		bindingDesc.stride = 3 * sizeof(Vector3f);
+		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+		vertexBindingsInfo.push_back(bindingDesc);
+
+		VkVertexInputAttributeDescription attribDesc = {};
+		attribDesc.binding = 1;
+		attribDesc.location = 1;
+		attribDesc.format = VK_FORMAT_R32G32B32_SFLOAT;
+		attribDesc.offset = 0;
+		vertexAttributesInfo.push_back(attribDesc);
+
+		attribDesc = {};
+		attribDesc.binding = 1;
+		attribDesc.location = 2;
+		attribDesc.format = VK_FORMAT_R32G32B32_SFLOAT;
+		attribDesc.offset = sizeof(Vector3f);
+		vertexAttributesInfo.push_back(attribDesc);
+
+		attribDesc = {};
+		attribDesc.binding = 1;
+		attribDesc.location = 3;
+		attribDesc.format = VK_FORMAT_R32G32B32_SFLOAT;
+		attribDesc.offset = 2 * sizeof(Vector3f);
+		vertexAttributesInfo.push_back(attribDesc);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};

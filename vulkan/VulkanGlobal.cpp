@@ -359,6 +359,8 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
+	m_pTriangleMesh = SceneGenerator::GenerateTriangleMesh();
+
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
 	m_pCubeMesh = SceneGenerator::GenerateBoxMesh();
@@ -647,6 +649,8 @@ void VulkanGlobal::InitMaterials()
 	m_pSophiaMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "SophiaNormalAO");
 	m_pSophiaMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
+	m_pPlanetMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRPlanetMaterialInstance();
+
 	m_pSkyBoxMaterialInstance = RenderWorkManager::GetInstance()->AcquireSkyBoxMaterialInstance();
 
 	m_pShadowMapMaterialInstance = RenderWorkManager::GetInstance()->AcquireShadowMaterialInstance();
@@ -801,8 +805,13 @@ void VulkanGlobal::InitScene()
 	//AddBoneBox(m_pSophiaObject);
 	sceneInfo.meshLinks.clear();
 
+	m_pPlanetRenderer = MeshRenderer::Create(m_pTriangleMesh, m_pPlanetMaterialInstance);
+
 	m_pPlanetObject = BaseObject::Create();
+	m_pPlanetObject->SetPos({2.5, 0, 0});
 	m_pPlanetObject->AddComponent(m_pPlanetGenerator);
+	m_pPlanetObject->AddComponent(m_pPlanetRenderer);
+
 
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pGunObject);
@@ -815,7 +824,7 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pBoxObject1);
 	m_pRootObject->AddChild(m_pBoxObject2);
 	m_pRootObject->AddChild(m_pIcoObject);
-	m_pRootObject->AddChild(m_pPlanetObject);
+	//m_pRootObject->AddChild(m_pPlanetObject);
 	m_pRootObject->AddChild(m_pSophiaObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pDirLightObj);
