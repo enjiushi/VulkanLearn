@@ -1,6 +1,7 @@
 #include "SharedBufferManager.h"
 #include "GlobalDeviceObjects.h"
 #include "StagingBufferManager.h"
+#include "SharedBuffer.h"
 
 uint32_t SharedBufferManager::m_numAllocatedKeys = 0;
 
@@ -59,7 +60,7 @@ void SharedBufferManager::FreeBuffer(uint32_t index)
 	m_lookupTable.erase(index);
 	m_bufferTable.erase(m_bufferTable.begin() + bufferChunkIndex);
 
-	// Update lookup table since one record is removed, all records after it must go forward
+	// Update lookup table since one record is removed, all records after it must be decreased
 	for (auto& value : m_lookupTable)
 	{
 		if (value.second > bufferChunkIndex)
@@ -79,6 +80,13 @@ std::shared_ptr<BufferKey> SharedBufferManager::AllocateBuffer(uint32_t numBytes
 		endByte = offset + numBytes - 1;
 		if (endByte < m_bufferTable[i].offset)
 		{
+			// Update lookup table since one record is inserted, all records after it must be increased
+			for (auto& value : m_lookupTable)
+			{
+				if (value.second >= i)
+					value.second++;
+			}
+
 			// Insert buffer chunk
 			info.offset = offset;
 			info.range = numBytes;
@@ -113,11 +121,19 @@ std::shared_ptr<BufferKey> SharedBufferManager::AllocateBuffer(uint32_t numBytes
 
 void SharedBufferManager::UpdateByteStream(const void* pData, const std::shared_ptr<Buffer>& pWrapperBuffer, const std::shared_ptr<BufferKey>& pBufKey, uint32_t offset, uint32_t numBytes)
 {
-	if (m_pBuffer->GetDataPtr())
+	if (m_pBuffer->IsHostVisible())
 		m_pBuffer->UpdateByteStream(pData, offset + m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
 	// Since shared buffer manager holds a buffer shared by different shared buffers, with various usage and access flags, we can't simply let buffer do its update
 	// Without specific buffer's information
 	// So here we do a little hack to override, by directly call staging buffer to update wrapper buffer with its information
+	else
+		StagingBufferMgr()->UpdateByteStream(pWrapperBuffer, pData, offset + m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
+}
+
+void SharedBufferManager::UpdateByteStream(const void* pData, const std::shared_ptr<SharedBuffer>& pWrapperBuffer, const std::shared_ptr<BufferKey>& pBufKey, uint32_t offset, uint32_t numBytes)
+{
+	if (m_pBuffer->IsHostVisible())
+		m_pBuffer->UpdateByteStream(pData, offset + m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
 	else
 		StagingBufferMgr()->UpdateByteStream(pWrapperBuffer, pData, offset + m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
 }

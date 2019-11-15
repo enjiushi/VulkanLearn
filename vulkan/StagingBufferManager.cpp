@@ -65,7 +65,7 @@ void StagingBufferManager::RecordDataFlush(const std::shared_ptr<CommandBuffer>&
 	m_usedNumBytes = 0;
 }
 
-void StagingBufferManager::UpdateByteStream(const std::shared_ptr<Buffer>& pBuffer, const void* pData, uint32_t offset, uint32_t numBytes)
+void StagingBufferManager::UpdateByteStream(const std::shared_ptr<BufferBase>& pBuffer, const void* pData, uint32_t offset, uint32_t numBytes)
 {
 	uint32_t currentOffset = m_usedNumBytes;
 	m_pendingUpdateBuffer.push_back({ pBuffer, offset, currentOffset, numBytes });

@@ -10,7 +10,7 @@
 
 bool PerMaterialIndirectOffsetUniforms::Init(const std::shared_ptr<PerMaterialIndirectOffsetUniforms>& pSelf)
 {
-	if (!UniformDataStorage::Init(pSelf, sizeof(m_indirectOffsets), true))
+	if (!UniformDataStorage::Init(pSelf, sizeof(m_indirectOffsets), PerFrameDataStorage::ShaderStorage))
 		return false;
 	return true;
 }
@@ -50,7 +50,7 @@ uint32_t PerMaterialIndirectOffsetUniforms::SetupDescriptorSet(const std::shared
 
 bool PerMaterialIndirectUniforms::Init(const std::shared_ptr<PerMaterialIndirectUniforms>& pSelf)
 {
-	if (!UniformDataStorage::Init(pSelf, sizeof(m_perMaterialIndirectIndex), true))
+	if (!UniformDataStorage::Init(pSelf, sizeof(m_perMaterialIndirectIndex), PerFrameDataStorage::ShaderStorage))
 		return false;
 	return true;
 }

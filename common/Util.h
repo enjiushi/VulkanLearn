@@ -22,5 +22,10 @@ if (!pRet || !pRet->Init()) \
 
 uint32_t GetVertexBytes(uint32_t vertexFormat);
 uint32_t GetIndexBytes(VkIndexType indexType);
-VkVertexInputBindingDescription GenerateBindingDesc(uint32_t bindingIndex, uint32_t vertexFormat);
-std::vector<VkVertexInputAttributeDescription> GenerateAttribDesc(uint32_t bindingIndex, uint32_t vertexFormat, uint32_t vertexFormatInMem);
+
+// There's mechanism that handles mesh data store and binding by default
+// One could add more customized vertex buffers, but don't touch reserved binding slot
+VkVertexInputBindingDescription GenerateReservedVBBindingDesc(uint32_t vertexFormat);
+
+// By default vertex attributes acquire data from reserved vertex buffer binding slot
+std::vector<VkVertexInputAttributeDescription> GenerateReservedVBAttribDesc(uint32_t vertexFormat, uint32_t vertexFormatInMem);

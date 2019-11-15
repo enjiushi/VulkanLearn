@@ -1,17 +1,14 @@
 #include "SharedIndirectBuffer.h"
+#include "GlobalDeviceObjects.h"
 
 bool SharedIndirectBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<SharedIndirectBuffer>& pSelf, uint32_t numBytes)
 {
-	m_info = {};
-	m_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	m_info.usage = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-	m_info.size = numBytes;
+	VkBufferCreateInfo info = {};
+	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	info.usage = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+	info.size = numBytes;
 
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
-		return false;
-
-	m_pBufferKey = IndirectBufferMgr()->AllocateBuffer(numBytes);
-	if (!m_pBufferKey.get())
+	if (!SharedBuffer::Init(pDevice, pSelf, info))
 		return false;
 
 	m_accessStages = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
@@ -27,12 +24,12 @@ std::shared_ptr<SharedIndirectBuffer> SharedIndirectBuffer::Create(const std::sh
 	return nullptr;
 }
 
-void SharedIndirectBuffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes)
+std::shared_ptr<BufferKey>	SharedIndirectBuffer::AcquireBuffer(uint32_t numBytes)
 {
-	m_pBufferKey->GetSharedBufferMgr()->UpdateByteStream(pData, GetSelfSharedPtr(), m_pBufferKey, offset, numBytes);
+	return IndirectBufferMgr()->AllocateBuffer(numBytes);
 }
 
-uint32_t SharedIndirectBuffer::GetBufferOffset() const
+void SharedIndirectBuffer::SetIndirectCmd(uint32_t index, const VkDrawIndexedIndirectCommand& cmd)
 {
-	return m_pBufferKey->GetSharedBufferMgr()->GetOffset(m_pBufferKey);
+	UpdateByteStream(&cmd, index * sizeof(VkDrawIndexedIndirectCommand), sizeof(VkDrawIndexedIndirectCommand));
 }

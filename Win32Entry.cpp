@@ -1,5 +1,6 @@
 #include <windows.h>
 #include "vulkan\VulkanGLobal.h"
+#include "scene/SceneGenerator.h"
 
 #if defined(_WIN32)
 // Windows entry point
@@ -14,8 +15,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 {
 	VulkanGlobal::GetInstance()->InitVulkan(hInstance, WndProc);
 	VulkanGlobal::GetInstance()->Update();
+	SceneGenerator::Free();
 	VulkanGlobal::Free();
-	GlobalDeviceObjects::Free();
 	return 0;
 }
 

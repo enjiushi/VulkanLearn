@@ -395,20 +395,21 @@ void Material::SyncBufferData()
 		for each(auto& meshRenderData in m_cachedMeshRenderData)
 		{
 			// Prepare mesh indirect data
-			std::get<0>(meshRenderData)->PrepareIndirectCmd(cmd);
-			cmd.instanceCount = std::get<1>(meshRenderData);
+			meshRenderData.pMesh->PrepareIndirectCmd(cmd);
+			cmd.instanceCount = meshRenderData.instanceCount;
+			cmd.firstInstance = meshRenderData.instanceDataOffset;
 			m_pIndirectBuffer->SetIndirectCmd(drawID, cmd);
 
 			// Prepare indirect offset
 			m_pPerMaterialIndirectOffset->SetIndirectOffset(drawID, offset);
 
 			// Prepare indirect indices for all data
-			for (uint32_t instanceCount = 0; instanceCount < std::get<2>(meshRenderData).size(); instanceCount++)
+			for (uint32_t instanceCount = 0; instanceCount < meshRenderData.indirectIndices.size(); instanceCount++)
 			{
-				m_pPerMaterialIndirectUniforms->SetPerObjectIndex(offset, std::get<2>(meshRenderData)[instanceCount].perObjectIndex);
-				m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(offset, std::get<2>(meshRenderData)[instanceCount].perMaterialIndex);
-				m_pPerMaterialIndirectUniforms->SetPerMeshIndex(offset, std::get<2>(meshRenderData)[instanceCount].perMeshIndex);
-				m_pPerMaterialIndirectUniforms->SetPerAnimationIndex(offset, std::get<2>(meshRenderData)[instanceCount].perAnimationIndex);
+				m_pPerMaterialIndirectUniforms->SetPerObjectIndex(offset, meshRenderData.indirectIndices[instanceCount].perObjectIndex);
+				m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(offset, meshRenderData.indirectIndices[instanceCount].perMaterialIndex);
+				m_pPerMaterialIndirectUniforms->SetPerMeshIndex(offset, meshRenderData.indirectIndices[instanceCount].perMeshIndex);
+				m_pPerMaterialIndirectUniforms->SetPerAnimationIndex(offset, meshRenderData.indirectIndices[instanceCount].perAnimationIndex);
 				offset++;
 			}
 
@@ -441,37 +442,48 @@ void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 	if (m_vertexFormatInMem == 0)
 		return;
 
-	pCmdBuffer->BindVertexBuffers({ VertexAttribBufferMgr(m_vertexFormatInMem)->GetBuffer() });
+	// FIXME: Hard-coded 0 as a starting binding slot. Will improve when there's need
+	pCmdBuffer->BindVertexBuffer(VertexAttribBufferMgr(m_vertexFormatInMem)->GetBuffer(), 0, ReservedVBBindingSlot_MeshData);
 	pCmdBuffer->BindIndexBuffer(IndexBufferMgr()->GetBuffer(), VK_INDEX_TYPE_UINT32);
 }
 
-void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex)
+void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, uint32_t instanceCount, uint32_t startInstance)
 {
+	ASSERTION(instanceCount > 0);
+
 	auto iter = m_perFrameMeshRefTable.find(pMesh);
 
+	// Instance count greater than 1 means manually instanced rendering
+	bool manualInstance = instanceCount > 1;
+
 	// If a mesh is not yet added to ref table of current frame
-	if (iter == m_perFrameMeshRefTable.end())
+	if (iter == m_perFrameMeshRefTable.end() || manualInstance)
 	{
 		// First all the info into cached mesh render data
 		m_cachedMeshRenderData.push_back
 		(
 			{
 				pMesh,
-				1,
+				instanceCount,
+				startInstance,
 				std::vector<PerMaterialIndirectVariables>(1, {perObjectIndex, perMaterialIndex, perMeshIndex, perAnimationIndex})
 			}
 		);
 
 		// Then add mesh to ref table, as well as its index in render data table
-		m_perFrameMeshRefTable[pMesh] = m_cachedMeshRenderData.size() - 1;
+		// Ref table is only updated when auto instanced rendering is enabled
+		// Or there's no need to search this mesh and add it to instance count
+		// NOTE: Only add to ref table if it's not manual instanced rendering
+		if (!manualInstance)
+			m_perFrameMeshRefTable[pMesh] = m_cachedMeshRenderData.size() - 1;
 
 		return;
 	}
 
 	// If a mesh is already recorded, add instance count by 1
 	auto& renderData = m_cachedMeshRenderData[iter->second];
-	std::get<1>(renderData) += 1;
-	std::get<2>(renderData).push_back({ perObjectIndex, perMaterialIndex, perMeshIndex, perAnimationIndex });
+	renderData.instanceCount += 1;
+	renderData.indirectIndices.push_back({ perObjectIndex, perMaterialIndex, perMeshIndex, perAnimationIndex });
 }
 
 void Material::BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
@@ -520,6 +532,9 @@ void Material::PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecond
 void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
 {
 	if (m_pIndirectBuffer == nullptr)
+		return;
+
+	if (m_cachedMeshRenderData.size() == 0)
 		return;
 
 	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();

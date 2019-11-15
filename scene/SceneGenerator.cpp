@@ -93,6 +93,27 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 	StagingBufferMgr()->FlushDataMainThread();
 }
 
+std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh()
+{
+	float triangleVertices[] = {
+		-1.0, -1.0,  0.5,
+		1.0, -1.0,  0.5,
+		0.0,  1.0,  0.5,
+	};
+
+	uint32_t cubeIndices[] = {
+		0, 1, 2
+	};
+
+	std::shared_ptr<Mesh> pTriangleMesh = Mesh::Create
+	(
+		triangleVertices, 3, VertexFormatP,
+		cubeIndices, 3, VK_INDEX_TYPE_UINT32
+	);
+
+	return pTriangleMesh;
+}
+
 std::shared_ptr<Mesh> SceneGenerator::GenerateBoxMesh()
 {
 	float cubeVertices[] = {
@@ -254,42 +275,31 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateQuadMesh()
 	);
 }
 
-typedef struct _PBRPlanetVertex
-{
-	Vector3f position;
-}PBRPlanetVertex;
-
-static PBRPlanetVertex GeneratePBRIcoVertex(const Vector3f& icoVertex)
-{
-	return
-	{
-		icoVertex
-	};
-}
-
 // FIXME: code for testing, will remove later
 std::shared_ptr<Mesh> SceneGenerator::GenPBRIcosahedronMesh()
 {
+	uint32_t divideLevel = 1;
+
 	float ratio = (1.0f + sqrt(5.0f)) / 2.0f;
 	float scale = 1.0f / glm::length(glm::vec2(ratio, 1.0f));
 	ratio *= scale;
 
-	PBRPlanetVertex icoVertices[] = 
+	Vector3f icoVertices[] = 
 	{
-		GeneratePBRIcoVertex({ ratio, 0, -scale }),			//rf 0
-		GeneratePBRIcoVertex({ -ratio, 0, -scale }),		//lf 1
-		GeneratePBRIcoVertex({ ratio, 0, scale }),			//rb 2
-		GeneratePBRIcoVertex({ -ratio, 0, scale }),			//lb 3
+		{ ratio, 0, -scale },			//rf 0
+		{ -ratio, 0, -scale },		//lf 1
+		{ ratio, 0, scale },			//rb 2
+		{ -ratio, 0, scale },			//lb 3
 												 
-		GeneratePBRIcoVertex({ 0, -scale, ratio }),			//db 4
-		GeneratePBRIcoVertex({ 0, -scale, -ratio }),		//df 5
-		GeneratePBRIcoVertex({ 0, scale, ratio }),			//ub 6
-		GeneratePBRIcoVertex({ 0, scale, -ratio }),			//uf 7
+		{ 0, -scale, ratio },			//db 4
+		{ 0, -scale, -ratio },		//df 5
+		{ 0, scale, ratio },			//ub 6
+		{ 0, scale, -ratio },			//uf 7
 												 
-		GeneratePBRIcoVertex({ -scale, ratio, 0 }),			//lu 8
-		GeneratePBRIcoVertex({ -scale, -ratio, 0 }),		//ld 9
-		GeneratePBRIcoVertex({ scale, ratio, 0 }),			//ru 10
-		GeneratePBRIcoVertex({ scale, -ratio, 0 })			//rd 11
+		{ -scale, ratio, 0 },			//lu 8
+		{ -scale, -ratio, 0 },		//ld 9
+		{ scale, ratio, 0 },			//ru 10
+		{ scale, -ratio, 0 }			//rd 11
 	};
 
 	uint32_t indices[20 * 3] =

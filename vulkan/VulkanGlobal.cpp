@@ -38,6 +38,8 @@
 #include "../component/FrustumJitter.h"
 #include "../class/AssimpSceneReader.h"
 #include "../component/AnimationController.h"
+#include "../class/PerFrameData.h"
+#include "../class/FrameEventManager.h"
 
 bool PREBAKE_CB = true;
 
@@ -357,13 +359,15 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
+	m_pTriangleMesh = SceneGenerator::GenerateTriangleMesh();
+
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
 	m_pCubeMesh = SceneGenerator::GenerateBoxMesh();
 
 	m_pPBRBoxMesh = SceneGenerator::GeneratePBRBoxMesh();
 
-	//m_pPBRIcosahedron = SceneGenerator::GenPBRIcosahedronMesh();
+	m_pPBRIcosahedron = SceneGenerator::GenPBRIcosahedronMesh();
 }
 
 // Replace rgbTex's alpha channel with rTex's red channel
@@ -645,6 +649,8 @@ void VulkanGlobal::InitMaterials()
 	m_pSophiaMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, "SophiaNormalAO");
 	m_pSophiaMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
+	m_pPlanetMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRPlanetMaterialInstance();
+
 	m_pSkyBoxMaterialInstance = RenderWorkManager::GetInstance()->AcquireSkyBoxMaterialInstance();
 
 	m_pShadowMapMaterialInstance = RenderWorkManager::GetInstance()->AcquireShadowMaterialInstance();
@@ -717,7 +723,9 @@ void VulkanGlobal::InitScene()
 	m_pBoxRenderer0 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
-	m_pIcoRenderer = MeshRenderer::Create(m_pPBRIcosahedron, { m_pIcoMaterialInstance, m_pShadowMapMaterialInstance });
+	m_pIcoRenderer = MeshRenderer::Create(m_pPBRIcosahedron, { m_pIcoMaterialInstance });
+
+	m_pPlanetGenerator = PlanetGenerator::Create();
 
 	AssimpSceneReader::SceneInfo sceneInfo;
 
@@ -797,6 +805,14 @@ void VulkanGlobal::InitScene()
 	//AddBoneBox(m_pSophiaObject);
 	sceneInfo.meshLinks.clear();
 
+	m_pPlanetRenderer = MeshRenderer::Create(m_pTriangleMesh, m_pPlanetMaterialInstance);
+
+	m_pPlanetObject = BaseObject::Create();
+	m_pPlanetObject->SetPos({2.5, 0, 0});
+	m_pPlanetObject->AddComponent(m_pPlanetGenerator);
+	m_pPlanetObject->AddComponent(m_pPlanetRenderer);
+
+
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pGunObject);
 	m_pRootObject->AddChild(m_pSphere0);
@@ -807,7 +823,8 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pBoxObject0);
 	m_pRootObject->AddChild(m_pBoxObject1);
 	m_pRootObject->AddChild(m_pBoxObject2);
-	//m_pRootObject->AddChild(m_pIcoObject);
+	m_pRootObject->AddChild(m_pIcoObject);
+	//m_pRootObject->AddChild(m_pPlanetObject);
 	m_pRootObject->AddChild(m_pSophiaObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pDirLightObj);
@@ -901,6 +918,8 @@ void VulkanGlobal::Draw()
 	uint32_t frameIndex = FrameMgr()->FrameIndex();
 	uint32_t cbIndex = frameIndex * 2 + pingpong;
 
+	FrameEventManager::GetInstance()->OnFrameBegin();
+
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetDeltaTime(Timer::GetElapsedTime());
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::GetTotalTime()));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
@@ -919,6 +938,7 @@ void VulkanGlobal::Draw()
 
 	UniformData::GetInstance()->SyncDataBuffer();
 	RenderWorkManager::GetInstance()->SyncMaterialData();
+	PerFrameData::GetInstance()->SyncDataBuffer();
 
 	RenderWorkManager::GetInstance()->OnFrameBegin();
 
@@ -953,6 +973,8 @@ void VulkanGlobal::Draw()
 
 	pingpong = (pingpong + 1) % 2;
 	frameCount++;
+
+	FrameEventManager::GetInstance()->OnFrameEnd();
 }
 
 void VulkanGlobal::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)

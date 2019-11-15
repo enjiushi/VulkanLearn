@@ -6,19 +6,22 @@
 
 class Buffer;
 class Image;
+class DeviceMemoryManager;
 
 class MemoryKey
 {
 public:
-	static std::shared_ptr<MemoryKey> Create(bool bufferOrImage);
+	static std::shared_ptr<MemoryKey> Create(const std::shared_ptr<DeviceMemoryManager>& pDeviceMemMgr, bool bufferOrImage);
 	~MemoryKey();
 private:
-	bool Init(bool bufferOrImage);
+	bool Init(const std::shared_ptr<DeviceMemoryManager>& pDeviceMemMgr, bool bufferOrImage);
 
 private:
 	uint32_t		m_key;
 	bool			m_bufferOrImage;		//true: buffer, false: image
 	static uint32_t m_allocatedKeys;
+
+	std::shared_ptr<DeviceMemoryManager>	m_pDeviceMemMgr;
 
 	friend class DeviceMemoryManager;
 };
@@ -31,6 +34,7 @@ class DeviceMemoryManager : public DeviceObjectBase<DeviceMemoryManager>
 		VkDeviceMemory			memory;
 		void*					pData = nullptr;
 		std::vector<uint32_t>	bindingList;
+		uint32_t				memProperty = 0;
 	}MemoryNode;
 
 	typedef struct _BindingInfo
@@ -54,8 +58,8 @@ public:
 	static std::shared_ptr<DeviceMemoryManager> Create(const std::shared_ptr<Device>& pDevice);
 	std::shared_ptr<MemoryKey> AllocateBufferMemChunk(const std::shared_ptr<Buffer>& pBuffer, uint32_t memoryPropertyBits, const void* pData = nullptr);
 	std::shared_ptr<MemoryKey> AllocateImageMemChunk(const std::shared_ptr<Image>& pImage, uint32_t memoryPropertyBits, const void* pData = nullptr);
-	bool UpdateBufferMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes);
-	bool UpdateImageMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes);
+	bool UpdateBufferMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, const void* pData, uint32_t offset, uint32_t numBytes);
+	bool UpdateImageMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, const void* pData, uint32_t offset, uint32_t numBytes);
 	void* GetDataPtr(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t offset, uint32_t numBytes);
 
 protected:

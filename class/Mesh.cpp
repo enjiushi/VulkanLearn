@@ -239,12 +239,6 @@ uint32_t Mesh::GetVertexFormat() const
 	return m_pVertexBuffer->GetVertexFormat();
 }
 
-void Mesh::PrepareMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
-{
-	pCmdBuffer->BindVertexBuffers({ GetVertexBuffer() });
-	pCmdBuffer->BindIndexBuffer(GetIndexBuffer(), GetIndexBuffer()->GetType());
-}
-
 void Mesh::PrepareIndirectCmd(VkDrawIndexedIndirectCommand& cmd)
 {
 	// FIXME: No instanced rendering for now, hard coded

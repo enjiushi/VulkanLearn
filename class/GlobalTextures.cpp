@@ -27,7 +27,7 @@
 
 bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 {
-	if (!UniformBase::Init(pSelf))
+	if (!SelfRefBase<GlobalTextures>::Init(pSelf))
 		return false;
 
 	InitTextureDiction();

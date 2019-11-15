@@ -4,6 +4,7 @@
 #include "GlobalDeviceObjects.h"
 
 class SharedBufferManager;
+class SharedBuffer;
 
 class BufferKey
 {
@@ -42,6 +43,7 @@ public:
 
 public:
 	std::shared_ptr<Buffer> GetBuffer() const { return m_pBuffer; }
+	VkBuffer GetDeviceHandle() const { return m_pBuffer->GetDeviceHandle(); }
 	std::shared_ptr<BufferKey> AllocateBuffer(uint32_t numBytes);
 	uint32_t GetOffset(const std::shared_ptr<BufferKey>& pBufKey);
 	VkDescriptorBufferInfo GetBufferDesc(const std::shared_ptr<BufferKey>& pBufKey);
@@ -50,6 +52,7 @@ public:
 	// So I add one more input parameter "pWrapperBuffer", which wrappers "m_pBuffer" and behave exactly like a shared buffer with its member variable inited properly
 	// Therefore other classes can access this shared buffer correctly
 	void UpdateByteStream(const void* pData, const std::shared_ptr<Buffer>& pWrapperBuffer, const std::shared_ptr<BufferKey>& pBufKey, uint32_t offset, uint32_t numBytes);
+	void UpdateByteStream(const void* pData, const std::shared_ptr<SharedBuffer>& pWrapperBuffer, const std::shared_ptr<BufferKey>& pBufKey, uint32_t offset, uint32_t numBytes);
 
 protected:
 	std::shared_ptr<Buffer>					m_pBuffer;

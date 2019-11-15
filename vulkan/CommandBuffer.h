@@ -10,6 +10,7 @@ class VertexBuffer;
 class IndexBuffer;
 class FrameBuffer;
 class Buffer;
+class BufferBase;
 class Image;
 class PipelineLayout;
 class IndirectBuffer;
@@ -73,7 +74,7 @@ public:
 	void PrepareNormalDrawCommands(const DrawCmdData& data);
 	void PrepareBufferCopyCommands(const BufferCopyCmdData& data);
 
-	void CopyBuffer(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Buffer>& pDst, const std::vector<VkBufferCopy>& regions);
+	void CopyBuffer(const std::shared_ptr<BufferBase>& pSrc, const std::shared_ptr<BufferBase>& pDst, const std::vector<VkBufferCopy>& regions);
 	void BlitImage(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const VkImageBlit& blit);
 	void CopyImage(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions);
 	void CopyBufferImage(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions);
@@ -95,15 +96,16 @@ public:
 
 	void BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets);
 	void BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeline);
-	void BindVertexBuffers(const std::vector<std::shared_ptr<Buffer>>& vertexBuffers);
-	void BindIndexBuffer(const std::shared_ptr<Buffer>& pIndexBuffer, VkIndexType type);
+	void BindVertexBuffer(const std::shared_ptr<BufferBase>& pBuffer, uint32_t offset = 0, uint32_t startSlot = 0);
+	void BindVertexBuffers(const std::vector<std::shared_ptr<BufferBase>>& vertexBuffers, uint32_t startSlot = 0);
+	void BindIndexBuffer(const std::shared_ptr<BufferBase>& pIndexBuffer, VkIndexType type);
 
 	void BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::shared_ptr<RenderPass>& pRenderPass, const std::vector<VkClearValue>& clearValues, bool includeSecondary = false);
 	void EndRenderPass();
 
 	void DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
 	void DrawIndexed(uint32_t count);
-	void DrawIndexedIndirect(const std::shared_ptr<IndirectBuffer>& pIndirectBuffer, uint32_t offset, uint32_t count);
+	void DrawIndexedIndirect(const std::shared_ptr<BufferBase>& pIndirectBuffer, uint32_t offset, uint32_t count);
 	void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
 
 	void NextSubpass();
@@ -117,11 +119,11 @@ protected:
 	bool IsValide() const { m_isValide; }
 	void SetIsValide(bool flag) { m_isValide = flag; }
 
-	void IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Buffer>& pDst, const std::vector<VkBufferCopy>& regions);
-	void IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Buffer>& pDst, const std::vector<VkBufferCopy>& regions);
+	void IssueBarriersBeforeCopy(const std::shared_ptr<BufferBase>& pSrc, const std::shared_ptr<BufferBase>& pDst, const std::vector<VkBufferCopy>& regions);
+	void IssueBarriersAfterCopy(const std::shared_ptr<BufferBase>& pSrc, const std::shared_ptr<BufferBase>& pDst, const std::vector<VkBufferCopy>& regions);
 
-	void IssueBarriersBeforeCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions);
-	void IssueBarriersAfterCopy(const std::shared_ptr<Buffer>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions);
+	void IssueBarriersBeforeCopy(const std::shared_ptr<BufferBase>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions);
+	void IssueBarriersAfterCopy(const std::shared_ptr<BufferBase>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkBufferImageCopy>& regions);
 
 	void IssueBarriersBeforeCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions);
 	void IssueBarriersAfterCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const std::vector<VkImageCopy>& regions);

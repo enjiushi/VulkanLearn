@@ -137,8 +137,8 @@ std::shared_ptr<GBufferMaterial> GBufferMaterial::CreateDefaultMaterial(bool ski
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
+		vertexBindingsInfo.push_back(GenerateReservedVBBindingDesc(simpleMaterialInfo.vertexFormatInMem));
+		vertexAttributesInfo = GenerateReservedVBAttribDesc(simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -250,20 +250,8 @@ std::shared_ptr<DeferredShadingMaterial> DeferredShadingMaterial::CreateDefaultM
 	dynamicStatesCreateInfo.dynamicStateCount = dynamicStates.size();
 	dynamicStatesCreateInfo.pDynamicStates = dynamicStates.data();
 
-	std::vector<VkVertexInputBindingDescription> vertexBindingsInfo;
-	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
-	if (simpleMaterialInfo.vertexFormat)
-	{
-		vertexBindingsInfo.push_back(GenerateBindingDesc(0, simpleMaterialInfo.vertexFormatInMem));
-		vertexAttributesInfo = GenerateAttribDesc(0, simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
-	}
-
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
 	vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputCreateInfo.vertexBindingDescriptionCount = vertexBindingsInfo.size();
-	vertexInputCreateInfo.pVertexBindingDescriptions = vertexBindingsInfo.data();
-	vertexInputCreateInfo.vertexAttributeDescriptionCount = vertexAttributesInfo.size();
-	vertexInputCreateInfo.pVertexAttributeDescriptions = vertexAttributesInfo.data();
 
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	createInfo.pColorBlendState = &blendCreateInfo;

@@ -59,11 +59,11 @@ public:
 	std::shared_ptr<PerFrameUniforms> GetPerFrameUniforms() const { return std::dynamic_pointer_cast<PerFrameUniforms>(m_uniformStorageBuffers[UniformStorageType::PerFrameVariableBuffer]); }
 	std::shared_ptr<PerBoneUniforms> GetPerFrameBoneUniforms() const { return std::dynamic_pointer_cast<PerBoneUniforms>(m_uniformStorageBuffers[UniformStorageType::PerFrameBoneBuffer]); }
 	std::shared_ptr<PerObjectUniforms> GetPerObjectUniforms() const { return std::dynamic_pointer_cast<PerObjectUniforms>(m_uniformStorageBuffers[UniformStorageType::PerObjectVariableBuffer]); }
-	std::shared_ptr<UniformDataStorage> GetUniformStorage(UniformStorageType uniformStorageType) const { return m_uniformStorageBuffers[uniformStorageType]; }
+	std::shared_ptr<PerFrameDataStorage> GetUniformStorage(UniformStorageType uniformStorageType) const { return m_uniformStorageBuffers[uniformStorageType]; }
 	
 	std::shared_ptr<GlobalTextures> GetGlobalTextures() const { return std::dynamic_pointer_cast<GlobalTextures>(m_uniformTextures[UniformTextureType::GlobalUniformTextures]); }
 	std::shared_ptr<GBufferInputUniforms> GetGBufferInputUniforms() const { return std::dynamic_pointer_cast<GBufferInputUniforms>(m_uniformTextures[UniformTextureType::GlobalGBufferInputUniforms]); }
-	std::shared_ptr<UniformBase> GetUniformTextures(UniformTextureType uniformTextureType) const { return m_uniformTextures[uniformTextureType]; }
+	std::shared_ptr<IMaterialUniformOperator> GetUniformTextures(UniformTextureType uniformTextureType) const { return m_uniformTextures[uniformTextureType]; }
 
 	void SyncDataBuffer();
 	std::vector<std::vector<UniformVarList>> GenerateUniformVarLayout() const;
@@ -76,12 +76,12 @@ protected:
 	void BuildDescriptorSets();
 
 protected:
-	std::vector<std::shared_ptr<UniformDataStorage>>	m_uniformStorageBuffers;
-	std::vector<std::shared_ptr<UniformBase>>			m_uniformTextures;
+	std::vector<std::shared_ptr<UniformDataStorage>>		m_uniformStorageBuffers;
+	std::vector<std::shared_ptr<IMaterialUniformOperator>>	m_uniformTextures;
 
-	std::shared_ptr<DescriptorPool>						m_pDescriptorPool;
-	std::vector<std::shared_ptr<DescriptorSetLayout>>	m_descriptorSetLayouts;
-	std::vector<std::shared_ptr<DescriptorSet>>			m_descriptorSets;
+	std::shared_ptr<DescriptorPool>							m_pDescriptorPool;
+	std::vector<std::shared_ptr<DescriptorSetLayout>>		m_descriptorSetLayouts;
+	std::vector<std::shared_ptr<DescriptorSet>>				m_descriptorSets;
 
-	std::vector<std::vector<uint32_t>>					m_cachedFrameOffsets;
+	std::vector<std::vector<uint32_t>>						m_cachedFrameOffsets;
 };

@@ -8,10 +8,10 @@
 
 uint32_t MemoryKey::m_allocatedKeys = 0;
 
-std::shared_ptr<MemoryKey> MemoryKey::Create(bool bufferOrImage)
+std::shared_ptr<MemoryKey> MemoryKey::Create(const std::shared_ptr<DeviceMemoryManager>& pDeviceMemMgr, bool bufferOrImage)
 {
 	std::shared_ptr<MemoryKey> pMemKey = std::make_shared<MemoryKey>();
-	if (pMemKey.get() && pMemKey->Init(bufferOrImage))
+	if (pMemKey.get() && pMemKey->Init(pDeviceMemMgr, bufferOrImage))
 		return pMemKey;
 	return nullptr;
 }
@@ -19,15 +19,16 @@ std::shared_ptr<MemoryKey> MemoryKey::Create(bool bufferOrImage)
 MemoryKey::~MemoryKey()
 {
 	if (m_bufferOrImage)
-		DeviceMemMgr()->FreeBufferMemChunk(m_key);
+		m_pDeviceMemMgr->FreeBufferMemChunk(m_key);
 	else
-		DeviceMemMgr()->FreeImageMemChunk(m_key);
+		m_pDeviceMemMgr->FreeImageMemChunk(m_key);
 }
 
-bool MemoryKey::Init(bool bufferOrImage)
+bool MemoryKey::Init(const std::shared_ptr<DeviceMemoryManager>& pDeviceMemMgr, bool bufferOrImage)
 {
 	m_key = m_allocatedKeys++;
 	m_bufferOrImage = bufferOrImage;
+	m_pDeviceMemMgr = pDeviceMemMgr;
 	return true;
 }
 
@@ -48,7 +49,7 @@ bool DeviceMemoryManager::Init(const std::shared_ptr<Device>& pDevice, const std
 
 std::shared_ptr<DeviceMemoryManager> DeviceMemoryManager::Create(const std::shared_ptr<Device>& pDevice)
 {
-	std::shared_ptr<DeviceMemoryManager> pMgr = std::make_shared<DeviceMemoryManager>(DeviceMemoryManager());
+	std::shared_ptr<DeviceMemoryManager> pMgr = std::make_shared<DeviceMemoryManager>();
 	if (pMgr.get() && pMgr->Init(pDevice, pMgr))
 		return pMgr;
 	return nullptr;
@@ -56,7 +57,7 @@ std::shared_ptr<DeviceMemoryManager> DeviceMemoryManager::Create(const std::shar
 
 std::shared_ptr<MemoryKey> DeviceMemoryManager::AllocateBufferMemChunk(const std::shared_ptr<Buffer>& pBuffer, uint32_t memoryPropertyBits, const void* pData)
 {
-	std::shared_ptr<MemoryKey> pMemKey = MemoryKey::Create(true);
+	std::shared_ptr<MemoryKey> pMemKey = MemoryKey::Create(GetSelfSharedPtr(), true);
 
 	VkMemoryRequirements reqs = pBuffer->GetMemoryReqirments();
 
@@ -95,14 +96,14 @@ std::shared_ptr<MemoryKey> DeviceMemoryManager::AllocateBufferMemChunk(const std
 
 	m_bufferBindingLookupTable[pMemKey->m_key] = { bindingTableIndex, false };
 
-	UpdateBufferMemChunk(pMemKey, memoryPropertyBits, pData, offset, reqs.size);
+	UpdateBufferMemChunk(pMemKey, pData, offset, reqs.size);
 
 	return pMemKey;
 }
 
 std::shared_ptr<MemoryKey> DeviceMemoryManager::AllocateImageMemChunk(const std::shared_ptr<Image>& pImage, uint32_t memoryPropertyBits, const void* pData)
 {
-	std::shared_ptr<MemoryKey> pMemKey = MemoryKey::Create(false);
+	std::shared_ptr<MemoryKey> pMemKey = MemoryKey::Create(GetSelfSharedPtr(), false);
 
 	VkMemoryRequirements reqs = pImage->GetMemoryReqirments();
 
@@ -114,36 +115,37 @@ std::shared_ptr<MemoryKey> DeviceMemoryManager::AllocateImageMemChunk(const std:
 	return pMemKey;
 }
 
-bool DeviceMemoryManager::UpdateBufferMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes)
+bool DeviceMemoryManager::UpdateBufferMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, const void* pData, uint32_t offset, uint32_t numBytes)
 {
 	// Early return if it's been freed
 	if (m_bufferBindingLookupTable[pMemKey->m_key].second)
-		return false;
-
-	if ((memoryPropertyBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
 		return false;
 
 	if (pData == nullptr)
 		return false;
 
 	auto& bindingInfo = m_bufferBindingTable[m_bufferBindingLookupTable[pMemKey->m_key].first].first;
+	auto& memoryNode = m_bufferMemPool[bindingInfo.typeIndex];
+
+	if ((memoryNode.memProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
+		return false;
 
 	// If numbytes is larger than buffer's bytes, use buffer bytes
 	uint32_t updateNumBytes = numBytes > bindingInfo.numBytes ? bindingInfo.numBytes : numBytes;
 
-	UpdateMemoryChunk(m_bufferMemPool[bindingInfo.typeIndex].memory, offset, updateNumBytes, bindingInfo.pData, pData);
+	UpdateMemoryChunk(memoryNode.memory, offset, updateNumBytes, bindingInfo.pData, pData);
 	return true;
 }
 
-bool DeviceMemoryManager::UpdateImageMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, uint32_t memoryPropertyBits, const void* pData, uint32_t offset, uint32_t numBytes)
+bool DeviceMemoryManager::UpdateImageMemChunk(const std::shared_ptr<MemoryKey>& pMemKey, const void* pData, uint32_t offset, uint32_t numBytes)
 {
-	if ((memoryPropertyBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
-		return false;
-
 	if (pData == nullptr)
 		return false;
 
 	auto& memoryNode = m_imageMemPool[m_imageMemPoolLookupTable[pMemKey->m_key].first];
+
+	if ((memoryNode.memProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
+		return false;
 
 	// If numbytes is larger than buffer's bytes, use buffer bytes
 	uint32_t updateNumBytes = numBytes > memoryNode.numBytes ? memoryNode.numBytes : numBytes;
@@ -179,6 +181,7 @@ void DeviceMemoryManager::AllocateBufferMemory(uint32_t key, uint32_t numBytes, 
 	{
 		MemoryNode node;
 		node.numBytes = (memoryPropertyBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) ? STAGING_MEMORY_ALLOCATE_INC : DEVICE_MEMORY_ALLOCATE_INC;
+		node.memProperty = memoryPropertyBits;
 
 		VkMemoryAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -218,6 +221,7 @@ void DeviceMemoryManager::AllocateImageMemory(uint32_t key, uint32_t numBytes, u
 
 	MemoryNode node;
 	node.numBytes = numBytes;
+	node.memProperty = memoryPropertyBits;
 
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -270,7 +274,7 @@ void DeviceMemoryManager::FreeImageMemChunk(uint32_t key)
 
 	vkFreeMemory(GetDevice()->GetDeviceHandle(), m_imageMemPool[index.first].memory, nullptr);
 
-	m_imageMemPool.erase(m_imageMemPool.begin() + index.first);
+	//m_imageMemPool.erase(m_imageMemPool.begin() + index.first);
 	m_imageMemPoolLookupTable[key].second = true;
 
 	// Need to add some sort of logics to make buffer tables more compact

@@ -48,6 +48,7 @@
 #include "../class/BloomMaterial.h"
 #include "../class/PostProcessingMaterial.h"
 #include "../component/PhysicalCamera.h"
+#include "../component/PlanetGenerator.h"
 
 class VulkanGlobal : public Singleton<VulkanGlobal>
 {
@@ -110,6 +111,7 @@ public:
 	std::vector<std::shared_ptr<Mesh>>	m_innerBallMeshes;
 	std::vector<std::shared_ptr<Mesh>>	m_bunnyMeshes;
 	std::vector<std::shared_ptr<Mesh>>	m_dragonMeshes;
+	std::shared_ptr<Mesh>				m_pTriangleMesh;
 	std::shared_ptr<Mesh>				m_pSphereMesh;
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
@@ -132,6 +134,8 @@ public:
 
 	std::shared_ptr<BaseObject>			m_pDirLightObj;
 	std::shared_ptr<DirectionLight>		m_pDirLight;
+
+	std::shared_ptr<PlanetGenerator>	m_pPlanetGenerator;
 
 	std::shared_ptr<Texture2D>			m_pAlbedoRoughness;
 	std::shared_ptr<Texture2D>			m_pNormalAO;
@@ -172,6 +176,7 @@ public:
 	std::vector<std::shared_ptr<MeshRenderer>> m_boneBoxRenderers;
 	std::vector<std::shared_ptr<MaterialInstance>> m_boneBoxMaterialInstances;
 	std::shared_ptr<MeshRenderer>		m_pSophiaRenderer;
+	std::shared_ptr<MeshRenderer>       m_pPlanetRenderer;
 
 	std::shared_ptr<MaterialInstance>	m_pGunMaterialInstance;
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance0;
@@ -186,6 +191,7 @@ public:
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance2;
 	std::shared_ptr<MaterialInstance>	m_pSophiaMaterialInstance;
 	std::shared_ptr<MaterialInstance>	m_pIcoMaterialInstance;
+	std::shared_ptr<MaterialInstance>   m_pPlanetMaterialInstance;
 
 	std::shared_ptr<MaterialInstance>	m_pShadowMapMaterialInstance;
 	std::shared_ptr<MaterialInstance>	m_pSkinnedShadowMapMaterialInstance;
@@ -201,6 +207,8 @@ public:
 	std::shared_ptr<MeshRenderer>		m_pTestRenderer;
 	std::shared_ptr<Material>			m_pTestMaterial;
 	std::shared_ptr<MaterialInstance>	m_pTestMaterialInstance;
+
+	std::shared_ptr<BaseObject>			m_pPlanetObject;
 
 	std::shared_ptr<BaseObject>			m_pRootObject;
 

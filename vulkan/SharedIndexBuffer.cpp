@@ -1,30 +1,26 @@
 #include "SharedIndexBuffer.h"
 
 bool SharedIndexBuffer::Init(const std::shared_ptr<Device>& pDevice,
-	const std::shared_ptr<IndexBuffer>& pSelf,
+	const std::shared_ptr<SharedIndexBuffer>& pSelf,
 	uint32_t numBytes,
 	VkIndexType type)
 {
-	m_info = {};
-	m_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	m_info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-	m_info.size = numBytes;
+	VkBufferCreateInfo info = {};
+	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+	info.size = numBytes;
 
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
-		return false;
-
-	m_pBufferKey = IndexBufferMgr()->AllocateBuffer(numBytes);
-	if (!m_pBufferKey.get())
+	if (!SharedBuffer::Init(pDevice, pSelf, info))
 		return false;
 
 	m_type = type;
 
 	switch (m_type)
 	{
-	case VK_INDEX_TYPE_UINT16 : 
+	case VK_INDEX_TYPE_UINT16:
 		m_count = numBytes / sizeof(uint16_t);
 		break;
-	case VK_INDEX_TYPE_UINT32 :
+	case VK_INDEX_TYPE_UINT32:
 		m_count = numBytes / sizeof(uint32_t);
 		break;
 	default:
@@ -48,12 +44,8 @@ std::shared_ptr<SharedIndexBuffer> SharedIndexBuffer::Create(const std::shared_p
 	return nullptr;
 }
 
-void SharedIndexBuffer::UpdateByteStream(const void* pData, uint32_t offset, uint32_t numBytes)
+std::shared_ptr<BufferKey>	SharedIndexBuffer::AcquireBuffer(uint32_t numBytes)
 {
-	m_pBufferKey->GetSharedBufferMgr()->UpdateByteStream(pData, GetSelfSharedPtr(), m_pBufferKey, offset, numBytes);
-}
+	return IndexBufferMgr()->AllocateBuffer(numBytes);
 
-uint32_t SharedIndexBuffer::GetBufferOffset() const
-{
-	return m_pBufferKey->GetSharedBufferMgr()->GetOffset(m_pBufferKey);
 }
