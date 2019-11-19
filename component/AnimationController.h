@@ -13,8 +13,9 @@ public:
 	~AnimationController() { delete[] m_pCurrentAnimationIndices; }
 
 public:
-	void CallbackFunc(std::shared_ptr<BaseObject>& pObject);
+	void UpdateBoneTransform(std::shared_ptr<BaseObject>& pObject);
 	std::shared_ptr<SkeletonAnimationInstance> GetAnimationInstance() const { return m_pAnimationInstance; }
+	float GetAnimationPlayedTime() const { return m_animationPlayedTime; }
 
 	void Update() override;
 
@@ -23,6 +24,7 @@ protected:
 
 protected:
 	void OnAddedToObjectInternal(const std::shared_ptr<BaseObject>& pObject) override;
+	void InitBoneObjects(std::weak_ptr<BaseObject> pRootObject);
 
 protected:
 	std::shared_ptr<SkeletonAnimationInstance>	m_pAnimationInstance;

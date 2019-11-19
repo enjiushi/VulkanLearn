@@ -2,8 +2,6 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/FrameManager.h"
 
-std::vector<std::shared_ptr<BaseComponent>>	BaseObject::m_globalRegisteredComponents;
-
 bool BaseObject::Init(const std::shared_ptr<BaseObject>& pObj)
 {
 	if (!SelfRefBase<BaseObject>::Init(pObj))
@@ -59,23 +57,9 @@ void BaseObject::Update()
 	for (size_t i = 0; i < m_components.size(); i++)
 		m_components[i]->Update();
 
-	// Call all global registered component call back function
-	for (int32_t i = m_globalRegisteredComponents.size() - 1; i >= 0 && m_globalRegisteredComponents.size() > 0; i--)
-		m_globalRegisteredComponents[i]->CallbackFunc(GetSelfSharedPtr());
-
-	size_t originalSize = m_globalRegisteredComponents.size();
-
-	// 1. Insert current base object's registered component into global vector
-	if (m_localRegisteredComponents.size() != 0)
-		m_globalRegisteredComponents.insert(m_globalRegisteredComponents.end(), m_localRegisteredComponents.begin(), m_localRegisteredComponents.end());
-
 	//update all children objects with global registered components
 	for (size_t i = 0; i < m_children.size(); i++)
 		m_children[i]->Update();
-
-	// 2. Remove current base object's registered component from global vector
-	if (m_localRegisteredComponents.size() != 0)
-		m_globalRegisteredComponents.erase(m_globalRegisteredComponents.begin() + originalSize, m_globalRegisteredComponents.end());
 }
 
 void BaseObject::OnAnimationUpdate()
@@ -195,13 +179,4 @@ Quaternionf BaseObject::GetWorldRotationQ() const
 void BaseObject::Rotate(const Vector3f& v, float angle)
 {
 
-}
-
-void BaseObject::RegisterCallbackComponent(const std::shared_ptr<BaseComponent>& pComponent)
-{
-	auto iter = std::find(m_localRegisteredComponents.begin(), m_localRegisteredComponents.end(), pComponent);
-	if (iter != m_localRegisteredComponents.end())
-		return;
-
-	m_localRegisteredComponents.push_back(pComponent);
 }

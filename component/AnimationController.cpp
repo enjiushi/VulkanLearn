@@ -1,4 +1,5 @@
 #include "AnimationController.h"
+#include "BoneObject.h"
 #include "../class/SkeletonAnimation.h"
 #include "../class/SkeletonAnimationInstance.h"
 #include "../Base/BaseObject.h"
@@ -38,7 +39,7 @@ void AnimationController::Update()
 	m_animationPlayedTime = fmod(m_animationPlayedTime, m_pAnimationInstance->GetAnimation()->m_animationDataDiction[0].duration);
 }
 
-void AnimationController::CallbackFunc(std::shared_ptr<BaseObject>& pObject)
+void AnimationController::UpdateBoneTransform(std::shared_ptr<BaseObject>& pObject)
 {
 	DualQuaternionf boneOffsetDQ;
 
@@ -121,5 +122,24 @@ void AnimationController::CallbackFunc(std::shared_ptr<BaseObject>& pObject)
 
 void AnimationController::OnAddedToObjectInternal(const std::shared_ptr<BaseObject>& pObject)
 {
-	pObject->RegisterCallbackComponent(GetSelfSharedPtr());
+	InitBoneObjects(GetBaseObject());
+}
+
+void AnimationController::InitBoneObjects(std::weak_ptr<BaseObject> pRootObject)
+{
+	if (pRootObject.expired())
+		return;
+
+	std::shared_ptr<BaseObject> pSharedRootObject = pRootObject.lock();
+	DualQuaternionf boneOffsetDQ;
+
+	// Check if current object is a bone
+	if (UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneTransform(m_pAnimationInstance->GetMesh()->GetMeshBoneChunkIndexOffset(), pSharedRootObject->GetNameHashCode(), boneOffsetDQ))
+	{
+		std::shared_ptr<BoneObject> pBoneObject = BoneObject::Create(std::dynamic_pointer_cast<AnimationController>(GetSelfSharedPtr()));
+		pSharedRootObject->AddComponent(pBoneObject);
+	}
+
+	for (uint32_t i = 0; i < pSharedRootObject->GetChildrenCount(); i++)
+		InitBoneObjects(pSharedRootObject->GetChild(i));
 }
