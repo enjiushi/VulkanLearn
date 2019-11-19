@@ -36,7 +36,7 @@ public:
 
 public:
 	void Update() override;
-	void LateUpdate() override;
+	void OnPreRender() override;
 
 	void SetJitterOffset(Vector2f jitterOffset);
 	void SetFilmWidth(float filmWidth);

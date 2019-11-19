@@ -62,7 +62,7 @@ void DirectionLight::Update()
 {
 }
 
-void DirectionLight::LateUpdate()
+void DirectionLight::OnPreRender()
 {
 	std::shared_ptr<BaseObject> pObj = GetBaseObject();
 

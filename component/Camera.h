@@ -22,7 +22,7 @@ class Camera : public BaseComponent
 
 public:
 	void Update() override;
-	void LateUpdate() override;
+	void OnPreRender() override;
 
 	void SetFOV(float new_fov);
 	void SetAspect(float new_aspect);

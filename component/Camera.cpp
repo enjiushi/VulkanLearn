@@ -26,7 +26,7 @@ void Camera::Update()
 {
 }
 
-void Camera::LateUpdate()
+void Camera::OnPreRender()
 {
 	UpdateCameraPosition();
 	UpdateViewMatrix();

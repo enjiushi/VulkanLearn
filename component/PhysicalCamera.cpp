@@ -26,7 +26,7 @@ void PhysicalCamera::Update()
 {
 }
 
-void PhysicalCamera::LateUpdate()
+void PhysicalCamera::OnPreRender()
 {
 	UpdateCameraProps();
 	UpdateViewMatrix();

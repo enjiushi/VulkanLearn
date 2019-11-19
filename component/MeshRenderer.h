@@ -20,7 +20,7 @@ public:
 	~MeshRenderer();
 
 public:
-	void OnRenderObject() override;
+	void OnPreRender() override;
 
 	std::shared_ptr<Mesh> GetMesh() const { return m_pMesh; }
 
