@@ -404,7 +404,7 @@ public:
 protected:
 	// Bone index automatically generated if not exists
 	void SetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, const DualQuaternionf& offsetDQ);
-	bool GetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, DualQuaternionf& outBoneOffsetTransformDQ) const;
+	bool GetBoneInfo(uint32_t chunkIndex, std::size_t hashCode, uint32_t& outBoneIndex, DualQuaternionf& outBoneOffsetTransformDQ) const;
 
 	// Input bone index
 	void SetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, uint32_t boneIndex, const DualQuaternionf& offsetDQ);

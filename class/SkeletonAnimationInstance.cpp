@@ -42,13 +42,7 @@ std::shared_ptr<SkeletonAnimationInstance> SkeletonAnimationInstance::Create(con
 	return nullptr;
 }
 
-void SkeletonAnimationInstance::SetBoneTransform(std::size_t hashCode, const DualQuaternionf& dq)
+void SkeletonAnimationInstance::SetBoneTransform(std::size_t hashCode, uint32_t boneIndex, const DualQuaternionf& dq)
 {
-	uint32_t boneIndex;
-
-	// Animation bone and mesh bone doesn't match? quit
-	if (!UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneIndex(m_pMesh->GetMeshBoneChunkIndexOffset(), hashCode, boneIndex))
-		return;
-
 	UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->SetBoneTransform(m_boneChunkIndexOffset, hashCode, boneIndex, dq);
 }

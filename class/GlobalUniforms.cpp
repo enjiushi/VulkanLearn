@@ -655,17 +655,15 @@ void BoneIndirectUniform::SetBoneTransform(uint32_t chunkIndex, std::size_t hash
 	pUniformBuffer->SetBoneOffsetTransform(m_boneChunkIndex[boneIndex + chunkIndex], offsetDQ);
 }
 
-bool BoneIndirectUniform::GetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, DualQuaternionf& outBoneOffsetTransformDQ) const
+bool BoneIndirectUniform::GetBoneInfo(uint32_t chunkIndex, std::size_t hashCode, uint32_t& outBoneIndex, DualQuaternionf& outBoneOffsetTransformDQ) const
 {
-	uint32_t boneIndex;
-
-	if (!GetBoneIndex(chunkIndex, hashCode, boneIndex))
+	if (!GetBoneIndex(chunkIndex, hashCode, outBoneIndex))
 		return false;
 
 	std::shared_ptr<PerBoneUniforms> pUniformBuffer = std::dynamic_pointer_cast<PerBoneUniforms>(UniformData::GetInstance()->GetUniformStorage((UniformData::UniformStorageType)m_boneBufferType));
 	ASSERTION(pUniformBuffer != nullptr);
 
-	outBoneOffsetTransformDQ = pUniformBuffer->GetBoneOffsetTransform(m_boneChunkIndex[boneIndex + chunkIndex]);
+	outBoneOffsetTransformDQ = pUniformBuffer->GetBoneOffsetTransform(m_boneChunkIndex[outBoneIndex + chunkIndex]);
 
 	return true;
 }
