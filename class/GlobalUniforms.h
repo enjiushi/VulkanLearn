@@ -394,7 +394,7 @@ public:
 	uint32_t AllocatePerObjectChunk() override { ASSERTION(false); return -1; }
 	uint32_t AllocateConsecutiveChunks(uint32_t chunkSize) override;
 
-	bool GetBoneIndex(uint32_t chunkIndex, std::size_t hashCode, uint32_t& outBoneIndex) const;
+	bool GetBoneIndex(uint32_t chunkIndex, std::size_t hashCode, BoneIndexLookupTable::iterator& it);
 	bool GetBoneCount(uint32_t chunkIndex, uint32_t& outBoneCount) const;
 
 	std::size_t GetBoneHashCode(uint32_t chunkIndex, uint32_t index) const;
@@ -404,7 +404,7 @@ public:
 protected:
 	// Bone index automatically generated if not exists
 	void SetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, const DualQuaternionf& offsetDQ);
-	bool GetBoneInfo(uint32_t chunkIndex, std::size_t hashCode, uint32_t& outBoneIndex, DualQuaternionf& outBoneOffsetTransformDQ) const;
+	bool GetBoneInfo(uint32_t chunkIndex, std::size_t hashCode, uint32_t& outBoneIndex, DualQuaternionf& outBoneOffsetTransformDQ);
 
 	// Input bone index
 	void SetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, uint32_t boneIndex, const DualQuaternionf& offsetDQ);

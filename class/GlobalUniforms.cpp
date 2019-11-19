@@ -638,7 +638,9 @@ void BoneIndirectUniform::SetBoneTransform(uint32_t chunkIndex, std::size_t hash
 	uint32_t boneIndex, boneChunkIndex;
 	std::shared_ptr<PerBoneUniforms> pUniformBuffer = std::dynamic_pointer_cast<PerBoneUniforms>(UniformData::GetInstance()->GetUniformStorage((UniformData::UniformStorageType)m_boneBufferType));
 
-	if (!GetBoneIndex(chunkIndex, hashCode, boneIndex))
+	BoneIndexLookupTable::iterator it;
+
+	if (!GetBoneIndex(chunkIndex, hashCode, it))
 	{
 		ASSERTION(pUniformBuffer != nullptr);
 
@@ -655,10 +657,13 @@ void BoneIndirectUniform::SetBoneTransform(uint32_t chunkIndex, std::size_t hash
 	pUniformBuffer->SetBoneOffsetTransform(m_boneChunkIndex[boneIndex + chunkIndex], offsetDQ);
 }
 
-bool BoneIndirectUniform::GetBoneInfo(uint32_t chunkIndex, std::size_t hashCode, uint32_t& outBoneIndex, DualQuaternionf& outBoneOffsetTransformDQ) const
+bool BoneIndirectUniform::GetBoneInfo(uint32_t chunkIndex, std::size_t hashCode, uint32_t& outBoneIndex, DualQuaternionf& outBoneOffsetTransformDQ)
 {
-	if (!GetBoneIndex(chunkIndex, hashCode, outBoneIndex))
+	BoneIndexLookupTable::iterator it;
+	if (!GetBoneIndex(chunkIndex, hashCode, it))
 		return false;
+
+	outBoneIndex = it->second.boneIndex;
 
 	std::shared_ptr<PerBoneUniforms> pUniformBuffer = std::dynamic_pointer_cast<PerBoneUniforms>(UniformData::GetInstance()->GetUniformStorage((UniformData::UniformStorageType)m_boneBufferType));
 	ASSERTION(pUniformBuffer != nullptr);
@@ -670,21 +675,23 @@ bool BoneIndirectUniform::GetBoneInfo(uint32_t chunkIndex, std::size_t hashCode,
 
 void BoneIndirectUniform::SetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, uint32_t boneIndex, const DualQuaternionf& offsetDQ)
 {
-	uint32_t existBoneIndex, boneChunkIndex;
+	uint32_t boneChunkIndex;
 	std::shared_ptr<PerBoneUniforms> pUniformBuffer = std::dynamic_pointer_cast<PerBoneUniforms>(UniformData::GetInstance()->GetUniformStorage((UniformData::UniformStorageType)m_boneBufferType));
 
-	if (!GetBoneIndex(chunkIndex, hashCode, existBoneIndex))
+	BoneIndexLookupTable::iterator it;
+	if (!GetBoneIndex(chunkIndex, hashCode, it))
 	{
 		ASSERTION(pUniformBuffer != nullptr);
 
 		boneChunkIndex = pUniformBuffer->AllocatePerObjectChunk();
+		m_boneIndexLookupTables[chunkIndex][hashCode].boneIndex = boneIndex;
 	}
 	else
+	{
 		// Get bone chunk index from old bone index
-		boneChunkIndex = m_boneChunkIndex[existBoneIndex + chunkIndex];
-
-	// Refresh lookup table
-	m_boneIndexLookupTables[chunkIndex][hashCode].boneIndex = boneIndex;
+		boneChunkIndex = m_boneChunkIndex[it->second.boneIndex + chunkIndex];
+		it->second.boneIndex = boneIndex;
+	}
 
 	// Move data from old bone index
 	m_boneChunkIndex[boneIndex + chunkIndex] = boneChunkIndex;
@@ -711,7 +718,7 @@ bool BoneIndirectUniform::GetBoneTransform(uint32_t chunkIndex, std::size_t hash
 	return true;
 }
 
-bool BoneIndirectUniform::GetBoneIndex(uint32_t chunkIndex, std::size_t hashCode, uint32_t& outBoneIndex) const
+bool BoneIndirectUniform::GetBoneIndex(uint32_t chunkIndex, std::size_t hashCode, BoneIndexLookupTable::iterator& it)
 {
 	auto iter0 = m_boneIndexLookupTables.find(chunkIndex);
 	ASSERTION(iter0 != m_boneIndexLookupTables.end());
@@ -720,7 +727,7 @@ bool BoneIndirectUniform::GetBoneIndex(uint32_t chunkIndex, std::size_t hashCode
 	if (iter == iter0->second.end())
 		return false;
 
-	outBoneIndex = iter->second.boneIndex;
+	it = iter;
 	return true;
 }
 
