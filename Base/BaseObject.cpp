@@ -82,6 +82,14 @@ void BaseObject::LateUpdate()
 
 void BaseObject::OnPreRender()
 {
+	Matrix4f cachedParentWorldTransform;
+
+	if (!m_pParent.expired())
+		cachedParentWorldTransform = m_pParent.lock()->m_cachedWorldTransform;
+
+	m_cachedWorldTransform = cachedParentWorldTransform * m_localTransform;
+	m_cachedWorldPosition = (cachedParentWorldTransform * Vector4f(m_localPosition, 1.0f)).xyz();
+
 	for (size_t i = 0; i < m_components.size(); i++)
 		m_components[i]->OnPreRender();
 

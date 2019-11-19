@@ -147,9 +147,13 @@ public:
 	Matrix3f GetLocalRotationM() const { return m_localRotationM; }
 	Quaternionf GetLocalRotationQ() const { return m_localRotationQ; }
 
-	Matrix4f BaseObject::GetWorldTransform() const;
-	Matrix3f BaseObject::GetWorldRotationM() const;
-	Quaternionf BaseObject::GetWorldRotationQ() const;
+	Matrix4f GetWorldTransform() const;
+	Matrix3f GetWorldRotationM() const;
+	Quaternionf GetWorldRotationQ() const;
+
+	// These are before the stage of pre render
+	Matrix4f GetCachedWorldTransform() const { return m_cachedWorldTransform; }
+	Vector3f GetCachedWorldPosition() const { return m_cachedWorldPosition; }
 
 	//creators
 	static std::shared_ptr<BaseObject> Create();
@@ -168,4 +172,7 @@ protected:
 	Matrix4f	m_localTransform;
 	Matrix3f	m_localRotationM;
 	Quaternionf m_localRotationQ;
+
+	Matrix4f	m_cachedWorldTransform;
+	Vector3f	m_cachedWorldPosition;
 };
