@@ -45,7 +45,7 @@ void SkeletonAnimation::AssemblyAnimationData(const aiAnimation* pAssimpAnimatio
 		AssemblyObjectAnimation(pAssimpAnimation->mChannels[i], pAssimpAnimation->mTicksPerSecond, objectAnimation);
 
 		animationData.objectAnimationDiction.push_back(objectAnimation);
-		animationData.objectAnimationLookupTable[objectAnimation.objectName] = animationData.objectAnimationDiction.size() - 1;
+		animationData.objectAnimationLookupTable[std::hash<std::wstring>()(objectAnimation.objectName)] = animationData.objectAnimationDiction.size() - 1;
 	}
 }
 

@@ -43,7 +43,7 @@ typedef struct _AnimationData
 	std::wstring					animationName;			// Animation name
 	float							duration;				// Total duration of this animation
 	std::vector<ObjectAnimation>	objectAnimationDiction;
-	std::map<std::wstring, uint32_t>objectAnimationLookupTable;	// Using this to lookup specific index in object animation dictionary
+	std::map<std::size_t, uint32_t> objectAnimationLookupTable;	// Using this to lookup specific index in object animation dictionary
 }AnimationData;
 
 class SkeletonAnimation : public SelfRefBase<SkeletonAnimation>

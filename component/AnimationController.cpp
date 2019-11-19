@@ -42,7 +42,7 @@ void AnimationController::Update()
 void AnimationController::UpdateBoneTransform(const std::shared_ptr<BaseObject>& pObject)
 {
 	std::shared_ptr<SkeletonAnimation> pAnimation = m_pAnimationInstance->GetAnimation();
-	auto iter = pAnimation->m_animationDataDiction[0].objectAnimationLookupTable.find(pObject->GetName());
+	auto iter = pAnimation->m_animationDataDiction[0].objectAnimationLookupTable.find(pObject->GetNameHashCode());
 
 	// If current object contains animation information, it's local transform will be changed accordingly
 	if (iter != pAnimation->m_animationDataDiction[0].objectAnimationLookupTable.end())
