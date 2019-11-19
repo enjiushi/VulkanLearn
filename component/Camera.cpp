@@ -89,7 +89,7 @@ void Camera::UpdateProjMatrix()
 
 void Camera::UpdateCameraPosition()
 {
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetWorldPosition());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetCachedWorldPosition());
 }
 
 void Camera::SetFOV(float new_fov)
