@@ -19,7 +19,7 @@ bool SkeletonAnimation::Init(const std::shared_ptr<SkeletonAnimation>& pSelf, co
 		AssemblyAnimationData(pAssimpScene->mAnimations[i], animationData);
 
 		m_animationDataDiction.push_back(animationData);
-		m_animationDataLookupTable[animationData.animationName] = m_animationDataDiction.size() - 1;
+		m_animationDataLookupTable[std::hash<std::wstring>()(animationData.animationName)] = m_animationDataDiction.size() - 1;
 	}
 
 	return true;
