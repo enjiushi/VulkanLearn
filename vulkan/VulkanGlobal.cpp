@@ -934,8 +934,14 @@ void VulkanGlobal::Draw()
 	m_pCameraComp->SetFocalLength((1.0f - c->var) * 0.035f + c->var * 0.2f);
 
 	m_pRootObject->Update();
+	m_pRootObject->OnAnimationUpdate();
 	m_pRootObject->LateUpdate();
 
+	m_pRootObject->OnPreRender();
+
+	m_pRootObject->OnRenderObject();
+
+	// Sync data for current frame before rendering
 	UniformData::GetInstance()->SyncDataBuffer();
 	RenderWorkManager::GetInstance()->SyncMaterialData();
 	PerFrameData::GetInstance()->SyncDataBuffer();
@@ -964,6 +970,8 @@ void VulkanGlobal::Draw()
 
 		newCBCreated = false;
 	}
+
+	m_pRootObject->OnPostRender();
 
 	RenderWorkManager::GetInstance()->OnFrameEnd();
 

@@ -78,26 +78,53 @@ void BaseObject::Update()
 		m_globalRegisteredComponents.erase(m_globalRegisteredComponents.begin() + originalSize, m_globalRegisteredComponents.end());
 }
 
+void BaseObject::OnAnimationUpdate()
+{
+	for (size_t i = 0; i < m_components.size(); i++)
+		m_components[i]->OnAnimationUpdate();
+
+	for (size_t i = 0; i < m_children.size(); i++)
+		m_children[i]->OnAnimationUpdate();
+}
+
 void BaseObject::LateUpdate()
 {
-	//update components attached to this object
 	for (size_t i = 0; i < m_components.size(); i++)
 		m_components[i]->LateUpdate();
 
-	//update all children objects
 	for (size_t i = 0; i < m_children.size(); i++)
 		m_children[i]->LateUpdate();
 }
 
-void BaseObject::Draw()
+void BaseObject::OnPreRender()
+{
+	for (size_t i = 0; i < m_components.size(); i++)
+		m_components[i]->OnPreRender();
+
+	for (size_t i = 0; i < m_children.size(); i++)
+		m_children[i]->OnPreRender();
+}
+
+void BaseObject::OnRenderObject()
 {
 	//update components attached to this object
+	//for (size_t i = 0; i < m_components.size(); i++)
+	//	FrameMgr()->AddJobToFrame(std::bind(&BaseComponent::OnRenderObject, m_components[i].get(), std::placeholders::_1));
 	for (size_t i = 0; i < m_components.size(); i++)
-		FrameMgr()->AddJobToFrame(std::bind(&BaseComponent::Draw, m_components[i].get(), std::placeholders::_1));
+		m_components[i]->OnRenderObject();
 
 	//update all children objects
 	for (size_t i = 0; i < m_children.size(); i++)
-		m_children[i]->Draw();
+		m_children[i]->OnRenderObject();
+}
+
+void BaseObject::OnPostRender()
+{
+	for (size_t i = 0; i < m_components.size(); i++)
+		m_components[i]->OnPostRender();
+
+	for (size_t i = 0; i < m_children.size(); i++)
+		m_children[i]->OnPostRender();
 }
 
 void BaseObject::Awake()

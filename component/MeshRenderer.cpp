@@ -81,11 +81,7 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 	return true;
 }
 
-void MeshRenderer::Update()
-{
-}
-
-void MeshRenderer::LateUpdate()
+void MeshRenderer::OnRenderObject()
 {
 	if (m_pMesh == nullptr)
 		return;
@@ -104,8 +100,4 @@ void MeshRenderer::LateUpdate()
 
 		m_materialInstances[i]->InsertIntoRenderQueue(m_pMesh, m_perObjectBufferIndex, m_pMesh->GetMeshChunkIndex(), animationChunkIndex, m_instanceCount, m_startInstance);
 	}
-}
-
-void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
-{
 }

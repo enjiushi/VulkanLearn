@@ -164,6 +164,7 @@ void GlobalTextures::InitIrradianceTexture()
 
 		SceneGenerator::GetInstance()->GetRootObject()->Update();
 		SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
+		SceneGenerator::GetInstance()->GetRootObject()->OnRenderObject();
 		UniformData::GetInstance()->SyncDataBuffer();
 		SceneGenerator::GetInstance()->GetMaterial0()->SyncBufferData();
 
@@ -248,6 +249,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 			SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
 			SceneGenerator::GetInstance()->GetRootObject()->Update();
 			SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
+			SceneGenerator::GetInstance()->GetRootObject()->OnRenderObject();
 			UniformData::GetInstance()->SyncDataBuffer();
 			SceneGenerator::GetInstance()->GetMaterial0()->SyncBufferData();
 
@@ -299,6 +301,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 	SceneGenerator::GetInstance()->GetRootObject()->Update();
 	SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
+	SceneGenerator::GetInstance()->GetRootObject()->OnRenderObject();
 	UniformData::GetInstance()->SyncDataBuffer();
 	SceneGenerator::GetInstance()->GetMaterial0()->SyncBufferData();
 

@@ -20,9 +20,7 @@ public:
 	~MeshRenderer();
 
 public:
-	void Update() override;
-	void LateUpdate() override;
-	void Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes) override;
+	void OnRenderObject() override;
 
 	std::shared_ptr<Mesh> GetMesh() const { return m_pMesh; }
 

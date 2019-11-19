@@ -130,9 +130,12 @@ public:
 
 	void Rotate(const Vector3f& v, float angle);
 
-	virtual void Update();
-	virtual void LateUpdate();
-	virtual void Draw();
+	void Update();
+	void OnAnimationUpdate();
+	void LateUpdate();
+	void OnPreRender();
+	void OnRenderObject();
+	void OnPostRender();
 
 	virtual void Awake();
 	virtual void Start();
