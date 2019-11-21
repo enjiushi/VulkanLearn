@@ -5,14 +5,14 @@ set(NAME VulkanLearn)
 
 project(${NAME} CXX)
 
-include_directories(external/vulkan)
+include_directories($ENV{VK_SDK_PATH}/include/vulkan)
 include_directories(external/assimp)
 include_directories(external/gli)
 include_directories(external/gli/external)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set (VULKAN_LIB "lib/vulkan/vulkan-1")
+set (VULKAN_LIB1 "$ENV{VK_SDK_PATH}/Lib/vulkan-1.lib")
 set (ASSIMP_LIB "lib/assimp/assimp")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVK_USE_PLATFORM_WIN32_KHR")
@@ -44,7 +44,7 @@ function(buildExample EXAMPLE)
 	source_group("shaders\\" FILES ${SHADER})
 	source_group("component\\" FILES ${COMPONENT})
         source_group("scene\\" FILES ${SCENE})
-	target_link_libraries(${EXAMPLE} ${VULKAN_LIB} ${ASSIMP_LIB})
+	target_link_libraries(${EXAMPLE} ${VULKAN_LIB} ${ASSIMP_LIB} ${VULKAN_LIB1})
 	set_target_properties(${EXAMPLE} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 endfunction(buildExample)
 
