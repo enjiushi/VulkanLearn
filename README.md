@@ -12,8 +12,13 @@
 # A Scene Viewer Rendered By Vulkan
 
 ## How To Build
-Just simply by using cmake and visual studio, typing "cmake . -G "Visual Studio [version] Win64"" and you're good to go.
-This project works only for windows for now. But it could be ported to other platforms potentially with touching only a few parts of code.
+This project works **ONLY FOR WINDOWS** for now. But it could be ported to other platforms potentially by touching only a few parts of code.
+ - **Install Vulkan SDK**
+	Visit [https://vulkan.lunarg.com/sdk/home](https://vulkan.lunarg.com/sdk/home), download sdk and install Vulkan SDK. You'll have "VK_SDK_PATH" automatically.
+ - **Install CMake**
+	 Visit [https://cmake.org/download/](https://cmake.org/download/), download and install CMake.
+ - **Generate Project**
+	Open command prompt, direct to the root of your local clone(E.g. "C:\VulkanLearn" for me), and type "Visual Studio [version] Win64". Open generated project and build.
 
 ## Introduction
 I created this project aiming to get familiar with Vulkan through varies common rendering technologies. It is also a minor engine that handles scene management and data to coordinate with underlay Vulkan and get things drawn on screen. I've already added a lot of functionalities helping to create a scene by a few lines of code. However, there's still a vast gap between this project and a common game engine, both in terms of utilities that helps to ease the work, and a UI editor to do things dynamically rather than code stuff and rebuild.
