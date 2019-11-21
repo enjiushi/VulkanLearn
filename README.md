@@ -14,10 +14,13 @@
 ## How To Build
 This project works **ONLY FOR WINDOWS** for now. But it could be ported to other platforms potentially by touching only a few parts of code.
  - **Install Vulkan SDK**
+ 
 	Visit [https://vulkan.lunarg.com/sdk/home](https://vulkan.lunarg.com/sdk/home), download sdk and install Vulkan SDK. You'll have "VK_SDK_PATH" automatically.
  - **Install CMake**
+ 
 	 Visit [https://cmake.org/download/](https://cmake.org/download/), download and install CMake.
  - **Generate Project**
+ 
 	Open command prompt, direct to the root of your local clone(E.g. "C:\VulkanLearn" for me), and type **cmake . -G "Visual Studio [version] Win64"**(E.g. [version]=15 2017 for me). Open generated project and build.
 
 ## Introduction
