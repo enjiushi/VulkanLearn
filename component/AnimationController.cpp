@@ -107,14 +107,12 @@ void AnimationController::UpdateBoneTransform(const std::shared_ptr<BaseObject>&
 
 void AnimationController::SyncBoneTransformToUniform(const std::shared_ptr<BaseObject>& pObject, uint32_t boneIndex, const DualQuaternionf& boneOffsetDQ)
 {
-	Matrix4f animationRootTransform = GetBaseObject()->GetCachedWorldTransform();
+	Matrix4f transform = GetBaseObject()->GetCachedWorldTransform();
+	transform.Inverse();
+	transform *= pObject->GetCachedWorldTransform();
+	transform *= Matrix4f(boneOffsetDQ.AcquireRotation().Matrix(), boneOffsetDQ.AcquireTranslation());
 
-	Matrix4f boneTransform = pObject->GetCachedWorldTransform();
-	boneTransform = animationRootTransform.Inverse() * boneTransform;
-
-	boneTransform = boneTransform * Matrix4f(boneOffsetDQ.AcquireRotation().Matrix(), boneOffsetDQ.AcquireTranslation());
-
-	m_pAnimationInstance->SetBoneTransform(pObject->GetNameHashCode(), boneIndex, DualQuaternionf(boneTransform.RotationMatrix(), boneTransform.TranslationVector()));
+	m_pAnimationInstance->SetBoneTransform(pObject->GetNameHashCode(), boneIndex, DualQuaternionf(transform.RotationMatrix(), transform.TranslationVector()));
 }
 
 void AnimationController::OnAddedToObjectInternal(const std::shared_ptr<BaseObject>& pObject)
