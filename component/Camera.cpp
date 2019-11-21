@@ -26,7 +26,7 @@ void Camera::Update()
 {
 }
 
-void Camera::LateUpdate()
+void Camera::OnPreRender()
 {
 	UpdateCameraPosition();
 	UpdateViewMatrix();
@@ -38,8 +38,8 @@ void Camera::UpdateViewMatrix()
 	if (m_pObject.expired())
 		return;
 
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetWorldTransform().Inverse());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(m_pObject.lock()->GetWorldTransform()[2].xyz().Negative());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetCachedWorldTransform().Inverse());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(m_pObject.lock()->GetCachedWorldTransform()[2].xyz().Negative());
 }
 
 void Camera::UpdateProjMatrix()
@@ -89,7 +89,7 @@ void Camera::UpdateProjMatrix()
 
 void Camera::UpdateCameraPosition()
 {
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetWorldPosition());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetCachedWorldPosition());
 }
 
 void Camera::SetFOV(float new_fov)

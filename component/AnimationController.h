@@ -1,6 +1,7 @@
 #pragma once
 #include "../Base/BaseComponent.h"
 #include "../Maths/Matrix.h"
+#include "../Maths/DualQuaternion.h"
 
 class SkeletonAnimationInstance;
 
@@ -13,8 +14,10 @@ public:
 	~AnimationController() { delete[] m_pCurrentAnimationIndices; }
 
 public:
-	void CallbackFunc(std::shared_ptr<BaseObject>& pObject);
+	void UpdateBoneTransform(const std::shared_ptr<BaseObject>& pObject);
+	void SyncBoneTransformToUniform(const std::shared_ptr<BaseObject>& pObject, uint32_t boneIndex, const DualQuaternionf& boneOffsetDQ);
 	std::shared_ptr<SkeletonAnimationInstance> GetAnimationInstance() const { return m_pAnimationInstance; }
+	float GetAnimationPlayedTime() const { return m_animationPlayedTime; }
 
 	void Update() override;
 
@@ -23,6 +26,7 @@ protected:
 
 protected:
 	void OnAddedToObjectInternal(const std::shared_ptr<BaseObject>& pObject) override;
+	void InitBoneObjects(std::weak_ptr<BaseObject> pRootObject);
 
 protected:
 	std::shared_ptr<SkeletonAnimationInstance>	m_pAnimationInstance;

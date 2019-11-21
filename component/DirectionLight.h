@@ -23,7 +23,7 @@ public:
 	void SetLightColor(const Vector3f& lightColor);
 
 	void Update() override;
-	void LateUpdate() override;
+	void OnPreRender() override;
 
 protected:
 	Vector3f	m_lightColor;

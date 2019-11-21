@@ -130,9 +130,12 @@ public:
 
 	void Rotate(const Vector3f& v, float angle);
 
-	virtual void Update();
-	virtual void LateUpdate();
-	virtual void Draw();
+	void Update();
+	void OnAnimationUpdate();
+	void LateUpdate();
+	void OnPreRender();
+	void OnRenderObject();
+	void OnPostRender();
 
 	virtual void Awake();
 	virtual void Start();
@@ -144,12 +147,13 @@ public:
 	Matrix3f GetLocalRotationM() const { return m_localRotationM; }
 	Quaternionf GetLocalRotationQ() const { return m_localRotationQ; }
 
-	Matrix4f BaseObject::GetWorldTransform() const;
-	Matrix3f BaseObject::GetWorldRotationM() const;
-	Quaternionf BaseObject::GetWorldRotationQ() const;
+	Matrix4f GetWorldTransform() const;
+	Matrix3f GetWorldRotationM() const;
+	Quaternionf GetWorldRotationQ() const;
 
-	// Register a component so that all of the children base objects of current base object will call function "CallbackFunc"
-	void RegisterCallbackComponent(const std::shared_ptr<BaseComponent>& pComponent);
+	// These are before the stage of pre render
+	Matrix4f GetCachedWorldTransform() const { return m_cachedWorldTransform; }
+	Vector3f GetCachedWorldPosition() const { return m_cachedWorldPosition; }
 
 	//creators
 	static std::shared_ptr<BaseObject> Create();
@@ -169,6 +173,6 @@ protected:
 	Matrix3f	m_localRotationM;
 	Quaternionf m_localRotationQ;
 
-	static std::vector<std::shared_ptr<BaseComponent>>	m_globalRegisteredComponents;
-	std::vector<std::shared_ptr<BaseComponent>>			m_localRegisteredComponents;
+	Matrix4f	m_cachedWorldTransform;
+	Vector3f	m_cachedWorldPosition;
 };

@@ -29,9 +29,12 @@ public:
 	virtual ~BaseComponent(void) {}
 
 	virtual void Update() {}
+	virtual void OnAnimationUpdate() {}
 	virtual void LateUpdate() {}
+	virtual void OnPreRender() {}
 	virtual void CallbackFunc(std::shared_ptr<BaseObject>& pObject) {}
-	virtual void Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes) {}
+	virtual void OnRenderObject() {}
+	virtual void OnPostRender() {}
 
 	virtual void Awake() {}
 	virtual void Start() {}

@@ -33,7 +33,7 @@ Matrix4f DirectionLight::AcquireProjectionMatrix() const
 {
 	std::shared_ptr<BaseObject> pObj = GetBaseObject();
 
-	Matrix4f view = pObj->GetWorldTransform().Inverse();
+	Matrix4f view = pObj->GetCachedWorldTransform().Inverse();
 
 	Matrix4f proj;
 	proj.c00 = 1.0f / m_frustumSize.x;
@@ -62,7 +62,7 @@ void DirectionLight::Update()
 {
 }
 
-void DirectionLight::LateUpdate()
+void DirectionLight::OnPreRender()
 {
 	std::shared_ptr<BaseObject> pObj = GetBaseObject();
 

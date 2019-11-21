@@ -81,19 +81,15 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 	return true;
 }
 
-void MeshRenderer::Update()
-{
-}
-
-void MeshRenderer::LateUpdate()
+void MeshRenderer::OnPreRender()
 {
 	if (m_pMesh == nullptr)
 		return;
 
 	if (m_pAnimationController != nullptr)
-		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, m_pAnimationController->GetBaseObject()->GetWorldTransform());
+		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, m_pAnimationController->GetBaseObject()->GetCachedWorldTransform());
 	else
-		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, GetBaseObject()->GetWorldTransform());
+		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, GetBaseObject()->GetCachedWorldTransform());
 
 	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
 	{
@@ -104,8 +100,4 @@ void MeshRenderer::LateUpdate()
 
 		m_materialInstances[i]->InsertIntoRenderQueue(m_pMesh, m_perObjectBufferIndex, m_pMesh->GetMeshChunkIndex(), animationChunkIndex, m_instanceCount, m_startInstance);
 	}
-}
-
-void MeshRenderer::Draw(const std::shared_ptr<PerFrameResource>& pPerFrameRes)
-{
 }

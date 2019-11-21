@@ -26,7 +26,7 @@ void PhysicalCamera::Update()
 {
 }
 
-void PhysicalCamera::LateUpdate()
+void PhysicalCamera::OnPreRender()
 {
 	UpdateCameraProps();
 	UpdateViewMatrix();
@@ -38,9 +38,9 @@ void PhysicalCamera::UpdateViewMatrix()
 	if (m_pObject.expired())
 		return;
 
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetWorldPosition());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetWorldTransform().Inverse());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(m_pObject.lock()->GetWorldTransform()[2].xyz().Negative());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetCachedWorldPosition());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetCachedWorldTransform().Inverse());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(m_pObject.lock()->GetCachedWorldTransform()[2].xyz().Negative());
 }
 
 void PhysicalCamera::UpdateProjMatrix()

@@ -11,11 +11,13 @@ public:
 	virtual bool Init() { return true; }
 
 	void AddToReferenceTable(const std::shared_ptr<Base>& pObj) { m_referenceTable.push_back(pObj); }
-	void SetName(const std::wstring& name) { m_name = name; }
+	void SetName(const std::wstring& name) { m_name = name; m_nameHashCode = std::hash<std::wstring>()(m_name); }
 	const std::wstring& GetName() const { return m_name; }
+	std::size_t GetNameHashCode() const { return m_nameHashCode; }
 
 protected:
 	std::wstring						m_name;
+	std::size_t							m_nameHashCode = 0;
 	std::vector<std::shared_ptr<Base>>	m_referenceTable;
 };
 
