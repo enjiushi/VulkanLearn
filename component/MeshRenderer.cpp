@@ -81,7 +81,7 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 	return true;
 }
 
-void MeshRenderer::OnPreRender()
+void MeshRenderer::OnRenderObject()
 {
 	if (m_pMesh == nullptr)
 		return;
