@@ -394,3 +394,15 @@ Vector3<T> Matrix4x4<T>::TranslationVector() const
 {
 	return c[3].xyz();
 }
+
+template <typename T>
+Vector3<T> Matrix4x4<T>::TransformAsVector(const Vector3<T>& v) const
+{
+	return (*this * Vector4<T>(v, 0.0f)).xyz();
+}
+
+template <typename T>
+Vector3<T> Matrix4x4<T>::TransformAsPoint(const Vector3<T>& v) const
+{
+	return (*this * Vector4<T>(v, 1.0f)).xyz();
+}

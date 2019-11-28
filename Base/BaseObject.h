@@ -130,9 +130,11 @@ public:
 
 	void Rotate(const Vector3f& v, float angle);
 
+public:
 	void Update();
 	void OnAnimationUpdate();
 	void LateUpdate();
+	void UpdateCachedData();
 	void OnPreRender();
 	void OnRenderObject();
 	void OnPostRender();

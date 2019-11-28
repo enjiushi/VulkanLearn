@@ -80,7 +80,7 @@ void BaseObject::LateUpdate()
 		m_children[i]->LateUpdate();
 }
 
-void BaseObject::OnPreRender()
+void BaseObject::UpdateCachedData()
 {
 	Matrix4f cachedParentWorldTransform;
 
@@ -90,6 +90,12 @@ void BaseObject::OnPreRender()
 	m_cachedWorldTransform = cachedParentWorldTransform * m_localTransform;
 	m_cachedWorldPosition = (cachedParentWorldTransform * Vector4f(m_localPosition, 1.0f)).xyz();
 
+	for (size_t i = 0; i < m_children.size(); i++)
+		m_children[i]->UpdateCachedData();
+}
+
+void BaseObject::OnPreRender()
+{
 	for (size_t i = 0; i < m_components.size(); i++)
 		m_components[i]->OnPreRender();
 

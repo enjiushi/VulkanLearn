@@ -725,7 +725,7 @@ void VulkanGlobal::InitScene()
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
 	m_pIcoRenderer = MeshRenderer::Create(m_pPBRIcosahedron, { m_pIcoMaterialInstance });
 
-	m_pPlanetGenerator = PlanetGenerator::Create();
+	m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp);
 
 	AssimpSceneReader::SceneInfo sceneInfo;
 
@@ -936,9 +936,8 @@ void VulkanGlobal::Draw()
 	m_pRootObject->Update();
 	m_pRootObject->OnAnimationUpdate();
 	m_pRootObject->LateUpdate();
-
+	m_pRootObject->UpdateCachedData();
 	m_pRootObject->OnPreRender();
-
 	m_pRootObject->OnRenderObject();
 
 	// Sync data for current frame before rendering

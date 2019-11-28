@@ -10,6 +10,7 @@ bool PerFrameDataStorage::Init(const std::shared_ptr<PerFrameDataStorage>& pSelf
 	if (!SelfRefBase<PerFrameDataStorage>::Init(pSelf))
 		return false;
 
+	m_pendingSync.resize(GetSwapChain()->GetSwapChainImageCount(), true);
 	m_pendingSyncCount = 0;
 
 	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
@@ -42,22 +43,29 @@ void PerFrameDataStorage::SyncBufferData()
 		return;
 
 	// only update uniform data when it's just dirty
-	if (m_pendingSyncCount == GetSwapChain()->GetSwapChainImageCount())
+	if (m_pendingSyncCount == m_pendingSync.size())
 		UpdateUniformDataInternal();
 
 	SyncBufferDataInternal();
-
-	m_pendingSyncCount--;
 }
 
 void PerFrameDataStorage::SyncBufferDataInternal()
 {
-	GetBuffer()->UpdateByteStream(AcquireDataPtr(), FrameMgr()->FrameIndex() * GetFrameOffset(), AcquireDataSize());
+	uint32_t currentFrameIndex = FrameMgr()->FrameIndex();
+	if (m_pendingSync[currentFrameIndex])
+		return;
+
+	GetBuffer()->UpdateByteStream(AcquireDataPtr(), currentFrameIndex * GetFrameOffset(), AcquireDataSize());
+
+	m_pendingSync[currentFrameIndex] = true;
+	m_pendingSyncCount--;
 }
 
 void PerFrameDataStorage::SetDirty()
 {
-	m_pendingSyncCount = GetSwapChain()->GetSwapChainImageCount();
+	m_pendingSyncCount = m_pendingSync.size();
+	for (uint32_t i = 0; i < m_pendingSyncCount; i++)
+		m_pendingSync[i] = false;
 	SetDirtyInternal();
 }
 

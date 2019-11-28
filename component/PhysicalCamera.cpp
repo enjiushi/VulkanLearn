@@ -40,7 +40,7 @@ void PhysicalCamera::UpdateViewMatrix()
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetCachedWorldPosition());
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetCachedWorldTransform().Inverse());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(m_pObject.lock()->GetCachedWorldTransform()[2].xyz().Negative());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(GetCameraDir());
 }
 
 void PhysicalCamera::UpdateProjMatrix()
@@ -187,4 +187,9 @@ void PhysicalCamera::UpdateCameraSupplementProps()
 
 	m_projDirty = true;
 	m_propDirty = true;
+}
+
+const Vector3f PhysicalCamera::GetCameraDir() const
+{
+	return m_pObject.lock()->GetCachedWorldTransform()[2].xyz().Negative();
 }

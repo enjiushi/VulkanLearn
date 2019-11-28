@@ -53,6 +53,7 @@ public:
 	//const float GetFovH() const { return m_fovH; }
 
 	const Matrix4f GetVPMatrix() const { return m_vpMatrix; }
+	const Vector3f GetCameraDir() const;
 
 	static std::shared_ptr<PhysicalCamera> Create(const PhysicalCameraProps& props);
 
