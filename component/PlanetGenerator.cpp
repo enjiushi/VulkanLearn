@@ -4,10 +4,6 @@
 #include "../class/PlanetGeoDataManager.h"
 #include "PhysicalCamera.h"
 
-#include "../vulkan/GlobalDeviceObjects.h"
-#include "../vulkan/FrameManager.h"
-#include <fstream>
-
 DEFINITE_CLASS_RTTI(PlanetGenerator, BaseComponent);
 
 std::shared_ptr<PlanetGenerator> PlanetGenerator::Create(const std::shared_ptr<PhysicalCamera>& pCamera)
@@ -170,9 +166,6 @@ void PlanetGenerator::OnPreRender()
 
 	PlanetGeoDataManager::GetInstance()->FinishDataUpdate(updatedSize);
 	
-	static uint32_t asdf[3096];
-	static uint32_t qwer[3096];
-	static uint32_t c = 0;
 	if (m_pMeshRenderer != nullptr)
 	{
 		m_pMeshRenderer->SetStartInstance(offsetInBytes / sizeof(IcoTriangle));
