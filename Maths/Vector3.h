@@ -46,6 +46,8 @@ public:
 	Vector3& Negativate();
 	const Vector3 Negative() const;
 
+	Vector3 Orthogonal() const;
+
 	static const Vector3 Forward() { return Vector3<T>(0.0, 0.0, 1.0); }
 	static const Vector3 Upward() { return Vector3<T>(0.0, 1.0, 0.0); }
 	static const Vector3 Left() { return Vector3<T>(1.0, 0.0, 0.0); }

@@ -18,6 +18,9 @@ public:
 	Quaternion(T _real, const Vector3<T>& imag);
 	Quaternion(const Vector3<T>& v, T rotation);
 
+	// Assume from & to are all unit vector
+	Quaternion(const Vector3<T>& from, const Vector3<T>& to);
+
 	Matrix3x3<T> Matrix() const;
 
 	bool operator == (const Quaternion<T>& q) const;

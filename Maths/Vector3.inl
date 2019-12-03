@@ -186,3 +186,14 @@ const Vector3<T> Vector3<T>::Negative() const
 {
 	return Vector3<T>() - *this;
 }
+
+template <typename T>
+Vector3<T> Vector3<T>::Orthogonal() const
+{
+	float _x = abs(x);
+	float _y = abs(y);
+	float _z = abs(z);
+
+	Vector3<T> other = _x < _y ? (_x < _z ? Vector3<T>(1, 0, 0) : Vector3<T>(0, 0, 1)) : (_y < _z ? Vector3<T>(0, 1, 0) : Vector3<T>(0, 0, 1));
+	return *this ^ other;
+}

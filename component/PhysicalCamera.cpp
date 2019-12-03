@@ -185,6 +185,8 @@ void PhysicalCamera::UpdateCameraSupplementProps()
 	m_supplementProps.fixedNearPlaneHeight = m_supplementProps.fixedNearPlane * m_supplementProps.filmHeight / m_props.focalLength;	// 2 * n * tan(FOV_2)
 	m_supplementProps.fixedNearPlaneWidth = m_supplementProps.fixedNearPlaneHeight * m_props.aspect;
 
+	m_frustum = { {0, 0, 0}, {0, 0, -1}, m_supplementProps.verticalFOV_2, m_props.aspect };
+
 	m_projDirty = true;
 	m_propDirty = true;
 }

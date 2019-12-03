@@ -98,6 +98,28 @@ Quaternion<T>::Quaternion(const Vector3<T>& v, T rotation)
 }
 
 template<typename T>
+Quaternion<T>::Quaternion(const Vector3<T>& from, const Vector3<T>& to)
+{
+	Vector3<T> halfway = from + to;
+	halfway.Normalize();
+
+	if (from == to.Negative())
+	{
+		// rotates pi, cos(pi / 2) = 0
+		w = 0;
+		imag = from.Orthogonal();
+	}
+	else
+	{
+		w = halfway * from;
+		if (w == 1)
+			imag = { 0, 0, 0 };
+		else
+			imag = from ^ to;
+	}
+}
+
+template<typename T>
 Matrix3x3<T> Quaternion<T>::Matrix() const
 {
 	Matrix3x3<T> resMatrix;

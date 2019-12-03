@@ -1,6 +1,7 @@
 #pragma once
 #include "../Base/BaseComponent.h"
 #include "../Maths/Matrix.h"
+#include "../Maths/PyramidFrustum.h"
 #include "../class/FrameBufferDiction.h"
 
 class PhysicalCamera : public BaseComponent
@@ -68,6 +69,8 @@ protected:
 protected:
 	PhysicalCameraProps				m_props;
 	PhysicalCameraSupplementProps	m_supplementProps;
+
+	PyramidFrustumf					m_frustum;
 
 	Matrix4f						m_vpMatrix;
 	bool							m_projDirty;
