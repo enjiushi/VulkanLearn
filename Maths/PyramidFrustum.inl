@@ -32,3 +32,13 @@ PyramidFrustum<T>::PyramidFrustum(const Vector3<T>& head, const Vector3<T>& look
 	planes[FrustumFace_BOTTOM]	= { bottomLeft,		bottomRight, head, Vector3<T>(topLeft - bottomLeft).Normal() };
 	planes[FrustumFace_TOP]		= { topLeft,		topRight,	 head, Vector3<T>(bottomLeft - topLeft).Normal() };
 }
+
+template <typename T>
+bool PyramidFrustum<T>::Contain(const Vector3<T>& p) const
+{
+	for (uint32_t i = 0; i < FrustumFace_COUNT; i++)
+		if (planes[i].PlaneTest(p) < 0)
+			return false;
+
+	return true;
+}
