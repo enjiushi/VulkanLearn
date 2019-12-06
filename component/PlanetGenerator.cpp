@@ -105,7 +105,7 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, const Vector3f& a, const 
 	triangleNormal += c;
 	triangleNormal.Normalize();
 	
-	if (triangleNormal * m_cameraDirLocal > 0.5)
+	if (triangleNormal * m_cameraDirLocal > 0.3)
 		return;
 
 	float distA = (m_cameraPosLocal - a).Length();

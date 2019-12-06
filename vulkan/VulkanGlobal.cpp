@@ -824,7 +824,7 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pBoxObject1);
 	m_pRootObject->AddChild(m_pBoxObject2);
 	m_pRootObject->AddChild(m_pIcoObject);
-	//m_pRootObject->AddChild(m_pPlanetObject);
+	m_pRootObject->AddChild(m_pPlanetObject);
 	m_pRootObject->AddChild(m_pSophiaObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pDirLightObj);
@@ -876,6 +876,7 @@ public:
 	void ProcessMouse(KeyState keyState, const Vector2f& mousePosition) override {}
 	void ProcessMouse(const Vector2f& mousePosition) override {}
 	float var = 0.0;
+	bool boolVar = true;
 };
 
 void VariableChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
@@ -891,6 +892,10 @@ void VariableChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 	{
 		var -= varInterval;
 		var = var < 0 ? 0 : var;
+	}
+	if (keyCode == KEY_T && keyState == KEY_UP)
+	{
+		boolVar = !boolVar;
 	}
 }
 
@@ -932,6 +937,7 @@ void VulkanGlobal::Draw()
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
 	m_pCameraComp->SetFocalLength((1.0f - c->var) * 0.035f + c->var * 0.2f);
+	m_pPlanetGenerator->ToggleCameraInfoUpdate(c->boolVar);
 
 	m_pRootObject->Update();
 	m_pRootObject->OnAnimationUpdate();
