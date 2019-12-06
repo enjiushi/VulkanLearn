@@ -51,4 +51,8 @@ template<typename T>
 void Plane<T>::Transform(const Matrix4x4<T>& matrix)
 {
 	normal = matrix.TransformAsVector(normal);
+
+	// Normal * D is a point on the plane
+	// p dot with normal is D
+	D = matrix.TransformAsPoint(normal * D) * normal;
 }

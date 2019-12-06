@@ -24,6 +24,7 @@ public:
 		FrustumFace_TOP,
 		FrustumFace_COUNT,
 	};
+
 public:
 	PyramidFrustum() = default;
 
