@@ -100,12 +100,20 @@ void PlanetGenerator::Start()
 
 void PlanetGenerator::SubDivide(uint32_t currentLevel, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles)
 {
-	Vector3f triangleNormal = a;
-	triangleNormal += b;
-	triangleNormal += c;
-	triangleNormal.Normalize();
+	// vector 0 represents triangle normal
+	// vector 1 represents vector from camera position to triangle center
+	m_utilityVector0 = a;
+	m_utilityVector0 += b;
+	m_utilityVector0 += c;
+
+	m_utilityVector1 = m_utilityVector0;
+	m_utilityVector1 /= 3;					// Get triangle center
+	m_utilityVector1 -= m_cameraPosLocal;	// Get vector from camera to triangle center
+
+	m_utilityVector0.Normalize();
+	m_utilityVector1.Normalize();
 	
-	if (triangleNormal * m_cameraDirLocal > 0.3)
+	if (m_utilityVector1 * m_utilityVector0 > 0.3)
 		return;
 
 	float distA = (m_cameraPosLocal - a).Length();
@@ -158,7 +166,6 @@ void PlanetGenerator::OnPreRender()
 		m_utilityTransfrom.Inverse();
 
 		m_cameraPosLocal = m_utilityTransfrom.TransformAsPoint(m_pCamera->GetBaseObject()->GetCachedWorldPosition());
-		m_cameraDirLocal = m_utilityTransfrom.TransformAsVector(m_pCamera->GetCameraDir());
 
 		// Transfrom from camera local space to world space, and then to planet local space
 		m_utilityTransfrom *= m_pCamera->GetBaseObject()->GetCachedWorldTransform();	// from camera local 2 world

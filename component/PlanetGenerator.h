@@ -46,12 +46,13 @@ private:
 	std::shared_ptr<MeshRenderer>	m_pMeshRenderer;
 	std::shared_ptr<PhysicalCamera>	m_pCamera;
 
-	// Utility transfrom, to avoid matrix frequent construction and destruction every frame
+	// Utility variables, to avoid frequent construction and destruction every frame
 	Matrix4f		m_utilityTransfrom;
+	Vector3f		m_utilityVector0;
+	Vector3f		m_utilityVector1;
 
 	// Camera infor in planet local space
 	PyramidFrustumf	m_cameraFrustumLocal;
-	Vector3f		m_cameraDirLocal;
 	Vector3f		m_cameraPosLocal;
 
 	// Whether to update camera info in planet local space
