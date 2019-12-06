@@ -98,8 +98,42 @@ void PlanetGenerator::Start()
 	//ASSERTION(m_pMeshRenderer != nullptr);
 }
 
-void PlanetGenerator::SubDivide(uint32_t currentLevel, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles)
+PlanetGenerator::CullState PlanetGenerator::FrustumCull(const Vector3f& a, const Vector3f& b, const Vector3f& c)
 {
+	CullState state = CullState::DIVIDE;
+	for (uint32_t i = 0; i < m_cameraFrustumLocal.FrustumFace_COUNT; i++)
+	{
+		uint32_t outsideCount = 0;
+		outsideCount += m_cameraFrustumLocal.planes[i].PlaneTest(a) > 0 ? 0 : 1;
+		outsideCount += m_cameraFrustumLocal.planes[i].PlaneTest(b) > 0 ? 0 : 1;
+		outsideCount += m_cameraFrustumLocal.planes[i].PlaneTest(c) > 0 ? 0 : 1;
+
+		if (outsideCount == 3)
+			return CullState::CULL;
+
+		if (outsideCount > 0)
+			state = CullState::CULL_DIVIDE;
+	}
+
+	return state;
+}
+
+void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles)
+{
+	// Only perform frustum cull if state is CULL_DIVIDE, as it intersects the volumn
+	if (state == CullState::CULL_DIVIDE)
+	{
+		// Frustum cull
+		state = FrustumCull(a, b, c);
+
+		// Early quit if triangle is totally outside of the volumn
+		if (state == CullState::CULL)
+			return;
+
+		// Whatever has left should be either CULL_DIVIDE or DIVIDE
+		// This state will be passed on to the next sub divide level
+	}
+
 	// vector 0 represents triangle normal
 	// vector 1 represents vector from camera position to triangle center
 	m_utilityVector0 = a;
@@ -107,7 +141,7 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, const Vector3f& a, const 
 	m_utilityVector0 += c;
 
 	m_utilityVector1 = m_utilityVector0;
-	m_utilityVector1 /= 3;					// Get triangle center
+	m_utilityVector1 /= 3.0f;				// Get triangle center
 	m_utilityVector1 -= m_cameraPosLocal;	// Get vector from camera to triangle center
 
 	m_utilityVector0.Normalize();
@@ -151,10 +185,10 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, const Vector3f& a, const 
 	C += a;
 	C.Normalize();
 
-	SubDivide(currentLevel + 1, a, C, B, pOutputTriangles);
-	SubDivide(currentLevel + 1, C, b, A, pOutputTriangles);
-	SubDivide(currentLevel + 1, B, A, c, pOutputTriangles);
-	SubDivide(currentLevel + 1, A, B, C, pOutputTriangles);
+	SubDivide(currentLevel + 1, state, a, C, B, pOutputTriangles);
+	SubDivide(currentLevel + 1, state, C, b, A, pOutputTriangles);
+	SubDivide(currentLevel + 1, state, B, A, c, pOutputTriangles);
+	SubDivide(currentLevel + 1, state, A, B, C, pOutputTriangles);
 }
 
 void PlanetGenerator::OnPreRender()
@@ -181,7 +215,7 @@ void PlanetGenerator::OnPreRender()
 
 	for (uint32_t i = 0; i < 20; i++)
 	{
-		SubDivide(0, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);
+		SubDivide(0, CullState::CULL_DIVIDE, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);
 	}
 	uint32_t updatedSize = (uint8_t*)pTriangles - startPtr;
 

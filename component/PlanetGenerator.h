@@ -11,8 +11,15 @@ class PlanetGenerator : public BaseComponent
 {
 	DECLARE_CLASS_RTTI(PlanetGenerator);
 
-	static const uint32_t MAX_LEVEL = 10;
+	static const uint32_t MAX_LEVEL = 0;
 	static const uint32_t TRIANGLE_SCREEN_SIZE = 50;
+
+	enum class CullState
+	{
+		CULL,			// If a triangle is fully out of a volumn
+		CULL_DIVIDE,	// If a triangle intersects with a volumn
+		DIVIDE			// If a triangle is fully inside a volumn
+	};
 
 	typedef struct _IcoTriangle
 	{
@@ -29,7 +36,8 @@ protected:
 	bool Init(const std::shared_ptr<PlanetGenerator>& pSelf, const std::shared_ptr<PhysicalCamera>& pCamera);
 
 protected:
-	void SubDivide(uint32_t currentLevel, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles);
+	CullState FrustumCull(const Vector3f& a, const Vector3f& b, const Vector3f& c);
+	void SubDivide(uint32_t currentLevel, CullState state, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles);
 
 public:
 	void Start() override;
