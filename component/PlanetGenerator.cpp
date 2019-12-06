@@ -2,6 +2,7 @@
 #include "MeshRenderer.h"
 #include "../Base/BaseObject.h"
 #include "../class/PlanetGeoDataManager.h"
+#include "../Maths/Plane.h"
 #include "PhysicalCamera.h"
 
 DEFINITE_CLASS_RTTI(PlanetGenerator, BaseComponent);
@@ -150,8 +151,11 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, const Vector3f& cameraPos
 
 void PlanetGenerator::OnPreRender()
 {
-	Vector3f localCameraPosition = GetBaseObject()->GetWorldTransform().Inverse().TransformAsPoint(m_pCamera->GetBaseObject()->GetWorldPosition());
-	Vector3f localCameraDirection = GetBaseObject()->GetWorldTransform().Inverse().TransformAsVector(m_pCamera->GetCameraDir());
+	m_world2LocalTransfrom = GetBaseObject()->GetCachedWorldTransform();
+	m_world2LocalTransfrom.Inverse();
+
+	Vector3f cameraPositionLocal = m_world2LocalTransfrom.TransformAsPoint(m_pCamera->GetBaseObject()->GetCachedWorldPosition());
+	Vector3f cameraDirectionLocal = m_world2LocalTransfrom.TransformAsVector(m_pCamera->GetCameraDir());
 
 	uint32_t offsetInBytes;
 
@@ -160,7 +164,7 @@ void PlanetGenerator::OnPreRender()
 
 	for (uint32_t i = 0; i < 20; i++)
 	{
-		SubDivide(0, localCameraPosition, localCameraDirection, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);
+		SubDivide(0, cameraPositionLocal, cameraDirectionLocal, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);
 	}
 	uint32_t updatedSize = (uint8_t*)pTriangles - startPtr;
 
