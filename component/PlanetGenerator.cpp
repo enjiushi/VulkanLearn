@@ -98,19 +98,19 @@ void PlanetGenerator::Start()
 	//ASSERTION(m_pMeshRenderer != nullptr);
 }
 
-void PlanetGenerator::SubDivide(uint32_t currentLevel, const Vector3f& cameraPos, const Vector3f& cameraDir, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles)
+void PlanetGenerator::SubDivide(uint32_t currentLevel, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles)
 {
 	Vector3f triangleNormal = a;
 	triangleNormal += b;
 	triangleNormal += c;
 	triangleNormal.Normalize();
 	
-	if (triangleNormal * cameraDir > 0.5)
+	if (triangleNormal * m_cameraDirLocal > 0.5)
 		return;
 
-	float distA = (cameraPos - a).Length();
-	float distB = (cameraPos - b).Length();
-	float distC = (cameraPos - c).Length();
+	float distA = (m_cameraPosLocal - a).Length();
+	float distB = (m_cameraPosLocal - b).Length();
+	float distC = (m_cameraPosLocal - c).Length();
 
 	float minDist = std::fminf(std::fminf(distA, distB), distC);
 
@@ -143,26 +143,29 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, const Vector3f& cameraPos
 	C += a;
 	C.Normalize();
 
-	SubDivide(currentLevel + 1, cameraPos, cameraDir, a, C, B, pOutputTriangles);
-	SubDivide(currentLevel + 1, cameraPos, cameraDir, C, b, A, pOutputTriangles);
-	SubDivide(currentLevel + 1, cameraPos, cameraDir, B, A, c, pOutputTriangles);
-	SubDivide(currentLevel + 1, cameraPos, cameraDir, A, B, C, pOutputTriangles);
+	SubDivide(currentLevel + 1, a, C, B, pOutputTriangles);
+	SubDivide(currentLevel + 1, C, b, A, pOutputTriangles);
+	SubDivide(currentLevel + 1, B, A, c, pOutputTriangles);
+	SubDivide(currentLevel + 1, A, B, C, pOutputTriangles);
 }
 
 void PlanetGenerator::OnPreRender()
 {
-	m_world2LocalTransfrom = GetBaseObject()->GetCachedWorldTransform();
-	m_world2LocalTransfrom.Inverse();
+	if (m_toggleCameraInfoUpdate)
+	{
+		// Transform from world space to planet local space
+		m_utilityTransfrom = GetBaseObject()->GetCachedWorldTransform();
+		m_utilityTransfrom.Inverse();
 
-	Vector3f cameraPositionLocal = m_world2LocalTransfrom.TransformAsPoint(m_pCamera->GetBaseObject()->GetCachedWorldPosition());
-	Vector3f cameraDirectionLocal = m_world2LocalTransfrom.TransformAsVector(m_pCamera->GetCameraDir());
+		m_cameraPosLocal = m_utilityTransfrom.TransformAsPoint(m_pCamera->GetBaseObject()->GetCachedWorldPosition());
+		m_cameraDirLocal = m_utilityTransfrom.TransformAsVector(m_pCamera->GetCameraDir());
 
-	// Transfrom from camera local space to world space, and then to planet local space
-	m_camera2LocalTransform = m_world2LocalTransfrom;	// from world 2 planet local
-	m_camera2LocalTransform *= m_pCamera->GetBaseObject()->GetCachedWorldTransform();	// from camera local 2 world
+		// Transfrom from camera local space to world space, and then to planet local space
+		m_utilityTransfrom *= m_pCamera->GetBaseObject()->GetCachedWorldTransform();	// from camera local 2 world
 
-	m_cameraFrustumLocal = m_pCamera->GetCameraFrustum();
-	m_cameraFrustumLocal.Transform(m_camera2LocalTransform);
+		m_cameraFrustumLocal = m_pCamera->GetCameraFrustum();
+		m_cameraFrustumLocal.Transform(m_utilityTransfrom);
+	}
 
 	uint32_t offsetInBytes;
 
@@ -171,7 +174,7 @@ void PlanetGenerator::OnPreRender()
 
 	for (uint32_t i = 0; i < 20; i++)
 	{
-		SubDivide(0, cameraPositionLocal, cameraDirectionLocal, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);
+		SubDivide(0, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);
 	}
 	uint32_t updatedSize = (uint8_t*)pTriangles - startPtr;
 

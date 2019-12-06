@@ -29,23 +29,34 @@ protected:
 	bool Init(const std::shared_ptr<PlanetGenerator>& pSelf, const std::shared_ptr<PhysicalCamera>& pCamera);
 
 protected:
-	void SubDivide(uint32_t currentLevel, const Vector3f& cameraPos, const Vector3f& cameraDir, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles);
+	void SubDivide(uint32_t currentLevel, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles);
 
 public:
 	void Start() override;
 	void OnPreRender() override;
 
+public:
+	void ToggleCameraInfoUpdate(bool flag) { m_toggleCameraInfoUpdate = flag; }
+
 private:
-	Vector3f	m_icosahedronVertices[20];
-	uint32_t	m_icosahedronIndices[20 * 3];
+	Vector3f		m_icosahedronVertices[20];
+	uint32_t		m_icosahedronIndices[20 * 3];
+
 	std::vector<float>				m_distanceLUT;
 	std::shared_ptr<MeshRenderer>	m_pMeshRenderer;
 	std::shared_ptr<PhysicalCamera>	m_pCamera;
 
-	Matrix4f		m_world2LocalTransfrom;
-	Matrix4f		m_camera2LocalTransform;
+	// Utility transfrom, to avoid matrix frequent construction and destruction every frame
+	Matrix4f		m_utilityTransfrom;
 
-	// Camera's frustum in planet local
+	// Camera infor in planet local space
 	PyramidFrustumf	m_cameraFrustumLocal;
+	Vector3f		m_cameraDirLocal;
+	Vector3f		m_cameraPosLocal;
+
+	// Whether to update camera info in planet local space
+	// This is used mostly for debugging
+	// You can investigate culling result around by setting it to false
+	bool			m_toggleCameraInfoUpdate = true;
 
 };
