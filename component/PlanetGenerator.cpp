@@ -157,6 +157,13 @@ void PlanetGenerator::OnPreRender()
 	Vector3f cameraPositionLocal = m_world2LocalTransfrom.TransformAsPoint(m_pCamera->GetBaseObject()->GetCachedWorldPosition());
 	Vector3f cameraDirectionLocal = m_world2LocalTransfrom.TransformAsVector(m_pCamera->GetCameraDir());
 
+	// Transfrom from camera local space to world space, and then to planet local space
+	m_camera2LocalTransform = m_world2LocalTransfrom;	// from world 2 planet local
+	m_camera2LocalTransform *= m_pCamera->GetBaseObject()->GetCachedWorldTransform();	// from camera local 2 world
+
+	m_cameraFrustumLocal = m_pCamera->GetCameraFrustum();
+	m_cameraFrustumLocal.Transform(m_camera2LocalTransform);
+
 	uint32_t offsetInBytes;
 
 	IcoTriangle* pTriangles = (IcoTriangle*)PlanetGeoDataManager::GetInstance()->AcquireDataPtr(offsetInBytes);

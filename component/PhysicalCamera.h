@@ -55,6 +55,7 @@ public:
 
 	const Matrix4f GetVPMatrix() const { return m_vpMatrix; }
 	const Vector3f GetCameraDir() const;
+	PyramidFrustumf GetCameraFrustum() const { return m_frustum; }
 
 	static std::shared_ptr<PhysicalCamera> Create(const PhysicalCameraProps& props);
 

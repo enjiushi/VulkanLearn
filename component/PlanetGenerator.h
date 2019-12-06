@@ -1,6 +1,7 @@
 #pragma once
 #include "../Base/BaseComponent.h"
 #include "../Maths/Matrix.h"
+#include "../Maths/PyramidFrustum.h"
 #include "../class/PerFrameData.h"
 
 class MeshRenderer;
@@ -40,4 +41,11 @@ private:
 	std::vector<float>				m_distanceLUT;
 	std::shared_ptr<MeshRenderer>	m_pMeshRenderer;
 	std::shared_ptr<PhysicalCamera>	m_pCamera;
+
+	Matrix4f		m_world2LocalTransfrom;
+	Matrix4f		m_camera2LocalTransform;
+
+	// Camera's frustum in planet local
+	PyramidFrustumf	m_cameraFrustumLocal;
+
 };
