@@ -29,8 +29,6 @@ public:
 	Vector3& operator -= (const Vector3<T>& v);
 	Vector3& operator *= (const Vector3<T>& v);
 
-	//Vector3& operator *= (const Matrix4x4<T>& m);
-
 	bool operator == (const Vector3<T>& v) const;
 	bool operator != (const Vector3<T>& v) const;
 

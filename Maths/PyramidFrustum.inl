@@ -3,6 +3,8 @@
 #include "Vector3.h"
 #include "Plane.h"
 #include "Quaternion.h"
+#include "Matrix3x3.h"
+#include "Matrix4x4.h"
 
 template <typename T>
 PyramidFrustum<T>::PyramidFrustum(const Vector3<T>& head, const Vector3<T>& bottomLeft, const Vector3<T>& bottomRight, const Vector3<T>& topLeft, const Vector3<T>& topRight)
@@ -11,6 +13,8 @@ PyramidFrustum<T>::PyramidFrustum(const Vector3<T>& head, const Vector3<T>& bott
 	planes[FrustumFace_RIGHT]	= { bottomRight,	topRight,	 head, Vector3<T>(bottomLeft - bottomRight).Normal() };
 	planes[FrustumFace_BOTTOM]	= { bottomLeft,		bottomRight, head, Vector3<T>(topLeft - bottomLeft).Normal() };
 	planes[FrustumFace_TOP]		= { topLeft,		topRight,	 head, Vector3<T>(bottomLeft - topLeft).Normal() };
+
+	this->head = head;
 }
 
 template <typename T>
@@ -31,6 +35,8 @@ PyramidFrustum<T>::PyramidFrustum(const Vector3<T>& head, const Vector3<T>& look
 	planes[FrustumFace_RIGHT]	= { bottomRight,	topRight,	 head, Vector3<T>(bottomLeft - bottomRight).Normal() };
 	planes[FrustumFace_BOTTOM]	= { bottomLeft,		bottomRight, head, Vector3<T>(topLeft - bottomLeft).Normal() };
 	planes[FrustumFace_TOP]		= { topLeft,		topRight,	 head, Vector3<T>(bottomLeft - topLeft).Normal() };
+
+	this->head = head;
 }
 
 template <typename T>
@@ -41,4 +47,22 @@ bool PyramidFrustum<T>::Contain(const Vector3<T>& p) const
 			return false;
 
 	return true;
+}
+
+template<typename T>
+void PyramidFrustum<T>::Transform(const Matrix3x3<T>& matrix)
+{
+	for (uint32_t i = 0; i < FrustumFace_COUNT; i++)
+		planes[i].Transform(matrix);
+
+	head = matrix * head;
+}
+
+template<typename T>
+void PyramidFrustum<T>::Transform(const Matrix4x4<T>& matrix)
+{
+	for (uint32_t i = 0; i < FrustumFace_COUNT; i++)
+		planes[i].Transform(matrix);
+
+	head = matrix.TransformAsPoint(head);
 }

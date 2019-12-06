@@ -4,6 +4,12 @@ template <typename T>
 class Vector3;
 
 template <typename T>
+class Matrix3x3;
+
+template <typename T>
+class Matrix4x4;
+
+template <typename T>
 class Plane;
 
 template<typename T>
@@ -28,8 +34,13 @@ public:
 public:
 	bool Contain(const Vector3<T>& p) const;
 
+	// Matrix rotation part should be orthogonal
+	void Transform(const Matrix3x3<T>& matrix);
+	void Transform(const Matrix4x4<T>& matrix);
+
 public:
 	Plane<T>	planes[FrustumFace_COUNT];
+	Vector3<T>	head;
 };
 
 #include "PyramidFrustum.inl"

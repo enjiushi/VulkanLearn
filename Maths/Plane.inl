@@ -1,6 +1,8 @@
 #pragma once
 #include "Plane.h"
 #include "Vector3.h"
+#include "Matrix3x3.h"
+#include "Matrix4x4.h"
 
 template<typename T>
 Plane<T>::Plane(const Vector3<T>& p0, const Vector3<T>& p1, const Vector3<T>& p2, const Vector3<T>& up)
@@ -37,4 +39,16 @@ template<typename T>
 T Plane<T>::PlaneTest(const Vector3<T>& p) const
 {
 	return normal * p - D;
+}
+
+template<typename T>
+void Plane<T>::Transform(const Matrix3x3<T>& matrix)
+{
+	normal = matrix * normal;
+}
+
+template<typename T>
+void Plane<T>::Transform(const Matrix4x4<T>& matrix)
+{
+	normal = matrix.TransformAsVector(normal);
 }
