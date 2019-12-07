@@ -126,15 +126,27 @@ void SceneGenerator::GenerateTriangles(uint32_t level, const VertexIndex& a, con
 	// Acquire vertices for this level
 	SubDivideTriangle(a.first, b.first, c.first, A.first, B.first, C.first);
 
-	// Store new vertices
-	vertices.push_back(A.first);
-	vertices.push_back(B.first);
-	vertices.push_back(C.first);
+	// I need to make a note on this
+
+	uint32_t startOffset = vertices.size();
+
+	// Add 3 new vertices
+	vertices.push_back({});
+	vertices.push_back({});
+	vertices.push_back({});
 
 	// Increase indices accordingly
-	A.second = vertices.size() - 3;
-	B.second = vertices.size() - 2;
-	C.second = vertices.size() - 1;
+	uint32_t modA = a.second % 3;
+	uint32_t modB = b.second % 3;
+	uint32_t modC = c.second % 3;
+
+	A.second = startOffset + modA;
+	B.second = startOffset + modB;
+	C.second = startOffset + modC;
+
+	vertices[A.second] = A.first;
+	vertices[B.second] = B.first;
+	vertices[C.second] = C.first;
 
 	// Recursively generate next level
 	GenerateTriangles(level - 1, a, C, B, vertices, indices);
