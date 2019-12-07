@@ -96,22 +96,16 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 void SceneGenerator::SubDivideTriangle(const Vector3f& a, const Vector3f& b, const Vector3f& c, Vector3f& A, Vector3f& B, Vector3f& C)
 {
 	A = c;
-	A -= b;
-	A *= 0.5f;
 	A += b;
-	A.Normalize();
+	A *= 0.5f;
 
 	B = c;
-	B -= a;
-	B *= 0.5f;
 	B += a;
-	B.Normalize();
+	B *= 0.5f;
 
 	C = b;
-	C -= a;
-	C *= 0.5f;
 	C += a;
-	C.Normalize();
+	C *= 0.5f;
 }
 
 void SceneGenerator::GenerateTriangles(uint32_t level, const VertexIndex& a, const VertexIndex& b, const VertexIndex& c, std::vector<Vector3f>& vertices, std::vector<uint32_t>& indices)
@@ -153,11 +147,12 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh(uint32_t level)
 	std::vector<Vector3f> vertices;
 	std::vector<uint32_t> indices;
 
+	// Triangle with barycentric coordinate
+	vertices.push_back({ 1, 0, 0 });
 	vertices.push_back({ 0, 1, 0 });
-	vertices.push_back({ -1, -1, 0 });
-	vertices.push_back({ 1, -1, 0 });
+	vertices.push_back({ 0, 0, 1 });
 
-	GenerateTriangles(level, { {0, 1, 0}, 0 }, { {-1, -1, 0}, 1 }, { {1, -1, 0}, 2 }, vertices, indices);
+	GenerateTriangles(level, { {1, 0, 0}, 0 }, { {0, 1, 0}, 1 }, { {0, 0, 1}, 2 }, vertices, indices);
 
 	std::shared_ptr<Mesh> pTriangleMesh = Mesh::Create
 	(

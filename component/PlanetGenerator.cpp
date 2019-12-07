@@ -147,7 +147,7 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 	m_utilityVector0.Normalize();
 	m_utilityVector1.Normalize();
 	
-	if (m_utilityVector1 * m_utilityVector0 > 0.3)
+	if (m_utilityVector1 * m_utilityVector0 > 0.4)
 		return;
 
 	float distA = (m_cameraPosLocal - a).Length();
@@ -161,8 +161,6 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 		pOutputTriangles->p = a;
 		pOutputTriangles->v0 = b;
 		pOutputTriangles->v1 = c;
-		pOutputTriangles->v0 -= a;
-		pOutputTriangles->v1 -= a;
 		pOutputTriangles++;
 		return;
 	}

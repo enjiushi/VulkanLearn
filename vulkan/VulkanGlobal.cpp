@@ -359,7 +359,7 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	m_pTriangleMesh = SceneGenerator::GenerateTriangleMesh();
+	m_pTriangleMesh = SceneGenerator::GenerateTriangleMesh(1);
 
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 

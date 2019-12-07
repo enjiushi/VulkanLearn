@@ -3,7 +3,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (location = 0) in vec3 inPos;
+layout (location = 0) in vec3 inBarycentricCoord;
 
 layout (location = 1) in vec3 inTrianglePos;
 layout (location = 2) in vec3 inTriangleEdgeV0;
@@ -29,20 +29,19 @@ void main()
 
 	perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
-	vec3 position;
-	if (gl_VertexIndex == 0)
+	vec3 position = inTrianglePos * inBarycentricCoord.x + inTriangleEdgeV0 * inBarycentricCoord.y + inTriangleEdgeV1 * inBarycentricCoord.z;
+
+	int vertexID = gl_VertexIndex % 3;
+	if (vertexID == 0)
 	{
-		position = inTrianglePos;
 		outDistToEdge = vec3(0, 0, 1);
 	}
-	else if (gl_VertexIndex == 1)
+	else if (vertexID == 1)
 	{
-		position = inTrianglePos + inTriangleEdgeV0;
 		outDistToEdge = vec3(1, 0, 0);
 	}
 	else
 	{
-		position = inTrianglePos + inTriangleEdgeV1;
 		outDistToEdge = vec3(0, 1, 0);
 	}
 

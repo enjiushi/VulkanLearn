@@ -136,6 +136,7 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
 	if (simpleMaterialInfo.vertexFormat)
 	{
+		// FIXME: this place needs a serious refactor
 		vertexBindingsInfo.push_back(GenerateReservedVBBindingDesc(simpleMaterialInfo.vertexFormatInMem));
 		vertexAttributesInfo = GenerateReservedVBAttribDesc(simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
 
