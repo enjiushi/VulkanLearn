@@ -32,7 +32,7 @@ bool Device::Init(const std::shared_ptr<Instance>& pInst, const std::shared_ptr<
 	deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	deviceCreateInfo.queueCreateInfoCount = 1;
 	deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
-	std::vector<const char*> extensions = { EXTENSION_VULKAN_SWAPCHAIN, EXTENSION_SHADER_DRAW_PARAMETERS };
+	std::vector<const char*> extensions = { EXTENSION_VULKAN_SWAPCHAIN, EXTENSION_SHADER_DRAW_PARAMETERS, EXTENSION_VULKAN_DRAW_INDIRECT_COUNT };
 	deviceCreateInfo.enabledExtensionCount = extensions.size();
 	deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
@@ -45,6 +45,8 @@ bool Device::Init(const std::shared_ptr<Instance>& pInst, const std::shared_ptr<
 	deviceCreateInfo.pEnabledFeatures = &enabledFeatures;
 
 	RETURN_FALSE_VK_RESULT(vkCreateDevice(m_pPhysicalDevice->GetDeviceHandle(), &deviceCreateInfo, nullptr, &m_device));
+
+	GET_DEVICE_PROC_ADDR(m_device, CmdDrawIndexedIndirectCountKHR);
 
 	return true;
 }
