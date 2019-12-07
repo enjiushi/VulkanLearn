@@ -93,22 +93,76 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 	StagingBufferMgr()->FlushDataMainThread();
 }
 
-std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh()
+void SceneGenerator::SubDivideTriangle(const Vector3f& a, const Vector3f& b, const Vector3f& c, Vector3f& A, Vector3f& B, Vector3f& C)
 {
-	float triangleVertices[] = {
-		-1.0, -1.0,  0.5,
-		1.0, -1.0,  0.5,
-		0.0,  1.0,  0.5,
-	};
+	A = c;
+	A -= b;
+	A *= 0.5f;
+	A += b;
+	A.Normalize();
 
-	uint32_t cubeIndices[] = {
-		0, 1, 2
-	};
+	B = c;
+	B -= a;
+	B *= 0.5f;
+	B += a;
+	B.Normalize();
+
+	C = b;
+	C -= a;
+	C *= 0.5f;
+	C += a;
+	C.Normalize();
+}
+
+void SceneGenerator::GenerateTriangles(uint32_t level, const VertexIndex& a, const VertexIndex& b, const VertexIndex& c, std::vector<Vector3f>& vertices, std::vector<uint32_t>& indices)
+{
+	// Start to construct indices at bottom level
+	if (level == 0)
+	{
+		indices.push_back(a.second);
+		indices.push_back(b.second);
+		indices.push_back(c.second);
+		return;
+	}
+
+	// New vertices for this level
+	VertexIndex A, B, C;
+
+	// Acquire vertices for this level
+	SubDivideTriangle(a.first, b.first, c.first, A.first, B.first, C.first);
+
+	// Store new vertices
+	vertices.push_back(A.first);
+	vertices.push_back(B.first);
+	vertices.push_back(C.first);
+
+	// Increase indices accordingly
+	A.second = c.second + 1;
+	B.second = c.second + 2;
+	C.second = c.second + 3;
+
+	// Recursively generate next level
+	GenerateTriangles(level - 1, a, C, B, vertices, indices);
+	GenerateTriangles(level - 1, C, b, A, vertices, indices);
+	GenerateTriangles(level - 1, B, A, c, vertices, indices);
+	GenerateTriangles(level - 1, A, B, C, vertices, indices);
+}
+
+std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh(uint32_t level)
+{
+	std::vector<Vector3f> vertices;
+	std::vector<uint32_t> indices;
+
+	vertices.push_back({ 0, 1, 0 });
+	vertices.push_back({ -1, -1, 0 });
+	vertices.push_back({ 1, -1, 0 });
+
+	GenerateTriangles(level, { {0, 1, 0}, 0 }, { {-1, -1, 0}, 1 }, { {1, -1, 0}, 2 }, vertices, indices);
 
 	std::shared_ptr<Mesh> pTriangleMesh = Mesh::Create
 	(
-		triangleVertices, 3, VertexFormatP,
-		cubeIndices, 3, VK_INDEX_TYPE_UINT32
+		vertices.data(), vertices.size(), VertexFormatP,
+		indices.data(), indices.size(), VK_INDEX_TYPE_UINT32
 	);
 
 	return pTriangleMesh;
