@@ -10,6 +10,7 @@
 #define EXTENSION_VULKAN_DEBUG_REPORT "VK_EXT_debug_report"
 #define EXTENSION_VULKAN_SWAPCHAIN "VK_KHR_swapchain"
 #define EXTENSION_SHADER_DRAW_PARAMETERS "VK_KHR_shader_draw_parameters"
+#define EXTENSION_VULKAN_DRAW_INDIRECT_COUNT "VK_KHR_draw_indirect_count"
 #define PROJECT_NAME "VulkanLearn"
 
 #define UINT64_MAX       0xffffffffffffffffui64
