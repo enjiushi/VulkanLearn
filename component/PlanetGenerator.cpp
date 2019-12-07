@@ -3,6 +3,7 @@
 #include "../Base/BaseObject.h"
 #include "../class/PlanetGeoDataManager.h"
 #include "../Maths/Plane.h"
+#include "../scene/SceneGenerator.h"
 #include "PhysicalCamera.h"
 
 DEFINITE_CLASS_RTTI(PlanetGenerator, BaseComponent);
@@ -165,23 +166,8 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 		return;
 	}
 
-	Vector3f A = c;
-	A -= b;
-	A *= 0.5f;
-	A += b;
-	A.Normalize();
-
-	Vector3f B = c;
-	B -= a;
-	B *= 0.5f;
-	B += a;
-	B.Normalize();
-
-	Vector3f C = b;
-	C -= a;
-	C *= 0.5f;
-	C += a;
-	C.Normalize();
+	Vector3f A, B, C;
+	SceneGenerator::GetInstance()->SubDivideTriangle(a, b, c, A, B, C);
 
 	SubDivide(currentLevel + 1, state, a, C, B, pOutputTriangles);
 	SubDivide(currentLevel + 1, state, C, b, A, pOutputTriangles);
