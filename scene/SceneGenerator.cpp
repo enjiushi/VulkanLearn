@@ -108,6 +108,7 @@ void SceneGenerator::SubDivideTriangle(const Vector3f& a, const Vector3f& b, con
 	C *= 0.5f;
 }
 
+// FIXME: This logic will generate one more triangle in vertices
 void SceneGenerator::GenerateTriangles(uint32_t level, const VertexIndex& a, const VertexIndex& b, const VertexIndex& c, std::vector<Vector3f>& vertices, std::vector<uint32_t>& indices)
 {
 	// Start to construct indices at bottom level
@@ -131,9 +132,9 @@ void SceneGenerator::GenerateTriangles(uint32_t level, const VertexIndex& a, con
 	vertices.push_back(C.first);
 
 	// Increase indices accordingly
-	A.second = c.second + 1;
-	B.second = c.second + 2;
-	C.second = c.second + 3;
+	A.second = vertices.size() - 3;
+	B.second = vertices.size() - 2;
+	C.second = vertices.size() - 1;
 
 	// Recursively generate next level
 	GenerateTriangles(level - 1, a, C, B, vertices, indices);
