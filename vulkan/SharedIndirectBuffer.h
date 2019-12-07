@@ -12,6 +12,7 @@ public:
 
 public:
 	void SetIndirectCmd(uint32_t index, const VkDrawIndexedIndirectCommand& cmd);
+	void SetIndirectCmdCount(uint32_t count);
 
 protected:
 	std::shared_ptr<BufferKey>	AcquireBuffer(uint32_t numBytes) override;

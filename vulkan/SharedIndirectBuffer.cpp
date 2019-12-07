@@ -11,8 +11,8 @@ bool SharedIndirectBuffer::Init(const std::shared_ptr<Device>& pDevice, const st
 	if (!SharedBuffer::Init(pDevice, pSelf, info))
 		return false;
 
-	m_accessStages = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-	m_accessFlags = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+	m_accessStages = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+	m_accessFlags = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
 	return true;
 }
 
@@ -32,4 +32,9 @@ std::shared_ptr<BufferKey>	SharedIndirectBuffer::AcquireBuffer(uint32_t numBytes
 void SharedIndirectBuffer::SetIndirectCmd(uint32_t index, const VkDrawIndexedIndirectCommand& cmd)
 {
 	UpdateByteStream(&cmd, index * sizeof(VkDrawIndexedIndirectCommand), sizeof(VkDrawIndexedIndirectCommand));
+}
+
+void SharedIndirectBuffer::SetIndirectCmdCount(uint32_t count)
+{
+	UpdateByteStream(&count, 0, sizeof(uint32_t));
 }
