@@ -912,6 +912,19 @@ void CommandBuffer::DrawIndexedIndirect(const std::shared_ptr<BufferBase>& pIndi
 	AddToReferenceTable(pIndirectBuffer);
 }
 
+void CommandBuffer::DrawIndexedIndirectCount(const std::shared_ptr<BufferBase>& pIndirectBuffer, uint32_t indirectOffset, const std::shared_ptr<BufferBase>& pIndirectCmdCountBuffer, uint32_t indirectCountOffset)
+{
+	(*GetDevice()->CmdDrawIndexedIndirectCountKHR())(GetDeviceHandle(), 
+		pIndirectBuffer->GetDeviceHandle(), 
+		pIndirectBuffer->GetBufferOffset() + indirectOffset * sizeof(VkDrawIndexedIndirectCommand), 
+		pIndirectCmdCountBuffer->GetDeviceHandle(),
+		pIndirectCmdCountBuffer->GetBufferOffset() + indirectCountOffset * sizeof(uint32_t),
+		MAX_INDIRECT_DRAW_COUNT,
+		sizeof(VkDrawIndexedIndirectCommand));
+	AddToReferenceTable(pIndirectBuffer);
+	AddToReferenceTable(pIndirectCmdCountBuffer);
+}
+
 void CommandBuffer::Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
 {
 	vkCmdDraw(GetDeviceHandle(), vertexCount, instanceCount, firstVertex, firstInstance);
