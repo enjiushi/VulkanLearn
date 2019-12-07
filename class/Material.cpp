@@ -256,7 +256,14 @@ bool Material::Init
 	if (includeIndirectBuffer)
 	{
 		for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+		{
 			m_indirectBuffers.push_back(SharedIndirectBuffer::Create(GetDevice(), sizeof(VkDrawIndirectCommand) * MAX_INDIRECT_COUNT));
+		}
+
+		for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+		{
+			m_indirectCmdCountBuffers.push_back(SharedIndirectBuffer::Create(GetDevice(), sizeof(uint32_t)));
+		}
 	}
 
 	m_vertexFormat = vertexFormat;
@@ -418,6 +425,8 @@ void Material::SyncBufferData()
 
 			drawID++;
 		}
+
+		m_indirectCmdCountBuffers[FrameMgr()->FrameIndex()]->SetIndirectCmdCount(m_cachedMeshRenderData.size());
 	}
 
 	for (auto & var : m_materialUniforms)
@@ -537,16 +546,13 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 	if (m_indirectBuffers.size() == 0)
 		return;
 
-	if (m_cachedMeshRenderData.size() == 0)
-		return;
-
 	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
 
 	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong, overrideVP);
 
-	pSecondaryCmd->DrawIndexedIndirect(m_indirectBuffers[FrameMgr()->FrameIndex()], 0, m_cachedMeshRenderData.size());
+	pSecondaryCmd->DrawIndexedIndirectCount(m_indirectBuffers[FrameMgr()->FrameIndex()], 0, m_indirectCmdCountBuffers[FrameMgr()->FrameIndex()], 0);
 
 	pSecondaryCmd->EndSecondaryRecording();
 
