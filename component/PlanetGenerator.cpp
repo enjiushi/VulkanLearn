@@ -158,9 +158,9 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 
 	if (m_distanceLUT[currentLevel] <= minDist || currentLevel == MAX_LEVEL)
 	{
-		pOutputTriangles->p = a;
-		pOutputTriangles->v0 = b;
-		pOutputTriangles->v1 = c;
+		pOutputTriangles->a = a;
+		pOutputTriangles->b = b;
+		pOutputTriangles->c = c;
 		pOutputTriangles++;
 		return;
 	}

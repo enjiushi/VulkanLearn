@@ -23,10 +23,10 @@ class PlanetGenerator : public BaseComponent
 
 	typedef struct _IcoTriangle
 	{
-		// A triangle consists of 3 vertices, p, p0 and p1
-		Vector3f	p;		// One vertex of a triangle
-		Vector3f	v0;		// Side vector v0 = p0 - p
-		Vector3f	v1;		// Side vector v1 = p1 - p
+		// A triangle consists of 3 vertices, a, b and c
+		Vector3f	a;
+		Vector3f	b;
+		Vector3f	c;
 	}IcoTriangle;
 
 public:

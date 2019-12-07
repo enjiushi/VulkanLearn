@@ -5,9 +5,9 @@
 
 layout (location = 0) in vec3 inBarycentricCoord;
 
-layout (location = 1) in vec3 inTrianglePos;
-layout (location = 2) in vec3 inTriangleEdgeV0;
-layout (location = 3) in vec3 inTriangleEdgeV1;
+layout (location = 1) in vec3 inTriangleVertexA;
+layout (location = 2) in vec3 inTriangleVertexB;
+layout (location = 3) in vec3 inTriangleVertexC;
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outNormal;
@@ -29,7 +29,7 @@ void main()
 
 	perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
-	vec3 position = inTrianglePos * inBarycentricCoord.x + inTriangleEdgeV0 * inBarycentricCoord.y + inTriangleEdgeV1 * inBarycentricCoord.z;
+	vec3 position = inTriangleVertexA * inBarycentricCoord.x + inTriangleVertexB * inBarycentricCoord.y + inTriangleVertexC * inBarycentricCoord.z;
 
 	int vertexID = gl_VertexIndex % 3;
 	if (vertexID == 0)
