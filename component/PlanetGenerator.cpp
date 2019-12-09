@@ -168,6 +168,9 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 
 	Vector3f A, B, C;
 	SceneGenerator::GetInstance()->SubDivideTriangle(a, b, c, A, B, C);
+	A.Normalize();
+	B.Normalize();
+	C.Normalize();
 
 	SubDivide(currentLevel + 1, state, a, C, B, pOutputTriangles);
 	SubDivide(currentLevel + 1, state, C, b, A, pOutputTriangles);
