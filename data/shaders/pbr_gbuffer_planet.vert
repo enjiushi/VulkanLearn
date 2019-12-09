@@ -19,7 +19,7 @@ layout (location = 6) out vec3 outWorldPos;
 layout (location = 7) out vec3 outEyePos;
 layout (location = 8) noperspective out vec2 outScreenPos;
 layout (location = 9) out vec3 outPrevWorldPos;
-layout (location = 10) out vec3 outDistToEdge;
+layout (location = 10) out vec4 outDistToEdge;
 
 #include "uniform_layout.sh"
 
@@ -34,16 +34,20 @@ void main()
 	int vertexID = gl_VertexIndex % 3;
 	if (vertexID == 0)
 	{
-		outDistToEdge = vec3(0, 0, 1);
+		outDistToEdge.xyz = vec3(0, 0, 1);
 	}
 	else if (vertexID == 1)
 	{
-		outDistToEdge = vec3(1, 0, 0);
+		outDistToEdge.xyz = vec3(1, 0, 0);
 	}
 	else
 	{
-		outDistToEdge = vec3(0, 1, 0);
+		outDistToEdge.xyz = vec3(0, 1, 0);
 	}
+
+	// w represents the edge of the patch rather than sub triangles
+	outDistToEdge.w = min(min(inBarycentricCoord.x, inBarycentricCoord.y), inBarycentricCoord.z);
+	outDistToEdge.w = 1.0f - step(0.01, outDistToEdge.w);
 
 	position = normalize(position);
 

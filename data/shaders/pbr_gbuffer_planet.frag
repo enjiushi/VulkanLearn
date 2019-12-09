@@ -13,7 +13,7 @@ layout (location = 6) in vec3 inWorldPos;
 layout (location = 7) in vec3 inEyePos;
 layout (location = 8) noperspective in vec2 inScreenPos;
 layout (location = 9) in vec3 inPrevWorldPos;
-layout (location = 10) in vec3 inDistToEdge;
+layout (location = 10) in vec4 inDistToEdge;
 
 layout (location = 0) out vec4 outGBuffer0;
 layout (location = 1) out vec4 outGBuffer1;
@@ -44,8 +44,8 @@ void main()
 	vec4 normal_ao = vec4(vec3(0), 1);
 	normal_ao.xyz = normalize(inNormal);
 
-	vec4 albedo_roughness = vec4(vec3(1), 0.2f);
-	vec3 edgeFactor = 1.0f - inDistToEdge;
+	vec4 albedo_roughness = vec4(mix(vec3(1), vec3(1, 0, 0), inDistToEdge.w), 0.2f);
+	vec3 edgeFactor = 1.0f - inDistToEdge.xyz;
 	edgeFactor = step(vec3(0.99f), edgeFactor);
 	float edge = max(max(edgeFactor.x, edgeFactor.y), edgeFactor.z);
 	metalic = mix(metalic, 0, edge);
