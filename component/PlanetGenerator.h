@@ -7,6 +7,7 @@
 class MeshRenderer;
 class PhysicalCamera;
 
+// The core idea of this class is based on brilliant https://github.com/Illation/PlanetRenderer
 class PlanetGenerator : public BaseComponent
 {
 	DECLARE_CLASS_RTTI(PlanetGenerator);
@@ -36,7 +37,7 @@ protected:
 	bool Init(const std::shared_ptr<PlanetGenerator>& pSelf, const std::shared_ptr<PhysicalCamera>& pCamera);
 
 protected:
-	CullState FrustumCull(const Vector3f& a, const Vector3f& b, const Vector3f& c);
+	CullState FrustumCull(const Vector3f& a, const Vector3f& b, const Vector3f& c, float height);
 	void SubDivide(uint32_t currentLevel, CullState state, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles);
 
 public:
@@ -51,6 +52,7 @@ private:
 	uint32_t		m_icosahedronIndices[20 * 3];
 
 	std::vector<float>				m_distanceLUT;
+	std::vector<float>				m_heightLUT;
 	std::shared_ptr<MeshRenderer>	m_pMeshRenderer;
 	std::shared_ptr<PhysicalCamera>	m_pCamera;
 

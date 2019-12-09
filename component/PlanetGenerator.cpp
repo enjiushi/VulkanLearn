@@ -82,12 +82,42 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 
 	memcpy_s(&m_icosahedronIndices, sizeof(m_icosahedronIndices), &indices, sizeof(indices));
 
+	// FIXME: Remove magic number
 	float size = (m_icosahedronVertices[m_icosahedronIndices[0]] - m_icosahedronVertices[m_icosahedronIndices[1]]).Length();
 	float frac = tanf(3.14159265f * 0.33333f * TRIANGLE_SCREEN_SIZE / 1440.0f);
 	for (uint32_t i = 0; i < MAX_LEVEL + 1; i++)
 	{
 		m_distanceLUT.push_back(size / frac);
 		size *= 0.5f;
+	}
+
+	Vector3f a = vertices[indices[0]];
+	Vector3f b = vertices[indices[1]];
+	Vector3f c = vertices[indices[2]];
+	Vector3f center = (a + b + c) / 3.0f;
+	center.Normalize();
+
+	float cosin_a_center = a * center;
+
+	// cosin_a_center = r / h, r = 1(local length)
+	float height_level_0 = 1 / cosin_a_center;
+	
+	m_heightLUT.push_back(height_level_0);
+	for (uint32_t i = 1; i < MAX_LEVEL + 1; i++)
+	{
+		// Next level vertices
+		Vector3f A = (b + c) * 0.5f;
+		Vector3f B = (a + c) * 0.5f;
+		Vector3f C = (a + b) * 0.5f;
+		A.Normalize();
+
+		float cosin_A_center = A * center;
+		float height = 1 / cosin_A_center;
+		m_heightLUT.push_back(height);
+
+		a = A;
+		b = B;
+		c = C;
 	}
 
 	return true;
@@ -99,7 +129,7 @@ void PlanetGenerator::Start()
 	//ASSERTION(m_pMeshRenderer != nullptr);
 }
 
-PlanetGenerator::CullState PlanetGenerator::FrustumCull(const Vector3f& a, const Vector3f& b, const Vector3f& c)
+PlanetGenerator::CullState PlanetGenerator::FrustumCull(const Vector3f& a, const Vector3f& b, const Vector3f& c, float height)
 {
 	CullState state = CullState::DIVIDE;
 	for (uint32_t i = 0; i < m_cameraFrustumLocal.FrustumFace_COUNT; i++)
@@ -110,9 +140,17 @@ PlanetGenerator::CullState PlanetGenerator::FrustumCull(const Vector3f& a, const
 		outsideCount += m_cameraFrustumLocal.planes[i].PlaneTest(c) > 0 ? 0 : 1;
 
 		if (outsideCount == 3)
-			return CullState::CULL;
+		{
+			outsideCount += m_cameraFrustumLocal.planes[i].PlaneTest(a * height) > 0 ? 0 : 1;
+			outsideCount += m_cameraFrustumLocal.planes[i].PlaneTest(b * height) > 0 ? 0 : 1;
+			outsideCount += m_cameraFrustumLocal.planes[i].PlaneTest(c * height) > 0 ? 0 : 1;
 
-		if (outsideCount > 0)
+			if (outsideCount == 6)
+				return CullState::CULL;
+			else
+				state = CullState::CULL_DIVIDE;
+		}
+		else if (outsideCount > 0)
 			state = CullState::CULL_DIVIDE;
 	}
 
@@ -125,7 +163,7 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 	if (state == CullState::CULL_DIVIDE)
 	{
 		// Frustum cull
-		state = FrustumCull(a, b, c);
+		state = FrustumCull(a, b, c, m_heightLUT[currentLevel]);
 
 		// Early quit if triangle is totally outside of the volumn
 		if (state == CullState::CULL)
