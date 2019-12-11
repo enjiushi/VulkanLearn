@@ -114,6 +114,8 @@ void PhysicalCamera::UpdateCameraProps()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainCameraHorizontalFOV(m_supplementProps.horizontalFOV_2 * 2.0f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainCameraVerticalFOV(m_supplementProps.verticalFOV_2 * 2.0f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainCameraApertureDiameter(m_supplementProps.apertureDiameter);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMainCameraHorizontalTangentFOV_2(m_supplementProps.tangentHorizontalFOV_2);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMainCameraVerticalTangentFOV_2(m_supplementProps.tangentVerticalFOV_2);
 
 	m_propDirty = false;
 }
@@ -180,8 +182,10 @@ void PhysicalCamera::UpdateCameraSupplementProps()
 {
 	m_supplementProps.filmHeight = m_props.filmWidth / m_props.aspect;
 	m_supplementProps.apertureDiameter = m_props.focalLength / m_props.fstop;
-	m_supplementProps.horizontalFOV_2 = std::atanf(m_props.filmWidth * 0.5f / m_props.focalLength);
-	m_supplementProps.verticalFOV_2 = std::atanf(m_props.filmWidth * 0.5f / (m_props.aspect * m_props.focalLength));
+	m_supplementProps.tangentHorizontalFOV_2 = m_props.filmWidth * 0.5f / m_props.focalLength;
+	m_supplementProps.tangentVerticalFOV_2 = m_props.filmWidth * 0.5f / (m_props.aspect * m_props.focalLength);
+	m_supplementProps.horizontalFOV_2 = std::atanf(m_supplementProps.tangentHorizontalFOV_2);
+	m_supplementProps.verticalFOV_2 = std::atanf(m_supplementProps.tangentVerticalFOV_2);
 	m_supplementProps.fixedNearPlaneHeight = m_supplementProps.fixedNearPlane * m_supplementProps.filmHeight / m_props.focalLength;	// 2 * n * tan(FOV_2)
 	m_supplementProps.fixedNearPlaneWidth = m_supplementProps.fixedNearPlaneHeight * m_props.aspect;
 

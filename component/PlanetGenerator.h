@@ -12,7 +12,7 @@ class PlanetGenerator : public BaseComponent
 {
 	DECLARE_CLASS_RTTI(PlanetGenerator);
 
-	static const uint32_t MAX_LEVEL = 8;
+	static const uint32_t MAX_LEVEL = 16;
 	static const uint32_t TRIANGLE_SCREEN_SIZE = 400;
 
 	enum class CullState

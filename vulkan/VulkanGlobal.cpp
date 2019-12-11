@@ -792,7 +792,9 @@ void VulkanGlobal::InitScene()
 	m_pPlanetRenderer = MeshRenderer::Create(m_pTriangleMesh, m_pPlanetMaterialInstance);
 
 	m_pPlanetObject = BaseObject::Create();
-	m_pPlanetObject->SetPos({2.5, 0, 0});
+	float planetSize = 256;
+	m_pPlanetObject->SetPos({ planetSize + 2.5f, 0, planetSize });
+	m_pPlanetObject->SetScale(planetSize);
 	m_pPlanetObject->AddComponent(m_pPlanetGenerator);
 	m_pPlanetObject->AddComponent(m_pPlanetRenderer);
 
@@ -850,6 +852,11 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMinDist(0.2f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMaxDist(0.8f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteAmplify(0.7f);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleCount(32);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleVectorLength(0.3f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOExtinctionStartingRadius(1.0f / FrameBufferDiction::WINDOW_WIDTH * 80);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOExtinctionEndingRadius(1.0f / FrameBufferDiction::WINDOW_WIDTH * 40);
 }
 
 class VariableChanger : public IInputListener

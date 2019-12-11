@@ -28,6 +28,8 @@ public:
 		float		filmHeight;
 		float		horizontalFOV_2;		// Half horizontal FOV in radius
 		float		verticalFOV_2;			// Half vertical FOV in radius
+		float		tangentHorizontalFOV_2;	// Tangent of half horizontal FOV
+		float		tangentVerticalFOV_2;	// Tangent of half vertical FOV
 		float		apertureDiameter;
 
 		float		fixedNearPlane = 0.01f;	// Near plane is fixed, focal length & film width decide only fov

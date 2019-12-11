@@ -22,8 +22,6 @@ layout(push_constant) uniform PushConsts {
 
 int index = int(perFrameData.camDir.a);
 
-float SSAO_RADIUS = 0.3f;
-
 float maxRegenCount = globalData.SSRSettings0.z;
 float surfaceMargin = globalData.SSRSettings0.w;
 float rayTraceStride = globalData.SSRSettings1.x;
@@ -170,28 +168,39 @@ void main()
 
 	mat3 TBN = mat3(tangent, bitangent, normal);
 
+	// Calculate camera space width of this particular depth of current pixel
+	float csWidth = globalData.MainCameraSettings3.x * abs(linearDepth) * 2;
+	float ssaoRaiusInScreenSapce = globalData.SSAOSettings.y / csWidth;
+
 	float occlusion = 0.0f;
 
-	for (int i = 0; i < 32; i++)
+	if (ssaoRaiusInScreenSapce > globalData.SSAOSettings.w)
 	{
-		vec3 sampleDir = TBN * globalData.SSAOSamples[i].xyz;
-		vec3 samplePos = position + sampleDir * SSAO_RADIUS;
+		float ssaoAvailableFactor = min(1.0f, (ssaoRaiusInScreenSapce - globalData.SSAOSettings.w) / (globalData.SSAOSettings.z - globalData.SSAOSettings.w));
 
-		vec4 clipSpaceSample = perFrameData.VP * vec4(samplePos, 1.0f);
-		clipSpaceSample = clipSpaceSample / clipSpaceSample.w;
-		clipSpaceSample.xy = clipSpaceSample.xy * 0.5f + 0.5f;
+		for (int i = 0; i < int(globalData.SSAOSettings.x); i++)
+		{
+			vec3 sampleDir = TBN * globalData.SSAOSamples[i].xyz;
+			vec3 samplePos = position + sampleDir * globalData.SSAOSettings.y;
 
-		float sampledDepth = clipSpaceSample.z;
-		float textureDepth = texture(DepthStencilBuffer[index], clipSpaceSample.xy).r;
+			vec4 clipSpaceSample = perFrameData.VP * vec4(samplePos, 1.0f);
+			clipSpaceSample = clipSpaceSample / clipSpaceSample.w;
+			clipSpaceSample.xy = clipSpaceSample.xy * 0.5f + 0.5f;
 
-		sampledDepth = ReconstructLinearDepth(sampledDepth);
-		textureDepth = ReconstructLinearDepth(textureDepth);
+			float sampledDepth = clipSpaceSample.z;
+			float textureDepth = texture(DepthStencilBuffer[index], clipSpaceSample.xy).r;
 
-		float rangeCheck = smoothstep(0.0f, 1.0f, SSAO_RADIUS / abs(textureDepth - sampledDepth));
-		occlusion += (sampledDepth < textureDepth ? 1.0f : 0.0f) * rangeCheck;    
+			sampledDepth = ReconstructLinearDepth(sampledDepth);
+			textureDepth = ReconstructLinearDepth(textureDepth);
+
+			float rangeCheck = smoothstep(0.0f, 1.0f, globalData.SSAOSettings.y / abs(textureDepth - sampledDepth));
+			occlusion += (sampledDepth < textureDepth ? 1.0f : 0.0f) * rangeCheck;    
+		}
+
+		occlusion /= globalData.SSAOSettings.x;
+
+		occlusion *= ssaoAvailableFactor;
 	}
-
-	occlusion /= 32.0f;
 
 	outSSAOFactor = vec4(vec3(occlusion), 1.0);
 
