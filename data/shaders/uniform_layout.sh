@@ -477,6 +477,9 @@ float AcquireShadowFactor(vec4 world_position, sampler2D ShadowMapDepthBuffer)
 	light_space_pos /= light_space_pos.w;
 	light_space_pos.xy = light_space_pos.xy * 0.5f + 0.5f;	// NOTE: Don't do this to z, as it's already within [0, 1] after vulkan ndc transform
 
+	if (min(light_space_pos.x, light_space_pos.y) < 0 || max(light_space_pos.x, light_space_pos.y) > 1)
+		return 1;
+
 	vec2 texelSize = 1.0f / textureSize(ShadowMapDepthBuffer, 0);
 	float shadowFactor = 0.0f;
 	float pcfDepth;
