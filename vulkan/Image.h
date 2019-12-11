@@ -37,7 +37,7 @@ public:
 	virtual std::shared_ptr<ImageView> CreateDefaultImageView() const;
 	virtual std::shared_ptr<Sampler> CreateLinearRepeatSampler() const;
 	virtual std::shared_ptr<Sampler> CreateNearestRepeatSampler() const;
-	virtual std::shared_ptr<Sampler> CreateLinearClampToEdgeSampler() const;
+	virtual std::shared_ptr<Sampler> CreateLinearClampToEdgeSampler(VkBorderColor borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE) const;
 
 	virtual void InsertTexture(const gli::texture2d& texture, uint32_t layer) {}
 
