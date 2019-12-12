@@ -81,6 +81,16 @@ typedef struct _GlobalVariables
 	Vector4f mainCameraSettings2;
 
 	/*******************************************************************
+	* DESCRIPTION: Camera parameters
+	*
+	* X: Tangent(horizontal_fov/2)
+	* Y: Tangent(vertical_fov/2)
+	* Z: Reserved
+	* W: Reserved
+	*/
+	Vector4f mainCameraSettings3;
+
+	/*******************************************************************
 	* DESCRIPTION: Parameters for tone mapping
 	*
 	* X: Gamma
@@ -180,6 +190,21 @@ typedef struct _GlobalVariables
 	*/
 	Vector4f	VignetteSettings;
 
+	/*******************************************************************
+	* DESCRIPTION: SSAO Settings
+	*
+	* X: Sample count
+	* Y: Sample vector length in meters
+	* Z: SSAO factor extinction starting radius.
+	* W: SSAO factor extinction ending radius
+	Note: If an object is extremly far away, the pixel that sample vector lands will be very near to current pixel,
+	      which doesn't really produce valid information as its reconstructed linear depth in camera space will be short of precision. 
+		  Z and W provide a radius in screen space ranging from 0 to 1, so that if SSAO sample always lands within it,
+		  it should start to fade or else lacking of precision will eventually create noise.
+		  If radius shorter even than ending radius, ssao factor will be completely ignored.
+	*/
+	Vector4f	SSAOSettings;
+
 	// SSAO settings
 	Vector4f	SSAOSamples[SSAO_SAMPLE_COUNT];
 }GlobalVariables;
@@ -217,6 +242,8 @@ public:
 	Vector4f GetMainCameraSettings1() const { return m_globalVariables.mainCameraSettings1; }
 	void SetMainCameraSettings2(const Vector4f& settings);
 	Vector4f GetMainCameraSettings2() const { return m_globalVariables.mainCameraSettings2; }
+	void SetMainCameraSettings3(const Vector4f& settings);
+	Vector4f GetMainCameraSettings3() const { return m_globalVariables.mainCameraSettings3; }
 	void SetMainCameraAspect(float aspect);
 	float GetMainCameraAspect() const { return m_globalVariables.mainCameraSettings0.x; }
 	void SetMainCameraFilmWidth(float filmWidth);
@@ -241,6 +268,10 @@ public:
 	float GetMainCameraVerticalFOV() const { return m_globalVariables.mainCameraSettings2.z; }
 	void SetMainCameraApertureDiameter(float apertureDiameter);
 	float GetMainCameraApertureDiameter() const { return m_globalVariables.mainCameraSettings2.w; }
+	void SetMainCameraHorizontalTangentFOV_2(float tangentHorizontalFOV_2);
+	float GetMainCameraHorizontalTangentFOV_2() const { return m_globalVariables.mainCameraSettings3.x; }
+	void SetMainCameraVerticalTangentFOV_2(float tangentVerticalFOV_2);
+	float GetMainCameraVerticalTangentFOV_2() const { return m_globalVariables.mainCameraSettings3.y; }
 
 	void SetRenderSettings(const Vector4f& setting);
 	Vector4f GetRenderSettings() const { return m_globalVariables.GEW; }
@@ -316,6 +347,15 @@ public:
 	float GetVignetteMaxDist() const { return m_globalVariables.VignetteSettings.y; }
 	void SetVignetteAmplify(float vignetteAmplify);
 	float GetVignetteAmplify() const { return m_globalVariables.VignetteSettings.z; }
+
+	void SetSSAOSampleCount(float sampleCount);
+	float GetSSAOSampleCount() const { return m_globalVariables.SSAOSettings.x; }
+	void SetSSAOSampleVectorLength(float sampleVectorLength);
+	float GetSSAOSampleVectorLength() const { return m_globalVariables.SSAOSettings.y; }
+	void SetSSAOExtinctionStartingRadius(float startingRadius);
+	float GetSSAOExtinctionStartingRadius() const { return m_globalVariables.SSAOSettings.z; }
+	void SetSSAOExtinctionEndingRadius(float endingRadius);
+	float GetSSAOExtinctionEndingRadius() const { return m_globalVariables.SSAOSettings.w; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

@@ -86,6 +86,10 @@ void MeshRenderer::OnRenderObject()
 	if (m_pMesh == nullptr)
 		return;
 
+	// Don't render anything
+	if (m_instanceCount == 0)
+		return;
+
 	if (m_pAnimationController != nullptr)
 		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, m_pAnimationController->GetBaseObject()->GetCachedWorldTransform());
 	else

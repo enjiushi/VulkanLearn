@@ -29,8 +29,6 @@ public:
 	Vector3& operator -= (const Vector3<T>& v);
 	Vector3& operator *= (const Vector3<T>& v);
 
-	//Vector3& operator *= (const Matrix4x4<T>& m);
-
 	bool operator == (const Vector3<T>& v) const;
 	bool operator != (const Vector3<T>& v) const;
 
@@ -45,6 +43,8 @@ public:
 
 	Vector3& Negativate();
 	const Vector3 Negative() const;
+
+	Vector3 Orthogonal() const;
 
 	static const Vector3 Forward() { return Vector3<T>(0.0, 0.0, 1.0); }
 	static const Vector3 Upward() { return Vector3<T>(0.0, 1.0, 0.0); }

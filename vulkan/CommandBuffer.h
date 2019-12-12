@@ -18,6 +18,9 @@ class IndirectBuffer;
 class CommandBuffer : public DeviceObjectBase<CommandBuffer>
 {
 public:
+	static const uint32_t MAX_INDIRECT_DRAW_COUNT = 256;
+
+public:
 	typedef struct _DrawCmdData
 	{
 		std::shared_ptr<RenderPass>					pRenderPass;
@@ -106,6 +109,7 @@ public:
 	void DrawIndexed(const std::shared_ptr<IndexBuffer>& pIndexBuffer);
 	void DrawIndexed(uint32_t count);
 	void DrawIndexedIndirect(const std::shared_ptr<BufferBase>& pIndirectBuffer, uint32_t offset, uint32_t count);
+	void DrawIndexedIndirectCount(const std::shared_ptr<BufferBase>& pIndirectBuffer, uint32_t indirectOffset, const std::shared_ptr<BufferBase>& pIndirectCmdCountBuffer, uint32_t indirectCountOffset);
 	void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
 
 	void NextSubpass();
@@ -131,7 +135,7 @@ protected:
 	void IssueBarriersBeforeCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const VkImageSubresourceLayers& srcLayers, const VkImageSubresourceLayers& dstLayers);
 	void IssueBarriersAfterCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const VkImageSubresourceLayers& srcLayers, const VkImageSubresourceLayers& dstLayers, VkPipelineStageFlags extraDstStages = 0);
 
-protected:
+private:
 	VkCommandBuffer									m_commandBuffer;
 	VkCommandBufferAllocateInfo						m_info;
 	bool											m_isValide;

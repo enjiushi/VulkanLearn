@@ -23,6 +23,7 @@ struct GlobalData
 	vec4 MainCameraSettings0;
 	vec4 MainCameraSettings1;
 	vec4 MainCameraSettings2;
+	vec4 MainCameraSettings3;
 
 	// Render Settings
 	vec4 GEW;			//Gamma, exposure, white scale
@@ -35,8 +36,7 @@ struct GlobalData
 	vec4 DOFSettings0;
 	vec4 MotionBlurSettings;
 	vec4 VignetteSettings;
-
-	// SSAO Settings
+	vec4 SSAOSettings;
 	vec4 SSAOSamples[64];
 };
 
@@ -305,11 +305,11 @@ vec3 ReconstructPosition(in ivec2 coord, in vec3 worldSpaceViewRay, in sampler2D
 vec3 ReconstructWSPosition(in ivec2 coord, in vec2 oneNearPosition, in sampler2D DepthBuffer, out float linearDepth)
 {
 	float window_z = texelFetch(DepthBuffer, coord, 0).r;
-	float csLinearDepth = ReconstructLinearDepth(window_z);
+	linearDepth = ReconstructLinearDepth(window_z);
 
 	// 1. Let interpolated position multiplied with camera space linear depth to reconstruct camera space position
 	// 2. Multiply with camera space coord system matrix, we have world space position reconstructed
-	vec4 wsPosition = perFrameData.viewCoordSystem * vec4(oneNearPosition * csLinearDepth, csLinearDepth, 1.0f);
+	vec4 wsPosition = perFrameData.viewCoordSystem * vec4(oneNearPosition * linearDepth, linearDepth, 1.0f);
 
 	return wsPosition.xyz;
 }
@@ -317,7 +317,7 @@ vec3 ReconstructWSPosition(in ivec2 coord, in vec2 oneNearPosition, in sampler2D
 vec3 ReconstructWSPosition(in ivec2 coord, in sampler2D DepthBuffer, out float linearDepth)
 {
 	float window_z = texelFetch(DepthBuffer, coord, 0).r;
-	float csLinearDepth = ReconstructLinearDepth(window_z);
+	linearDepth = ReconstructLinearDepth(window_z);
 
 	// Acquire half camera space size of near plane of view frustum, with ratio of near plane length 1
 	vec2 oneHalfSize = perFrameData.eyeSpaceSize.xy * 0.5f / -perFrameData.nearFarAB.x;
@@ -327,7 +327,7 @@ vec3 ReconstructWSPosition(in ivec2 coord, in sampler2D DepthBuffer, out float l
 	vec2 oneNearPosition = vec2(mix(-oneHalfSize.x, oneHalfSize.x, uv.x), mix(-oneHalfSize.y, oneHalfSize.y, (1.0f - uv.y)));
 	// 1. Let interpolated position multiplied with camera space linear depth to reconstruct camera space position
 	// 2. Multiply with camera space coord system matrix, we have world space position reconstructed
-	vec4 wsPosition = perFrameData.viewCoordSystem * vec4(oneNearPosition * csLinearDepth, csLinearDepth, 1.0f);
+	vec4 wsPosition = perFrameData.viewCoordSystem * vec4(oneNearPosition * linearDepth, linearDepth, 1.0f);
 
 	return wsPosition.xyz;
 }
@@ -476,6 +476,9 @@ float AcquireShadowFactor(vec4 world_position, sampler2D ShadowMapDepthBuffer)
 	vec4 light_space_pos = globalData.mainLightVP * world_position;
 	light_space_pos /= light_space_pos.w;
 	light_space_pos.xy = light_space_pos.xy * 0.5f + 0.5f;	// NOTE: Don't do this to z, as it's already within [0, 1] after vulkan ndc transform
+
+	if (min(light_space_pos.x, light_space_pos.y) < 0 || max(light_space_pos.x, light_space_pos.y) > 1)
+		return 1;
 
 	vec2 texelSize = 1.0f / textureSize(ShadowMapDepthBuffer, 0);
 	float shadowFactor = 0.0f;

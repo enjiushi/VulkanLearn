@@ -62,6 +62,10 @@ public:
 	Matrix3x3<T> RotationMatrix() const;
 	Vector3<T> TranslationVector() const;
 	T Determinant() const;
+
+	Vector3<T> TransformAsVector(const Vector3<T>& v) const;
+	Vector3<T> TransformAsPoint(const Vector3<T>& v) const;
+
 public:
 	union
 	{

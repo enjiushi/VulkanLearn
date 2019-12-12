@@ -150,6 +150,12 @@ void GlobalUniforms::SetMainCameraSettings2(const Vector4f& settings)
 	SetDirty();
 }
 
+void GlobalUniforms::SetMainCameraSettings3(const Vector4f& settings)
+{
+	m_globalVariables.mainCameraSettings3 = settings;
+	SetDirty();
+}
+
 void GlobalUniforms::SetMainCameraAspect(float aspect)
 {
 	m_globalVariables.mainCameraSettings0.x = aspect;
@@ -219,6 +225,18 @@ void GlobalUniforms::SetMainCameraVerticalFOV(float verticalFOV)
 void GlobalUniforms::SetMainCameraApertureDiameter(float apertureDiameter)
 {
 	m_globalVariables.mainCameraSettings2.w = apertureDiameter;
+	SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraHorizontalTangentFOV_2(float tangentHorizontalFOV_2)
+{
+	m_globalVariables.mainCameraSettings3.x = tangentHorizontalFOV_2;
+	SetDirty();
+}
+
+void GlobalUniforms::SetMainCameraVerticalTangentFOV_2(float tangentVerticalFOV_2)
+{
+	m_globalVariables.mainCameraSettings3.y = tangentVerticalFOV_2;
 	SetDirty();
 }
 
@@ -424,6 +442,30 @@ void GlobalUniforms::SetVignetteMaxDist(float maxDist)
 void GlobalUniforms::SetVignetteAmplify(float vignetteAmplify)
 {
 	m_globalVariables.VignetteSettings.z = vignetteAmplify;
+	SetDirty();
+}
+
+void GlobalUniforms::SetSSAOSampleCount(float sampleCount)
+{
+	m_globalVariables.SSAOSettings.x = sampleCount;
+	SetDirty();
+}
+
+void GlobalUniforms::SetSSAOSampleVectorLength(float sampleVectorLength)
+{
+	m_globalVariables.SSAOSettings.y = sampleVectorLength;
+	SetDirty();
+}
+
+void GlobalUniforms::SetSSAOExtinctionStartingRadius(float startingRadius)
+{
+	m_globalVariables.SSAOSettings.z = startingRadius;
+	SetDirty();
+}
+
+void GlobalUniforms::SetSSAOExtinctionEndingRadius(float endingRadius)
+{
+	m_globalVariables.SSAOSettings.w = endingRadius;
 	SetDirty();
 }
 

@@ -359,15 +359,13 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	m_pTriangleMesh = SceneGenerator::GenerateTriangleMesh();
+	m_pTriangleMesh = SceneGenerator::GenerateTriangleMesh(3);
 
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
 	m_pCubeMesh = SceneGenerator::GenerateBoxMesh();
 
 	m_pPBRBoxMesh = SceneGenerator::GeneratePBRBoxMesh();
-
-	m_pPBRIcosahedron = SceneGenerator::GenPBRIcosahedronMesh();
 }
 
 // Replace rgbTex's alpha channel with rTex's red channel
@@ -633,14 +631,6 @@ void VulkanGlobal::InitMaterials()
 	m_pBoxMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pBoxMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
-	m_pIcoMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRPlanetMaterialInstance();
-	m_pIcoMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
-	m_pIcoMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(0.0f, 1.0f, 1.0f, 0.1f));
-	m_pIcoMaterialInstance->SetParameter("AOMetalic", Vector2f(1.0f, 0.9f));
-	m_pIcoMaterialInstance->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
-	m_pIcoMaterialInstance->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
-	m_pIcoMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
-
 	m_pSophiaMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRSkinnedMaterialInstance();
 	m_pSophiaMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pSophiaMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
@@ -717,15 +707,13 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject0 = BaseObject::Create();
 	m_pBoxObject1 = BaseObject::Create();
 	m_pBoxObject2 = BaseObject::Create();
-	m_pIcoObject = BaseObject::Create();
 
 	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer0 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
-	m_pIcoRenderer = MeshRenderer::Create(m_pPBRIcosahedron, { m_pIcoMaterialInstance });
 
-	m_pPlanetGenerator = PlanetGenerator::Create();
+	m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp);
 
 	AssimpSceneReader::SceneInfo sceneInfo;
 
@@ -780,10 +768,6 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject2->AddComponent(m_pBoxRenderer2);
 	m_pBoxObject2->SetScale(0.15f);
 	m_pBoxObject2->SetPos(-0.2f, -0.25f, 0.5f);
-	
-	m_pIcoObject->AddComponent(m_pIcoRenderer);
-	m_pIcoObject->SetScale(0.4);
-	m_pIcoObject->SetPos(-1.9f, 0.0f, -1.0f);
 
 	Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
 	m_pQuadObject->SetRotation(Quaternionf(Vector3f(1, 0, 0), -1.57));
@@ -808,7 +792,8 @@ void VulkanGlobal::InitScene()
 	m_pPlanetRenderer = MeshRenderer::Create(m_pTriangleMesh, m_pPlanetMaterialInstance);
 
 	m_pPlanetObject = BaseObject::Create();
-	m_pPlanetObject->SetPos({2.5, 0, 0});
+	m_pPlanetObject->SetPos({ 10, 0, 8 });
+	m_pPlanetObject->SetScale(8);
 	m_pPlanetObject->AddComponent(m_pPlanetGenerator);
 	m_pPlanetObject->AddComponent(m_pPlanetRenderer);
 
@@ -823,8 +808,7 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pBoxObject0);
 	m_pRootObject->AddChild(m_pBoxObject1);
 	m_pRootObject->AddChild(m_pBoxObject2);
-	m_pRootObject->AddChild(m_pIcoObject);
-	//m_pRootObject->AddChild(m_pPlanetObject);
+	m_pRootObject->AddChild(m_pPlanetObject);
 	m_pRootObject->AddChild(m_pSophiaObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pDirLightObj);
@@ -867,6 +851,11 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMinDist(0.2f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMaxDist(0.8f);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteAmplify(0.7f);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleCount(32);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleVectorLength(0.3f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOExtinctionStartingRadius(1.0f / FrameBufferDiction::WINDOW_WIDTH * 80);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOExtinctionEndingRadius(1.0f / FrameBufferDiction::WINDOW_WIDTH * 40);
 }
 
 class VariableChanger : public IInputListener
@@ -876,6 +865,7 @@ public:
 	void ProcessMouse(KeyState keyState, const Vector2f& mousePosition) override {}
 	void ProcessMouse(const Vector2f& mousePosition) override {}
 	float var = 0.0;
+	bool boolVar = true;
 };
 
 void VariableChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
@@ -891,6 +881,10 @@ void VariableChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 	{
 		var -= varInterval;
 		var = var < 0 ? 0 : var;
+	}
+	if (keyCode == KEY_T && keyState == KEY_UP)
+	{
+		boolVar = !boolVar;
 	}
 }
 
@@ -932,13 +926,13 @@ void VulkanGlobal::Draw()
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
 	m_pCameraComp->SetFocalLength((1.0f - c->var) * 0.035f + c->var * 0.2f);
+	m_pPlanetGenerator->ToggleCameraInfoUpdate(c->boolVar);
 
 	m_pRootObject->Update();
 	m_pRootObject->OnAnimationUpdate();
 	m_pRootObject->LateUpdate();
-
+	m_pRootObject->UpdateCachedData();
 	m_pRootObject->OnPreRender();
-
 	m_pRootObject->OnRenderObject();
 
 	// Sync data for current frame before rendering

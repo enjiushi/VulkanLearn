@@ -7,7 +7,7 @@ bool PlanetGeoDataManager::Init()
 		return false;
 
 	// FIXME: Magic number
-	m_pBufferKey = PerFrameData::GetInstance()->AllocateBuffer(1024 * 1024);
+	m_pBufferKey = PerFrameData::GetInstance()->AllocateBuffer(4 * 1024 * 1024);
 
 	FrameEventManager::GetInstance()->Register(m_pInstance);
 

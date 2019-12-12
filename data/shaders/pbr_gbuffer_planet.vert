@@ -3,11 +3,11 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (location = 0) in vec3 inPos;
+layout (location = 0) in vec3 inBarycentricCoord;
 
-layout (location = 1) in vec3 inTrianglePos;
-layout (location = 2) in vec3 inTriangleEdgeV0;
-layout (location = 3) in vec3 inTriangleEdgeV1;
+layout (location = 1) in vec3 inTriangleVertexA;
+layout (location = 2) in vec3 inTriangleVertexB;
+layout (location = 3) in vec3 inTriangleVertexC;
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outNormal;
@@ -19,7 +19,7 @@ layout (location = 6) out vec3 outWorldPos;
 layout (location = 7) out vec3 outEyePos;
 layout (location = 8) noperspective out vec2 outScreenPos;
 layout (location = 9) out vec3 outPrevWorldPos;
-layout (location = 10) out vec3 outDistToEdge;
+layout (location = 10) out vec4 outDistToEdge;
 
 #include "uniform_layout.sh"
 
@@ -29,22 +29,25 @@ void main()
 
 	perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
-	vec3 position;
-	if (gl_VertexIndex == 0)
+	vec3 position = inTriangleVertexA * inBarycentricCoord.x + inTriangleVertexB * inBarycentricCoord.y + inTriangleVertexC * inBarycentricCoord.z;
+
+	int vertexID = gl_VertexIndex % 3;
+	if (vertexID == 0)
 	{
-		position = inTrianglePos;
-		outDistToEdge = vec3(0, 0, 1);
+		outDistToEdge.xyz = vec3(0, 0, 1);
 	}
-	else if (gl_VertexIndex == 1)
+	else if (vertexID == 1)
 	{
-		position = inTrianglePos + inTriangleEdgeV0;
-		outDistToEdge = vec3(1, 0, 0);
+		outDistToEdge.xyz = vec3(1, 0, 0);
 	}
 	else
 	{
-		position = inTrianglePos + inTriangleEdgeV1;
-		outDistToEdge = vec3(0, 1, 0);
+		outDistToEdge.xyz = vec3(0, 1, 0);
 	}
+
+	// w represents the edge of the patch rather than sub triangles
+	outDistToEdge.w = min(min(inBarycentricCoord.x, inBarycentricCoord.y), inBarycentricCoord.z);
+	outDistToEdge.w = 1.0f - step(0.01, outDistToEdge.w);
 
 	position = normalize(position);
 

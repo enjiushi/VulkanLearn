@@ -1,6 +1,7 @@
 #pragma once
 #include "../Base/BaseComponent.h"
 #include "../Maths/Matrix.h"
+#include "../Maths/PyramidFrustum.h"
 #include "../class/FrameBufferDiction.h"
 
 class PhysicalCamera : public BaseComponent
@@ -27,6 +28,8 @@ public:
 		float		filmHeight;
 		float		horizontalFOV_2;		// Half horizontal FOV in radius
 		float		verticalFOV_2;			// Half vertical FOV in radius
+		float		tangentHorizontalFOV_2;	// Tangent of half horizontal FOV
+		float		tangentVerticalFOV_2;	// Tangent of half vertical FOV
 		float		apertureDiameter;
 
 		float		fixedNearPlane = 0.01f;	// Near plane is fixed, focal length & film width decide only fov
@@ -53,6 +56,8 @@ public:
 	//const float GetFovH() const { return m_fovH; }
 
 	const Matrix4f GetVPMatrix() const { return m_vpMatrix; }
+	const Vector3f GetCameraDir() const;
+	PyramidFrustumf GetCameraFrustum() const { return m_frustum; }
 
 	static std::shared_ptr<PhysicalCamera> Create(const PhysicalCameraProps& props);
 
@@ -67,6 +72,8 @@ protected:
 protected:
 	PhysicalCameraProps				m_props;
 	PhysicalCameraSupplementProps	m_supplementProps;
+
+	PyramidFrustumf					m_frustum;
 
 	Matrix4f						m_vpMatrix;
 	bool							m_projDirty;

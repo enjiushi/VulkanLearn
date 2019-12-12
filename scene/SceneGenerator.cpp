@@ -93,22 +93,84 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 	StagingBufferMgr()->FlushDataMainThread();
 }
 
-std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh()
+void SceneGenerator::SubDivideTriangle(const Vector3f& a, const Vector3f& b, const Vector3f& c, Vector3f& A, Vector3f& B, Vector3f& C)
 {
-	float triangleVertices[] = {
-		-1.0, -1.0,  0.5,
-		1.0, -1.0,  0.5,
-		0.0,  1.0,  0.5,
-	};
+	A = c;
+	A += b;
+	A *= 0.5f;
 
-	uint32_t cubeIndices[] = {
-		0, 1, 2
-	};
+	B = c;
+	B += a;
+	B *= 0.5f;
+
+	C = b;
+	C += a;
+	C *= 0.5f;
+}
+
+// FIXME: This logic will generate one more triangle in vertices
+void SceneGenerator::GenerateTriangles(uint32_t level, const VertexIndex& a, const VertexIndex& b, const VertexIndex& c, std::vector<Vector3f>& vertices, std::vector<uint32_t>& indices)
+{
+	// Start to construct indices at bottom level
+	if (level == 0)
+	{
+		indices.push_back(a.second);
+		indices.push_back(b.second);
+		indices.push_back(c.second);
+		return;
+	}
+
+	// New vertices for this level
+	VertexIndex A, B, C;
+
+	// Acquire vertices for this level
+	SubDivideTriangle(a.first, b.first, c.first, A.first, B.first, C.first);
+
+	// I need to make a note on this
+
+	uint32_t startOffset = vertices.size();
+
+	// Add 3 new vertices
+	vertices.push_back({});
+	vertices.push_back({});
+	vertices.push_back({});
+
+	// Increase indices accordingly
+	uint32_t modA = a.second % 3;
+	uint32_t modB = b.second % 3;
+	uint32_t modC = c.second % 3;
+
+	A.second = startOffset + modA;
+	B.second = startOffset + modB;
+	C.second = startOffset + modC;
+
+	vertices[A.second] = A.first;
+	vertices[B.second] = B.first;
+	vertices[C.second] = C.first;
+
+	// Recursively generate next level
+	GenerateTriangles(level - 1, a, C, B, vertices, indices);
+	GenerateTriangles(level - 1, C, b, A, vertices, indices);
+	GenerateTriangles(level - 1, B, A, c, vertices, indices);
+	GenerateTriangles(level - 1, A, B, C, vertices, indices);
+}
+
+std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh(uint32_t level)
+{
+	std::vector<Vector3f> vertices;
+	std::vector<uint32_t> indices;
+
+	// Triangle with barycentric coordinate
+	vertices.push_back({ 1, 0, 0 });
+	vertices.push_back({ 0, 1, 0 });
+	vertices.push_back({ 0, 0, 1 });
+
+	GenerateTriangles(level, { {1, 0, 0}, 0 }, { {0, 1, 0}, 1 }, { {0, 0, 1}, 2 }, vertices, indices);
 
 	std::shared_ptr<Mesh> pTriangleMesh = Mesh::Create
 	(
-		triangleVertices, 3, VertexFormatP,
-		cubeIndices, 3, VK_INDEX_TYPE_UINT32
+		vertices.data(), vertices.size(), VertexFormatP,
+		indices.data(), indices.size(), VK_INDEX_TYPE_UINT32
 	);
 
 	return pTriangleMesh;

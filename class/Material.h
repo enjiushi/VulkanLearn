@@ -10,6 +10,8 @@
 #include "../Maths/Vector3.h"
 #include "PerMaterialIndirectUniforms.h"
 
+#include "../vulkan/Buffer.h"
+
 class PipelineLayout;
 class GraphicPipeline;
 class ComputePipeline;
@@ -220,6 +222,7 @@ protected:
 	std::vector<std::weak_ptr<MaterialInstance>>		m_generatedInstances;
 
 	std::vector<std::shared_ptr<SharedIndirectBuffer>>	m_indirectBuffers;
+	std::vector<std::shared_ptr<SharedIndirectBuffer>>	m_indirectCmdCountBuffers;
 	
 	uint32_t											m_vertexFormat;
 	uint32_t											m_vertexFormatInMem;

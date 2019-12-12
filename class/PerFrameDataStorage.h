@@ -44,6 +44,7 @@ protected:
 protected:
 	std::shared_ptr<BufferBase>	m_pBuffer;
 	StorageType					m_storageType;
+	std::vector<bool>			m_pendingSync;
 	uint32_t					m_pendingSyncCount;
 	uint32_t					m_frameOffset;
 };

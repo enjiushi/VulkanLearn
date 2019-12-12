@@ -212,7 +212,7 @@ std::shared_ptr<Sampler> Image::CreateNearestRepeatSampler() const
 	return Sampler::Create(GetDevice(), samplerCreateInfo);
 }
 
-std::shared_ptr<Sampler> Image::CreateLinearClampToEdgeSampler() const
+std::shared_ptr<Sampler> Image::CreateLinearClampToEdgeSampler(VkBorderColor borderColor) const
 {
 	VkSamplerCreateInfo samplerCreateInfo = {};
 	samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -236,7 +236,7 @@ std::shared_ptr<Sampler> Image::CreateLinearClampToEdgeSampler() const
 		samplerCreateInfo.maxAnisotropy = 1.0;
 		samplerCreateInfo.anisotropyEnable = VK_FALSE;
 	}
-	samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+	samplerCreateInfo.borderColor = borderColor;
 
 	return Sampler::Create(GetDevice(), samplerCreateInfo);
 }
