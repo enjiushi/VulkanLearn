@@ -3,7 +3,9 @@
 #include "../Base/BaseObject.h"
 #include "../class/PlanetGeoDataManager.h"
 #include "../Maths/Plane.h"
+#include "../Maths/MathUtil.h"
 #include "../scene/SceneGenerator.h"
+#include "../class/UniformData.h"
 #include "PhysicalCamera.h"
 
 DEFINITE_CLASS_RTTI(PlanetGenerator, BaseComponent);
@@ -82,15 +84,6 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 
 	memcpy_s(&m_icosahedronIndices, sizeof(m_icosahedronIndices), &indices, sizeof(indices));
 
-	// FIXME: Remove magic number
-	float size = (m_icosahedronVertices[m_icosahedronIndices[0]] - m_icosahedronVertices[m_icosahedronIndices[1]]).Length();
-	float frac = tanf(3.14159265f * 0.33333f * TRIANGLE_SCREEN_SIZE / 1440.0f);
-	for (uint32_t i = 0; i < MAX_LEVEL + 1; i++)
-	{
-		m_distanceLUT.push_back(size / frac);
-		size *= 0.5f;
-	}
-
 	Vector3f a = vertices[indices[0]];
 	Vector3f b = vertices[indices[1]];
 	Vector3f c = vertices[indices[2]];
@@ -126,6 +119,14 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 void PlanetGenerator::Start()
 {
 	m_pMeshRenderer = GetComponent<MeshRenderer>();
+
+	float size = (m_icosahedronVertices[m_icosahedronIndices[0]] - m_icosahedronVertices[m_icosahedronIndices[1]]).Length();
+	float frac = tanf(UniformData::GetInstance()->GetGlobalUniforms()->GetMainCameraHorizontalFOV() * TRIANGLE_SCREEN_SIZE / UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x);
+	for (uint32_t i = 0; i < MAX_LEVEL + 1; i++)
+	{
+		m_distanceLUT.push_back(size / frac);
+		size *= 0.5f;
+	}
 	//ASSERTION(m_pMeshRenderer != nullptr);
 }
 
