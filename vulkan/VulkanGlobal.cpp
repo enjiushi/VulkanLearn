@@ -792,9 +792,8 @@ void VulkanGlobal::InitScene()
 	m_pPlanetRenderer = MeshRenderer::Create(m_pTriangleMesh, m_pPlanetMaterialInstance);
 
 	m_pPlanetObject = BaseObject::Create();
-	float planetSize = 256;
-	m_pPlanetObject->SetPos({ planetSize + 2.5f, 0, planetSize });
-	m_pPlanetObject->SetScale(planetSize);
+	m_pPlanetObject->SetPos({ 10, 0, 8 });
+	m_pPlanetObject->SetScale(8);
 	m_pPlanetObject->AddComponent(m_pPlanetGenerator);
 	m_pPlanetObject->AddComponent(m_pPlanetRenderer);
 
