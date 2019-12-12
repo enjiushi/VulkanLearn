@@ -11,6 +11,9 @@ bool PhysicalCamera::Init(const PhysicalCameraProps& props, const std::shared_pt
 
 	SetCameraProps(props);
 
+	// Manually update camera properties to global uniform at init stage
+	UpdateCameraProps();
+
 	return true;
 }
 
