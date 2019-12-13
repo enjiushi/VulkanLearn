@@ -70,7 +70,7 @@ struct PerFrameData
 	mat4 prevVP;
 	vec4 camPos;
 	vec4 camDir;
-	vec4 eyeSpaceSize;
+	vec4 cameraSpaceSize;
 	vec4 nearFarAB;
 	vec2 cameraJitterOffset;
 	vec2 time;
@@ -320,7 +320,7 @@ vec3 ReconstructWSPosition(in ivec2 coord, in sampler2D DepthBuffer, out float l
 	linearDepth = ReconstructLinearDepth(window_z);
 
 	// Acquire half camera space size of near plane of view frustum, with ratio of near plane length 1
-	vec2 oneHalfSize = perFrameData.eyeSpaceSize.xy * 0.5f / -perFrameData.nearFarAB.x;
+	vec2 oneHalfSize = perFrameData.cameraSpaceSize.xy * 0.5f / -perFrameData.nearFarAB.x;
 	// Get uv
 	vec2 uv = coord / globalData.gameWindowSize.xy;
 	// Acquire interpolated position of that camera space size(ratio: near plane length 1)
