@@ -63,7 +63,7 @@ void GlobalTextures::InitScreenSizeTextureDiction()
 	m_screenSizeTextureDiction.textureArrayName = "RGBA16ScreenSizeTextureArray";
 	m_screenSizeTextureDiction.textureArrayDescription = "Mostly used to store intermedia data of current frames";
 
-	Vector2f size = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2f size = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().SinglePrecision();
 	uint32_t smaller = size.x < size.y ? size.x : size.y;
 	m_screenSizeTextureDiction.pTextureArray = Texture2DArray::CreateMipmapOffscreenTexture(GetDevice(), size.x, size.y, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
 	m_screenSizeTextureDiction.maxSlotIndex = 0;

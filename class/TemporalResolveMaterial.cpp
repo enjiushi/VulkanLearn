@@ -334,7 +334,7 @@ void TemporalResolveMaterial::AfterRenderPass(const std::shared_ptr<CommandBuffe
 	uint32_t index;
 	ASSERTION(UniformData::GetInstance()->GetGlobalTextures()->GetScreenSizeTextureIndex("MipmapTemporalResult", index) && pTextureArray != nullptr);
 
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().SinglePrecision();
 	VkImageBlit blit =
 	{
 		{

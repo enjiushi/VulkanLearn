@@ -95,7 +95,7 @@ void PhysicalCamera::UpdateProjMatrix()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraJitterOffset(m_jitterOffset.DoublePrecision());
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetEyeSpaceSize({ m_supplementProps.fixedNearPlaneWidth, m_supplementProps.fixedNearPlaneHeight });
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetNearFarAB({ m_supplementProps.fixedNearPlane, m_props.farPlane, A, B });
-	UniformData::GetInstance()->GetGlobalUniforms()->SetProjectionMatrix(proj);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetProjectionMatrix(proj.DoublePrecision());
 
 	m_projDirty = false;
 }

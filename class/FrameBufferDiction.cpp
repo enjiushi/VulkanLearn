@@ -115,7 +115,7 @@ std::shared_ptr<FrameBuffer> FrameBufferDiction::GetPingPongFrameBuffer(FrameBuf
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().SinglePrecision();
 
 	FrameBufferCombo frameBuffers;
 
@@ -138,7 +138,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffe
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionTileMaxFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize().SinglePrecision();
 
 	FrameBufferCombo frameBuffers;
 
@@ -153,7 +153,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionTileMaxFram
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionNeighborMaxFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize().SinglePrecision();
 
 	FrameBufferCombo frameBuffers;
 
@@ -168,7 +168,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionNeighborMax
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadowMapFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize().SinglePrecision();
 
 	FrameBufferCombo frameBuffers;
 
@@ -184,7 +184,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadowMapFrameBuf
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOSSRFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize().SinglePrecision();
 
 	FrameBufferCombo frameBuffers;
 
@@ -200,7 +200,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOSSRFrameBuffe
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferV(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize().SinglePrecision();
 
 	FrameBufferCombo frameBuffers;
 
@@ -216,7 +216,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBuff
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferH(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize().SinglePrecision();
 
 	FrameBufferCombo frameBuffers;
 
@@ -233,7 +233,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBuff
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().SinglePrecision();
 
 	FrameBufferCombo frameBuffers;
 
@@ -251,7 +251,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffe
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().SinglePrecision();
 
 	std::vector<std::shared_ptr<Image>> temporalShadingResult =
 	{
@@ -295,7 +295,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFr
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateDOFFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().SinglePrecision();
 
 	uint32_t div = (layer == CombineLayer ? 1 : 2);
 	Vector2f layerSize = { windowSize.x / div, windowSize.y / div };
@@ -317,7 +317,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateDOFFrameBuffer(ui
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().SinglePrecision();
 
 #if defined(_DEBUG)
 	uint32_t min = std::fminf(windowSize.x, windowSize.y);
@@ -341,7 +341,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBuffer(
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateCombineResultFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().SinglePrecision();
 
 	FrameBufferCombo frameBuffers;
 

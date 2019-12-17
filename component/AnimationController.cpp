@@ -126,12 +126,12 @@ void AnimationController::InitBoneObjects(std::weak_ptr<BaseObject> pRootObject)
 		return;
 
 	std::shared_ptr<BaseObject> pSharedRootObject = pRootObject.lock();
-	DualQuaternionf boneOffsetDQ;
+	DualQuaterniond boneOffsetDQ;
 	uint32_t boneIndex;
 	// Check if current object is a bone
 	if (UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneInfo(m_pAnimationInstance->GetMesh()->GetMeshBoneChunkIndexOffset(), pSharedRootObject->GetNameHashCode(), boneIndex, boneOffsetDQ))
 	{
-		std::shared_ptr<BoneObject> pBoneObject = BoneObject::Create(std::dynamic_pointer_cast<AnimationController>(GetSelfSharedPtr()), boneIndex, boneOffsetDQ);
+		std::shared_ptr<BoneObject> pBoneObject = BoneObject::Create(std::dynamic_pointer_cast<AnimationController>(GetSelfSharedPtr()), boneIndex, boneOffsetDQ.SinglePrecision());
 		pSharedRootObject->AddComponent(pBoneObject);
 	}
 

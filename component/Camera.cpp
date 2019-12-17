@@ -82,7 +82,7 @@ void Camera::UpdateProjMatrix()
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetEyeSpaceSize({ width, height });
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetNearFarAB({ m_cameraInfo.near, m_cameraInfo.far, A, B });
-	UniformData::GetInstance()->GetGlobalUniforms()->SetProjectionMatrix(proj);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetProjectionMatrix(proj.DoublePrecision());
 
 	m_projDirty = false;
 }

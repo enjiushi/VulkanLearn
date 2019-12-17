@@ -15,19 +15,22 @@ class SkeletonAnimationInstance;
 
 const static uint32_t SSAO_SAMPLE_COUNT = 64;
 
-typedef struct _GlobalVariables
+template<typename T>
+class GlobalVariables
 {
+public:
+
 	// Camera settings
-	Matrix4f	projectionMatrix;
-	Matrix4f	prevProjectionMatrix;
+	Matrix4x4<T>	projectionMatrix;
+	Matrix4x4<T>	prevProjectionMatrix;
 
 	// Windows settings
-	Vector4f	gameWindowSize;
-	Vector4f	envGenWindowSize;
-	Vector4f	shadowGenWindowSize;
-	Vector4f	SSAOSSRWindowSize;
-	Vector4f	bloomWindowSize;
-	Vector4f	motionTileWindowSize;	// xy: tile size, zw: window size
+	Vector4<T>		gameWindowSize;
+	Vector4<T>		envGenWindowSize;
+	Vector4<T>		shadowGenWindowSize;
+	Vector4<T>		SSAOSSRWindowSize;
+	Vector4<T>		bloomWindowSize;
+	Vector4<T>		motionTileWindowSize;	// xy: tile size, zw: window size
 
 	/*******************************************************************
 	* DESCRIPTION: Main directional light direction
@@ -35,7 +38,7 @@ typedef struct _GlobalVariables
 	* XYZ: main light direction
 	* W: Reserved
 	*/
-	Vector4f	mainLightDir;
+	Vector4<T>		mainLightDir;
 
 	/*******************************************************************
 	* DESCRIPTION: Main directional light rgb
@@ -43,12 +46,12 @@ typedef struct _GlobalVariables
 	* XYZ: main light color
 	* W: Reserved
 	*/
-	Vector4f	mainLightColor;
+	Vector4<T>		mainLightColor;
 
 	/*******************************************************************
 	* DESCRIPTION: Main directional light vpn matrix
 	*/
-	Matrix4f	mainLightVP;
+	Matrix4x4<T>	mainLightVP;
 
 	/*******************************************************************
 	* DESCRIPTION: Camera parameters
@@ -58,7 +61,7 @@ typedef struct _GlobalVariables
 	* Z: Film height in meters
 	* W: Focal length in meters
 	*/
-	Vector4f mainCameraSettings0;
+	Vector4<T>	mainCameraSettings0;
 
 	/*******************************************************************
 	* DESCRIPTION: Camera parameters
@@ -68,7 +71,7 @@ typedef struct _GlobalVariables
 	* Z: Shutter speed in seconds
 	* W: IOS
 	*/
-	Vector4f mainCameraSettings1;
+	Vector4<T>	mainCameraSettings1;
 
 	/*******************************************************************
 	* DESCRIPTION: Camera parameters
@@ -78,7 +81,7 @@ typedef struct _GlobalVariables
 	* Z: Vertical FOV in radius
 	* W: Aperture diameter in meters
 	*/
-	Vector4f mainCameraSettings2;
+	Vector4<T>	mainCameraSettings2;
 
 	/*******************************************************************
 	* DESCRIPTION: Camera parameters
@@ -88,7 +91,7 @@ typedef struct _GlobalVariables
 	* Z: Reserved
 	* W: Reserved
 	*/
-	Vector4f mainCameraSettings3;
+	Vector4<T>	mainCameraSettings3;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for tone mapping
@@ -98,7 +101,7 @@ typedef struct _GlobalVariables
 	* Z: White scale
 	* W: Reserved
 	*/
-	Vector4f	GEW;
+	Vector4<T>	GEW;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for stochastic screen space reflection
@@ -108,7 +111,7 @@ typedef struct _GlobalVariables
 	* Z: Sample normal max regen count
 	* W: How near reflected vector to surface tangent that normal has to be resampled
 	*/
-	Vector4f	SSRSettings0;
+	Vector4<T>	SSRSettings0;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for stochastic screen space reflection
@@ -118,7 +121,7 @@ typedef struct _GlobalVariables
 	* Z: Max count of ray trace steps
 	* W: Thickness of a surface that you can consider it a hit
 	*/
-	Vector4f	SSRSettings1;
+	Vector4<T>	SSRSettings1;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for stochastic screen space reflection
@@ -128,7 +131,7 @@ typedef struct _GlobalVariables
 	* Z: Screen sized mipmap level count
 	* W: Reserved
 	*/
-	Vector4f	SSRSettings2;
+	Vector4<T>	SSRSettings2;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for temporal filter
@@ -138,7 +141,7 @@ typedef struct _GlobalVariables
 	* Z: The portion of high response SSR in a moving region, to slightly reduce ssr noise
 	* W: Reserved
 	*/
-	Vector4f    TemporalSettings0;
+	Vector4<T>  TemporalSettings0;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for bloom
@@ -148,7 +151,7 @@ typedef struct _GlobalVariables
 	* Z: Upsample scale
 	* W: Reserved
 	*/
-	Vector4f    BloomSettings0;
+	Vector4<T>  BloomSettings0;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for bloom
@@ -158,7 +161,7 @@ typedef struct _GlobalVariables
 	* Z: Reserved
 	* W: Reserved
 	*/
-	Vector4f    BloomSettings1;
+	Vector4<T>  BloomSettings1;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for bloom
@@ -168,7 +171,7 @@ typedef struct _GlobalVariables
 	* Z: COC coefficient: f^2 / (N * (S1 - f) * film_width * 2), divide by 2 means from diameter to radius, divide by film width obtains coc size in texture coordinate(0, 1)
 	* W: Reserved
 	*/
-	Vector4f	DOFSettings0;
+	Vector4<T>	DOFSettings0;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for motion blur
@@ -178,7 +181,7 @@ typedef struct _GlobalVariables
 	* Z: Reserved
 	* W: Reserved
 	*/
-	Vector4f	MotionBlurSettings;
+	Vector4<T>	MotionBlurSettings;
 
 	/*******************************************************************
 	* DESCRIPTION: Parameters for vignette
@@ -188,7 +191,7 @@ typedef struct _GlobalVariables
 	* Z: Vignette amplify factor
 	* W: Reserved
 	*/
-	Vector4f	VignetteSettings;
+	Vector4<T>	VignetteSettings;
 
 	/*******************************************************************
 	* DESCRIPTION: SSAO Settings
@@ -203,159 +206,162 @@ typedef struct _GlobalVariables
 		  it should start to fade or else lacking of precision will eventually create noise.
 		  If radius shorter even than ending radius, ssao factor will be completely ignored.
 	*/
-	Vector4f	SSAOSettings;
+	Vector4<T>	SSAOSettings;
 
 	// SSAO settings
-	Vector4f	SSAOSamples[SSAO_SAMPLE_COUNT];
-}GlobalVariables;
+	Vector4<T>	SSAOSamples[SSAO_SAMPLE_COUNT];
+};
+
+typedef GlobalVariables<float> GlobalVariablesf;
+typedef GlobalVariables<double> GlobalVariablesd;
 
 class GlobalUniforms : public UniformDataStorage
 {
 public:
-	void SetProjectionMatrix(const Matrix4f& proj);
-	Matrix4f GetProjectionMatrix() const { return m_globalVariables.projectionMatrix; }
+	void SetProjectionMatrix(const Matrix4d& proj);
+	Matrix4d GetProjectionMatrix() const { return m_globalVariables.projectionMatrix; }
 
-	void SetGameWindowSize(const Vector2f& size);
-	Vector2f GetGameWindowSize() const { return { m_globalVariables.gameWindowSize.x, m_globalVariables.gameWindowSize.y }; }
-	void SetEnvGenWindowSize(const Vector2f& size);
-	Vector2f GetEnvGenWindowSize() const { return { m_globalVariables.envGenWindowSize.x, m_globalVariables.envGenWindowSize.y }; }
-	void SetShadowGenWindowSize(const Vector2f& size);
-	Vector2f GetShadowGenWindowSize() const { return { m_globalVariables.shadowGenWindowSize.x, m_globalVariables.shadowGenWindowSize.y }; }
-	void SetSSAOSSRWindowSize(const Vector2f& size);
-	Vector2f GetSSAOSSRWindowSize() const { return { m_globalVariables.SSAOSSRWindowSize.x, m_globalVariables.SSAOSSRWindowSize.y }; }
-	void SetBloomWindowSize(const Vector2f& size);
-	Vector2f GetBloomWindowSize() const { return { m_globalVariables.bloomWindowSize.x, m_globalVariables.bloomWindowSize.y }; }
-	void SetMotionTileSize(const Vector2f& size);
-	Vector2f GetMotionTileSize() const { return { m_globalVariables.motionTileWindowSize.x, m_globalVariables.motionTileWindowSize.y }; }
-	Vector2f GetMotionTileWindowSize() const { return { m_globalVariables.motionTileWindowSize.z, m_globalVariables.motionTileWindowSize.w }; }
+	void SetGameWindowSize(const Vector2d& size);
+	Vector2d GetGameWindowSize() const { return { m_globalVariables.gameWindowSize.x, m_globalVariables.gameWindowSize.y }; }
+	void SetEnvGenWindowSize(const Vector2d& size);
+	Vector2d GetEnvGenWindowSize() const { return { m_globalVariables.envGenWindowSize.x, m_globalVariables.envGenWindowSize.y }; }
+	void SetShadowGenWindowSize(const Vector2d& size);
+	Vector2d GetShadowGenWindowSize() const { return { m_globalVariables.shadowGenWindowSize.x, m_globalVariables.shadowGenWindowSize.y }; }
+	void SetSSAOSSRWindowSize(const Vector2d& size);
+	Vector2d GetSSAOSSRWindowSize() const { return { m_globalVariables.SSAOSSRWindowSize.x, m_globalVariables.SSAOSSRWindowSize.y }; }
+	void SetBloomWindowSize(const Vector2d& size);
+	Vector2d GetBloomWindowSize() const { return { m_globalVariables.bloomWindowSize.x, m_globalVariables.bloomWindowSize.y }; }
+	void SetMotionTileSize(const Vector2d& size);
+	Vector2d GetMotionTileSize() const { return { m_globalVariables.motionTileWindowSize.x, m_globalVariables.motionTileWindowSize.y }; }
+	Vector2d GetMotionTileWindowSize() const { return { m_globalVariables.motionTileWindowSize.z, m_globalVariables.motionTileWindowSize.w }; }
 
-	void SetMainLightDir(const Vector3f& dir);
-	Vector4f GetMainLightDir() const { return m_globalVariables.mainLightDir; }
-	void SetMainLightColor(const Vector3f& color);
-	Vector4f GetMainLightColor() const { return m_globalVariables.mainLightColor; }
-	void SetMainLightVP(const Matrix4f& vp);
-	Matrix4f GetmainLightVP() const { return m_globalVariables.mainLightVP; }
+	void SetMainLightDir(const Vector3d& dir);
+	Vector4d GetMainLightDir() const { return m_globalVariables.mainLightDir; }
+	void SetMainLightColor(const Vector3d& color);
+	Vector4d GetMainLightColor() const { return m_globalVariables.mainLightColor; }
+	void SetMainLightVP(const Matrix4d& vp);
+	Matrix4d GetmainLightVP() const { return m_globalVariables.mainLightVP; }
 
-	void SetMainCameraSettings0(const Vector4f& settings);
-	Vector4f GetMainCameraSettings0() const { return m_globalVariables.mainCameraSettings0; }
-	void SetMainCameraSettings1(const Vector4f& settings);
-	Vector4f GetMainCameraSettings1() const { return m_globalVariables.mainCameraSettings1; }
-	void SetMainCameraSettings2(const Vector4f& settings);
-	Vector4f GetMainCameraSettings2() const { return m_globalVariables.mainCameraSettings2; }
-	void SetMainCameraSettings3(const Vector4f& settings);
-	Vector4f GetMainCameraSettings3() const { return m_globalVariables.mainCameraSettings3; }
-	void SetMainCameraAspect(float aspect);
-	float GetMainCameraAspect() const { return m_globalVariables.mainCameraSettings0.x; }
-	void SetMainCameraFilmWidth(float filmWidth);
-	float GetMainCameraFilmWidth() const { return m_globalVariables.mainCameraSettings0.y; }
-	void SetMainCameraFilmHeight(float filmHeight);
-	float GetMainCameraFilmHeight() const { return m_globalVariables.mainCameraSettings0.z; }
-	void SetMainCameraFocalLength(float focalLength);
-	float GetMainCameraFocalLength() const { return m_globalVariables.mainCameraSettings0.w; }
-	void SetMainCameraFocusDistance(float focusDistance);
-	float GetMainCameraFocusDistance() const { return m_globalVariables.mainCameraSettings1.x; }
-	void SetMainCameraFStop(float fstop);
-	float GetMainCameraFStop() const { return m_globalVariables.mainCameraSettings1.y; }
-	void SetMainCameraShutterSpeed(float shutterSpeed);
-	float GetMainCameraShutterSpeed() const { return m_globalVariables.mainCameraSettings1.z; }
-	void SetMainCameraISO(float ISO);
-	float GetMainCameraISO() const { return m_globalVariables.mainCameraSettings1.w; }
-	void SetMainCameraFarPlane(float farPlane);
-	float GetMainCameraFarPlane() const { return m_globalVariables.mainCameraSettings2.x; }
-	void SetMainCameraHorizontalFOV(float horizontalFOV);
-	float GetMainCameraHorizontalFOV() const { return m_globalVariables.mainCameraSettings2.y; }
-	void SetMainCameraVerticalFOV(float verticalFOV);
-	float GetMainCameraVerticalFOV() const { return m_globalVariables.mainCameraSettings2.z; }
-	void SetMainCameraApertureDiameter(float apertureDiameter);
-	float GetMainCameraApertureDiameter() const { return m_globalVariables.mainCameraSettings2.w; }
-	void SetMainCameraHorizontalTangentFOV_2(float tangentHorizontalFOV_2);
-	float GetMainCameraHorizontalTangentFOV_2() const { return m_globalVariables.mainCameraSettings3.x; }
-	void SetMainCameraVerticalTangentFOV_2(float tangentVerticalFOV_2);
-	float GetMainCameraVerticalTangentFOV_2() const { return m_globalVariables.mainCameraSettings3.y; }
+	void SetMainCameraSettings0(const Vector4d& settings);
+	Vector4d GetMainCameraSettings0() const { return m_globalVariables.mainCameraSettings0; }
+	void SetMainCameraSettings1(const Vector4d& settings);
+	Vector4d GetMainCameraSettings1() const { return m_globalVariables.mainCameraSettings1; }
+	void SetMainCameraSettings2(const Vector4d& settings);
+	Vector4d GetMainCameraSettings2() const { return m_globalVariables.mainCameraSettings2; }
+	void SetMainCameraSettings3(const Vector4d& settings);
+	Vector4d GetMainCameraSettings3() const { return m_globalVariables.mainCameraSettings3; }
+	void SetMainCameraAspect(double aspect);
+	double GetMainCameraAspect() const { return m_globalVariables.mainCameraSettings0.x; }
+	void SetMainCameraFilmWidth(double filmWidth);
+	double GetMainCameraFilmWidth() const { return m_globalVariables.mainCameraSettings0.y; }
+	void SetMainCameraFilmHeight(double filmHeight);
+	double GetMainCameraFilmHeight() const { return m_globalVariables.mainCameraSettings0.z; }
+	void SetMainCameraFocalLength(double focalLength);
+	double GetMainCameraFocalLength() const { return m_globalVariables.mainCameraSettings0.w; }
+	void SetMainCameraFocusDistance(double focusDistance);
+	double GetMainCameraFocusDistance() const { return m_globalVariables.mainCameraSettings1.x; }
+	void SetMainCameraFStop(double fstop);
+	double GetMainCameraFStop() const { return m_globalVariables.mainCameraSettings1.y; }
+	void SetMainCameraShutterSpeed(double shutterSpeed);
+	double GetMainCameraShutterSpeed() const { return m_globalVariables.mainCameraSettings1.z; }
+	void SetMainCameraISO(double ISO);
+	double GetMainCameraISO() const { return m_globalVariables.mainCameraSettings1.w; }
+	void SetMainCameraFarPlane(double farPlane);
+	double GetMainCameraFarPlane() const { return m_globalVariables.mainCameraSettings2.x; }
+	void SetMainCameraHorizontalFOV(double horizontalFOV);
+	double GetMainCameraHorizontalFOV() const { return m_globalVariables.mainCameraSettings2.y; }
+	void SetMainCameraVerticalFOV(double verticalFOV);
+	double GetMainCameraVerticalFOV() const { return m_globalVariables.mainCameraSettings2.z; }
+	void SetMainCameraApertureDiameter(double apertureDiameter);
+	double GetMainCameraApertureDiameter() const { return m_globalVariables.mainCameraSettings2.w; }
+	void SetMainCameraHorizontalTangentFOV_2(double tangentHorizontalFOV_2);
+	double GetMainCameraHorizontalTangentFOV_2() const { return m_globalVariables.mainCameraSettings3.x; }
+	void SetMainCameraVerticalTangentFOV_2(double tangentVerticalFOV_2);
+	double GetMainCameraVerticalTangentFOV_2() const { return m_globalVariables.mainCameraSettings3.y; }
 
-	void SetRenderSettings(const Vector4f& setting);
-	Vector4f GetRenderSettings() const { return m_globalVariables.GEW; }
+	void SetRenderSettings(const Vector4d& setting);
+	Vector4d GetRenderSettings() const { return m_globalVariables.GEW; }
 
-	void SetSSRSettings0(const Vector4f& setting);
-	Vector4f GetSSRSettings0() const { return m_globalVariables.SSRSettings0; }
-	void SetSSRSettings1(const Vector4f& setting);
-	Vector4f GetSSRSettings1() const { return m_globalVariables.SSRSettings1; }
-	void SetSSRSettings2(const Vector4f& setting);
-	Vector4f GetSSRSettings2() const { return m_globalVariables.SSRSettings2; }
-	void SetBRDFBias(float BRDFBias);
-	float GetBRDFBias() const { return m_globalVariables.SSRSettings0.x; }
-	void SetSSRMip(float SSRMip);
-	float GetSSRMip() const { return m_globalVariables.SSRSettings0.y; }
-	void SetSampleNormalRegenCount(float count);
-	float GetSampleNormalRegenCount() const { return m_globalVariables.SSRSettings0.z; }
-	void SetSampleNormalRegenMargin(float margin);
-	float GetSampleNormalRegenMargin() const { return m_globalVariables.SSRSettings0.w; }
-	void SetSSRTStride(float stride);
-	float GetSSRTStride() const { return m_globalVariables.SSRSettings1.x; }
-	void SetSSRTInitOffset(float offset);
-	float GetSSRTInitOffset() const { return m_globalVariables.SSRSettings1.y; }
-	void SetMaxSSRTStepCount(float count);
-	float GetMaxSSRTStepCount() const { return m_globalVariables.SSRSettings1.z; }
-	void SetSSRTThickness(float thickness);
-	float GetSSRTThickness() const { return m_globalVariables.SSRSettings1.w; }
-	void SetSSRTBorderFadingDist(float dist);
-	float GetSSRTBorderFadingDist() const { return m_globalVariables.SSRSettings2.x; }
-	void SetSSRTStepCountFadingDist(float dist);
-	float GetSSRTStepCountFadingDist() const { return m_globalVariables.SSRSettings2.y; }
-	void SetScreenSizeMipLevel(float mipLevel);
-	float GetScreenSizeMipLevel() const { return m_globalVariables.SSRSettings2.z; }
+	void SetSSRSettings0(const Vector4d& setting);
+	Vector4d GetSSRSettings0() const { return m_globalVariables.SSRSettings0; }
+	void SetSSRSettings1(const Vector4d& setting);
+	Vector4d GetSSRSettings1() const { return m_globalVariables.SSRSettings1; }
+	void SetSSRSettings2(const Vector4d& setting);
+	Vector4d GetSSRSettings2() const { return m_globalVariables.SSRSettings2; }
+	void SetBRDFBias(double BRDFBias);
+	double GetBRDFBias() const { return m_globalVariables.SSRSettings0.x; }
+	void SetSSRMip(double SSRMip);
+	double GetSSRMip() const { return m_globalVariables.SSRSettings0.y; }
+	void SetSampleNormalRegenCount(double count);
+	double GetSampleNormalRegenCount() const { return m_globalVariables.SSRSettings0.z; }
+	void SetSampleNormalRegenMargin(double margin);
+	double GetSampleNormalRegenMargin() const { return m_globalVariables.SSRSettings0.w; }
+	void SetSSRTStride(double stride);
+	double GetSSRTStride() const { return m_globalVariables.SSRSettings1.x; }
+	void SetSSRTInitOffset(double offset);
+	double GetSSRTInitOffset() const { return m_globalVariables.SSRSettings1.y; }
+	void SetMaxSSRTStepCount(double count);
+	double GetMaxSSRTStepCount() const { return m_globalVariables.SSRSettings1.z; }
+	void SetSSRTThickness(double thickness);
+	double GetSSRTThickness() const { return m_globalVariables.SSRSettings1.w; }
+	void SetSSRTBorderFadingDist(double dist);
+	double GetSSRTBorderFadingDist() const { return m_globalVariables.SSRSettings2.x; }
+	void SetSSRTStepCountFadingDist(double dist);
+	double GetSSRTStepCountFadingDist() const { return m_globalVariables.SSRSettings2.y; }
+	void SetScreenSizeMipLevel(double mipLevel);
+	double GetScreenSizeMipLevel() const { return m_globalVariables.SSRSettings2.z; }
 
-	void SetTemporalSettings0(const Vector4f& setting);
-	Vector4f GetTemporalSettings0() const { return m_globalVariables.TemporalSettings0; }
-	void SetMotionImpactLowerBound(float motionImpactLowerBound);
-	float GetMotionImpactLowerBound() const { return m_globalVariables.TemporalSettings0.x; }
-	void SetMotionImpactUpperBound(float motionImpactUpperBound);
-	float GetMotionImpactUpperBound() const { return m_globalVariables.TemporalSettings0.y; }
-	void SetHighResponseSSRPortion(float highResponseSSRPortion);
-	float GetHighResponseSSRPortion() const { return m_globalVariables.TemporalSettings0.z; }
+	void SetTemporalSettings0(const Vector4d& setting);
+	Vector4d GetTemporalSettings0() const { return m_globalVariables.TemporalSettings0; }
+	void SetMotionImpactLowerBound(double motionImpactLowerBound);
+	double GetMotionImpactLowerBound() const { return m_globalVariables.TemporalSettings0.x; }
+	void SetMotionImpactUpperBound(double motionImpactUpperBound);
+	double GetMotionImpactUpperBound() const { return m_globalVariables.TemporalSettings0.y; }
+	void SetHighResponseSSRPortion(double highResponseSSRPortion);
+	double GetHighResponseSSRPortion() const { return m_globalVariables.TemporalSettings0.z; }
 
-	void SetBloomSettings0(const Vector4f& setting);
-	Vector4f GetBloomSettings0() const { return m_globalVariables.BloomSettings0; }
-	void SetBloomSettings1(const Vector4f& setting);
-	Vector4f GetBloomSettings1() const { return m_globalVariables.BloomSettings1; }
-	void SetBloomClampingLowerBound(float lowerBound);
-	float GetBloomClampingLowerBound() const { return m_globalVariables.BloomSettings0.x; }
-	void SetBloomClampingUpperBound(float upperBound);
-	float GetBloomClampingUpperBound() const { return m_globalVariables.BloomSettings0.y; }
-	void SetUpsampleScale(float upsampleScale);
-	float GetUpsampleScale() const { return m_globalVariables.BloomSettings0.z; }
-	void SetBloomAmplify(float bloomAmplify);
-	float GetBloomAmplify() const { return m_globalVariables.BloomSettings1.x; }
-	void SetBloomSlope(float bloomSlope);
-	float GetBloomSlope() const { return m_globalVariables.BloomSettings1.y; }
+	void SetBloomSettings0(const Vector4d& setting);
+	Vector4d GetBloomSettings0() const { return m_globalVariables.BloomSettings0; }
+	void SetBloomSettings1(const Vector4d& setting);
+	Vector4d GetBloomSettings1() const { return m_globalVariables.BloomSettings1; }
+	void SetBloomClampingLowerBound(double lowerBound);
+	double GetBloomClampingLowerBound() const { return m_globalVariables.BloomSettings0.x; }
+	void SetBloomClampingUpperBound(double upperBound);
+	double GetBloomClampingUpperBound() const { return m_globalVariables.BloomSettings0.y; }
+	void SetUpsampleScale(double upsampleScale);
+	double GetUpsampleScale() const { return m_globalVariables.BloomSettings0.z; }
+	void SetBloomAmplify(double bloomAmplify);
+	double GetBloomAmplify() const { return m_globalVariables.BloomSettings1.x; }
+	void SetBloomSlope(double bloomSlope);
+	double GetBloomSlope() const { return m_globalVariables.BloomSettings1.y; }
 
-	void SetMaxCOC(float maxCOC);
-	float GetMaxCOC() const { return m_globalVariables.DOFSettings0.x; }
-	float GetRcpMaxCOC() const { return m_globalVariables.DOFSettings0.y; }
-	float GetCOCCoeff() const { return m_globalVariables.DOFSettings0.z; }
+	void SetMaxCOC(double maxCOC);
+	double GetMaxCOC() const { return m_globalVariables.DOFSettings0.x; }
+	double GetRcpMaxCOC() const { return m_globalVariables.DOFSettings0.y; }
+	double GetCOCCoeff() const { return m_globalVariables.DOFSettings0.z; }
 
-	void SetMotionBlurSettings(const Vector4f& settings);
-	void SetMotionBlurAmplify(float motionBlurAmplify);
-	float GetMotionBlurAmplify() const { return m_globalVariables.MotionBlurSettings.x; }
+	void SetMotionBlurSettings(const Vector4d& settings);
+	void SetMotionBlurAmplify(double motionBlurAmplify);
+	double GetMotionBlurAmplify() const { return m_globalVariables.MotionBlurSettings.x; }
 	void SetMotionBlurSampleCount(uint32_t sampleCount);
 	uint32_t GetMotionBlurSampleCount() const { return (uint32_t)m_globalVariables.MotionBlurSettings.y; }
 
-	void SetVignetteSettings(const Vector4f& settings);
-	void SetVignetteMinDist(float minDist);
-	float GetVignetteMinDist() const { return m_globalVariables.VignetteSettings.x; }
-	void SetVignetteMaxDist(float maxDist);
-	float GetVignetteMaxDist() const { return m_globalVariables.VignetteSettings.y; }
-	void SetVignetteAmplify(float vignetteAmplify);
-	float GetVignetteAmplify() const { return m_globalVariables.VignetteSettings.z; }
+	void SetVignetteSettings(const Vector4d& settings);
+	void SetVignetteMinDist(double minDist);
+	double GetVignetteMinDist() const { return m_globalVariables.VignetteSettings.x; }
+	void SetVignetteMaxDist(double maxDist);
+	double GetVignetteMaxDist() const { return m_globalVariables.VignetteSettings.y; }
+	void SetVignetteAmplify(double vignetteAmplify);
+	double GetVignetteAmplify() const { return m_globalVariables.VignetteSettings.z; }
 
-	void SetSSAOSampleCount(float sampleCount);
-	float GetSSAOSampleCount() const { return m_globalVariables.SSAOSettings.x; }
-	void SetSSAOSampleVectorLength(float sampleVectorLength);
-	float GetSSAOSampleVectorLength() const { return m_globalVariables.SSAOSettings.y; }
-	void SetSSAOExtinctionStartingRadius(float startingRadius);
-	float GetSSAOExtinctionStartingRadius() const { return m_globalVariables.SSAOSettings.z; }
-	void SetSSAOExtinctionEndingRadius(float endingRadius);
-	float GetSSAOExtinctionEndingRadius() const { return m_globalVariables.SSAOSettings.w; }
+	void SetSSAOSampleCount(double sampleCount);
+	double GetSSAOSampleCount() const { return m_globalVariables.SSAOSettings.x; }
+	void SetSSAOSampleVectorLength(double sampleVectorLength);
+	double GetSSAOSampleVectorLength() const { return m_globalVariables.SSAOSettings.y; }
+	void SetSSAOExtinctionStartingRadius(double startingRadius);
+	double GetSSAOExtinctionStartingRadius() const { return m_globalVariables.SSAOSettings.z; }
+	void SetSSAOExtinctionEndingRadius(double endingRadius);
+	double GetSSAOExtinctionEndingRadius() const { return m_globalVariables.SSAOSettings.w; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);
@@ -367,20 +373,23 @@ public:
 protected:
 	void UpdateUniformDataInternal() override;
 	void SetDirtyInternal() override;
-	const void* AcquireDataPtr() const override { return &m_globalVariables; }
-	uint32_t AcquireDataSize() const override { return sizeof(GlobalVariables); }
+	const void* AcquireDataPtr() const override { return &m_singlePrecisionGlobalVariables; }
+	uint32_t AcquireDataSize() const override { return sizeof(GlobalVariables<float>); }
 
 	void InitSSAORandomSample();
 
 protected:
-	GlobalVariables							m_globalVariables;
+	GlobalVariablesd	m_globalVariables;
+	GlobalVariablesf	m_singlePrecisionGlobalVariables;
 };
 
-typedef struct _BoneData
+template <typename T>
+class BoneData
 {
-	DualQuaternionf	currBoneOffsetDQ;
-	DualQuaternionf	prevBoneOffsetDQ;
-}BoneData;
+public:
+	DualQuaternion<T>	currBoneOffsetDQ;
+	DualQuaternion<T>	prevBoneOffsetDQ;
+};
 
 class BoneIndirectUniform;
 
@@ -397,16 +406,17 @@ public:
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
-	void SetBoneOffsetTransform(uint32_t chunkIndex, const DualQuaternionf& offsetDQ);
-	DualQuaternionf GetBoneOffsetTransform(uint32_t chunkIndex) const;
+	void SetBoneOffsetTransform(uint32_t chunkIndex, const DualQuaterniond& offsetDQ);
+	DualQuaterniond GetBoneOffsetTransform(uint32_t chunkIndex) const;
 
 protected:
 	void UpdateDirtyChunkInternal(uint32_t index) override;
-	const void* AcquireDataPtr() const override { return &m_boneData[0]; }
-	uint32_t AcquireDataSize() const override { return sizeof(m_boneData); }
+	const void* AcquireDataPtr() const override { return &m_singlePrecisionBoneData[0]; }
+	uint32_t AcquireDataSize() const override { return sizeof(m_singlePrecisionBoneData); }
 
 protected:
-	BoneData	m_boneData[MAXIMUM_OBJECTS];
+	BoneData<double>	m_boneData[MAXIMUM_OBJECTS];
+	BoneData<float>		m_singlePrecisionBoneData[MAXIMUM_OBJECTS];
 
 	friend class BoneIndirectUniform;
 };
@@ -443,12 +453,12 @@ public:
 	// Let specific mesh to deal with these functions and make wrappers of them
 protected:
 	// Bone index automatically generated if not exists
-	void SetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, const DualQuaternionf& offsetDQ);
-	bool GetBoneInfo(uint32_t chunkIndex, std::size_t hashCode, uint32_t& outBoneIndex, DualQuaternionf& outBoneOffsetTransformDQ);
+	void SetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, const DualQuaterniond& offsetDQ);
+	bool GetBoneInfo(uint32_t chunkIndex, std::size_t hashCode, uint32_t& outBoneIndex, DualQuaterniond& outBoneOffsetTransformDQ);
 
 	// Input bone index
-	void SetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, uint32_t boneIndex, const DualQuaternionf& offsetDQ);
-	bool GetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, uint32_t boneIndex, DualQuaternionf& outBoneOffsetTransformDQ) const;
+	void SetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, uint32_t boneIndex, const DualQuaterniond& offsetDQ);
+	bool GetBoneTransform(uint32_t chunkIndex, std::size_t hashCode, uint32_t boneIndex, DualQuaterniond& outBoneOffsetTransformDQ) const;
 
 public:
 	std::vector<UniformVarList> PrepareUniformVarList() const override;

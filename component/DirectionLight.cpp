@@ -66,12 +66,12 @@ void DirectionLight::OnPreRender()
 {
 	std::shared_ptr<BaseObject> pObj = GetBaseObject();
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir(pObj->GetLocalRotationM()[2]);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightVP(AcquireProjectionMatrix());
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir(pObj->GetLocalRotationM()[2].DoublePrecision());
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightVP(AcquireProjectionMatrix().DoublePrecision());
 
 	if (m_isDirty)
 	{
-		UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor(m_lightColor);
+		UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor(m_lightColor.DoublePrecision());
 		m_isDirty = false;
 	}
 }
