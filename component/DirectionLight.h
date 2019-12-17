@@ -12,21 +12,21 @@ public:
 	static const uint32_t DEFAULT_FRUSTUM_LENGTH = 5.12;
 
 protected:
-	bool Init(const std::shared_ptr<DirectionLight>& pLight, const Vector3f& lightColor, const Vector3f& frustumSize, const Vector2ui& shadowMapSize);
+	bool Init(const std::shared_ptr<DirectionLight>& pLight, const Vector3d& lightColor, const Vector3d& frustumSize, const Vector2ui& shadowMapSize);
 
 public:
-	static std::shared_ptr<DirectionLight> Create(const Vector3f& lightColor, const Vector3f& frustumSize = { (float)DEFAULT_FRUSTUM_SIZE, (float)DEFAULT_FRUSTUM_SIZE, (float)DEFAULT_FRUSTUM_LENGTH }, const Vector2ui& shadowMapSize = { DEFAULT_SHADOWMAP_SIZE, DEFAULT_SHADOWMAP_SIZE });
+	static std::shared_ptr<DirectionLight> Create(const Vector3d& lightColor, const Vector3d& frustumSize = { (float)DEFAULT_FRUSTUM_SIZE, (float)DEFAULT_FRUSTUM_SIZE, (float)DEFAULT_FRUSTUM_LENGTH }, const Vector2ui& shadowMapSize = { DEFAULT_SHADOWMAP_SIZE, DEFAULT_SHADOWMAP_SIZE });
 
 public:
-	Matrix4f AcquireProjectionMatrix() const;
+	Matrix4d AcquireProjectionMatrix() const;
 
-	void SetLightColor(const Vector3f& lightColor);
+	void SetLightColor(const Vector3d& lightColor);
 
 	void Update() override;
 	void OnPreRender() override;
 
 protected:
-	Vector3f	m_lightColor;
-	Vector3f	m_frustumSize;
+	Vector3d	m_lightColor;
+	Vector3d	m_frustumSize;
 	Vector2ui	m_shadowMapSize;
 };

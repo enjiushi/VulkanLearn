@@ -9,7 +9,7 @@
 
 DEFINITE_CLASS_RTTI(DirectionLight, BaseComponent);
 
-bool DirectionLight::Init(const std::shared_ptr<DirectionLight>& pLight, const Vector3f& lightColor, const Vector3f& frustumSize, const Vector2ui& shadowMapSize)
+bool DirectionLight::Init(const std::shared_ptr<DirectionLight>& pLight, const Vector3d& lightColor, const Vector3d& frustumSize, const Vector2ui& shadowMapSize)
 {
 	if (!BaseComponent::Init(pLight))
 		return false;
@@ -20,7 +20,7 @@ bool DirectionLight::Init(const std::shared_ptr<DirectionLight>& pLight, const V
 	return true;
 }
 
-std::shared_ptr<DirectionLight> DirectionLight::Create(const Vector3f& lightColor, const Vector3f& frustumSize, const Vector2ui& shadowMapSize)
+std::shared_ptr<DirectionLight> DirectionLight::Create(const Vector3d& lightColor, const Vector3d& frustumSize, const Vector2ui& shadowMapSize)
 {
 	std::shared_ptr<DirectionLight> pLight = std::make_shared<DirectionLight>();
 	if (pLight.get() && pLight->Init(pLight, lightColor, frustumSize, shadowMapSize))
@@ -29,13 +29,13 @@ std::shared_ptr<DirectionLight> DirectionLight::Create(const Vector3f& lightColo
 	return nullptr;
 }
 
-Matrix4f DirectionLight::AcquireProjectionMatrix() const
+Matrix4d DirectionLight::AcquireProjectionMatrix() const
 {
 	std::shared_ptr<BaseObject> pObj = GetBaseObject();
 
-	Matrix4f view = pObj->GetCachedWorldTransform().Inverse().SinglePrecision();
+	Matrix4d view = pObj->GetCachedWorldTransform().Inverse();
 
-	Matrix4f proj;
+	Matrix4d proj;
 	proj.c00 = 1.0f / m_frustumSize.x;
 
 	// Reverse y top side down for vulkan ndc
@@ -52,7 +52,7 @@ Matrix4f DirectionLight::AcquireProjectionMatrix() const
 	return proj * view;
 }
 
-void DirectionLight::SetLightColor(const Vector3f& lightColor)
+void DirectionLight::SetLightColor(const Vector3d& lightColor)
 {
 	m_lightColor = lightColor;
 	m_isDirty = true;
@@ -66,12 +66,12 @@ void DirectionLight::OnPreRender()
 {
 	std::shared_ptr<BaseObject> pObj = GetBaseObject();
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir(pObj->GetLocalRotationM()[2].DoublePrecision());
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightVP(AcquireProjectionMatrix().DoublePrecision());
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir(pObj->GetLocalRotationM()[2]);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightVP(AcquireProjectionMatrix());
 
 	if (m_isDirty)
 	{
-		UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor(m_lightColor.DoublePrecision());
+		UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor(m_lightColor);
 		m_isDirty = false;
 	}
 }

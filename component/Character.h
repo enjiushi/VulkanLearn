@@ -13,8 +13,8 @@ enum CharMoveDir
 
 typedef struct _CharacterVariable
 {
-	float moveSpeed;
-	float rotateSpeed;
+	double moveSpeed;
+	double rotateSpeed;
 }CharacterVariable;
 
 class Character : public BaseComponent, public IInputListener
@@ -29,19 +29,19 @@ public:
 	void ProcessMouse(KeyState keyState, const Vector2d& mousePosition) override;
 	void ProcessMouse(const Vector2d& mousePosition) override;
 
-	void Move(uint32_t dir, float delta);
+	void Move(uint32_t dir, double delta);
 
-	void OnRotateStart(const Vector2f& v);
+	void OnRotateStart(const Vector2d& v);
 
-	void OnRotate(const Vector2f& v, bool started);
-	void OnRotate(uint32_t dir, float delta);
+	void OnRotate(const Vector2d& v, bool started);
+	void OnRotate(uint32_t dir, double delta);
 
-	void OnRotateEnd(const Vector2f& v);
+	void OnRotateEnd(const Vector2d& v);
 
 	//input para v needs to be the ratio compared to camera size
 	//this function should be used by those "OnRotate*" functions
 	//but if user of this class decided to handle rotate logic himself, call this function directly
-	void Rotate(const Vector2f& v);
+	void Rotate(const Vector2d& v);
 
 	void SetCharacterVariable(const CharacterVariable& var) { m_charVars = var; }
 	CharacterVariable GetCharacterVariable() const { return m_charVars; }
@@ -49,16 +49,16 @@ public:
 	void Update() override;
 
 protected:
-	void Move(const Vector3f& v, float delta);
+	void Move(const Vector3d& v, double delta);
 
 protected:
 	// Character movement variables
-	Matrix3f			m_rotationStartMatrix;
+	Matrix3d			m_rotationStartMatrix;
 	CharacterVariable	m_charVars;
 	bool				m_rotationStarted;
-	Vector2f			m_rotationStartPos;
+	Vector2d			m_rotationStartPos;
 	float				m_startTargetToH;
-	Vector3f			m_lastTarget;
+	Vector3d			m_lastTarget;
 
 	// Flags for normal move & rotation
 	uint32_t			m_moveFlag = 0;
@@ -66,5 +66,5 @@ protected:
 
 	bool				m_isControlInRotation = false;
 
-	Vector2f			m_lastSampleCursorPosition;
+	Vector2d			m_lastSampleCursorPosition;
 };
