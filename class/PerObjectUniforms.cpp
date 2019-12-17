@@ -9,7 +9,7 @@
 
 bool PerObjectUniforms::Init(const std::shared_ptr<PerObjectUniforms>& pSelf)
 {
-	if (!ChunkBasedUniforms::Init(pSelf, sizeof(PerObjectVariables)))
+	if (!ChunkBasedUniforms::Init(pSelf, sizeof(PerObjectVariablesf)))
 		return false;
 
 	return true;
@@ -23,7 +23,7 @@ std::shared_ptr<PerObjectUniforms> PerObjectUniforms::Create()
 	return nullptr;
 }
 
-void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4f& modelMatrix)
+void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4d& modelMatrix)
 {
 	m_perObjectVariables[index].prevModelMatrix = m_perObjectVariables[index].modelMatrix;
 	m_perObjectVariables[index].modelMatrix = modelMatrix;
@@ -32,8 +32,13 @@ void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4f& modelMatr
 
 void PerObjectUniforms::UpdateDirtyChunkInternal(uint32_t index)
 {
-	m_perObjectVariables[index].prevMVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetPrevVPMatrix() * m_perObjectVariables[index].prevModelMatrix;
-	m_perObjectVariables[index].MVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPMatrix() * m_perObjectVariables[index].modelMatrix;
+	m_perObjectVariables[index].prevMVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetPrevVPMatrix().DoublePrecision() * m_perObjectVariables[index].prevModelMatrix;
+	m_perObjectVariables[index].MVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPMatrix().DoublePrecision() * m_perObjectVariables[index].modelMatrix;
+
+	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], modelMatrix);
+	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], MVP);
+	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], prevModelMatrix);
+	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], prevMVP);
 }
 
 std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList() const

@@ -91,9 +91,9 @@ void MeshRenderer::OnRenderObject()
 		return;
 
 	if (m_pAnimationController != nullptr)
-		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, m_pAnimationController->GetBaseObject()->GetCachedWorldTransform());
+		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, m_pAnimationController->GetBaseObject()->GetCachedWorldTransform().DoublePrecision());
 	else
-		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, GetBaseObject()->GetCachedWorldTransform());
+		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, GetBaseObject()->GetCachedWorldTransform().DoublePrecision());
 
 	for (uint32_t i = 0; i < m_materialInstances.size(); i++)
 	{
