@@ -100,19 +100,19 @@ void AnimationController::UpdateBoneTransform(const std::shared_ptr<BaseObject>&
 		Quaternionf blendRotation = Quaternionf::SLerp(currentRotation, nextRotation, factor);
 		Vector3f blendTranslation = currentTranslation * (1.0f - factor) + nextTranslation * factor;
 
-		pObject->SetRotation(blendRotation);
-		pObject->SetPos(blendTranslation);
+		pObject->SetRotation(blendRotation.DoublePrecision());
+		pObject->SetPos(blendTranslation.DoublePrecision());
 	}
 }
 
 void AnimationController::SyncBoneTransformToUniform(const std::shared_ptr<BaseObject>& pObject, uint32_t boneIndex, const DualQuaternionf& boneOffsetDQ)
 {
-	Matrix4f transform = GetBaseObject()->GetCachedWorldTransform();
+	Matrix4d transform = GetBaseObject()->GetCachedWorldTransform();
 	transform.Inverse();
 	transform *= pObject->GetCachedWorldTransform();
-	transform *= Matrix4f(boneOffsetDQ.AcquireRotation().Matrix(), boneOffsetDQ.AcquireTranslation());
+	transform *= Matrix4d(boneOffsetDQ.AcquireRotation().Matrix().DoublePrecision(), boneOffsetDQ.AcquireTranslation().DoublePrecision());
 
-	m_pAnimationInstance->SetBoneTransform(pObject->GetNameHashCode(), boneIndex, DualQuaternionf(transform.RotationMatrix(), transform.TranslationVector()));
+	m_pAnimationInstance->SetBoneTransform(pObject->GetNameHashCode(), boneIndex, DualQuaternionf(transform.RotationMatrix().SinglePrecision(), transform.TranslationVector().SinglePrecision()));
 }
 
 void AnimationController::OnAddedToObjectInternal(const std::shared_ptr<BaseObject>& pObject)

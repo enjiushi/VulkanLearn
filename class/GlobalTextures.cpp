@@ -160,7 +160,7 @@ void GlobalTextures::InitIrradianceTexture()
 			UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 		};
 
-		SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
+		SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i].DoublePrecision());
 
 		SceneGenerator::GetInstance()->GetRootObject()->Update();
 		SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
@@ -249,7 +249,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 			GetGlobalVulkanStates()->SetViewport(viewport);
 			GetGlobalVulkanStates()->SetScissorRect(scissorRect);
 
-			SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
+			SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i].DoublePrecision());
 			SceneGenerator::GetInstance()->GetRootObject()->Update();
 			SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 			SceneGenerator::GetInstance()->GetRootObject()->UpdateCachedData();

@@ -691,11 +691,11 @@ void VulkanGlobal::InitScene()
 	m_pCameraObj->AddComponent(FrustumJitter::Create());
 
 	m_pCameraObj->SetPos({ 0, 1, -2.2f });
-	m_pCameraObj->SetRotation(Matrix3f::EulerAngle(-0.78f, 3.14f, 0));
+	m_pCameraObj->SetRotation(Matrix3d::EulerAngle(-0.78f, 3.14f, 0));
 
 	m_pDirLightObj = BaseObject::Create();
 	m_pDirLightObj->SetPos(0.64f, 0.64f, -0.64f);
-	m_pDirLightObj->SetRotation(Matrix3f::EulerAngle(0.78f, 0, 0) * Matrix3f::EulerAngle(0, 2.355f, 0));
+	m_pDirLightObj->SetRotation(Matrix3d::EulerAngle(0.78f, 0, 0) * Matrix3d::EulerAngle(0, 2.355f, 0));
 
 	m_pDirLight = DirectionLight::Create({ 4.0f, 4.0f, 4.0f });
 	m_pDirLightObj->AddComponent(m_pDirLight);
@@ -749,7 +749,7 @@ void VulkanGlobal::InitScene()
 		sceneInfo.meshLinks[i].second->AddComponent(m_innerBallRenderers[i]);
 	}
 	m_pInnerBall->SetPos(-1.3f, -0.4f, 0);
-	m_pInnerBall->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14));
+	m_pInnerBall->SetRotation(Quaterniond(Vector3d(0, 1, 0), 3.14));
 	m_pInnerBall->SetScale(0.005f);
 	sceneInfo.meshLinks.clear();
 
@@ -770,7 +770,7 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject2->SetPos(-0.2f, -0.25f, 0.5f);
 
 	Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
-	m_pQuadObject->SetRotation(Quaternionf(Vector3f(1, 0, 0), -1.57));
+	m_pQuadObject->SetRotation(Quaterniond(Vector3d(1, 0, 0), -1.57));
 
 	m_pSkyBoxObject = BaseObject::Create();
 	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, { m_pSkyBoxMaterialInstance });
@@ -784,7 +784,7 @@ void VulkanGlobal::InitScene()
 	sceneInfo.meshLinks[0].second->AddComponent(m_pSophiaRenderer);
 	m_pSophiaRenderer->SetName(L"hehe");
 	m_pSophiaObject->SetScale(0.005f);
-	m_pSophiaObject->SetRotation(Quaternionf(Vector3f(0, 1, 0), 3.14f));
+	m_pSophiaObject->SetRotation(Quaterniond(Vector3d(0, 1, 0), 3.14));
 	m_pSophiaObject->SetPos(0, -0.4f, -1);
 	//AddBoneBox(m_pSophiaObject);
 	sceneInfo.meshLinks.clear();

@@ -200,5 +200,5 @@ void PhysicalCamera::UpdateCameraSupplementProps()
 
 const Vector3f PhysicalCamera::GetCameraDir() const
 {
-	return m_pObject.lock()->GetCachedWorldTransform()[2].xyz().Negative();
+	return m_pObject.lock()->GetCachedWorldTransform()[2].xyz().Negative().SinglePrecision();
 }

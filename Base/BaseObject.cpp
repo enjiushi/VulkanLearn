@@ -82,13 +82,13 @@ void BaseObject::LateUpdate()
 
 void BaseObject::UpdateCachedData()
 {
-	Matrix4f cachedParentWorldTransform;
+	Matrix4d cachedParentWorldTransform;
 
 	if (!m_pParent.expired())
 		cachedParentWorldTransform = m_pParent.lock()->m_cachedWorldTransform;
 
 	m_cachedWorldTransform = cachedParentWorldTransform * m_localTransform;
-	m_cachedWorldPosition = (cachedParentWorldTransform * Vector4f(m_localPosition, 1.0f)).xyz();
+	m_cachedWorldPosition = (cachedParentWorldTransform * Vector4d(m_localPosition, 1.0f)).xyz();
 
 	for (size_t i = 0; i < m_children.size(); i++)
 		m_children[i]->UpdateCachedData();
@@ -137,14 +137,14 @@ void BaseObject::Start()
 	std::for_each(m_children.begin(), m_children.end(), [](auto & pChild) { pChild->Start(); });
 }
 
-void BaseObject::SetRotation(const Matrix3f& m)
+void BaseObject::SetRotation(const Matrix3d& m)
 {
 	m_localRotationM = m;
-	m_localRotationQ = Quaternionf(m);
+	m_localRotationQ = Quaterniond(m);
 	UpdateLocalTransform();
 }
 
-void BaseObject::SetRotation(const Quaternionf& q)
+void BaseObject::SetRotation(const Quaterniond& q)
 {
 	m_localRotationQ = q;
 	m_localRotationM = q.Matrix();
@@ -153,44 +153,44 @@ void BaseObject::SetRotation(const Quaternionf& q)
 
 void BaseObject::UpdateLocalTransform()
 {
-	m_localTransform = Matrix4f(m_localRotationM * Matrix3f(Vector3f(m_localScale)), m_localPosition);
+	m_localTransform = Matrix4d(m_localRotationM * Matrix3d(Vector3d(m_localScale)), m_localPosition);
 }
 
-Vector3f BaseObject::GetWorldPosition() const
+Vector3d BaseObject::GetWorldPosition() const
 {
-	Matrix4f parentWorldTransform;
+	Matrix4d parentWorldTransform;
 
 	if (!m_pParent.expired())
 		parentWorldTransform = m_pParent.lock()->GetWorldTransform();
 
 	//get world transform
-	return (parentWorldTransform * Vector4f(m_localPosition, 1.0f)).xyz();
+	return (parentWorldTransform * Vector4d(m_localPosition, 1.0)).xyz();
 }
 
-Matrix4f BaseObject::GetWorldTransform() const 
+Matrix4d BaseObject::GetWorldTransform() const 
 { 
-	Matrix4f parentWorldTransform;
+	Matrix4d parentWorldTransform;
 	if (!m_pParent.expired())
 		parentWorldTransform = m_pParent.lock()->GetWorldTransform();
 
 	return parentWorldTransform * m_localTransform;
 }
 
-Matrix3f BaseObject::GetWorldRotationM() const
+Matrix3d BaseObject::GetWorldRotationM() const
 { 
-	Matrix3f parentWorldRotationM;
+	Matrix3d parentWorldRotationM;
 	if (!m_pParent.expired())
 		parentWorldRotationM = m_pParent.lock()->GetWorldRotationM();
 
 	return parentWorldRotationM * m_localRotationM;
 }
 
-Quaternionf BaseObject::GetWorldRotationQ() const
+Quaterniond BaseObject::GetWorldRotationQ() const
 { 
-	return Quaternionf(GetWorldRotationM());
+	return Quaterniond(GetWorldRotationM());
 }
 
-void BaseObject::Rotate(const Vector3f& v, float angle)
+void BaseObject::Rotate(const Vector3d& v, double angle)
 {
 
 }

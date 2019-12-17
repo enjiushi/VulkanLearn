@@ -222,13 +222,13 @@ void PlanetGenerator::OnPreRender()
 	if (m_toggleCameraInfoUpdate)
 	{
 		// Transform from world space to planet local space
-		m_utilityTransfrom = GetBaseObject()->GetCachedWorldTransform();
+		m_utilityTransfrom = GetBaseObject()->GetCachedWorldTransform().SinglePrecision();
 		m_utilityTransfrom.Inverse();
 
-		m_cameraPosLocal = m_utilityTransfrom.TransformAsPoint(m_pCamera->GetBaseObject()->GetCachedWorldPosition());
+		m_cameraPosLocal = m_utilityTransfrom.TransformAsPoint(m_pCamera->GetBaseObject()->GetCachedWorldPosition().SinglePrecision());
 
 		// Transfrom from camera local space to world space, and then to planet local space
-		m_utilityTransfrom *= m_pCamera->GetBaseObject()->GetCachedWorldTransform();	// from camera local 2 world
+		m_utilityTransfrom *= m_pCamera->GetBaseObject()->GetCachedWorldTransform().SinglePrecision();	// from camera local 2 world
 
 		m_cameraFrustumLocal = m_pCamera->GetCameraFrustum();
 		m_cameraFrustumLocal.Transform(m_utilityTransfrom);

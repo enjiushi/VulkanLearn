@@ -110,8 +110,8 @@ void Character::Move(const Vector3f& v, float delta)
 	move_dir.z = -move_dir.z;	//reverse z axis, because camera looking direction is opposite to z axis
 
 	std::shared_ptr<BaseObject> pObj = m_pObject.lock();
-	Vector3f move_dir_local = pObj->GetLocalRotationM() * move_dir;
-	pObj->SetPos(pObj->GetLocalPosition() + move_dir_local);
+	Vector3f move_dir_local = pObj->GetLocalRotationM().SinglePrecision() * move_dir;
+	pObj->SetPos(pObj->GetLocalPosition() + move_dir_local.DoublePrecision());
 }
 
 void Character::Move(uint32_t dir, float delta)
@@ -140,7 +140,7 @@ void Character::OnRotateStart(const Vector2f& v)
 
 	m_rotationStarted = true;
 	m_rotationStartPos = v;
-	m_rotationStartMatrix = m_pObject.lock()->GetLocalRotationM();
+	m_rotationStartMatrix = m_pObject.lock()->GetLocalRotationM().SinglePrecision();
 
 	//get the angle between target direction and horizontal plane
 	Vector3f target_dir = (Vector3f(0.0f, 0.0f, 0.0f) - m_rotationStartMatrix[2]).Normal();		//target direction
@@ -184,12 +184,12 @@ void Character::OnRotate(uint32_t dir, float delta)
 	if (dir == 0)
 		return;
 
-	Matrix3f rotate_around_up;
+	Matrix3d rotate_around_up;
 
 	if (dir & CharMoveDir::Leftward)
-		rotate_around_up = Matrix3f::Rotation(delta * m_charVars.rotateSpeed, Vector3f::Upward());		//FIXME: Need profiler to replace hard-code delta
+		rotate_around_up = Matrix3d::Rotation(delta * m_charVars.rotateSpeed, Vector3d::Upward());		//FIXME: Need profiler to replace hard-code delta
 	if (dir & CharMoveDir::Rightward)
-		rotate_around_up = Matrix3f::Rotation(-delta * m_charVars.rotateSpeed, Vector3f::Upward());		//FIXME: Need profiler to replace hard-code delta
+		rotate_around_up = Matrix3d::Rotation(-delta * m_charVars.rotateSpeed, Vector3d::Upward());		//FIXME: Need profiler to replace hard-code delta
 
 	m_pObject.lock()->SetRotation(rotate_around_up * m_pObject.lock()->GetLocalRotationM());
 }
@@ -221,7 +221,7 @@ void Character::Rotate(const Vector2f& v)
 
 	//here we first rotate around axis x, then y
 	//or we can't guarentee x to keep horizontal
-	m_pObject.lock()->SetRotation(rotate_around_y * rotate_around_x * m_rotationStartMatrix);
+	m_pObject.lock()->SetRotation((rotate_around_y * rotate_around_x * m_rotationStartMatrix).DoublePrecision());
 }
 
 void Character::Update()

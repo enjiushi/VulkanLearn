@@ -113,22 +113,22 @@ public:
 
 	bool ContainObject(const std::shared_ptr<BaseObject>& pObj) const;
 
-	void SetPos(const Vector3f& v) { m_localPosition = v; UpdateLocalTransform(); }
-	void SetPos(float x, float y, float z) { m_localPosition = Vector3f(x, y, z); UpdateLocalTransform(); }
-	void SetPosX(float x) { m_localPosition.x = x; UpdateLocalTransform(); }
-	void SetPosY(float y) { m_localPosition.y = y; UpdateLocalTransform(); }
-	void SetPosZ(float z) { m_localPosition.z = z; UpdateLocalTransform(); }
+	void SetPos(const Vector3d& v) { m_localPosition = v; UpdateLocalTransform(); }
+	void SetPos(double x, double y, double z) { m_localPosition = Vector3d(x, y, z); UpdateLocalTransform(); }
+	void SetPosX(double x) { m_localPosition.x = x; UpdateLocalTransform(); }
+	void SetPosY(double y) { m_localPosition.y = y; UpdateLocalTransform(); }
+	void SetPosZ(double z) { m_localPosition.z = z; UpdateLocalTransform(); }
 
-	void SetScale(const Vector3f& v) { m_localScale = v; UpdateLocalTransform(); }
-	void SetScale(float x, float y, float z) { m_localScale = Vector3f(x, y, z); UpdateLocalTransform(); }
-	void SetScaleX(float x) { m_localScale.x = x; UpdateLocalTransform(); }
-	void SetScaleY(float y) { m_localScale.y = y; UpdateLocalTransform(); }
-	void SetScaleZ(float z) { m_localScale.z = z; UpdateLocalTransform(); }
+	void SetScale(const Vector3d& v) { m_localScale = v; UpdateLocalTransform(); }
+	void SetScale(double x, double y, double z) { m_localScale = Vector3d(x, y, z); UpdateLocalTransform(); }
+	void SetScaleX(double x) { m_localScale.x = x; UpdateLocalTransform(); }
+	void SetScaleY(double y) { m_localScale.y = y; UpdateLocalTransform(); }
+	void SetScaleZ(double z) { m_localScale.z = z; UpdateLocalTransform(); }
 
-	void SetRotation(const Matrix3f& m);
-	void SetRotation(const Quaternionf& q);
+	void SetRotation(const Matrix3d& m);
+	void SetRotation(const Quaterniond& q);
 
-	void Rotate(const Vector3f& v, float angle);
+	void Rotate(const Vector3d& v, double angle);
 
 public:
 	void Update();
@@ -142,20 +142,20 @@ public:
 	virtual void Awake();
 	virtual void Start();
 
-	Vector3f GetLocalPosition() const { return m_localPosition; }
-	Vector3f GetWorldPosition() const;
+	Vector3d GetLocalPosition() const { return m_localPosition; }
+	Vector3d GetWorldPosition() const;
 
-	Matrix4f GetLocalTransform() const { return m_localTransform; }
-	Matrix3f GetLocalRotationM() const { return m_localRotationM; }
-	Quaternionf GetLocalRotationQ() const { return m_localRotationQ; }
+	Matrix4d GetLocalTransform() const { return m_localTransform; }
+	Matrix3d GetLocalRotationM() const { return m_localRotationM; }
+	Quaterniond GetLocalRotationQ() const { return m_localRotationQ; }
 
-	Matrix4f GetWorldTransform() const;
-	Matrix3f GetWorldRotationM() const;
-	Quaternionf GetWorldRotationQ() const;
+	Matrix4d GetWorldTransform() const;
+	Matrix3d GetWorldRotationM() const;
+	Quaterniond GetWorldRotationQ() const;
 
 	// These are before the stage of pre render
-	Matrix4f GetCachedWorldTransform() const { return m_cachedWorldTransform; }
-	Vector3f GetCachedWorldPosition() const { return m_cachedWorldPosition; }
+	Matrix4d GetCachedWorldTransform() const { return m_cachedWorldTransform; }
+	Vector3d GetCachedWorldPosition() const { return m_cachedWorldPosition; }
 
 	//creators
 	static std::shared_ptr<BaseObject> Create();
@@ -168,13 +168,13 @@ protected:
 	std::vector<std::shared_ptr<BaseObject>>		m_children;
 	std::weak_ptr<BaseObject>						m_pParent;
 
-	Vector3f	m_localPosition;
-	Vector3f	m_localScale;
+	Vector3d	m_localPosition;
+	Vector3d	m_localScale;
 
-	Matrix4f	m_localTransform;
-	Matrix3f	m_localRotationM;
-	Quaternionf m_localRotationQ;
+	Matrix4d	m_localTransform;
+	Matrix3d	m_localRotationM;
+	Quaterniond m_localRotationQ;
 
-	Matrix4f	m_cachedWorldTransform;
-	Vector3f	m_cachedWorldPosition;
+	Matrix4d	m_cachedWorldTransform;
+	Vector3d	m_cachedWorldPosition;
 };
