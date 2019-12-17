@@ -217,7 +217,7 @@ DualQuaternion<double> DualQuaternion<T>::DoublePrecision() const
 }
 
 template<typename T>
-DualQuaternion<T> DualQuaternion<T>::DLB(const DualQuaternion<T>& from, const DualQuaternion<T>& to, float factor)
+DualQuaternion<T> DualQuaternion<T>::DLB(const DualQuaternion<T>& from, const DualQuaternion<T>& to, double factor)
 {
 	DualQuaternion<T> ret;
 	

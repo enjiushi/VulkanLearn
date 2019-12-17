@@ -44,5 +44,5 @@ std::shared_ptr<SkeletonAnimationInstance> SkeletonAnimationInstance::Create(con
 
 void SkeletonAnimationInstance::SetBoneTransform(std::size_t hashCode, uint32_t boneIndex, const DualQuaterniond& dq)
 {
-	UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->SetBoneTransform(m_boneChunkIndexOffset, hashCode, boneIndex, dq.DoublePrecision());
+	UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->SetBoneTransform(m_boneChunkIndexOffset, hashCode, boneIndex, dq);
 }

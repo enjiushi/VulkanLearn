@@ -54,7 +54,7 @@ public:
 	DualQuaternion<float> SinglePrecision() const;
 	DualQuaternion<double> DoublePrecision() const;
 
-	static DualQuaternion<T> DLB(const DualQuaternion<T>& from, const DualQuaternion<T>& to, float factor);
+	static DualQuaternion<T> DLB(const DualQuaternion<T>& from, const DualQuaternion<T>& to, double factor);
 
 public:
 	union

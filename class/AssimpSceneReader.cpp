@@ -98,8 +98,8 @@ std::shared_ptr<BaseObject> AssimpSceneReader::AssemblyNode(const aiNode* pAssim
 
 	std::shared_ptr<BaseObject> pObject = BaseObject::Create();
 
-	pObject->SetRotation(AssimpDataConverter::AcquireRotationMatrix(pAssimpNode->mTransformation).DoublePrecision());
-	pObject->SetPos(AssimpDataConverter::AcquireTranslationVector(pAssimpNode->mTransformation).DoublePrecision());
+	pObject->SetRotation(AssimpDataConverter::AcquireRotationMatrix(pAssimpNode->mTransformation));
+	pObject->SetPos(AssimpDataConverter::AcquireTranslationVector(pAssimpNode->mTransformation));
 
 	std::wstring wstr_name = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pAssimpNode->mName.C_Str());
 	pObject->SetName(wstr_name);
