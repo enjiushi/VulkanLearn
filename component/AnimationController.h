@@ -15,7 +15,7 @@ public:
 
 public:
 	void UpdateBoneTransform(const std::shared_ptr<BaseObject>& pObject);
-	void SyncBoneTransformToUniform(const std::shared_ptr<BaseObject>& pObject, uint32_t boneIndex, const DualQuaternionf& boneOffsetDQ);
+	void SyncBoneTransformToUniform(const std::shared_ptr<BaseObject>& pObject, uint32_t boneIndex, const DualQuaterniond& boneOffsetDQ);
 	std::shared_ptr<SkeletonAnimationInstance> GetAnimationInstance() const { return m_pAnimationInstance; }
 	float GetAnimationPlayedTime() const { return m_animationPlayedTime; }
 

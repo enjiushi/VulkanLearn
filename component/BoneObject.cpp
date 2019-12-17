@@ -6,7 +6,7 @@
 
 DEFINITE_CLASS_RTTI(BoneObject, BaseComponent);
 
-bool BoneObject::Init(const std::shared_ptr<BoneObject>& pSelf, std::weak_ptr<AnimationController> pRootBone, uint32_t boneIndex, const DualQuaternionf& boneOffset)
+bool BoneObject::Init(const std::shared_ptr<BoneObject>& pSelf, std::weak_ptr<AnimationController> pRootBone, uint32_t boneIndex, const DualQuaterniond& boneOffset)
 {
 	if (!BaseComponent::Init(pSelf))
 		return false;
@@ -18,7 +18,7 @@ bool BoneObject::Init(const std::shared_ptr<BoneObject>& pSelf, std::weak_ptr<An
 	return true;
 }
 
-std::shared_ptr<BoneObject> BoneObject::Create(std::weak_ptr<AnimationController> pRootBone, uint32_t boneIndex, const DualQuaternionf& boneOffset)
+std::shared_ptr<BoneObject> BoneObject::Create(std::weak_ptr<AnimationController> pRootBone, uint32_t boneIndex, const DualQuaterniond& boneOffset)
 {
 	std::shared_ptr<BoneObject> pBoneObject = std::make_shared<BoneObject>();
 	if (pBoneObject.get() && pBoneObject->Init(pBoneObject, pRootBone, boneIndex, boneOffset))

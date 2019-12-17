@@ -84,35 +84,35 @@ void AnimationController::UpdateBoneTransform(const std::shared_ptr<BaseObject>&
 		if (nextKeyFrameIndex >= keyFrameCount)
 			nextKeyFrameIndex = currentKeyFrameIndex;
 
-		float currentAnimationTime = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames[currentKeyFrameIndex].time;
-		float nextAnimationTime = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames[nextKeyFrameIndex].time;
-		float factor = (m_animationPlayedTime - currentAnimationTime) / (nextAnimationTime - currentAnimationTime);
+		double currentAnimationTime = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames[currentKeyFrameIndex].time;
+		double nextAnimationTime = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames[nextKeyFrameIndex].time;
+		double factor = (m_animationPlayedTime - currentAnimationTime) / (nextAnimationTime - currentAnimationTime);
 
 		// To deal with the situation that some object's animation is shorter than the others, therefore it'll keep last key frame until current animation is done
 		factor = factor > 1.0f ? 1.0f : factor;
 
-		Quaternionf& currentRotation = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames[currentKeyFrameIndex].transform;
-		Vector3f& currentTranslation = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].translationKeyFrames[currentKeyFrameIndex].transform;
+		Quaterniond& currentRotation = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames[currentKeyFrameIndex].transform;
+		Vector3d& currentTranslation = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].translationKeyFrames[currentKeyFrameIndex].transform;
 
-		Quaternionf& nextRotation = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames[nextKeyFrameIndex].transform;
-		Vector3f& nextTranslation = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].translationKeyFrames[nextKeyFrameIndex].transform;
+		Quaterniond& nextRotation = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames[nextKeyFrameIndex].transform;
+		Vector3d& nextTranslation = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].translationKeyFrames[nextKeyFrameIndex].transform;
 
-		Quaternionf blendRotation = Quaternionf::SLerp(currentRotation, nextRotation, factor);
-		Vector3f blendTranslation = currentTranslation * (1.0f - factor) + nextTranslation * factor;
+		Quaterniond blendRotation = Quaterniond::SLerp(currentRotation, nextRotation, factor);
+		Vector3d blendTranslation = currentTranslation * (1.0f - factor) + nextTranslation * factor;
 
-		pObject->SetRotation(blendRotation.DoublePrecision());
-		pObject->SetPos(blendTranslation.DoublePrecision());
+		pObject->SetRotation(blendRotation);
+		pObject->SetPos(blendTranslation);
 	}
 }
 
-void AnimationController::SyncBoneTransformToUniform(const std::shared_ptr<BaseObject>& pObject, uint32_t boneIndex, const DualQuaternionf& boneOffsetDQ)
+void AnimationController::SyncBoneTransformToUniform(const std::shared_ptr<BaseObject>& pObject, uint32_t boneIndex, const DualQuaterniond& boneOffsetDQ)
 {
 	Matrix4d transform = GetBaseObject()->GetCachedWorldTransform();
 	transform.Inverse();
 	transform *= pObject->GetCachedWorldTransform();
-	transform *= Matrix4d(boneOffsetDQ.AcquireRotation().Matrix().DoublePrecision(), boneOffsetDQ.AcquireTranslation().DoublePrecision());
+	transform *= Matrix4d(boneOffsetDQ.AcquireRotation().Matrix(), boneOffsetDQ.AcquireTranslation());
 
-	m_pAnimationInstance->SetBoneTransform(pObject->GetNameHashCode(), boneIndex, DualQuaternionf(transform.RotationMatrix().SinglePrecision(), transform.TranslationVector().SinglePrecision()));
+	m_pAnimationInstance->SetBoneTransform(pObject->GetNameHashCode(), boneIndex, DualQuaterniond(transform.RotationMatrix(), transform.TranslationVector()));
 }
 
 void AnimationController::OnAddedToObjectInternal(const std::shared_ptr<BaseObject>& pObject)
@@ -131,7 +131,7 @@ void AnimationController::InitBoneObjects(std::weak_ptr<BaseObject> pRootObject)
 	// Check if current object is a bone
 	if (UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneInfo(m_pAnimationInstance->GetMesh()->GetMeshBoneChunkIndexOffset(), pSharedRootObject->GetNameHashCode(), boneIndex, boneOffsetDQ))
 	{
-		std::shared_ptr<BoneObject> pBoneObject = BoneObject::Create(std::dynamic_pointer_cast<AnimationController>(GetSelfSharedPtr()), boneIndex, boneOffsetDQ.SinglePrecision());
+		std::shared_ptr<BoneObject> pBoneObject = BoneObject::Create(std::dynamic_pointer_cast<AnimationController>(GetSelfSharedPtr()), boneIndex, boneOffsetDQ);
 		pSharedRootObject->AddComponent(pBoneObject);
 	}
 
