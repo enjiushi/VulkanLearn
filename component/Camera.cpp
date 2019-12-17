@@ -38,8 +38,8 @@ void Camera::UpdateViewMatrix()
 	if (m_pObject.expired())
 		return;
 
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetCachedWorldTransform().Inverse());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(m_pObject.lock()->GetCachedWorldTransform()[2].xyz().Negative());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetCachedWorldTransform().Inverse().DoublePrecision());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(m_pObject.lock()->GetCachedWorldTransform()[2].xyz().Negative().DoublePrecision());
 }
 
 void Camera::UpdateProjMatrix()
@@ -77,7 +77,7 @@ void Camera::UpdateProjMatrix()
 		proj.w2 = B;
 		proj.w3 = 0.0f;
 
-		UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraJitterOffset(m_cameraInfo.jitterOffset);
+		UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraJitterOffset(m_cameraInfo.jitterOffset.DoublePrecision());
 	}
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetEyeSpaceSize({ width, height });
@@ -89,7 +89,7 @@ void Camera::UpdateProjMatrix()
 
 void Camera::UpdateCameraPosition()
 {
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetCachedWorldPosition());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetCachedWorldPosition().DoublePrecision());
 }
 
 void Camera::SetFOV(float new_fov)

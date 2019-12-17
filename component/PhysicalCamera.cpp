@@ -41,9 +41,9 @@ void PhysicalCamera::UpdateViewMatrix()
 	if (m_pObject.expired())
 		return;
 
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetCachedWorldPosition());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetCachedWorldTransform().Inverse());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(GetCameraDir());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetCachedWorldPosition().DoublePrecision());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetCachedWorldTransform().Inverse().DoublePrecision());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(GetCameraDir().DoublePrecision());
 }
 
 void PhysicalCamera::UpdateProjMatrix()
@@ -92,7 +92,7 @@ void PhysicalCamera::UpdateProjMatrix()
 	proj.z3 = -1.0f;
 	proj.w3 = 0.0f;
 
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraJitterOffset(m_jitterOffset);
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraJitterOffset(m_jitterOffset.DoublePrecision());
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetEyeSpaceSize({ m_supplementProps.fixedNearPlaneWidth, m_supplementProps.fixedNearPlaneHeight });
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetNearFarAB({ m_supplementProps.fixedNearPlane, m_props.farPlane, A, B });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetProjectionMatrix(proj);

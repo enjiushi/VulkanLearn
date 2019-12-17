@@ -10,7 +10,7 @@
 
 bool PerFrameUniforms::Init(const std::shared_ptr<PerFrameUniforms>& pSelf)
 {
-	if (!UniformDataStorage::Init(pSelf, sizeof(m_perFrameVariables), PerFrameDataStorage::Uniform))
+	if (!UniformDataStorage::Init(pSelf, sizeof(m_singlePrecisionPerFrameVariables), PerFrameDataStorage::Uniform))
 		return false;
 	return true;
 }
@@ -24,7 +24,7 @@ std::shared_ptr<PerFrameUniforms> PerFrameUniforms::Create()
 	return nullptr;
 }
 
-void PerFrameUniforms::SetViewMatrix(const Matrix4f& viewMatrix)
+void PerFrameUniforms::SetViewMatrix(const Matrix4d& viewMatrix)
 {
 	m_perFrameVariables.prevView = m_perFrameVariables.viewMatrix;
 	m_perFrameVariables.viewMatrix = viewMatrix;
@@ -33,79 +33,79 @@ void PerFrameUniforms::SetViewMatrix(const Matrix4f& viewMatrix)
 	SetDirty();
 }
 
-void PerFrameUniforms::SetCameraPosition(const Vector3f& camPos)
+void PerFrameUniforms::SetCameraPosition(const Vector3d& camPos)
 {
 	m_perFrameVariables.cameraPosition = camPos;
 	SetDirty();
 }
 
-void PerFrameUniforms::SetCameraDirection(const Vector3f& camDir)
+void PerFrameUniforms::SetCameraDirection(const Vector3d& camDir)
 {
 	m_perFrameVariables.cameraDirection = camDir;
 	SetDirty();
 }
 
-void PerFrameUniforms::SetEyeSpaceSize(const Vector2f& eyeSpaceSize)
+void PerFrameUniforms::SetEyeSpaceSize(const Vector2d& eyeSpaceSize)
 {
 	m_perFrameVariables.eyeSpaceSize = { eyeSpaceSize.x, eyeSpaceSize.y, 1.0f / eyeSpaceSize.x, 1.0f / eyeSpaceSize.y };
 	SetDirty();
 }
 
-void PerFrameUniforms::SetNearFarAB(const Vector4f& nearFarAB)
+void PerFrameUniforms::SetNearFarAB(const Vector4d& nearFarAB)
 {
 	m_perFrameVariables.nearFarAB = nearFarAB;
 	SetDirty();
 }
 
-void PerFrameUniforms::SetPadding0(float val) 
+void PerFrameUniforms::SetPadding0(double val) 
 {
 	m_perFrameVariables.padding0 = val; 
 	SetDirty();
 }
 
-void PerFrameUniforms::SetFrameIndex(float frameIndex)
+void PerFrameUniforms::SetFrameIndex(double frameIndex)
 {
 	m_perFrameVariables.frameIndex = frameIndex;
 	SetDirty();
 }
 
-void PerFrameUniforms::SetCameraJitterOffset(const Vector2f& jitterOffset)
+void PerFrameUniforms::SetCameraJitterOffset(const Vector2d& jitterOffset)
 { 
 	m_perFrameVariables.cameraJitterOffset = jitterOffset; 
 	SetDirty();
 }
 
-void PerFrameUniforms::SetDeltaTime(float deltaTime)
+void PerFrameUniforms::SetDeltaTime(double deltaTime)
 {
 	m_perFrameVariables.time.x = deltaTime;
 	SetDirty();
 }
 
-void PerFrameUniforms::SetSinTime(float sinTime)
+void PerFrameUniforms::SetSinTime(double sinTime)
 {
 	m_perFrameVariables.time.y = sinTime;
 	SetDirty();
 }
 
-void PerFrameUniforms::SetHaltonIndexX8Jitter(const Vector2f& haltonX8Jitter)
+void PerFrameUniforms::SetHaltonIndexX8Jitter(const Vector2d& haltonX8Jitter)
 {
 	m_perFrameVariables.haltonX8Jitter = haltonX8Jitter;
 	SetDirty();
 }
 
-void PerFrameUniforms::SetHaltonIndexX16Jitter(const Vector2f& haltonX16Jitter)
+void PerFrameUniforms::SetHaltonIndexX16Jitter(const Vector2d& haltonX16Jitter)
 {
 	m_perFrameVariables.haltonX16Jitter = haltonX16Jitter;
 	SetDirty();
 }
 
-void PerFrameUniforms::SetHaltonIndexX32Jitter(const Vector2f& haltonX32Jitter)
+void PerFrameUniforms::SetHaltonIndexX32Jitter(const Vector2d& haltonX32Jitter)
 {
 	m_perFrameVariables.haltonX32Jitter = haltonX32Jitter;
 	SetDirty();
 }
 
-void PerFrameUniforms::SetHaltonIndexX256Jitter(const Vector2f& haltonX256Jitter)
+void PerFrameUniforms::SetHaltonIndexX256Jitter(const Vector2d& haltonX256Jitter)
 {
 	m_perFrameVariables.haltonX256Jitter = haltonX256Jitter;
 	SetDirty();
@@ -114,8 +114,26 @@ void PerFrameUniforms::SetHaltonIndexX256Jitter(const Vector2f& haltonX256Jitter
 void PerFrameUniforms::UpdateUniformDataInternal()
 {
 	// Using curr proj matrix here, to get rid of camera jitter effect
-	m_perFrameVariables.prevVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perFrameVariables.prevView;
-	m_perFrameVariables.VP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perFrameVariables.viewMatrix;
+	m_perFrameVariables.prevVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix().DoublePrecision() * m_perFrameVariables.prevView;
+	m_perFrameVariables.VP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix().DoublePrecision() * m_perFrameVariables.viewMatrix;
+
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, viewMatrix);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, viewCoordSystem);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, VP);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, prevView);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, prevVP);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraPosition);
+	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, padding0);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraDirection);
+	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, frameIndex);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, eyeSpaceSize);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, nearFarAB);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraJitterOffset);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, time);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, haltonX8Jitter);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, haltonX16Jitter);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, haltonX32Jitter);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, haltonX256Jitter);
 }
 
 void PerFrameUniforms::SetDirtyInternal()
