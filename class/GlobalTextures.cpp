@@ -11,7 +11,6 @@
 #include "../class/RenderWorkManager.h"
 #include "../class/Mesh.h"
 #include "../component/MeshRenderer.h"
-#include "../component/Camera.h"
 #include "../Base/BaseObject.h"
 #include "../scene/SceneGenerator.h"
 #include "../class/RenderPassDiction.h"
@@ -63,7 +62,7 @@ void GlobalTextures::InitScreenSizeTextureDiction()
 	m_screenSizeTextureDiction.textureArrayName = "RGBA16ScreenSizeTextureArray";
 	m_screenSizeTextureDiction.textureArrayDescription = "Mostly used to store intermedia data of current frames";
 
-	Vector2f size = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().SinglePrecision();
+	Vector2d size = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 	uint32_t smaller = size.x < size.y ? size.x : size.y;
 	m_screenSizeTextureDiction.pTextureArray = Texture2DArray::CreateMipmapOffscreenTexture(GetDevice(), size.x, size.y, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
 	m_screenSizeTextureDiction.maxSlotIndex = 0;
@@ -114,27 +113,27 @@ void GlobalTextures::InitIrradianceTexture()
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask(RenderWorkManager::IrradianceGen);
 
-	Vector3f up = { 0, 1, 0 };
-	Vector3f look = { 0, 0, -1 };
+	Vector3d up = { 0, 1, 0 };
+	Vector3d look = { 0, 0, -1 };
 	look.Normalize();
-	Vector3f xaxis = up ^ look.Negativate();
+	Vector3d xaxis = up ^ look.Negativate();
 	xaxis.Normalize();
-	Vector3f yaxis = look ^ xaxis;
+	Vector3d yaxis = look ^ xaxis;
 	yaxis.Normalize();
 
-	Matrix3f rotation;
+	Matrix3d rotation;
 	rotation.c[0] = xaxis;
 	rotation.c[1] = yaxis;
 	rotation.c[2] = look;
 
-	Matrix3f cameraRotations[] =
+	Matrix3d cameraRotations[] =
 	{
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Positive X, i.e right
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Negative X, i.e left
-		Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Positive Y, i.e top
-		Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * rotation,	// Positive Z, i.e back
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(0, 0, 1)) * rotation,	// Negative Z, i.e front
+		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * Matrix3d::Rotation(3.0 * 3.14159265 / 2.0, Vector3d(0, 1, 0)) * rotation,	// Positive X, i.e right
+		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * Matrix3d::Rotation(1.0 * 3.14159265 / 2.0, Vector3d(0, 1, 0)) * rotation,	// Negative X, i.e left
+		Matrix3d::Rotation(3.0 * 3.14159265 / 2.0, Vector3d(1, 0, 0)) * rotation,	// Positive Y, i.e top
+		Matrix3d::Rotation(1.0 * 3.14159265 / 2.0, Vector3d(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
+		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * rotation,	// Positive Z, i.e back
+		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(0, 0, 1)) * rotation,	// Negative Z, i.e front
 	};
 
 	for (uint32_t i = 0; i < 6; i++)
@@ -143,8 +142,8 @@ void GlobalTextures::InitIrradianceTexture()
 
 		std::vector<VkClearValue> clearValues =
 		{
-			{ 0.0f, 0.0f, 0.0f, 0.0f },
-			{ 1.0f, 0 }
+			{ 0.0, 0.0, 0.0, 0.0 },
+			{ 1.0, 0 }
 		};
 
 		VkViewport viewport =
@@ -160,7 +159,7 @@ void GlobalTextures::InitIrradianceTexture()
 			UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 		};
 
-		SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i].DoublePrecision());
+		SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
 
 		SceneGenerator::GetInstance()->GetRootObject()->Update();
 		SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
@@ -195,27 +194,27 @@ void GlobalTextures::InitPrefilterEnvTexture()
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask(RenderWorkManager::ReflectionGen);
 
-	Vector3f up = { 0, 1, 0 };
-	Vector3f look = { 0, 0, -1 };
+	Vector3d up = { 0, 1, 0 };
+	Vector3d look = { 0, 0, -1 };
 	look.Normalize();
-	Vector3f xaxis = up ^ look.Negativate();
+	Vector3d xaxis = up ^ look.Negativate();
 	xaxis.Normalize();
-	Vector3f yaxis = look ^ xaxis;
+	Vector3d yaxis = look ^ xaxis;
 	yaxis.Normalize();
 
-	Matrix3f rotation;
+	Matrix3d rotation;
 	rotation.c[0] = xaxis;
 	rotation.c[1] = yaxis;
 	rotation.c[2] = look;
 
-	Matrix3f cameraRotations[] =
+	Matrix3d cameraRotations[] =
 	{
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Positive X, i.e right
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(0, 1, 0)) * rotation,	// Negative X, i.e left
-		Matrix3f::Rotation(3.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Positive Y, i.e top
-		Matrix3f::Rotation(1.0 * 3.14159265 / 2.0, Vector3f(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(1, 0, 0)) * rotation,	// Positive Z, i.e back
-		Matrix3f::Rotation(1.0 * 3.14159265 / 1.0, Vector3f(0, 0, 1)) * rotation,	// Negative Z, i.e front
+		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * Matrix3d::Rotation(3.0 * 3.14159265 / 2.0, Vector3d(0, 1, 0)) * rotation,	// Positive X, i.e right
+		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * Matrix3d::Rotation(1.0 * 3.14159265 / 2.0, Vector3d(0, 1, 0)) * rotation,	// Negative X, i.e left
+		Matrix3d::Rotation(3.0 * 3.14159265 / 2.0, Vector3d(1, 0, 0)) * rotation,	// Positive Y, i.e top
+		Matrix3d::Rotation(1.0 * 3.14159265 / 2.0, Vector3d(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
+		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * rotation,	// Positive Z, i.e back
+		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(0, 0, 1)) * rotation,	// Negative Z, i.e front
 	};
 
 	uint32_t mipLevels = std::log2(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
@@ -249,7 +248,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 			GetGlobalVulkanStates()->SetViewport(viewport);
 			GetGlobalVulkanStates()->SetScissorRect(scissorRect);
 
-			SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i].DoublePrecision());
+			SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
 			SceneGenerator::GetInstance()->GetRootObject()->Update();
 			SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
 			SceneGenerator::GetInstance()->GetRootObject()->UpdateCachedData();
