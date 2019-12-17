@@ -7,12 +7,12 @@
 class AssimpDataConverter
 {
 public:
-	static Vector3f AcquireVector3(const aiVector3D& assimpVector3);
-	static Quaternionf AcquireQuaternion(const aiQuaternion& assimpQuaternion);
-	static Matrix3f AcquireMatrix3(const aiMatrix3x3& assimpMatrix3x3);
-	static Matrix3f AcquireRotationMatrix(const aiMatrix4x4& assimpMatrix4x4);
-	static Quaternionf AcquireRotationQuaternion(const aiMatrix4x4& assimpMatrix4x4);
-	static Vector3f AcquireTranslationVector(const aiMatrix4x4& assimpMatrix4x4);
-	static Matrix4f AcquireMatrix(const aiMatrix4x4& assimpMatrix4x4);
-	static DualQuaternionf AcquireDualQuaternion(const aiMatrix4x4& assimpMatrix4x4);
+	static Vector3d AcquireVector3(const aiVector3D& assimpVector3);
+	static Quaterniond AcquireQuaternion(const aiQuaternion& assimpQuaternion);
+	static Matrix3d AcquireMatrix3(const aiMatrix3x3& assimpMatrix3x3);
+	static Matrix3d AcquireRotationMatrix(const aiMatrix4x4& assimpMatrix4x4);
+	static Quaterniond AcquireRotationQuaternion(const aiMatrix4x4& assimpMatrix4x4);
+	static Vector3d AcquireTranslationVector(const aiMatrix4x4& assimpMatrix4x4);
+	static Matrix4d AcquireMatrix(const aiMatrix4x4& assimpMatrix4x4);
+	static DualQuaterniond AcquireDualQuaternion(const aiMatrix4x4& assimpMatrix4x4);
 };

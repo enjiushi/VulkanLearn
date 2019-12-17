@@ -57,7 +57,7 @@ void SkeletonAnimation::AssemblyObjectAnimation(const aiNodeAnim* pAssimpNodeAni
 	{
 		RotationKeyFrame rotationKeyFrame = {};
 		rotationKeyFrame.time = pAssimpNodeAnimation->mRotationKeys[i].mTime / ticksPerSecond;
-		rotationKeyFrame.transform = AssimpDataConverter::AcquireQuaternion(pAssimpNodeAnimation->mRotationKeys[i].mValue);
+		rotationKeyFrame.transform = AssimpDataConverter::AcquireQuaternion(pAssimpNodeAnimation->mRotationKeys[i].mValue).SinglePrecision();
 		objectAnimation.rotationKeyFrames.push_back(rotationKeyFrame);
 	}
 
@@ -65,7 +65,7 @@ void SkeletonAnimation::AssemblyObjectAnimation(const aiNodeAnim* pAssimpNodeAni
 	{
 		TranslationKeyFrame translationKeyFrame = {};
 		translationKeyFrame.time = pAssimpNodeAnimation->mRotationKeys[i].mTime;
-		translationKeyFrame.transform = AssimpDataConverter::AcquireVector3(pAssimpNodeAnimation->mPositionKeys[i].mValue);
+		translationKeyFrame.transform = AssimpDataConverter::AcquireVector3(pAssimpNodeAnimation->mPositionKeys[i].mValue).SinglePrecision();
 		objectAnimation.translationKeyFrames.push_back(translationKeyFrame);
 	}
 
@@ -73,7 +73,7 @@ void SkeletonAnimation::AssemblyObjectAnimation(const aiNodeAnim* pAssimpNodeAni
 	{
 		ScaleKeyFrame scaleKeyFrame = {};
 		scaleKeyFrame.time = pAssimpNodeAnimation->mRotationKeys[i].mTime;
-		scaleKeyFrame.transform = AssimpDataConverter::AcquireVector3(pAssimpNodeAnimation->mScalingKeys[i].mValue);
+		scaleKeyFrame.transform = AssimpDataConverter::AcquireVector3(pAssimpNodeAnimation->mScalingKeys[i].mValue).SinglePrecision();
 		objectAnimation.ScaleKeyFrames.push_back(scaleKeyFrame);
 	}
 }

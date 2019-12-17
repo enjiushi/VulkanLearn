@@ -142,7 +142,7 @@ void AssimpSceneReader::ExtractAnimations(const aiScene* pScene)
 	uint32_t index = 0;
 }
 
-DualQuaternionf AssimpSceneReader::ExtractBoneInfo(const aiBone* pBone)
+DualQuaterniond AssimpSceneReader::ExtractBoneInfo(const aiBone* pBone)
 {
 	return AssimpDataConverter::AcquireDualQuaternion(pBone->mOffsetMatrix);
 }

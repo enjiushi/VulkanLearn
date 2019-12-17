@@ -27,6 +27,6 @@ public:
 
 protected:
 	static void ExtractAnimations(const aiScene* pScene);
-	static DualQuaternionf ExtractBoneInfo(const aiBone* pBone);
+	static DualQuaterniond ExtractBoneInfo(const aiBone* pBone);
 	static std::shared_ptr<BaseObject> AssemblyNode(const aiNode* pAssimpNode, const aiScene* pScene, const std::vector<uint32_t>& argumentedVAFList, SceneInfo& sceneInfo);
 };
