@@ -77,7 +77,7 @@ void Character::ProcessKey(KeyState keyState, uint8_t keyCode)
 	}
 }
 
-void Character::ProcessMouse(KeyState keyState, const Vector2f& mousePosition)
+void Character::ProcessMouse(KeyState keyState, const Vector2d& mousePosition)
 {
 	switch (keyState)
 	{
@@ -92,9 +92,9 @@ void Character::ProcessMouse(KeyState keyState, const Vector2f& mousePosition)
 	}
 }
 
-void Character::ProcessMouse(const Vector2f& mousePosition)
+void Character::ProcessMouse(const Vector2d& mousePosition)
 {
-	m_lastSampleCursorPosition = mousePosition;
+	m_lastSampleCursorPosition = mousePosition.SinglePrecision();
 }
 
 void Character::Move(const Vector3f& v, float delta)

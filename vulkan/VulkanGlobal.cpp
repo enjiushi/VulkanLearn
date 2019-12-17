@@ -862,8 +862,8 @@ class VariableChanger : public IInputListener
 {
 public:
 	void ProcessKey(KeyState keyState, uint8_t keyCode) override;
-	void ProcessMouse(KeyState keyState, const Vector2f& mousePosition) override {}
-	void ProcessMouse(const Vector2f& mousePosition) override {}
+	void ProcessMouse(KeyState keyState, const Vector2d& mousePosition) override {}
+	void ProcessMouse(const Vector2d& mousePosition) override {}
 	float var = 0.0;
 	bool boolVar = true;
 };
@@ -918,10 +918,10 @@ void VulkanGlobal::Draw()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::GetTotalTime()));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(pingpong);
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX8Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x8, frameCount).DoublePrecision());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX16Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x16, frameCount).DoublePrecision());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX32Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x32, frameCount).DoublePrecision());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX256Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x256, frameCount).DoublePrecision());
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX8Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x8, frameCount));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX16Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x16, frameCount));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX32Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x32, frameCount));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX256Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x256, frameCount));
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
