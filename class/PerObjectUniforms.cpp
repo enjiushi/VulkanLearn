@@ -32,8 +32,8 @@ void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4d& modelMatr
 
 void PerObjectUniforms::UpdateDirtyChunkInternal(uint32_t index)
 {
-	m_perObjectVariables[index].prevMVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetPrevVPMatrix().DoublePrecision() * m_perObjectVariables[index].prevModelMatrix;
-	m_perObjectVariables[index].MVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPMatrix().DoublePrecision() * m_perObjectVariables[index].modelMatrix;
+	m_perObjectVariables[index].prevMVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetPrevVPMatrix() * m_perObjectVariables[index].prevModelMatrix;
+	m_perObjectVariables[index].MVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPMatrix() * m_perObjectVariables[index].modelMatrix;
 
 	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], modelMatrix);
 	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], MVP);

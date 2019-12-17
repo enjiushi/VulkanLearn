@@ -769,7 +769,7 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject2->SetScale(0.15f);
 	m_pBoxObject2->SetPos(-0.2f, -0.25f, 0.5f);
 
-	Quaternionf rot = Quaternionf(Vector3f(1, 0, 0), 0);
+	Quaterniond rot = Quaterniond(Vector3d(1, 0, 0), 0);
 	m_pQuadObject->SetRotation(Quaterniond(Vector3d(1, 0, 0), -1.57));
 
 	m_pSkyBoxObject = BaseObject::Create();
@@ -784,7 +784,7 @@ void VulkanGlobal::InitScene()
 	sceneInfo.meshLinks[0].second->AddComponent(m_pSophiaRenderer);
 	m_pSophiaRenderer->SetName(L"hehe");
 	m_pSophiaObject->SetScale(0.005f);
-	m_pSophiaObject->SetRotation(Quaterniond(Vector3d(0, 1, 0), 3.14));
+	m_pSophiaObject->SetRotation(Quaterniond(Vector3d(0, 1, 0), 3.14f));
 	m_pSophiaObject->SetPos(0, -0.4f, -1);
 	//AddBoneBox(m_pSophiaObject);
 	sceneInfo.meshLinks.clear();
@@ -817,45 +817,45 @@ void VulkanGlobal::InitScene()
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor({ 1, 1, 1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ 1, 1, -1 });
-	UniformData::GetInstance()->GetGlobalUniforms()->SetRenderSettings({ 1.0f / 2.2f, 4.5f, 11.2f, 0.0f });
+	UniformData::GetInstance()->GetGlobalUniforms()->SetRenderSettings({ 1.0 / 2.2, 4.5, 11.2, 0.0 });
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBRDFBias(0.7f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRMip(1.0f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSampleNormalRegenCount(15.0f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSampleNormalRegenMargin(0.19f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStride(3.7f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTInitOffset(2.0f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxSSRTStepCount(200.0f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTThickness(0.05f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTBorderFadingDist(0.05f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStepCountFadingDist(0.1f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBRDFBias(0.7);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRMip(1.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSampleNormalRegenCount(15.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSampleNormalRegenMargin(0.19);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStride(3.7);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTInitOffset(2.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxSSRTStepCount(200.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTThickness(0.05);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTBorderFadingDist(0.05);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStepCountFadingDist(0.1);
 
 	uint32_t smaller = FrameBufferDiction::WINDOW_HEIGHT < FrameBufferDiction::WINDOW_WIDTH ? FrameBufferDiction::WINDOW_HEIGHT : FrameBufferDiction::WINDOW_WIDTH;
 	UniformData::GetInstance()->GetGlobalUniforms()->SetScreenSizeMipLevel(log2(smaller) + 1);
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactLowerBound(0.0001f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.003f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetHighResponseSSRPortion(0.7f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactLowerBound(0.0001);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.003);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetHighResponseSSRPortion(0.7);
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingLowerBound(0.99f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingUpperBound(1.1f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetUpsampleScale(1.0f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomAmplify(1.0f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomSlope(1.0f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingLowerBound(0.99);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingUpperBound(1.1);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetUpsampleScale(1.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomAmplify(1.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomSlope(1.0);
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxCOC(16.0f / FrameBufferDiction::WINDOW_WIDTH);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxCOC(16.0 / FrameBufferDiction::WINDOW_WIDTH);
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionBlurAmplify(0.06f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionBlurAmplify(0.06);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionBlurSampleCount(16);
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMinDist(0.2f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMaxDist(0.8f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteAmplify(0.7f);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMinDist(0.2);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMaxDist(0.8);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteAmplify(0.7);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleCount(32);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleVectorLength(0.3f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOExtinctionStartingRadius(1.0f / FrameBufferDiction::WINDOW_WIDTH * 80);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOExtinctionEndingRadius(1.0f / FrameBufferDiction::WINDOW_WIDTH * 40);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOExtinctionStartingRadius(1.0 / FrameBufferDiction::WINDOW_WIDTH * 80);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOExtinctionEndingRadius(1.0 / FrameBufferDiction::WINDOW_WIDTH * 40);
 }
 
 class VariableChanger : public IInputListener

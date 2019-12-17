@@ -114,8 +114,8 @@ void PerFrameUniforms::SetHaltonIndexX256Jitter(const Vector2d& haltonX256Jitter
 void PerFrameUniforms::UpdateUniformDataInternal()
 {
 	// Using curr proj matrix here, to get rid of camera jitter effect
-	m_perFrameVariables.prevVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix().DoublePrecision() * m_perFrameVariables.prevView;
-	m_perFrameVariables.VP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix().DoublePrecision() * m_perFrameVariables.viewMatrix;
+	m_perFrameVariables.prevVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perFrameVariables.prevView;
+	m_perFrameVariables.VP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perFrameVariables.viewMatrix;
 
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, viewMatrix);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, viewCoordSystem);
