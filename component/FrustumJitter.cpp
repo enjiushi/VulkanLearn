@@ -51,8 +51,8 @@ void HaltonSequence::InitializeHalton_2_3()
 	{
 		for (int i = 0, n = POINTS_HALTON_2_3[mode].second / 2; i != n; i++)
 		{
-			float u = HaltonSeq(2, i + 1) - 0.5;
-			float v = HaltonSeq(3, i + 1) - 0.5;
+			double u = HaltonSeq(2, i + 1) - 0.5;
+			double v = HaltonSeq(3, i + 1) - 0.5;
 			POINTS_HALTON_2_3[mode].first[2 * i + 0] = u;
 			POINTS_HALTON_2_3[mode].first[2 * i + 1] = v;
 		}
@@ -102,7 +102,7 @@ void FrustumJitter::Update()
 	if (!m_jitterEnabled)
 		return;
 
-	m_pCamera->SetJitterOffset(Vector2f(HaltonSequence::POINTS_HALTON_2_3[m_haltonMode].first[m_currentIndex], HaltonSequence::POINTS_HALTON_2_3[m_haltonMode].first[m_currentIndex + 1]));
+	m_pCamera->SetJitterOffset({ HaltonSequence::POINTS_HALTON_2_3[m_haltonMode].first[m_currentIndex], HaltonSequence::POINTS_HALTON_2_3[m_haltonMode].first[m_currentIndex + 1] });
 	m_currentIndex = (m_currentIndex + 2) % HaltonSequence::POINTS_HALTON_2_3[m_haltonMode].second;
 }
 

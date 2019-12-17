@@ -31,10 +31,10 @@ PyramidFrustum<T>::PyramidFrustum(const Vector3<T>& head, const Vector3<T>& look
 	Vector3<T> topLeft = q.Rotate({ -tangentFOV_2_h, tangentFOV_2_v, -1.0f });
 	Vector3<T> topRight = q.Rotate({ tangentFOV_2_h, tangentFOV_2_v, -1.0f });
 
-	planes[FrustumFace_LEFT]	= { bottomLeft,		topLeft,	 head, Vector3<T>(bottomRight - bottomLeft).Normal() };
-	planes[FrustumFace_RIGHT]	= { bottomRight,	topRight,	 head, Vector3<T>(bottomLeft - bottomRight).Normal() };
-	planes[FrustumFace_BOTTOM]	= { bottomLeft,		bottomRight, head, Vector3<T>(topLeft - bottomLeft).Normal() };
-	planes[FrustumFace_TOP]		= { topLeft,		topRight,	 head, Vector3<T>(bottomLeft - topLeft).Normal() };
+	planes[FrustumFace_LEFT]	= Plane<T>(bottomLeft,	topLeft,	 head, Vector3<T>(bottomRight - bottomLeft).Normal());
+	planes[FrustumFace_RIGHT]	= Plane<T>(bottomRight,	topRight,	 head, Vector3<T>(bottomLeft - bottomRight).Normal());
+	planes[FrustumFace_BOTTOM]	= Plane<T>(bottomLeft,	bottomRight, head, Vector3<T>(topLeft - bottomLeft).Normal());
+	planes[FrustumFace_TOP]		= Plane<T>(topLeft,		topRight,	 head, Vector3<T>(bottomLeft - topLeft).Normal());
 
 	this->head = head;
 }

@@ -35,7 +35,7 @@ public:
 public:
 	// normal * x = D
 	Vector3<T>	normal;
-	float		D = 0;
+	T			D = 0;
 };
 
 #include "Plane.inl"

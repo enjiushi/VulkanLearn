@@ -37,8 +37,8 @@ protected:
 	bool Init(const std::shared_ptr<PlanetGenerator>& pSelf, const std::shared_ptr<PhysicalCamera>& pCamera);
 
 protected:
-	CullState FrustumCull(const Vector3f& a, const Vector3f& b, const Vector3f& c, float height);
-	void SubDivide(uint32_t currentLevel, CullState state, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles);
+	CullState FrustumCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, double height);
+	void SubDivide(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, IcoTriangle*& pOutputTriangles);
 
 public:
 	void Start() override;
@@ -48,22 +48,22 @@ public:
 	void ToggleCameraInfoUpdate(bool flag) { m_toggleCameraInfoUpdate = flag; }
 
 private:
-	Vector3f		m_icosahedronVertices[20];
+	Vector3d		m_icosahedronVertices[20];
 	uint32_t		m_icosahedronIndices[20 * 3];
 
-	std::vector<float>				m_distanceLUT;
-	std::vector<float>				m_heightLUT;
+	std::vector<double>				m_distanceLUT;
+	std::vector<double>				m_heightLUT;
 	std::shared_ptr<MeshRenderer>	m_pMeshRenderer;
 	std::shared_ptr<PhysicalCamera>	m_pCamera;
 
 	// Utility variables, to avoid frequent construction and destruction every frame
-	Matrix4f		m_utilityTransfrom;
-	Vector3f		m_utilityVector0;
-	Vector3f		m_utilityVector1;
+	Matrix4d		m_utilityTransfrom;
+	Vector3d		m_utilityVector0;
+	Vector3d		m_utilityVector1;
 
 	// Camera infor in planet local space
-	PyramidFrustumf	m_cameraFrustumLocal;
-	Vector3f		m_cameraPosLocal;
+	PyramidFrustumd	m_cameraFrustumLocal;
+	Vector3d		m_cameraPosLocal;
 
 	// Whether to update camera info in planet local space
 	// This is used mostly for debugging
