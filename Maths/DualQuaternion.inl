@@ -5,8 +5,8 @@
 template<typename T>
 DualQuaternion<T>::DualQuaternion()
 {
-	real = Quaternionf(0, 0, 0, 1);
-	dual = Quaternionf(0, 0, 0, 0);
+	real = Quaternion<T>(0, 0, 0, 1);
+	dual = Quaternion<T>(0, 0, 0, 0);
 }
 
 template<typename T>
@@ -202,6 +202,18 @@ Vector3<T> DualQuaternion<T>::Transform(const Vector3<T>& input)
 	Vector3<T> t = AcquireTranslation();
 
 	return r.Rotate(input) + t;
+}
+
+template<typename T>
+DualQuaternion<float> DualQuaternion<T>::SinglePrecision() const
+{
+	return { (float)x, (float)y, (float)z, (float)w, (float)dx, (float)dy, (float)dz, (float)dw };
+}
+
+template<typename T>
+DualQuaternion<double> DualQuaternion<T>::DoublePrecision() const
+{
+	return { (double)x, (double)y, (double)z, (double)w, (double)dx, (double)dy, (double)dz, (double)dw };
 }
 
 template<typename T>

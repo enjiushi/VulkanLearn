@@ -51,6 +51,9 @@ public:
 
 	Vector3<T> Rotate(const Vector3<T>& v);
 
+	Quaternion<float> SinglePrecision() const;
+	Quaternion<double> DoublePrecision() const;
+
 	// Spherical Lerp
 	static Quaternion<T> SLerp(const Quaternion<T>& from, const Quaternion<T>& to, T factor);
 
@@ -75,5 +78,6 @@ public:
 };
 
 typedef Quaternion<float> Quaternionf;
+typedef Quaternion<double> Quaterniond;
 
 #include "Quaternion.inl"

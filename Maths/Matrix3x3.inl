@@ -174,6 +174,28 @@ T Matrix3x3<T>::Determinant() const
 	return c00 * c11 * c22 + c01 * c12 * c20 + c02 * c10 * c21 - c02 * c11 * c20 - c01 * c10 * c22 - c00 * c12 * c21;
 }
 
+template <typename T>
+Matrix3x3<float> Matrix3x3<T>::SinglePrecision() const
+{
+	return
+	{
+		(float)c00, (float)c01, (float)c02,
+		(float)c10, (float)c11, (float)c12,
+		(float)c20, (float)c21, (float)c22
+	};
+}
+
+template <typename T>
+Matrix3x3<double> Matrix3x3<T>::DoublePrecision() const
+{
+	return
+	{
+		(double)c00, (double)c01, (double)c02,
+		(double)c10, (double)c11, (double)c12,
+		(double)c20, (double)c21, (double)c22
+	};
+}
+
 // https://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2015/01/matrix-to-quat.pdf
 template <typename T>
 Quaternion<T> Matrix3x3<T>::AcquireQuaternion() const

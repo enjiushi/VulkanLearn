@@ -63,6 +63,11 @@ public:
 	Vector3<T> TranslationVector() const;
 	T Determinant() const;
 
+	Matrix3x3<float> SinglePrecisionRotation() const;
+	Matrix4x4<float> SinglePrecision() const;
+	Matrix3x3<double> DoublePrecisionRotation() const;
+	Matrix4x4<double> DoublePrecision() const;
+
 	Vector3<T> TransformAsVector(const Vector3<T>& v) const;
 	Vector3<T> TransformAsPoint(const Vector3<T>& v) const;
 

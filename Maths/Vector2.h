@@ -10,25 +10,25 @@ public:
 	Vector2(const Vector2<T>& v) : x(v.x), y(v.y) {}
 
 public:
-	const Vector2 operator + (const Vector2<T>& v) const;
-	const Vector2 operator - (const Vector2<T>& v) const;
+	const Vector2<T> operator + (const Vector2<T>& v) const;
+	const Vector2<T> operator - (const Vector2<T>& v) const;
 	T operator * (const Vector2<T>& v) const;
 
-	const Vector2 operator + (T s) const;
-	const Vector2 operator - (T s) const;
-	const Vector2 operator * (T s) const;
-	const Vector2 operator / (T s) const;
+	const Vector2<T> operator + (T s) const;
+	const Vector2<T> operator - (T s) const;
+	const Vector2<T> operator * (T s) const;
+	const Vector2<T> operator / (T s) const;
 
-	Vector2& operator += (T s);
-	Vector2& operator -= (T s);
-	Vector2& operator *= (T s);
-	Vector2& operator /= (T s);
+	Vector2<T>& operator += (T s);
+	Vector2<T>& operator -= (T s);
+	Vector2<T>& operator *= (T s);
+	Vector2<T>& operator /= (T s);
 
-	Vector2& operator += (const Vector2<T>& v);
-	Vector2& operator -= (const Vector2<T>& v);
-	Vector2& operator *= (const Vector2<T>& v);
+	Vector2<T>& operator += (const Vector2<T>& v);
+	Vector2<T>& operator -= (const Vector2<T>& v);
+	Vector2<T>& operator *= (const Vector2<T>& v);
 
-	Vector2& operator = (T s);
+	Vector2<T>& operator = (T s);
 
 	bool operator == (const Vector2<T>& v) const;
 	bool operator != (const Vector2<T>& v) const;
@@ -39,11 +39,14 @@ public:
 	T SquareLength() const;
 	T Length() const;
 
-	Vector2& Normalize();
-	const Vector2 Normal() const;
+	Vector2<T>& Normalize();
+	const Vector2<T> Normal() const;
 
-	Vector2& Negativate();
-	const Vector2 Negative() const;
+	Vector2<T>& Negativate();
+	const Vector2<T> Negative() const;
+
+	Vector2<float> SinglePrecision() const;
+	Vector2<double> DoublePrecision() const;
 
 public:
 	union

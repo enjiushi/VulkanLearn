@@ -406,3 +406,49 @@ Vector3<T> Matrix4x4<T>::TransformAsPoint(const Vector3<T>& v) const
 {
 	return (*this * Vector4<T>(v, 1.0f)).xyz();
 }
+
+template <typename T>
+Matrix3x3<float> Matrix4x4<T>::SinglePrecisionRotation() const
+{
+	return
+	{
+		(float)c00, (float)c01, (float)c02,
+		(float)c10, (float)c11, (float)c12,
+		(float)c20, (float)c21, (float)c22
+	};
+}
+
+template <typename T>
+Matrix4x4<float> Matrix4x4<T>::SinglePrecision() const
+{
+	return
+	{
+		(float)c00, (float)c01, (float)c02, (float)c03,
+		(float)c10, (float)c11, (float)c12, (float)c13,
+		(float)c20, (float)c21, (float)c22, (float)c23,
+		(float)c30, (float)c31, (float)c32, (float)c33
+	};
+}
+
+template <typename T>
+Matrix3x3<double> Matrix4x4<T>::DoublePrecisionRotation() const
+{
+	return
+	{
+		(double)c00, (double)c01, (double)c02,
+		(double)c10, (double)c11, (double)c12,
+		(double)c20, (double)c21, (double)c22
+	};
+}
+
+template <typename T>
+Matrix4x4<double> Matrix4x4<T>::DoublePrecision() const
+{
+	return
+	{
+		(double)c00, (double)c01, (double)c02, (double)c03,
+		(double)c10, (double)c11, (double)c12, (double)c13,
+		(double)c20, (double)c21, (double)c22, (double)c23,
+		(double)c30, (double)c31, (double)c32, (double)c33
+	};
+}

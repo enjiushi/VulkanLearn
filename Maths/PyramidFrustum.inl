@@ -18,10 +18,10 @@ PyramidFrustum<T>::PyramidFrustum(const Vector3<T>& head, const Vector3<T>& bott
 }
 
 template <typename T>
-PyramidFrustum<T>::PyramidFrustum(const Vector3<T>& head, const Vector3<T>& lookAt, float fovv, float aspect)
+PyramidFrustum<T>::PyramidFrustum(const Vector3<T>& head, const Vector3<T>& lookAt, T fovv, T aspect)
 {
-	float tangentFOV_2_v = std::tanf(fovv);
-	float tangentFOV_2_h = aspect * tangentFOV_2_v;
+	T tangentFOV_2_v = std::tan(fovv);
+	T tangentFOV_2_h = aspect * tangentFOV_2_v;
 
 	Quaternion<T> q({ 0, 0, -1 }, lookAt);
 

@@ -33,11 +33,14 @@ public:
 	Matrix3x3& Inverse();
 
 	T Determinant() const;
+	Matrix3x3<float> SinglePrecision() const;
+	Matrix3x3<double> DoublePrecision() const;
 	
 	Quaternion<T> AcquireQuaternion() const;
 
 	static Matrix3x3<T> Rotation(T rotation, const Vector3<T>& v);
 	static Matrix3x3<T> EulerAngle(T rotationX, T rotationY, T rotationZ);
+
 public:
 	union
 	{
