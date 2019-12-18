@@ -12,5 +12,4 @@ void main()
     gl_Position = vec4(outUv * 2.0f - 1.0f, 0.0f, 1.0f);
     gl_Position.y *= -1.0f;
     outUv.y = 1.0f - outUv.y;
-
 }

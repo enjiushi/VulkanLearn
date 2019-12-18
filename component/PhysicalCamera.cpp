@@ -42,8 +42,12 @@ void PhysicalCamera::UpdateViewMatrix()
 		return;
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetCachedWorldPosition());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetCachedWorldTransform().Inverse());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(GetCameraDir());
+
+	Matrix4d matrix = m_pObject.lock()->GetCachedWorldTransform();
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(matrix[2].xyz().Negative());
+
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewCoordinateSystem(matrix);
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(matrix.Inverse());
 }
 
 void PhysicalCamera::UpdateProjMatrix()

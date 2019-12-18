@@ -63,13 +63,11 @@ struct PerFrameBoneData
 
 struct PerFrameData
 {
-	mat4 view;
-	mat4 viewCoordSystem;
-	mat4 VP;
-	mat4 prevView;
-	mat4 prevVP;
-	vec4 camPos;
-	vec4 camDir;
+	mat4 view;					
+	mat4 viewCoordSystem;		
+	mat4 prevView;			
+	vec4 wsCameraPosition;
+	vec4 wsCameraDirection;
 	vec4 cameraSpaceSize;
 	vec4 nearFarAB;
 	vec2 cameraJitterOffset;
@@ -78,14 +76,18 @@ struct PerFrameData
 	vec2 haltonX16Jitter;
 	vec2 haltonX32Jitter;
 	vec2 haltonX256Jitter;
+	float frameIndex;
+	float pingpongIndex;
+	float reservedPadding0;
+	float reservedPadding1;
 };
 
 struct PerObjectData
 {
-	mat4 model;
-	mat4 MVP;
+	mat4 MV;			// We can keep the translation of modelview matrix, as it's relative to camera. Larger number means far away, float rounding isn't visible
+	mat4 MVP;			// Same as above
 
-	mat4 prevModel;
+	mat4 prevMV;		// We can keep the translation of modelview matrix, as it's relative to camera. Larger number means far away, float rounding isn't visible
 	mat4 prevMVP;
 };
 
@@ -165,6 +167,9 @@ layout(set = 3, binding = 2) buffer PerMaterialIndirectUniforms
 {
 	ObjectDataIndex objectDataIndex[];
 };
+
+int frameIndex = int(perFrameData.frameIndex);
+int pingpongIndex = int(perFrameData.pingpongIndex);
 
 const float PI = 3.1415926535897932384626433832795;
 const float FLT_EPS = 0.00000001f;
@@ -285,51 +290,25 @@ float ReconstructLinearDepth(float sampledDepth)
 	return -1.0f * perFrameData.nearFarAB.x / sampledDepth;
 }
 
-vec3 ReconstructPosition(in ivec2 coord, in vec3 worldSpaceViewRay, in sampler2D DepthBuffer, out float linearDepth)
+vec3 ReconstructCSPosition(in ivec2 coord, in vec3 CSViewRay, in sampler2D DepthBuffer, out float linearDepth)
 {
 	float window_z = texelFetch(DepthBuffer, coord, 0).r;
 	linearDepth = ReconstructLinearDepth(window_z);
-
-	vec3 viewRay = normalize(worldSpaceViewRay);
 
 	// Get cosine theta between view ray and camera direction
-	float cos_viewRay_camDir = dot(viewRay, perFrameData.camDir.xyz);
+	float cos_viewRay_camDir = dot(CSViewRay, vec3(0, 0, -1));
 
-	// "linearDepth / cos_viewRay_camDir" is viewRay length between camera and surface point
-	// NOTE: "linearDepth" IS Z AXIS POSITION IN EYE SPACE, SO IT IS A MINUS VALUE, IF IT IS MULTIPLIED WITH A VECTOR, THEN WE SHOULD
-	//       GET IT'S ABSOLUTE VALUE, I.E. DISTANCE TO CAMERA POSITION
-	// DAMN THIS BUG HAUNTED ME FOR A DAY
-	return viewRay * abs(linearDepth) / cos_viewRay_camDir + perFrameData.camPos.xyz;
+	// abs(linearDepth) / cos_viewRay_camDir is length of view ray in camera space
+	return CSViewRay * abs(linearDepth) / cos_viewRay_camDir;
 }
 
-vec3 ReconstructWSPosition(in ivec2 coord, in vec2 oneNearPosition, in sampler2D DepthBuffer, out float linearDepth)
+vec3 ReconstructCSPosition(in ivec2 coord, in vec2 oneNearPosition, in sampler2D DepthBuffer, out float linearDepth)
 {
 	float window_z = texelFetch(DepthBuffer, coord, 0).r;
 	linearDepth = ReconstructLinearDepth(window_z);
 
-	// 1. Let interpolated position multiplied with camera space linear depth to reconstruct camera space position
-	// 2. Multiply with camera space coord system matrix, we have world space position reconstructed
-	vec4 wsPosition = perFrameData.viewCoordSystem * vec4(oneNearPosition * linearDepth, linearDepth, 1.0f);
-
-	return wsPosition.xyz;
-}
-
-vec3 ReconstructWSPosition(in ivec2 coord, in sampler2D DepthBuffer, out float linearDepth)
-{
-	float window_z = texelFetch(DepthBuffer, coord, 0).r;
-	linearDepth = ReconstructLinearDepth(window_z);
-
-	// Acquire half camera space size of near plane of view frustum, with ratio of near plane length 1
-	vec2 oneHalfSize = perFrameData.cameraSpaceSize.xy * 0.5f / -perFrameData.nearFarAB.x;
-	// Get uv
-	vec2 uv = coord / globalData.gameWindowSize.xy;
-	// Acquire interpolated position of that camera space size(ratio: near plane length 1)
-	vec2 oneNearPosition = vec2(mix(-oneHalfSize.x, oneHalfSize.x, uv.x), mix(-oneHalfSize.y, oneHalfSize.y, (1.0f - uv.y)));
-	// 1. Let interpolated position multiplied with camera space linear depth to reconstruct camera space position
-	// 2. Multiply with camera space coord system matrix, we have world space position reconstructed
-	vec4 wsPosition = perFrameData.viewCoordSystem * vec4(oneNearPosition * linearDepth, linearDepth, 1.0f);
-
-	return wsPosition.xyz;
+	// Let interpolated position multiply with camera space linear depth to reconstruct camera space position
+	return vec3(oneNearPosition * abs(linearDepth), linearDepth);
 }
 
 const int sampleCount = 5;
@@ -465,19 +444,21 @@ struct GBufferVariables
 {
 	vec4 albedo_roughness;
 	vec4 normal_ao;
-	vec4 world_position;
+	vec4 camera_position;
 	float metalic;
 	float shadowFactor;
 	float ssaoFactor;
 };
 
-float AcquireShadowFactor(vec4 world_position, sampler2D ShadowMapDepthBuffer)
+float AcquireShadowFactor(vec4 csPosition, sampler2D ShadowMapDepthBuffer)
 {
-	vec4 light_space_pos = globalData.mainLightVP * world_position;
-	light_space_pos /= light_space_pos.w;
-	light_space_pos.xy = light_space_pos.xy * 0.5f + 0.5f;	// NOTE: Don't do this to z, as it's already within [0, 1] after vulkan ndc transform
+	// The view matrix in main light VP needs to be the transfrom from main camera space rather than world space
+	// Doing this to avoid large number of world space position in a large scale scene
+	vec4 lsPosition = globalData.mainLightVP * csPosition;
+	lsPosition /= lsPosition.w;
+	lsPosition.xy = lsPosition.xy * 0.5f + 0.5f;	// NOTE: Don't do this to z, as it's already within [0, 1] after vulkan ndc transform
 
-	if (min(light_space_pos.x, light_space_pos.y) < 0 || max(light_space_pos.x, light_space_pos.y) > 1)
+	if (min(lsPosition.x, lsPosition.y) < 0 || max(lsPosition.x, lsPosition.y) > 1)
 		return 1;
 
 	vec2 texelSize = 1.0f / textureSize(ShadowMapDepthBuffer, 0);
@@ -485,34 +466,34 @@ float AcquireShadowFactor(vec4 world_position, sampler2D ShadowMapDepthBuffer)
 	float pcfDepth;
 	float bias = -0.0005f;
 
-	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(-1, -1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
+	pcfDepth = texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(-1, -1) * texelSize).r + bias;
+	shadowFactor += (lsPosition.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
 
-	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, -1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
+	pcfDepth = texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(0, -1) * texelSize).r + bias;
+	shadowFactor += (lsPosition.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
 
-	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(1, -1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
+	pcfDepth = texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(1, -1) * texelSize).r + bias;
+	shadowFactor += (lsPosition.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
 
-	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(-1, 0) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
+	pcfDepth = texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(-1, 0) * texelSize).r + bias;
+	shadowFactor += (lsPosition.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
 
-	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, 0) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.195346;
+	pcfDepth = texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(0, 0) * texelSize).r + bias;
+	shadowFactor += (lsPosition.z < pcfDepth ? 1.0 : 0.0) * 0.195346;
 
-	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(1, 0) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
+	pcfDepth = texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(1, 0) * texelSize).r + bias;
+	shadowFactor += (lsPosition.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
 
-	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(-1, 1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
+	pcfDepth = texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(-1, 1) * texelSize).r + bias;
+	shadowFactor += (lsPosition.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
 
-	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, 1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
+	pcfDepth = texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(0, 1) * texelSize).r + bias;
+	shadowFactor += (lsPosition.z < pcfDepth ? 1.0 : 0.0) * 0.123317;
 
-	pcfDepth = texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(1, 1) * texelSize).r + bias;
-	shadowFactor += (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
+	pcfDepth = texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(1, 1) * texelSize).r + bias;
+	shadowFactor += (lsPosition.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
 
-	//return 1.0f - (light_space_pos.z < pcfDepth ? 1.0 : 0.0) * texture(ShadowMapDepthBuffer, light_space_pos.xy + vec2(0, 0) * texelSize).r;
+	//return 1.0f - (lsPosition.z < pcfDepth ? 1.0 : 0.0) * texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(0, 0) * texelSize).r;
 	return 1.0f - shadowFactor;
 }
 
@@ -531,7 +512,7 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 oneNearPosition, sampler2D GBu
 	vars.normal_ao.w = gbuffer2.a;
 
 	float linearDepth;
-	vars.world_position = vec4(ReconstructWSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0f);
+	vars.camera_position = vec4(ReconstructCSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0f);
 
 	vars.metalic = gbuffer2.g;
 
@@ -553,11 +534,11 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord, vec2 oneNearPosition
 	vars.normal_ao.w = gbuffer2.a;
 
 	float linearDepth;
-	vars.world_position = vec4(ReconstructWSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0);
+	vars.camera_position = vec4(ReconstructCSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0);
 
 	vars.metalic = gbuffer2.g;
 
-	vars.shadowFactor = AcquireShadowFactor(vars.world_position, ShadowMapDepthBuffer);
+	vars.shadowFactor = AcquireShadowFactor(vars.camera_position, ShadowMapDepthBuffer);
 
 	vars.ssaoFactor = texture(BlurredSSAOBuffer, texcoord).r;
 	vars.ssaoFactor = min(1.0f, vars.ssaoFactor);

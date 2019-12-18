@@ -12,14 +12,10 @@ class PerFrameVariables
 {
 public:
 	Matrix4x4<T>	viewMatrix;
-	Matrix4x4<T>	viewCoordSystem;	// view coord system, i.e. viewMatrix inverse
-	Matrix4x4<T>	VP;					// view * projection
+	Matrix4x4<T>	viewCoordSystem;
 	Matrix4x4<T>	prevView;
-	Matrix4x4<T>	prevVP;
-	Vector3<T>		cameraPosition;
-	T				padding0;
-	Vector3<T>		cameraDirection;
-	T				frameIndex;
+	Vector4<T>		cameraPosition;
+	Vector4<T>		cameraDirection;
 	Vector4<T>		eyeSpaceSize;		// xy: eye space size, zw: inverted eye space size
 	Vector4<T>		nearFarAB;
 	Vector2<T>		cameraJitterOffset;
@@ -29,6 +25,11 @@ public:
 	Vector2<T>		haltonX16Jitter;
 	Vector2<T>		haltonX32Jitter;
 	Vector2<T>		haltonX256Jitter;
+
+	T				frameIndex;
+	T				pingpongIndex;
+	T				padding0;
+	T				padding1;
 };
 
 typedef PerFrameVariables<float> PerFrameVariablesf;
@@ -45,22 +46,17 @@ public:
 public:
 	void SetViewMatrix(const Matrix4d& viewMatrix);
 	Matrix4d GetViewMatrix() const { return m_perFrameVariables.viewMatrix; }
-	Matrix4d GetVPMatrix() const { return m_perFrameVariables.VP; }
-	Matrix4d GetPrevViewMatrix() const { return m_perFrameVariables.prevView; }
-	Matrix4d GetPrevVPMatrix() const { return m_perFrameVariables.prevVP; }
+	void SetViewCoordinateSystem(const Matrix4d& viewCoordinateSystem);	// Maybe I should add this to reduce an extra matrix inverse
+	Matrix4d GetViewCoordinateSystem() const { return m_perFrameVariables.viewCoordSystem; }
 	void SetCameraPosition(const Vector3d& camPos);
-	Vector3d GetCameraPosition() const { return m_perFrameVariables.cameraPosition; }
+	Vector3d GetCameraPosition() const { return m_perFrameVariables.cameraPosition.xyz(); }
 	void SetCameraDirection(const Vector3d& camDir);
-	Vector3d GetCameraDirection() const { return m_perFrameVariables.cameraDirection; }
+	Vector3d GetCameraDirection() const { return m_perFrameVariables.cameraDirection.xyz(); }
 	void SetEyeSpaceSize(const Vector2d& eyeSpaceSize);
 	Vector2d GetEyeSpaceSize() const { return { m_perFrameVariables.eyeSpaceSize.x, m_perFrameVariables.eyeSpaceSize.y }; }
 	Vector2d GetEyeSpaceSizeInv() const { return { m_perFrameVariables.eyeSpaceSize.z, m_perFrameVariables.eyeSpaceSize.w }; }
 	void SetNearFarAB(const Vector4d& nearFarAB);
 	Vector4d GetNearFarAB() const { return m_perFrameVariables.nearFarAB; }
-	void SetPadding0(double val);
-	double GetPadding0() const { return m_perFrameVariables.padding0; }
-	void SetFrameIndex(double frameIndex);
-	double GetFrameIndex() const { return m_perFrameVariables.frameIndex; }
 	void SetCameraJitterOffset(const Vector2d& jitterOffset);
 	Vector2d GetCameraJitterOffset() const { return m_perFrameVariables.cameraJitterOffset; }
 	void SetDeltaTime(double deltaTime);
@@ -71,6 +67,12 @@ public:
 	void SetHaltonIndexX16Jitter(const Vector2d& haltonX16Jitter);
 	void SetHaltonIndexX32Jitter(const Vector2d& haltonX32Jitter);
 	void SetHaltonIndexX256Jitter(const Vector2d& haltonX256Jitter);
+	void SetFrameIndex(double frameIndex);
+	double GetFrameIndex() const { return m_perFrameVariables.frameIndex; }
+	void SetPingpongIndex(double pingpongIndex);
+	double GetPingpongIndex() const { return m_perFrameVariables.pingpongIndex; }
+	void SetPadding0(double val);
+	double GetPadding0() const { return m_perFrameVariables.padding0; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;

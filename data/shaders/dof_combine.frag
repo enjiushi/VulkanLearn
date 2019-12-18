@@ -13,14 +13,11 @@ layout (location = 0) in vec2 inUv;
 
 layout (location = 0) out vec4 outDOFResult;
 
-int index = int(perFrameData.camDir.a);
-int pingpong = (int(perFrameData.camPos.a) + 1) % 2;
-
 void main() 
 {
-	vec4 postfilteredCoC = texture(DOFPostfilterResult[index], inUv).rgba;
-	float temporalCoC = (texture(TemporalCoCResult[pingpong], inUv).r * 2.0f - 1.0f) * globalData.DOFSettings0.x;
-	vec4 temporalShading = texture(TemporalShadingResult[pingpong], inUv);
+	vec4 postfilteredCoC = texture(DOFPostfilterResult[frameIndex], inUv).rgba;
+	float temporalCoC = (texture(TemporalCoCResult[pingpongIndex], inUv).r * 2.0f - 1.0f) * globalData.DOFSettings0.x;
+	vec4 temporalShading = texture(TemporalShadingResult[pingpongIndex], inUv);
 
 	float farAlpha = smoothstep(globalData.gameWindowSize.z * 2.0f, globalData.gameWindowSize.z * 4.0f, temporalCoC);
 	float nearAlpha = postfilteredCoC.a;

@@ -11,11 +11,8 @@ layout (location = 0) in vec2 inUv;
 
 layout (location = 0) out vec4 outBloomFrag;
 
-int index = int(perFrameData.camDir.a);
-int pingpong = (int(perFrameData.camPos.a) + 1) % 2;
-
 void main() 
 {
-	outBloomFrag.rgb = texture(TemporalResult[pingpong], inUv).rgb;
+	outBloomFrag.rgb = texture(TemporalResult[pingpongIndex], inUv).rgb;
 	outBloomFrag.rgb = clamp(outBloomFrag.rgb, 0.0f, 1.0f);
 }

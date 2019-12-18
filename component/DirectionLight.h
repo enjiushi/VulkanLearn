@@ -18,15 +18,18 @@ public:
 	static std::shared_ptr<DirectionLight> Create(const Vector3d& lightColor, const Vector3d& frustumSize = { DEFAULT_FRUSTUM_SIZE, DEFAULT_FRUSTUM_SIZE, DEFAULT_FRUSTUM_LENGTH }, const Vector2ui& shadowMapSize = { (uint32_t)DEFAULT_SHADOWMAP_SIZE, (uint32_t)DEFAULT_SHADOWMAP_SIZE });
 
 public:
-	Matrix4d AcquireProjectionMatrix() const;
-
 	void SetLightColor(const Vector3d& lightColor);
 
 	void Update() override;
 	void OnPreRender() override;
 
 protected:
+	void UpdateData();
+
+protected:
 	Vector3d	m_lightColor;
 	Vector3d	m_frustumSize;
 	Vector2ui	m_shadowMapSize;
+	Matrix4d	m_cs2lsProjMatrix;
+	Vector3d	m_csLightDirection;
 };

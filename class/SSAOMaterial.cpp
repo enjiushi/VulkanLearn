@@ -23,7 +23,7 @@
 std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial()
 {
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
-	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon_ws_view_ray.vert.spv", L"", L"", L"", L"../data/shaders/ssao_gen.frag.spv", L"" };
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon_cs_view_ray.vert.spv", L"", L"", L"", L"../data/shaders/ssao_gen.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
 	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;

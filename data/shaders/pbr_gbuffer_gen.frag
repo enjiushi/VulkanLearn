@@ -4,15 +4,14 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec3 inNormal;
-layout (location = 2) in vec3 inTangent;
-layout (location = 3) in vec3 inBitangent;
+layout (location = 1) in vec3 inCSNormal;
+layout (location = 2) in vec3 inCSTangent;
+layout (location = 3) in vec3 inCSBitangent;
 layout (location = 4) flat in int perMaterialIndex;
 layout (location = 5) flat in int perObjectIndex;
-layout (location = 6) in vec3 inWorldPos;
-layout (location = 7) in vec3 inEyePos;
-layout (location = 8) noperspective in vec2 inScreenPos;
-layout (location = 9) in vec3 inPrevWorldPos;
+layout (location = 6) in vec3 inCSPosition;
+layout (location = 7) noperspective in vec2 inScreenPosition;
+layout (location = 8) in vec3 inPrevCSPosition;
 
 layout (location = 0) out vec4 outGBuffer0;
 layout (location = 1) out vec4 outGBuffer1;
@@ -45,17 +44,17 @@ void main()
 	vec4 normal_ao = vec4(vec3(0), textures[perMaterialIndex].AOMetalic.x);
 	if (textures[perMaterialIndex].normalAOIndex < 0)
 	{
-		normal_ao.xyz = normalize(inNormal);
+		normal_ao.xyz = normalize(inCSNormal);
 	}
 	else
 	{
 		normal_ao = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].normalAOIndex), 0.0);
 
-		vec3 pertNormal = normalize(normal_ao.xyz * 2.0 - 1.0);
-		mat3 TBN = mat3(normalize(inTangent), normalize(inBitangent), normalize(inNormal));
-		pertNormal = TBN * pertNormal;
+		vec3 n = normalize(normal_ao.xyz * 2.0 - 1.0);
+		mat3 TBN = mat3(normalize(inCSTangent), normalize(inCSBitangent), normalize(inCSNormal));
+		n = TBN * n;
 
-		normal_ao.xyz = pertNormal.xyz;
+		normal_ao.xyz = n;
 		normal_ao.w *= textures[perMaterialIndex].AOMetalic.x;
 	}
 
@@ -69,12 +68,12 @@ void main()
 	outGBuffer1 = vec4(albedo_roughness.rgb, 0);
 	outGBuffer2 = vec4(vec3(albedo_roughness.w, metalic, 0), normal_ao.a);
 
-	vec4 prevNDCPos = perFrameData.prevVP * vec4(inPrevWorldPos, 1.0f);
+	vec4 prevNDCPos = globalData.projection * vec4(inPrevCSPosition, 1.0f);
 	vec2 prevTexCoord = (prevNDCPos.xy / prevNDCPos.w);
 
-	outMotionVec.rg = prevTexCoord - inScreenPos;
+	outMotionVec.rg = prevTexCoord - inScreenPosition;
 	outMotionVec.rg = outMotionVec.rg * 0.5f;
 
 	// Calculate circle of confusion
-	outGBuffer1.a = CalculateCoC(-inEyePos.z);
+	outGBuffer1.a = CalculateCoC(-inCSPosition.z);
 }

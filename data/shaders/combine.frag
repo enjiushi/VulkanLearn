@@ -16,16 +16,14 @@ layout (location = 0) out vec4 outCombineResult;
 
 layout (location = 0) in vec2 inUv;
 
-int index = int(perFrameData.camDir.a);
-
 void main() 
 {
 	vec3 camDirt = vec3(1);
 	if (pushConsts.camDirtTexIndex > 0.5f)
 		camDirt = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv, pushConsts.camDirtTexIndex), 0.0f).rgb;
 
-	vec3 bloom = pow(texture(BloomTextures[index], inUv).rgb * globalData.BloomSettings1.x * camDirt, vec3(globalData.BloomSettings1.y));
-	vec3 temporal = texture(DOFResults[index], inUv).rgb;
+	vec3 bloom = pow(texture(BloomTextures[frameIndex], inUv).rgb * globalData.BloomSettings1.x * camDirt, vec3(globalData.BloomSettings1.y));
+	vec3 temporal = texture(DOFResults[frameIndex], inUv).rgb;
 
 	outCombineResult = vec4(bloom + temporal, 1.0f);
 }

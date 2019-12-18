@@ -25,19 +25,19 @@ std::shared_ptr<PerObjectUniforms> PerObjectUniforms::Create()
 
 void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4d& modelMatrix)
 {
-	m_perObjectVariables[index].prevModelMatrix = m_perObjectVariables[index].modelMatrix;
-	m_perObjectVariables[index].modelMatrix = modelMatrix;
+	m_perObjectVariables[index].prevMV =  m_perObjectVariables[index].MV;
+	m_perObjectVariables[index].MV = UniformData::GetInstance()->GetPerFrameUniforms()->GetViewMatrix() * modelMatrix;
 	SetChunkDirty(index);
 }
 
 void PerObjectUniforms::UpdateDirtyChunkInternal(uint32_t index)
 {
-	m_perObjectVariables[index].prevMVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetPrevVPMatrix() * m_perObjectVariables[index].prevModelMatrix;
-	m_perObjectVariables[index].MVP = UniformData::GetInstance()->GetPerFrameUniforms()->GetVPMatrix() * m_perObjectVariables[index].modelMatrix;
+	m_perObjectVariables[index].MVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perObjectVariables[index].MV;
+	m_perObjectVariables[index].prevMVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perObjectVariables[index].prevMV;
 
-	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], modelMatrix);
+	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], MV);
 	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], MVP);
-	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], prevModelMatrix);
+	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], prevMV);
 	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], prevMVP);
 }
 
@@ -49,9 +49,9 @@ std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList() const
 			DynamicShaderStorageBuffer,
 			"PerObjectUniforms",
 			{
-				{ Mat4Unit, "modelMatrix" },
+				{ Mat4Unit, "MV" },
 				{ Mat4Unit, "MVP" },
-				{ Mat4Unit, "prevModelMatrix" },
+				{ Mat4Unit, "prevMV" },
 				{ Mat4Unit, "prevMVP" },
 			}
 		}

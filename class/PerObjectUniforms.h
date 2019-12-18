@@ -9,10 +9,10 @@ template <typename T>
 class PerObjectVariables
 {
 public:
-	Matrix4x4<T> modelMatrix;
+	Matrix4x4<T> MV;
 	Matrix4x4<T> MVP;	// projection * view * model
 
-	Matrix4x4<T> prevModelMatrix;
+	Matrix4x4<T> prevMV;
 	Matrix4x4<T> prevMVP;
 };
 
@@ -29,7 +29,7 @@ public:
 
 public:
 	void SetModelMatrix(uint32_t index, const Matrix4d& modelMatrix);
-	Matrix4d GetModelMatrix(uint32_t index) const { return m_perObjectVariables[index].modelMatrix; }
+	Matrix4d GetMVMatrix(uint32_t index) const { return m_perObjectVariables[index].MV; }
 	Matrix4d GetMVP(uint32_t index) const { return m_perObjectVariables[index].MVP; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() const override;

@@ -28,20 +28,28 @@ void PerFrameUniforms::SetViewMatrix(const Matrix4d& viewMatrix)
 {
 	m_perFrameVariables.prevView = m_perFrameVariables.viewMatrix;
 	m_perFrameVariables.viewMatrix = viewMatrix;
-	m_perFrameVariables.viewCoordSystem = viewMatrix;
-	m_perFrameVariables.viewCoordSystem.Inverse();
+	SetDirty();
+}
+
+void PerFrameUniforms::SetViewCoordinateSystem(const Matrix4d& viewCoordinateSystem)
+{
+	m_perFrameVariables.viewCoordSystem = viewCoordinateSystem;
 	SetDirty();
 }
 
 void PerFrameUniforms::SetCameraPosition(const Vector3d& camPos)
 {
-	m_perFrameVariables.cameraPosition = camPos;
+	m_perFrameVariables.cameraPosition.x = camPos.x;
+	m_perFrameVariables.cameraPosition.y = camPos.y;
+	m_perFrameVariables.cameraPosition.z = camPos.z;
 	SetDirty();
 }
 
 void PerFrameUniforms::SetCameraDirection(const Vector3d& camDir)
 {
-	m_perFrameVariables.cameraDirection = camDir;
+	m_perFrameVariables.cameraDirection.x = camDir.x;
+	m_perFrameVariables.cameraDirection.y = camDir.y;
+	m_perFrameVariables.cameraDirection.z = camDir.z;
 	SetDirty();
 }
 
@@ -54,18 +62,6 @@ void PerFrameUniforms::SetEyeSpaceSize(const Vector2d& eyeSpaceSize)
 void PerFrameUniforms::SetNearFarAB(const Vector4d& nearFarAB)
 {
 	m_perFrameVariables.nearFarAB = nearFarAB;
-	SetDirty();
-}
-
-void PerFrameUniforms::SetPadding0(double val) 
-{
-	m_perFrameVariables.padding0 = val; 
-	SetDirty();
-}
-
-void PerFrameUniforms::SetFrameIndex(double frameIndex)
-{
-	m_perFrameVariables.frameIndex = frameIndex;
 	SetDirty();
 }
 
@@ -111,21 +107,31 @@ void PerFrameUniforms::SetHaltonIndexX256Jitter(const Vector2d& haltonX256Jitter
 	SetDirty();
 }
 
+void PerFrameUniforms::SetFrameIndex(double frameIndex)
+{
+	m_perFrameVariables.frameIndex = frameIndex;
+	SetDirty();
+}
+
+void PerFrameUniforms::SetPingpongIndex(double pingpongIndex)
+{
+	m_perFrameVariables.pingpongIndex = pingpongIndex;
+	SetDirty();
+}
+
+void PerFrameUniforms::SetPadding0(double val)
+{
+	m_perFrameVariables.padding0 = val;
+	SetDirty();
+}
+
 void PerFrameUniforms::UpdateUniformDataInternal()
 {
-	// Using curr proj matrix here, to get rid of camera jitter effect
-	m_perFrameVariables.prevVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perFrameVariables.prevView;
-	m_perFrameVariables.VP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perFrameVariables.viewMatrix;
-
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, viewMatrix);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, viewCoordSystem);
-	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, VP);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, prevView);
-	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, prevVP);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraPosition);
-	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, padding0);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraDirection);
-	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, frameIndex);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, eyeSpaceSize);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, nearFarAB);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraJitterOffset);
@@ -134,6 +140,10 @@ void PerFrameUniforms::UpdateUniformDataInternal()
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, haltonX16Jitter);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, haltonX32Jitter);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, haltonX256Jitter);
+	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, frameIndex);
+	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, pingpongIndex);
+	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, padding0);
+	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, padding1);
 }
 
 void PerFrameUniforms::SetDirtyInternal()
@@ -150,9 +160,7 @@ std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList() const
 			{
 				{ Mat4Unit, "ViewMatrix" },
 				{ Mat4Unit, "ViewCoordSystem" },
-				{ Mat4Unit, "ViewProjMatrix" },
 				{ Mat4Unit, "prevViewMatrix" },
-				{ Mat4Unit, "prevVP" },
 				{ Vec4Unit, "CameraPosition_Padding" },
 				{ Vec4Unit, "CameraDirection_FrameIndex" },
 				{ Vec4Unit, "EyeSpaceSize" },
@@ -163,6 +171,10 @@ std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList() const
 				{ Vec2Unit, "HaltonX16 Jitter" },
 				{ Vec2Unit, "HaltonX32 Jitter" },
 				{ Vec2Unit, "HaltonX256 Jitter" },
+				{ OneUnit, "Frame Index" },
+				{ OneUnit, "Pingpong Index" },
+				{ OneUnit, "Reserved padding0" },
+				{ OneUnit, "Reserved padding1" },
 			}
 		}
 	};

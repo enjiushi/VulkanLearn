@@ -11,8 +11,6 @@ layout (location = 0) in vec2 inUv;
 
 layout (location = 0) out vec4 outTileNeighborMax;
 
-int index = int(perFrameData.camDir.a);
-
 void main() 
 {
 	vec2 du = vec2(1.0f / globalData.motionTileWindowSize.z, 0.0f);
@@ -25,7 +23,7 @@ void main()
 	{
 		for (int y = -1; y < 1; y++)
 		{
-			vec2 motionVec = texture(motionTileMax[index], inUv + x * du + y * dv).rg;
+			vec2 motionVec = texture(motionTileMax[frameIndex], inUv + x * du + y * dv).rg;
 			float len = dot(motionVec, motionVec);
 			if (maxLength < len)
 			{

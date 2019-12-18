@@ -799,6 +799,7 @@ void VulkanGlobal::InitScene()
 
 
 	m_pRootObject = BaseObject::Create();
+	m_pRootObject->AddChild(m_pCameraObj);
 	m_pRootObject->AddChild(m_pGunObject);
 	m_pRootObject->AddChild(m_pSphere0);
 	m_pRootObject->AddChild(m_pSphere1);
@@ -812,8 +813,6 @@ void VulkanGlobal::InitScene()
 	m_pRootObject->AddChild(m_pSophiaObject);
 	m_pRootObject->AddChild(m_pSkyBoxObject);
 	m_pRootObject->AddChild(m_pDirLightObj);
-
-	m_pRootObject->AddChild(m_pCameraObj);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor({ 1, 1, 1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ 1, 1, -1 });
@@ -905,19 +904,21 @@ void VulkanGlobal::EndSetup()
 void VulkanGlobal::Draw()
 {
 	static uint32_t pingpong = 0;
+	static uint32_t nextPingpong = 1;
 	static uint32_t frameCount = 0;
 
 	GetSwapChain()->AcquireNextImage();
 
 	uint32_t frameIndex = FrameMgr()->FrameIndex();
 	uint32_t cbIndex = frameIndex * 2 + pingpong;
+	nextPingpong = (pingpong + 1) % 2;
 
 	FrameEventManager::GetInstance()->OnFrameBegin();
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetDeltaTime(Timer::GetElapsedTime());
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sin(Timer::GetTotalTime()));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(pingpong);
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetPingpongIndex(nextPingpong);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX8Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x8, frameCount));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX16Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x16, frameCount));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX32Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x32, frameCount));
@@ -973,7 +974,7 @@ void VulkanGlobal::Draw()
 	
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 
-	pingpong = (pingpong + 1) % 2;
+	pingpong = nextPingpong;
 	frameCount++;
 
 	FrameEventManager::GetInstance()->OnFrameEnd();

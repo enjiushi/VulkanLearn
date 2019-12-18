@@ -10,15 +10,15 @@ def compile_shader(abs_path, ext):
 		_path, _file = os.path.split(path_in_string)
 		
 		if _file == 'screen_quad.vert':
-			cmd = 'glslc ' + path_in_string + ' -DENABLE_WS_POS_RECONSTRUCTION -o ' + _path + '/screen_quad_vert_recon.vert.spv'
+			cmd = 'glslc ' + path_in_string + ' -DENABLE_CS_POS_RECONSTRUCTION -o ' + _path + '/screen_quad_vert_recon.vert.spv'
 			print(cmd)
 			os.system(cmd)
 			
-			cmd = 'glslc ' + path_in_string + ' -DENABLE_WS_VIEW_RAY -o ' + _path + '/screen_quad_ws_view_ray.vert.spv'
+			cmd = 'glslc ' + path_in_string + ' -DENABLE_CS_VIEW_RAY -o ' + _path + '/screen_quad_cs_view_ray.vert.spv'
 			print(cmd)
 			os.system(cmd)
 			
-			cmd = 'glslc ' + path_in_string + ' -DENABLE_WS_POS_RECONSTRUCTION -DENABLE_WS_VIEW_RAY -o ' + _path + '/screen_quad_vert_recon_ws_view_ray.vert.spv'
+			cmd = 'glslc ' + path_in_string + ' -DENABLE_CS_POS_RECONSTRUCTION -DENABLE_CS_VIEW_RAY -o ' + _path + '/screen_quad_vert_recon_cs_view_ray.vert.spv'
 			print(cmd)
 			os.system(cmd)
 
