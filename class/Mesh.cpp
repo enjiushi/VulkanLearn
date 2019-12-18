@@ -68,7 +68,7 @@ std::vector<std::shared_ptr<Mesh>> Mesh::CreateMeshes(const std::string& filePat
 	ASSERTION(pScene != nullptr);
 
 	std::vector<std::shared_ptr<Mesh>> meshes;
-	for (int32_t i = 0; i < pScene->mNumMeshes; i++)
+	for (uint32_t i = 0; i < (uint32_t)pScene->mNumMeshes; i++)
 	{
 		std::shared_ptr<Mesh> pMesh = Create(pScene->mMeshes[i], argumentedVertexFormat);
 		if (pMesh == nullptr)

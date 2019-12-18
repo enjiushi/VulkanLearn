@@ -16,7 +16,7 @@ bool DescriptorSetLayout::Init(const std::shared_ptr<Device>& pDevice,
 
 	VkDescriptorSetLayoutCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	createInfo.bindingCount = m_descriptorSetLayoutBinding.size();
+	createInfo.bindingCount = (uint32_t)m_descriptorSetLayoutBinding.size();
 	createInfo.pBindings = m_descriptorSetLayoutBinding.data();
 	CHECK_VK_ERROR(vkCreateDescriptorSetLayout(GetDevice()->GetDeviceHandle(), &createInfo, nullptr, &m_descriptorSetLayout));
 

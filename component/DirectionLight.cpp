@@ -7,6 +7,10 @@
 #include "../Maths/MathUtil.h"
 #include "../class/UniformData.h"
 
+const double DirectionLight::DEFAULT_SHADOWMAP_SIZE = 512;
+const double DirectionLight::DEFAULT_FRUSTUM_SIZE = 2.56;
+const double DirectionLight::DEFAULT_FRUSTUM_LENGTH = 5.12;
+
 DEFINITE_CLASS_RTTI(DirectionLight, BaseComponent);
 
 bool DirectionLight::Init(const std::shared_ptr<DirectionLight>& pLight, const Vector3d& lightColor, const Vector3d& frustumSize, const Vector2ui& shadowMapSize)

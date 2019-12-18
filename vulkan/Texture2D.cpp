@@ -167,18 +167,16 @@ std::shared_ptr<Texture2D> Texture2D::CreateMipmapOffscreenTexture(const std::sh
 	}
 
 	uint32_t smaller = height < width ? height : width;
-	uint32_t mips = 0;
-	uint32_t mipSize;
 
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, std::log2(smaller) + 1, format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT, layout))
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, (uint32_t)std::log2(smaller) + 1, format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT, layout))
 		return pTexture;
 	return nullptr;
 }
 
 std::shared_ptr<StagingBuffer> Texture2D::PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, gliTex.textures[0].size());
-	pStagingBuffer->UpdateByteStream(gliTex.textures[0].data(), 0, gliTex.textures[0].size());
+	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, (uint32_t)gliTex.textures[0].size());
+	pStagingBuffer->UpdateByteStream(gliTex.textures[0].data(), 0, (uint32_t)gliTex.textures[0].size());
 
 	return pStagingBuffer;
 }

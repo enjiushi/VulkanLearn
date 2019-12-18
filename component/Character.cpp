@@ -147,7 +147,7 @@ void Character::OnRotateStart(const Vector2d& v)
 	Vector3d target_dir_xzporj = target_dir; target_dir_xzporj.y = 0.0f; target_dir_xzporj.Normalize();		//projection on xz plane
 	double dot = target_dir * target_dir_xzporj;		//dot product of target direction and its projection on xz plane
 	if (dot < eps_cos) dot = eps_cos;		//if the angle approaches to 90 degree, set it to a minimum value
-	m_startTargetToH = std::acosf(dot);		//obtain the angle
+	m_startTargetToH = std::acos(dot);		//obtain the angle
 	m_startTargetToH = target_dir.y > 0.0f ? m_startTargetToH : -m_startTargetToH;	//mark its sign
 }
 

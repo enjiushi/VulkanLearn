@@ -36,7 +36,7 @@ public:
 
 class FrustumJitter : public BaseComponent
 {
-	DECLARE_CLASS_RTTI(FrustumJitter, BaseComponent);
+	DECLARE_CLASS_RTTI(FrustumJitter);
 
 public:
 	static std::shared_ptr<FrustumJitter> Create();

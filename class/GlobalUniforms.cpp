@@ -646,20 +646,20 @@ uint32_t GlobalUniforms::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 
 void GlobalUniforms::InitSSAORandomSample()
 {
-	std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
+	std::uniform_real_distribution<float> randomFloats(0.0f, 1.0f);
 	std::default_random_engine randomEngine;
 
 	std::vector<Vector4d> samples;
 	for (uint32_t i = 0; i < SSAO_SAMPLE_COUNT; i++)
 	{
-		Vector3d sample = { randomFloats(randomEngine) * 2.0 - 1.0, randomFloats(randomEngine) * 2.0 - 1.0, randomFloats(randomEngine) };
+		Vector3d sample = { randomFloats(randomEngine) * 2.0f - 1.0f, randomFloats(randomEngine) * 2.0f - 1.0f, randomFloats(randomEngine) };
 
 		float length = randomFloats(randomEngine);
 		length = length * length;		// Make sample length more distributed near hemisphere center
-		length = 0.1 * (1.0 - length) + 1.0 * length;
+		length = 0.1f * (1.0f - length) + 1.0f * length;
 
 		sample = sample.Normal() * length;
-		m_globalVariables.SSAOSamples[i] = Vector4d(sample, 0.0);	// NOTE: make it 4 units to pair with gpu variable alignment
+		m_globalVariables.SSAOSamples[i] = Vector4d(sample, 0.0f);	// NOTE: make it 4 units to pair with gpu variable alignment
 		CONVERT2SINGLE(m_globalVariables, m_singlePrecisionGlobalVariables, SSAOSamples[i]);
 	}
 
@@ -761,7 +761,7 @@ void BoneIndirectUniform::SetBoneTransform(uint32_t chunkIndex, std::size_t hash
 
 		boneChunkIndex = pUniformBuffer->AllocatePerObjectChunk();
 
-		boneIndex = m_boneIndexLookupTables[chunkIndex].size();
+		boneIndex = (uint32_t)m_boneIndexLookupTables[chunkIndex].size();
 		m_boneIndexLookupTables[chunkIndex][hashCode].boneIndex = boneIndex;
 
 		// Fill the actual mapping between bone index and bone chunk index(where bone data is located)
@@ -851,7 +851,7 @@ bool BoneIndirectUniform::GetBoneCount(uint32_t chunkIndex, uint32_t& outBoneCou
 	auto iter0 = m_boneIndexLookupTables.find(chunkIndex);
 	ASSERTION(iter0 != m_boneIndexLookupTables.end());
 
-	outBoneCount = iter0->second.size();
+	outBoneCount = (uint32_t)iter0->second.size();
 	return true;
 }
 

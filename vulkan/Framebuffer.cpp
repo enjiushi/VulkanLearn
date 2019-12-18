@@ -53,7 +53,7 @@ bool FrameBuffer::Init(
 
 	m_info = {};
 	m_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	m_info.attachmentCount = rawViews.size();
+	m_info.attachmentCount = (uint32_t)rawViews.size();
 	m_info.pAttachments = rawViews.data();
 	m_info.layers = 1;
 	m_info.width = size.x;

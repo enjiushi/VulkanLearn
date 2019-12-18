@@ -46,7 +46,7 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 	shadingPassColorAttach[1].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription shadingSubPass = {};
-	shadingSubPass.colorAttachmentCount = shadingPassColorAttach.size();
+	shadingSubPass.colorAttachmentCount = (uint32_t)shadingPassColorAttach.size();
 	shadingSubPass.pColorAttachments = shadingPassColorAttach.data();
 	shadingSubPass.pDepthStencilAttachment = nullptr;
 	shadingSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -56,7 +56,7 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 	depthAttachment.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
 	VkSubpassDescription skyBoxSubPass = {};
-	skyBoxSubPass.colorAttachmentCount = shadingPassColorAttach.size();
+	skyBoxSubPass.colorAttachmentCount = (uint32_t)shadingPassColorAttach.size();
 	skyBoxSubPass.pColorAttachments = shadingPassColorAttach.data();
 	skyBoxSubPass.pDepthStencilAttachment = &depthAttachment;
 	skyBoxSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -92,11 +92,11 @@ bool DeferredShadingPass::Init(const std::shared_ptr<DeferredShadingPass>& pSelf
 
 	VkRenderPassCreateInfo renderpassCreateInfo = {};
 	renderpassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassCreateInfo.attachmentCount = attachmentDescs.size();
+	renderpassCreateInfo.attachmentCount = (uint32_t)attachmentDescs.size();
 	renderpassCreateInfo.pAttachments = attachmentDescs.data();
-	renderpassCreateInfo.subpassCount = subPasses.size();
+	renderpassCreateInfo.subpassCount = (uint32_t)subPasses.size();
 	renderpassCreateInfo.pSubpasses = subPasses.data();
-	renderpassCreateInfo.dependencyCount = dependencies.size();
+	renderpassCreateInfo.dependencyCount = (uint32_t)dependencies.size();
 	renderpassCreateInfo.pDependencies = dependencies.data();
 
 	if (!RenderPassBase::Init(pSelf, renderpassCreateInfo))

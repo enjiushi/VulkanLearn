@@ -251,12 +251,12 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			break;
 		default:
-			InputHub::GetInstance()->ProcessKey(KEY_DOWN, wParam);
+			InputHub::GetInstance()->ProcessKey(KEY_DOWN, (uint8_t)wParam);
 			break;
 		}
 		break;
 	case WM_KEYUP:
-		InputHub::GetInstance()->ProcessKey(KEY_UP, wParam);
+		InputHub::GetInstance()->ProcessKey(KEY_UP, (uint8_t)wParam);
 		break;
 	case WM_RBUTTONDOWN:
 		InputHub::GetInstance()->ProcessMouse(KEY_DOWN, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
@@ -288,7 +288,7 @@ void VulkanGlobal::Update()
 {
 #if defined(_WIN32)
 	static uint32_t frameCount = 0;
-	static float fpsTimer = 0;
+	static double fpsTimer = 0;
 	static std::chrono::time_point<std::chrono::steady_clock> startTime, endTime, initTime;
 	startTime = std::chrono::high_resolution_clock::now();
 	initTime = startTime;
@@ -316,13 +316,13 @@ void VulkanGlobal::Update()
 
 		fpsTimer += (float)Timer::GetElapsedTime();
 
-		if (fpsTimer > 1000.0f)
+		if (fpsTimer > 1000.0)
 		{
 			std::stringstream ss;
-			ss << "Elapsed Time:" << 1000.0f / frameCount;
+			ss << "Elapsed Time:" << 1000.0 / frameCount;
 			SetWindowText(m_hWindow, ss.str().c_str());
-			fpsTimer = 0.0f;
-			frameCount = 0.0f;
+			fpsTimer = 0.0;
+			frameCount = 0;
 		}
 	}
 #endif
@@ -438,7 +438,7 @@ void VulkanGlobal::InitUniforms()
 	CombineRGBA8_R8_RGBA8(gliNormalTex, gliAOTex);
 
 	gli::texture2d texCheckerTex(gli::load("../data/textures/tex_checker.ktx"));
-	SetAlphaChannel(texCheckerTex, 0.9f * 255);
+	SetAlphaChannel(texCheckerTex, (uint8_t)(0.9f * 255));
 
 	gli::texture2d blueNoise(gli::load("../data/textures/blue_noise_1024.ktx"));
 
@@ -449,7 +449,7 @@ void VulkanGlobal::InitUniforms()
 	gli::texture2d gliTempTex(gli::load("../data/textures/aluminum_metalness_1024.ktx"));
 	gli::texture2d gliAluminumMetalic = ExtractAlphaChannel(gliTempTex);
 	gli::texture2d gliAluminumNormalAO(gli::load("../data/textures/aluminum_normal_1024.ktx"));
-	SetAlphaChannel(gliAluminumNormalAO, 1.0f * 255);
+	SetAlphaChannel(gliAluminumNormalAO, (uint8_t)(1.0f * 255));
 	CombineRGBA8_R8_RGBA8(gliAluminumAlbedo, gliAluminumMetalic);
 
 	gli::texture2d gliCamDirt(gli::load("../data/textures/cam_dirt_1024.ktx"));
@@ -460,7 +460,7 @@ void VulkanGlobal::InitUniforms()
 	//SetAlphaChannel(gliSophiaAlbedoRoughness, 0.0f * 255);
 
 	gli::texture2d gliSophiaNormal(gli::load("../data/textures/sophia_normal_1024.ktx"));
-	SetAlphaChannel(gliSophiaNormal, 1.0f * 255);
+	SetAlphaChannel(gliSophiaNormal, (uint8_t)(1.0f * 255));
 
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunAlbedoRoughness", "", "RGB:Albedo, A:Roughness" }, gliAlbedoTex);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "GunNormalAO", "", "RGB:Normal, A:AO" }, gliNormalTex);
@@ -482,7 +482,7 @@ void VulkanGlobal::InitUniforms()
 	
 	m_pSimpleTex = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
 	m_pIrradianceTex = TextureCube::CreateEmptyTextureCube(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
-	m_pPrefilterEnvTex = TextureCube::CreateEmptyTextureCube(m_pDevice, OffScreenSize, OffScreenSize, std::log2(OffScreenSize) + 1, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_pPrefilterEnvTex = TextureCube::CreateEmptyTextureCube(m_pDevice, OffScreenSize, OffScreenSize, (uint32_t)std::log2(OffScreenSize) + 1, VK_FORMAT_R16G16B16A16_SFLOAT);
 
 	// FIXME: 2 channels should be enough, I don't intend to do it now as I have to create new render passes and frame buffers, leave it to later refactor
 	m_pBRDFLut = Texture2D::CreateEmptyTexture(m_pDevice, OffScreenSize, OffScreenSize, VK_FORMAT_R16G16B16A16_SFLOAT);
@@ -519,7 +519,7 @@ void VulkanGlobal::InitDescriptorPool()
 	VkDescriptorPoolCreateInfo descPoolInfo = {};
 	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descPoolInfo.pPoolSizes = descPoolSize.data();
-	descPoolInfo.poolSizeCount = descPoolSize.size();
+	descPoolInfo.poolSizeCount = (uint32_t)descPoolSize.size();
 	descPoolInfo.maxSets = 10;
 
 	m_pDescriptorPool = DescriptorPool::Create(m_pDevice, descPoolInfo);
@@ -915,7 +915,7 @@ void VulkanGlobal::Draw()
 	FrameEventManager::GetInstance()->OnFrameBegin();
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetDeltaTime(Timer::GetElapsedTime());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sinf(Timer::GetTotalTime()));
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetSinTime(std::sin(Timer::GetTotalTime()));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetFrameIndex(frameIndex);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(pingpong);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX8Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x8, frameCount));

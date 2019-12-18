@@ -41,7 +41,7 @@ typedef struct _ObjectAnimation
 typedef struct _AnimationData
 {
 	std::wstring					animationName;			// Animation name
-	float							duration;				// Total duration of this animation
+	double							duration;				// Total duration of this animation
 	std::vector<ObjectAnimation>	objectAnimationDiction;
 	std::unordered_map<std::size_t, uint32_t> objectAnimationLookupTable;	// Using this to lookup specific index in object animation dictionary
 }AnimationData;

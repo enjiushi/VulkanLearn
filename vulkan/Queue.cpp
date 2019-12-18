@@ -144,12 +144,12 @@ void Queue::SubmitCommandBuffers(
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount	= deviceCmdBuffers.size();
+	submitInfo.commandBufferCount	= (uint32_t)deviceCmdBuffers.size();
 	submitInfo.pCommandBuffers		= deviceCmdBuffers.data();
-	submitInfo.waitSemaphoreCount	= deviceWaitSemaphores.size();
+	submitInfo.waitSemaphoreCount	= (uint32_t)deviceWaitSemaphores.size();
 	submitInfo.pWaitSemaphores		= deviceWaitSemaphores.data();
 	submitInfo.pWaitDstStageMask	= waitStages.data();
-	submitInfo.signalSemaphoreCount = deviceSignalSemaphores.size();
+	submitInfo.signalSemaphoreCount = (uint32_t)deviceSignalSemaphores.size();
 	submitInfo.pSignalSemaphores	= deviceSignalSemaphores.data();
 
 	VkFence fence = 0;

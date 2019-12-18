@@ -44,13 +44,13 @@ void GlobalTextures::InitTextureDiction()
 
 	m_textureDiction[RGBA8_1024].textureArrayName = "RGBA8TextureArray";
 	m_textureDiction[RGBA8_1024].textureArrayDescription = "RGBA8, size16, mipLevel11";
-	m_textureDiction[RGBA8_1024].pTextureArray = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 1024, 1024, std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
+	m_textureDiction[RGBA8_1024].pTextureArray = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 1024, 1024, (uint32_t)std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
 	m_textureDiction[RGBA8_1024].maxSlotIndex = 0;
 	m_textureDiction[RGBA8_1024].currentEmptySlot = 0;
 
 	m_textureDiction[R8_1024].textureArrayName = "R8TextureArray";
 	m_textureDiction[R8_1024].textureArrayDescription = "R8, size16, mipLevel11";
-	m_textureDiction[R8_1024].pTextureArray = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 1024, 1024, std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_SINGLE_COLOR_FORMAT);
+	m_textureDiction[R8_1024].pTextureArray = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 1024, 1024, (uint32_t)std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_SINGLE_COLOR_FORMAT);
 	m_textureDiction[R8_1024].maxSlotIndex = 0;
 	m_textureDiction[R8_1024].currentEmptySlot = 0;
 }
@@ -63,8 +63,7 @@ void GlobalTextures::InitScreenSizeTextureDiction()
 	m_screenSizeTextureDiction.textureArrayDescription = "Mostly used to store intermedia data of current frames";
 
 	Vector2d size = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
-	uint32_t smaller = size.x < size.y ? size.x : size.y;
-	m_screenSizeTextureDiction.pTextureArray = Texture2DArray::CreateMipmapOffscreenTexture(GetDevice(), size.x, size.y, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
+	m_screenSizeTextureDiction.pTextureArray = Texture2DArray::CreateMipmapOffscreenTexture(GetDevice(), (uint32_t)size.x, (uint32_t)size.y, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
 	m_screenSizeTextureDiction.maxSlotIndex = 0;
 	m_screenSizeTextureDiction.currentEmptySlot = 0;
 }
@@ -72,12 +71,12 @@ void GlobalTextures::InitScreenSizeTextureDiction()
 void GlobalTextures::InitIBLTextures()
 {
 	m_IBLCubeTextures.resize(IBLCubeTextureTypeCount);
-	m_IBLCubeTextures[RGBA16_1024_SkyBox] = TextureCube::CreateEmptyTextureCube(GetDevice(), 1024, 1024, std::log2(1024) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance] = TextureCube::CreateEmptyTextureCube(GetDevice(), UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = TextureCube::CreateEmptyTextureCube(GetDevice(), UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, std::log2(512) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBLCubeTextures[RGBA16_1024_SkyBox] = TextureCube::CreateEmptyTextureCube(GetDevice(), 1024, 1024, (uint32_t)std::log2(1024) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance] = TextureCube::CreateEmptyTextureCube(GetDevice(), (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = TextureCube::CreateEmptyTextureCube(GetDevice(), (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, (uint32_t)std::log2(512) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
 
 	m_IBL2DTextures.resize(IBL2DTextureTypeCount);
-	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateEmptyTexture(GetDevice(), UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateEmptyTexture(GetDevice(), (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
@@ -149,14 +148,14 @@ void GlobalTextures::InitIrradianceTexture()
 		VkViewport viewport =
 		{
 			0, 0,
-			UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
+			(float)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (float)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 			0, 1
 		};
 
 		VkRect2D scissorRect =
 		{
 			0, 0,
-			UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
+			(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 		};
 
 		SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
@@ -217,25 +216,25 @@ void GlobalTextures::InitPrefilterEnvTexture()
 		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(0, 0, 1)) * rotation,	// Negative Z, i.e front
 	};
 
-	uint32_t mipLevels = std::log2(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
+	uint32_t mipLevels = (uint32_t)std::log2(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	for (uint32_t mipLevel = 0; mipLevel < mipLevels + 1; mipLevel++)
 	{
 		UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(mipLevel / (float)mipLevels);
-		uint32_t size = std::pow(2, mipLevels - mipLevel);
+		uint32_t size = (uint32_t)std::pow(2, mipLevels - mipLevel);
 		for (uint32_t i = 0; i < 6; i++)
 		{
 			std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
 
 			std::vector<VkClearValue> clearValues =
 			{
-				{ 0.0f, 0.0f, 0.0f, 0.0f },
-				{ 1.0f, 0 }
+				{ 0.0, 0.0, 0.0, 0.0 },
+				{ 1.0, 0 }
 			};
 
 			VkViewport viewport =
 			{
 				0, 0,
-				size, size,
+				(float)size, (float)size,
 				0, 1
 			};
 
@@ -294,14 +293,14 @@ void GlobalTextures::InitBRDFLUTTexture()
 	VkViewport viewport =
 	{
 		0, 0,
-		UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
+		(float)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (float)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 		0, 1
 	};
 
 	VkRect2D scissorRect =
 	{
 		0, 0,
-		UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
+		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 	};
 
 	SceneGenerator::GetInstance()->GetRootObject()->Update();

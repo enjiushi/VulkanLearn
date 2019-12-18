@@ -41,7 +41,7 @@ bool CustomizedRenderPass::Init(const std::shared_ptr<CustomizedRenderPass>& pSe
 	}
 
 	VkSubpassDescription subPass = {};
-	subPass.colorAttachmentCount = colorAttachmentRefs.size();
+	subPass.colorAttachmentCount = (uint32_t)colorAttachmentRefs.size();
 	subPass.pColorAttachments = colorAttachmentRefs.data();
 	subPass.pDepthStencilAttachment = depthStencilAttachmentRefs.data();
 	subPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -69,11 +69,11 @@ bool CustomizedRenderPass::Init(const std::shared_ptr<CustomizedRenderPass>& pSe
 
 	VkRenderPassCreateInfo renderpassCreateInfo = {};
 	renderpassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassCreateInfo.attachmentCount = attachmentDescs.size();
+	renderpassCreateInfo.attachmentCount = (uint32_t)attachmentDescs.size();
 	renderpassCreateInfo.pAttachments = attachmentDescs.data();
-	renderpassCreateInfo.subpassCount = subPasses.size();
+	renderpassCreateInfo.subpassCount = (uint32_t)subPasses.size();
 	renderpassCreateInfo.pSubpasses = subPasses.data();
-	renderpassCreateInfo.dependencyCount = dependencies.size();
+	renderpassCreateInfo.dependencyCount = (uint32_t)dependencies.size();
 	renderpassCreateInfo.pDependencies = dependencies.data();
 
 	std::for_each(attachList.begin(), attachList.end(), [&](const RenderPassAttachDesc& v) { m_clearColors.push_back(v.clearValue); });

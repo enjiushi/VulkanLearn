@@ -5,7 +5,7 @@ bool SharedBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::share
 	if (!BufferBase::Init(pDevice, pSelf, info))
 		return false;
 	
-	m_pBufferKey = AcquireBuffer(info.size);
+	m_pBufferKey = AcquireBuffer((uint32_t)info.size);
 	if (!m_pBufferKey.get())
 		return false;;
 

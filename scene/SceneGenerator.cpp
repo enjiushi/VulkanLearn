@@ -34,7 +34,7 @@ void SceneGenerator::GenerateIrradianceGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera((uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMesh0 = GenerateBoxMesh();
@@ -56,7 +56,7 @@ void SceneGenerator::GeneratePrefilterEnvGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera((uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMesh0 = GenerateBoxMesh();
@@ -78,7 +78,7 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera((uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMaterial0 = GenerateBRDFLUTGenMaterial();
@@ -113,7 +113,7 @@ void SceneGenerator::GenerateTriangles(uint32_t level, const VertexIndex& a, con
 
 	// I need to make a note on this
 
-	uint32_t startOffset = vertices.size();
+	uint32_t startOffset = (uint32_t)vertices.size();
 
 	// Add 3 new vertices
 	vertices.push_back({});
@@ -154,8 +154,8 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh(uint32_t level)
 
 	std::shared_ptr<Mesh> pTriangleMesh = Mesh::Create
 	(
-		vertices.data(), vertices.size(), VertexFormatP,
-		indices.data(), indices.size(), VK_INDEX_TYPE_UINT32
+		vertices.data(), (uint32_t)vertices.size(), VertexFormatP,
+		indices.data(), (uint32_t)indices.size(), VK_INDEX_TYPE_UINT32
 	);
 
 	return pTriangleMesh;
@@ -429,7 +429,7 @@ std::shared_ptr<BaseObject> SceneGenerator::GenerateIBLGenOffScreenCamera(uint32
 	CameraInfo camInfo =
 	{
 		3.1415 / 2.0,
-		screenSize / screenSize,
+		1.0,
 		1.0,
 		2000.0,
 	};

@@ -57,7 +57,7 @@ void CommandBuffer::PrepareNormalDrawCommands(const DrawCmdData& data)
 
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.clearValueCount = data.clearValues.size();
+	renderPassBeginInfo.clearValueCount = (uint32_t)data.clearValues.size();
 	renderPassBeginInfo.pClearValues = data.clearValues.data();
 	renderPassBeginInfo.renderPass = data.pRenderPass->GetDeviceHandle();
 	renderPassBeginInfo.framebuffer = data.pFrameBuffer->GetDeviceHandle();
@@ -71,7 +71,7 @@ void CommandBuffer::PrepareNormalDrawCommands(const DrawCmdData& data)
 	VkViewport viewport =
 	{
 		0, 0,
-		GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height,
+		(float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height,
 		0, 1
 	};
 
@@ -88,7 +88,7 @@ void CommandBuffer::PrepareNormalDrawCommands(const DrawCmdData& data)
 	for (uint32_t i = 0; i < data.descriptorSets.size(); i++)
 		dsSets.push_back(data.descriptorSets[i]->GetDeviceHandle());
 
-	vkCmdBindDescriptorSets(GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, data.pPipeline->GetPipelineLayout()->GetDeviceHandle(), 0, dsSets.size(), dsSets.data(), 0, nullptr);
+	vkCmdBindDescriptorSets(GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, data.pPipeline->GetPipelineLayout()->GetDeviceHandle(), 0, (uint32_t)dsSets.size(), dsSets.data(), 0, nullptr);
 
 	vkCmdBindPipeline(GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, data.pPipeline->GetDeviceHandle());
 
@@ -99,7 +99,7 @@ void CommandBuffer::PrepareNormalDrawCommands(const DrawCmdData& data)
 		vertexBuffers.push_back(data.vertexBuffers[i]->GetDeviceHandle());
 		offsets.push_back(0);
 	}
-	vkCmdBindVertexBuffers(GetDeviceHandle(), 0, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+	vkCmdBindVertexBuffers(GetDeviceHandle(), 0, (uint32_t)vertexBuffers.size(), vertexBuffers.data(), offsets.data());
 	vkCmdBindIndexBuffer(GetDeviceHandle(), data.pIndexBuffer->GetDeviceHandle(), 0, data.pIndexBuffer->GetType());
 
 	vkCmdDrawIndexed(GetDeviceHandle(), data.pIndexBuffer->GetCount(), 1, 0, 0, 0);
@@ -568,7 +568,7 @@ void CommandBuffer::CopyBuffer(const std::shared_ptr<BufferBase>& pSrc, const st
 {
 	IssueBarriersBeforeCopy(pSrc, pDst, regions);
 
-	vkCmdCopyBuffer(GetDeviceHandle(), pSrc->GetDeviceHandle(), pDst->GetDeviceHandle(), regions.size(), regions.data());
+	vkCmdCopyBuffer(GetDeviceHandle(), pSrc->GetDeviceHandle(), pDst->GetDeviceHandle(), (uint32_t)regions.size(), regions.data());
 
 	IssueBarriersAfterCopy(pSrc, pDst, regions);
 
@@ -609,7 +609,7 @@ void CommandBuffer::GenerateMipmaps(const std::shared_ptr<Image>& pImg, uint32_t
 				layer,
 				1
 			},
-			{ { 0, 0, 0 }, { info.extent.width >> (mip - 1), info.extent.height >> (mip - 1), info.extent.depth } },
+			{ { 0, 0, 0 }, { (int32_t)info.extent.width >> (mip - 1), (int32_t)info.extent.height >> (mip - 1), (int32_t)info.extent.depth } },
 
 			{
 				VK_IMAGE_ASPECT_COLOR_BIT,
@@ -617,7 +617,7 @@ void CommandBuffer::GenerateMipmaps(const std::shared_ptr<Image>& pImg, uint32_t
 				layer,
 				1
 			},
-			{ { 0, 0, 0 },{ info.extent.width >> mip, info.extent.height >> mip, info.extent.depth } }
+			{ { 0, 0, 0 },{ (int32_t)info.extent.width >> mip, (int32_t)info.extent.height >> mip, (int32_t)info.extent.depth } }
 		};
 		BlitImage(pImg, pImg, blit);
 	}
@@ -632,7 +632,7 @@ void CommandBuffer::CopyImage(const std::shared_ptr<Image>& pSrc, const std::sha
 		GetDeviceHandle(), 
 		pSrc->GetDeviceHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 		pDst->GetDeviceHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		regions.size(), regions.data()
+		(uint32_t)regions.size(), regions.data()
 	);
 
 	IssueBarriersAfterCopy(pSrc, pDst, regions);
@@ -649,7 +649,7 @@ void CommandBuffer::CopyBufferImage(const std::shared_ptr<Buffer>& pSrc, const s
 		pSrc->GetDeviceHandle(),
 		pDst->GetDeviceHandle(),
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		regions.size(),
+		(uint32_t)regions.size(),
 		regions.data());
 
 	IssueBarriersAfterCopy(pSrc, pDst, regions);
@@ -699,7 +699,7 @@ void CommandBuffer::PrepareBufferCopyCommands(const BufferCopyCmdData& data)
 					dstStages,
 					0,
 					0, nullptr,
-					barriers.size(), barriers.data(),
+					(uint32_t)barriers.size(), barriers.data(),
 					0, nullptr);
 
 				barriers.clear();
@@ -713,7 +713,7 @@ void CommandBuffer::PrepareBufferCopyCommands(const BufferCopyCmdData& data)
 			dstStages,
 			0,
 			0, nullptr,
-			barriers.size(), barriers.data(),
+			(uint32_t)barriers.size(), barriers.data(),
 			0, nullptr);
 
 		barriers.clear();
@@ -748,7 +748,7 @@ void CommandBuffer::PrepareBufferCopyCommands(const BufferCopyCmdData& data)
 					dstStages,
 					0,
 					0, nullptr,
-					barriers.size(), barriers.data(),
+					(uint32_t)barriers.size(), barriers.data(),
 					0, nullptr);
 
 				barriers.clear();
@@ -762,7 +762,7 @@ void CommandBuffer::PrepareBufferCopyCommands(const BufferCopyCmdData& data)
 			dstStages,
 			0,
 			0, nullptr,
-			barriers.size(), barriers.data(),
+			(uint32_t)barriers.size(), barriers.data(),
 			0, nullptr);
 
 		barriers.clear();
@@ -810,7 +810,7 @@ void CommandBuffer::ExecuteSecondaryCommandBuffer(const std::vector<std::shared_
 {
 	std::vector<VkCommandBuffer> rawCmdBuffers;
 	std::for_each(cmdBuffers.begin(), cmdBuffers.end(), [&rawCmdBuffers](auto& pCmdBuffer) {rawCmdBuffers.push_back(pCmdBuffer->GetDeviceHandle());});
-	vkCmdExecuteCommands(GetDeviceHandle(), rawCmdBuffers.size(), rawCmdBuffers.data());
+	vkCmdExecuteCommands(GetDeviceHandle(), (uint32_t)rawCmdBuffers.size(), rawCmdBuffers.data());
 
 	for (uint32_t i = 0; i < cmdBuffers.size(); i++)
 		AddToReferenceTable(cmdBuffers[i]);
@@ -831,26 +831,26 @@ void CommandBuffer::AttachBarriers
 		src,
 		dst,
 		0,
-		memBarriers.size(), memBarriers.data(),
-		bufferMemBarriers.size(), bufferMemBarriers.data(),
-		imageMemBarriers.size(), imageMemBarriers.data()
+		(uint32_t)memBarriers.size(), memBarriers.data(),
+		(uint32_t)bufferMemBarriers.size(), bufferMemBarriers.data(),
+		(uint32_t)imageMemBarriers.size(), imageMemBarriers.data()
 	);
 }
 
 void CommandBuffer::SetViewports(const std::vector<VkViewport>& viewports)
 {
-	vkCmdSetViewport(GetDeviceHandle(), 0, viewports.size(), viewports.data());
+	vkCmdSetViewport(GetDeviceHandle(), 0, (uint32_t)viewports.size(), viewports.data());
 }
 
 void CommandBuffer::SetScissors(const std::vector<VkRect2D>& scissors)
 {
-	vkCmdSetScissor(GetDeviceHandle(), 0, scissors.size(), scissors.data());
+	vkCmdSetScissor(GetDeviceHandle(), 0, (uint32_t)scissors.size(), scissors.data());
 }
 
 void CommandBuffer::BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets)
 {
 	std::vector<VkDescriptorSet> rawDSList;
-	for (uint32_t i = 0; i < descriptorSets.size(); i++)
+	for (uint32_t i = 0; i < (uint32_t)descriptorSets.size(); i++)
 	{
 		AddToReferenceTable(descriptorSets[i]);
 		rawDSList.push_back(descriptorSets[i]->GetDeviceHandle());
@@ -860,8 +860,8 @@ void CommandBuffer::BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pP
 	(
 		GetDeviceHandle(),
 		VK_PIPELINE_BIND_POINT_GRAPHICS, pPipelineLayout->GetDeviceHandle(),
-		0, descriptorSets.size(), rawDSList.data(),
-		offsets.size(), offsets.data()
+		0, (uint32_t)descriptorSets.size(), rawDSList.data(),
+		(uint32_t)offsets.size(), offsets.data()
 	);
 
 	AddToReferenceTable(pPipelineLayout);
@@ -944,14 +944,14 @@ void CommandBuffer::Execute(const std::vector<std::shared_ptr<CommandBuffer>>& c
 		AddToReferenceTable(cmd);
 	}
 
-	vkCmdExecuteCommands(GetDeviceHandle(), cmds.size(), cmds.data());
+	vkCmdExecuteCommands(GetDeviceHandle(), (uint32_t)cmds.size(), cmds.data());
 }
 
 void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::shared_ptr<RenderPass>& pRenderPass, const std::vector<VkClearValue>& clearValues, bool includeSecondary)
 {
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.clearValueCount = clearValues.size();
+	renderPassBeginInfo.clearValueCount = (uint32_t)clearValues.size();
 	renderPassBeginInfo.pClearValues = clearValues.data();
 	renderPassBeginInfo.renderPass = pRenderPass->GetDeviceHandle();
 	renderPassBeginInfo.framebuffer = pFrameBuffer->GetDeviceHandle();

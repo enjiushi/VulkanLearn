@@ -49,7 +49,7 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType, pass)->GetColorTargets().size();
+	uint32_t colorTargetCount = (uint32_t)FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType, pass)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -73,7 +73,7 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 	VkPipelineColorBlendStateCreateInfo blendCreateInfo = {};
 	blendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	blendCreateInfo.logicOpEnable = VK_FALSE;
-	blendCreateInfo.attachmentCount = blendStatesInfo.size();
+	blendCreateInfo.attachmentCount = (uint32_t)blendStatesInfo.size();
 	blendCreateInfo.pAttachments = blendStatesInfo.data();
 
 	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
@@ -114,7 +114,7 @@ std::shared_ptr<DOFMaterial> DOFMaterial::CreateDefaultMaterial(DOFPass pass)
 
 	VkPipelineDynamicStateCreateInfo dynamicStatesCreateInfo = {};
 	dynamicStatesCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicStatesCreateInfo.dynamicStateCount = dynamicStates.size();
+	dynamicStatesCreateInfo.dynamicStateCount = (uint32_t)dynamicStates.size();
 	dynamicStatesCreateInfo.pDynamicStates = dynamicStates.data();
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};

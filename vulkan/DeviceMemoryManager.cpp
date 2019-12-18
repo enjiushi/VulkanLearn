@@ -63,7 +63,7 @@ std::shared_ptr<MemoryKey> DeviceMemoryManager::AllocateBufferMemChunk(const std
 
 	uint32_t typeIndex;
 	uint32_t offset;
-	AllocateBufferMemory(pMemKey->m_key, reqs.size, reqs.memoryTypeBits, memoryPropertyBits, typeIndex, offset);
+	AllocateBufferMemory(pMemKey->m_key, (uint32_t)reqs.size, reqs.memoryTypeBits, memoryPropertyBits, typeIndex, offset);
 
 	// If key exceeds lookup table size, increase it
 	if (pMemKey->m_key >= m_bufferBindingLookupTable.size())
@@ -75,7 +75,7 @@ std::shared_ptr<MemoryKey> DeviceMemoryManager::AllocateBufferMemChunk(const std
 
 	pBuffer->BindMemory(m_bufferMemPool[typeIndex].memory, offset);
 
-	uint32_t bindingTableIndex = m_bufferBindingTable.size();
+	uint32_t bindingTableIndex = (uint32_t)m_bufferBindingTable.size();
 	m_bufferBindingTable.push_back
 		(
 			{
@@ -96,7 +96,7 @@ std::shared_ptr<MemoryKey> DeviceMemoryManager::AllocateBufferMemChunk(const std
 
 	m_bufferBindingLookupTable[pMemKey->m_key] = { bindingTableIndex, false };
 
-	UpdateBufferMemChunk(pMemKey, pData, offset, reqs.size);
+	UpdateBufferMemChunk(pMemKey, pData, offset, (uint32_t)reqs.size);
 
 	return pMemKey;
 }
@@ -109,7 +109,7 @@ std::shared_ptr<MemoryKey> DeviceMemoryManager::AllocateImageMemChunk(const std:
 
 	uint32_t typeIndex;
 	uint32_t offset;
-	AllocateImageMemory(pMemKey->m_key, reqs.size, reqs.memoryTypeBits, memoryPropertyBits, typeIndex, offset);
+	AllocateImageMemory(pMemKey->m_key, (uint32_t)reqs.size, reqs.memoryTypeBits, memoryPropertyBits, typeIndex, offset);
 	pImage->BindMemory(m_imageMemPool[m_imageMemPoolLookupTable[pMemKey->m_key].first].memory, offset);
 
 	return pMemKey;
@@ -231,7 +231,7 @@ void DeviceMemoryManager::AllocateImageMemory(uint32_t key, uint32_t numBytes, u
 
 	offset = 0;
 
-	uint32_t imageMemPoolIndex = m_imageMemPool.size();
+	uint32_t imageMemPoolIndex = (uint32_t)m_imageMemPool.size();
 	m_imageMemPool.push_back(node);
 
 	if (key >= m_imageMemPoolLookupTable.size())

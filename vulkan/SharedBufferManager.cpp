@@ -100,7 +100,7 @@ std::shared_ptr<BufferKey> SharedBufferManager::AllocateBuffer(uint32_t numBytes
 		}
 		else
 		{
-			offset = m_bufferTable[i].offset + m_bufferTable[i].range;
+			offset = (uint32_t)m_bufferTable[i].offset + (uint32_t)m_bufferTable[i].range;
 		}
 	}
 
@@ -113,7 +113,7 @@ std::shared_ptr<BufferKey> SharedBufferManager::AllocateBuffer(uint32_t numBytes
 	m_bufferTable.insert(m_bufferTable.end(), info);
 
 	// Update lookup table
-	m_lookupTable[m_numAllocatedKeys] = m_bufferTable.size() - 1;
+	m_lookupTable[m_numAllocatedKeys] = (uint32_t)m_bufferTable.size() - 1;
 
 	// Generate BufferKey
 	return BufferKey::Create(GetSelfSharedPtr(), m_numAllocatedKeys++);
@@ -122,25 +122,25 @@ std::shared_ptr<BufferKey> SharedBufferManager::AllocateBuffer(uint32_t numBytes
 void SharedBufferManager::UpdateByteStream(const void* pData, const std::shared_ptr<Buffer>& pWrapperBuffer, const std::shared_ptr<BufferKey>& pBufKey, uint32_t offset, uint32_t numBytes)
 {
 	if (m_pBuffer->IsHostVisible())
-		m_pBuffer->UpdateByteStream(pData, offset + m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
+		m_pBuffer->UpdateByteStream(pData, offset + (uint32_t)m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
 	// Since shared buffer manager holds a buffer shared by different shared buffers, with various usage and access flags, we can't simply let buffer do its update
 	// Without specific buffer's information
 	// So here we do a little hack to override, by directly call staging buffer to update wrapper buffer with its information
 	else
-		StagingBufferMgr()->UpdateByteStream(pWrapperBuffer, pData, offset + m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
+		StagingBufferMgr()->UpdateByteStream(pWrapperBuffer, pData, offset + (uint32_t)m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
 }
 
 void SharedBufferManager::UpdateByteStream(const void* pData, const std::shared_ptr<SharedBuffer>& pWrapperBuffer, const std::shared_ptr<BufferKey>& pBufKey, uint32_t offset, uint32_t numBytes)
 {
 	if (m_pBuffer->IsHostVisible())
-		m_pBuffer->UpdateByteStream(pData, offset + m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
+		m_pBuffer->UpdateByteStream(pData, offset + (uint32_t)m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
 	else
-		StagingBufferMgr()->UpdateByteStream(pWrapperBuffer, pData, offset + m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
+		StagingBufferMgr()->UpdateByteStream(pWrapperBuffer, pData, offset + (uint32_t)m_bufferTable[m_lookupTable[pBufKey->m_key]].offset, numBytes);
 }
 
 uint32_t SharedBufferManager::GetOffset(const std::shared_ptr<BufferKey>& pBufKey)
 { 
-	return m_bufferTable[m_lookupTable[pBufKey->m_key]].offset;
+	return (uint32_t)m_bufferTable[m_lookupTable[pBufKey->m_key]].offset;
 }
 
 VkDescriptorBufferInfo SharedBufferManager::GetBufferDesc(const std::shared_ptr<BufferKey>& pBufKey)

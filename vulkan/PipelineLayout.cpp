@@ -20,9 +20,9 @@ bool PipelineLayout::Init(const std::shared_ptr<Device>& pDevice,
 
 	VkPipelineLayoutCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	info.setLayoutCount = dsLayoutDeviceHandleList.size();
+	info.setLayoutCount = (uint32_t)dsLayoutDeviceHandleList.size();
 	info.pSetLayouts = dsLayoutDeviceHandleList.data();
-	info.pushConstantRangeCount = pushConstsRanges.size();
+	info.pushConstantRangeCount = (uint32_t)pushConstsRanges.size();
 	info.pPushConstantRanges = pushConstsRanges.data();
 	CHECK_VK_ERROR(vkCreatePipelineLayout(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_pipelineLayout));
 

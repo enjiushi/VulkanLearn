@@ -25,7 +25,7 @@ bool Device::Init(const std::shared_ptr<Instance>& pInst, const std::shared_ptr<
 	VkDeviceQueueCreateInfo deviceQueueCreateInfo = {};
 	deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 	deviceQueueCreateInfo.queueFamilyIndex = m_pPhysicalDevice->GetGraphicQueueIndex();
-	deviceQueueCreateInfo.queueCount = queueProperties.size();
+	deviceQueueCreateInfo.queueCount = (uint32_t)queueProperties.size();
 	deviceQueueCreateInfo.pQueuePriorities = queueProperties.data();
 
 	VkDeviceCreateInfo deviceCreateInfo = {};
@@ -33,7 +33,7 @@ bool Device::Init(const std::shared_ptr<Instance>& pInst, const std::shared_ptr<
 	deviceCreateInfo.queueCreateInfoCount = 1;
 	deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
 	std::vector<const char*> extensions = { EXTENSION_VULKAN_SWAPCHAIN, EXTENSION_SHADER_DRAW_PARAMETERS, EXTENSION_VULKAN_DRAW_INDIRECT_COUNT };
-	deviceCreateInfo.enabledExtensionCount = extensions.size();
+	deviceCreateInfo.enabledExtensionCount = (uint32_t)extensions.size();
 	deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
 	VkPhysicalDeviceFeatures enabledFeatures = {};

@@ -201,7 +201,7 @@ template <typename T>
 Quaternion<T> Matrix3x3<T>::AcquireQuaternion() const
 {
 	Quaternion<T> q;
-	float t;
+	double t;
 
 	if (c22 < static_cast<T>(0))
 	{

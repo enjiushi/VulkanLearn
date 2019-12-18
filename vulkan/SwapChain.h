@@ -22,7 +22,7 @@ public:
 
 	const VkSwapchainKHR GetDeviceHandle() const { return m_swapchain; }
 	const std::shared_ptr<SwapChainImage> GetSwapChainImage(uint32_t index) { assert(index < m_swapchainImages.size()); return m_swapchainImages[index]; }
-	uint32_t GetSwapChainImageCount() const { return m_swapchainImages.size(); }
+	uint32_t GetSwapChainImageCount() const { return (uint32_t)m_swapchainImages.size(); }
 	std::shared_ptr<FrameManager> GetFrameManager() const { return m_pFrameManager; }
 
 	void AcquireNextImage();

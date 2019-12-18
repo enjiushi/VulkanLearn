@@ -24,7 +24,7 @@ void GlobalVulkanStates::RestoreViewport()
 	VkViewport viewport =
 	{
 		0, 0,
-		GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height,
+		(float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, (float)GetDevice()->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height,
 		0, 1
 	};
 

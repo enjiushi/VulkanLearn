@@ -177,7 +177,7 @@ void Material::GeneralInit
 	VkDescriptorPoolCreateInfo descPoolInfo = {};
 	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descPoolInfo.pPoolSizes = descPoolSize.data();
-	descPoolInfo.poolSizeCount = descPoolSize.size();
+	descPoolInfo.poolSizeCount = (uint32_t)descPoolSize.size();
 	descPoolInfo.maxSets = 1 + GetSwapChain()->GetSwapChainImageCount();
 
 	m_pDescriptorPool = DescriptorPool::Create(GetDevice(), descPoolInfo);
@@ -390,7 +390,7 @@ std::shared_ptr<MaterialInstance> Material::CreateMaterialInstance()
 
 uint32_t Material::GetUniformBufferSize() const
 {
-	return m_materialUniforms[PerMaterialVariableBuffer]->GetBuffer()->GetBufferInfo().size;
+	return (uint32_t)m_materialUniforms[PerMaterialVariableBuffer]->GetBuffer()->GetBufferInfo().size;
 }
 
 void Material::SyncBufferData()
@@ -426,7 +426,7 @@ void Material::SyncBufferData()
 			drawID++;
 		}
 
-		m_indirectCmdCountBuffers[FrameMgr()->FrameIndex()]->SetIndirectCmdCount(m_cachedMeshRenderData.size());
+		m_indirectCmdCountBuffers[FrameMgr()->FrameIndex()]->SetIndirectCmdCount((uint32_t)m_cachedMeshRenderData.size());
 	}
 
 	for (auto & var : m_materialUniforms)
@@ -487,7 +487,7 @@ void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_
 		// Or there's no need to search this mesh and add it to instance count
 		// NOTE: Only add to ref table if it's not manual instanced rendering
 		if (!manualInstance)
-			m_perFrameMeshRefTable[pMesh] = m_cachedMeshRenderData.size() - 1;
+			m_perFrameMeshRefTable[pMesh] = (uint32_t)m_cachedMeshRenderData.size() - 1;
 
 		return;
 	}

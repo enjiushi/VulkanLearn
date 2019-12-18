@@ -21,12 +21,16 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	// Check if physical device supports input format along with its tiling feature
-	VkFormatProperties formatProp = pDevice->GetPhysicalDevice()->GetPhysicalDeviceFormatProperties(info.format);
+	// Skip this for now as it requires to enumerating all usage and pair it with format feature
+	// Don't do it yet
+	// The code below is totally incorrect
+	
+	/*VkFormatProperties formatProp = pDevice->GetPhysicalDevice()->GetPhysicalDeviceFormatProperties(info.format);
 	if (info.tiling == VK_IMAGE_TILING_LINEAR && (formatProp.linearTilingFeatures & info.usage))
 		return false;
-	if (info.tiling == VK_IMAGE_TILING_OPTIMAL && (formatProp.optimalTilingFeatures & info.usage != info.usage))
-		return false;
+
+	if ((info.tiling == VK_IMAGE_TILING_OPTIMAL) && ((formatProp.optimalTilingFeatures & info.usage) != info.usage))
+		return false;*/
 
 	// Image created must have flag VK_IMAGE_LAYOUT_UNDEFINED
 	VkImageLayout layout = info.initialLayout;
@@ -167,7 +171,7 @@ std::shared_ptr<Sampler> Image::CreateLinearRepeatSampler() const
 	samplerCreateInfo.mipLodBias = 0.0f;
 	samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
 	samplerCreateInfo.minLod = 0.0f;
-	samplerCreateInfo.maxLod = m_info.mipLevels;
+	samplerCreateInfo.maxLod = (float)m_info.mipLevels;
 	//if (GetPhysicalDevice()->GetPhysicalDeviceFeatures().samplerAnisotropy)
 	//{
 	//	sampler.maxAnisotropy = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.maxSamplerAnisotropy;
@@ -196,7 +200,7 @@ std::shared_ptr<Sampler> Image::CreateNearestRepeatSampler() const
 	samplerCreateInfo.mipLodBias = 0.0f;
 	samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
 	samplerCreateInfo.minLod = 0.0f;
-	samplerCreateInfo.maxLod = m_info.mipLevels;
+	samplerCreateInfo.maxLod = (float)m_info.mipLevels;
 	//if (GetPhysicalDevice()->GetPhysicalDeviceFeatures().samplerAnisotropy)
 	//{
 	//	sampler.maxAnisotropy = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.maxSamplerAnisotropy;
@@ -225,7 +229,7 @@ std::shared_ptr<Sampler> Image::CreateLinearClampToEdgeSampler(VkBorderColor bor
 	samplerCreateInfo.mipLodBias = 0.0f;
 	samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
 	samplerCreateInfo.minLod = 0.0f;
-	samplerCreateInfo.maxLod = m_info.mipLevels;
+	samplerCreateInfo.maxLod = (float)m_info.mipLevels;
 	//if (GetPhysicalDevice()->GetPhysicalDeviceFeatures().samplerAnisotropy)
 	//{
 	//	sampler.maxAnisotropy = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.maxSamplerAnisotropy;

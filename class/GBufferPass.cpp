@@ -71,7 +71,7 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 	depthAttachment.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription GBufferSubPass = {};
-	GBufferSubPass.colorAttachmentCount = GBufferPassColorAttach.size();
+	GBufferSubPass.colorAttachmentCount = (uint32_t)GBufferPassColorAttach.size();
 	GBufferSubPass.pColorAttachments = GBufferPassColorAttach.data();
 	GBufferSubPass.pDepthStencilAttachment = &depthAttachment;
 	GBufferSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -83,7 +83,7 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 	backgroundMotionAttach[1].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription backgroundMotionSubPass = {};
-	backgroundMotionSubPass.colorAttachmentCount = backgroundMotionAttach.size();
+	backgroundMotionSubPass.colorAttachmentCount = (uint32_t)backgroundMotionAttach.size();
 	backgroundMotionSubPass.pColorAttachments = backgroundMotionAttach.data();
 	backgroundMotionSubPass.pDepthStencilAttachment = &depthAttachment;
 	backgroundMotionSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -127,11 +127,11 @@ bool GBufferPass::Init(const std::shared_ptr<GBufferPass>& pSelf)
 
 	VkRenderPassCreateInfo renderpassCreateInfo = {};
 	renderpassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassCreateInfo.attachmentCount = attachmentDescs.size();
+	renderpassCreateInfo.attachmentCount = (uint32_t)attachmentDescs.size();
 	renderpassCreateInfo.pAttachments = attachmentDescs.data();
-	renderpassCreateInfo.subpassCount = subPasses.size();
+	renderpassCreateInfo.subpassCount = (uint32_t)subPasses.size();
 	renderpassCreateInfo.pSubpasses = subPasses.data();
-	renderpassCreateInfo.dependencyCount = dependencies.size();
+	renderpassCreateInfo.dependencyCount = (uint32_t)dependencies.size();
 	renderpassCreateInfo.pDependencies = dependencies.data();
 
 	if (!RenderPassBase::Init(pSelf, renderpassCreateInfo))

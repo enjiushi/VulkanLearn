@@ -63,7 +63,7 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer)->GetColorTargets().size();
+	uint32_t colorTargetCount = (uint32_t)FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -87,7 +87,7 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 	VkPipelineColorBlendStateCreateInfo blendCreateInfo = {};
 	blendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	blendCreateInfo.logicOpEnable = VK_FALSE;
-	blendCreateInfo.attachmentCount = blendStatesInfo.size();
+	blendCreateInfo.attachmentCount = (uint32_t)blendStatesInfo.size();
 	blendCreateInfo.pAttachments = blendStatesInfo.data();
 
 	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
@@ -129,7 +129,7 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 
 	VkPipelineDynamicStateCreateInfo dynamicStatesCreateInfo = {};
 	dynamicStatesCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicStatesCreateInfo.dynamicStateCount = dynamicStates.size();
+	dynamicStatesCreateInfo.dynamicStateCount = (uint32_t)dynamicStates.size();
 	dynamicStatesCreateInfo.pDynamicStates = dynamicStates.data();
 
 	std::vector<VkVertexInputBindingDescription> vertexBindingsInfo;
@@ -170,9 +170,9 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
 	vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputCreateInfo.vertexBindingDescriptionCount = vertexBindingsInfo.size();
+	vertexInputCreateInfo.vertexBindingDescriptionCount = (uint32_t)vertexBindingsInfo.size();
 	vertexInputCreateInfo.pVertexBindingDescriptions = vertexBindingsInfo.data();
-	vertexInputCreateInfo.vertexAttributeDescriptionCount = vertexAttributesInfo.size();
+	vertexInputCreateInfo.vertexAttributeDescriptionCount = (uint32_t)vertexAttributesInfo.size();
 	vertexInputCreateInfo.pVertexAttributeDescriptions = vertexAttributesInfo.data();
 
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

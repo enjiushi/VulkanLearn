@@ -34,8 +34,8 @@ bool AnimationController::Init(const std::shared_ptr<AnimationController>& pAnim
 
 void AnimationController::Update()
 {
-	float elapsed = Timer::GetElapsedTime();
-	m_animationPlayedTime += elapsed / 1000.0f;
+	double elapsed = Timer::GetElapsedTime();
+	m_animationPlayedTime += elapsed / 1000.0;
 	m_animationPlayedTime = fmod(m_animationPlayedTime, m_pAnimationInstance->GetAnimation()->m_animationDataDiction[0].duration);
 }
 
@@ -47,7 +47,7 @@ void AnimationController::UpdateBoneTransform(const std::shared_ptr<BaseObject>&
 	// If current object contains animation information, it's local transform will be changed accordingly
 	if (iter != pAnimation->m_animationDataDiction[0].objectAnimationLookupTable.end())
 	{
-		uint32_t keyFrameCount = pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames.size();
+		uint32_t keyFrameCount = (uint32_t)pAnimation->m_animationDataDiction[0].objectAnimationDiction[iter->second].rotationKeyFrames.size();
 		uint32_t currentKeyFrameIndex = m_pCurrentAnimationIndices[iter->second];
 
 		// Check if there is actually a next key frame

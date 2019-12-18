@@ -57,7 +57,7 @@ protected:
 	CharacterVariable	m_charVars;
 	bool				m_rotationStarted;
 	Vector2d			m_rotationStartPos;
-	float				m_startTargetToH;
+	double				m_startTargetToH;
 	Vector3d			m_lastTarget;
 
 	// Flags for normal move & rotation

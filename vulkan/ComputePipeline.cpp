@@ -22,7 +22,7 @@ bool ComputePipeline::Init(const std::shared_ptr<Device>& pDevice, const std::sh
 	m_shaderStageInfo.module = m_pShaderModule->GetDeviceHandle();
 
 	char* pEntryName = new char[ENTRY_NAME_LENGTH];
-	strcpy(pEntryName, m_pShaderModule->GetEntryName().c_str());
+	strcpy_s(pEntryName, ENTRY_NAME_LENGTH, m_pShaderModule->GetEntryName().c_str());
 	m_shaderStageInfo.pName = pEntryName;
 
 	m_info.stage = m_shaderStageInfo;

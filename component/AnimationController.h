@@ -7,7 +7,7 @@ class SkeletonAnimationInstance;
 
 class AnimationController : public BaseComponent
 {
-	DECLARE_CLASS_RTTI(AnimationController, BaseComponent);
+	DECLARE_CLASS_RTTI(AnimationController);
 
 public:
 	static std::shared_ptr<AnimationController> Create(const std::shared_ptr<SkeletonAnimationInstance>& pAnimationInstance = nullptr);
@@ -17,7 +17,7 @@ public:
 	void UpdateBoneTransform(const std::shared_ptr<BaseObject>& pObject);
 	void SyncBoneTransformToUniform(const std::shared_ptr<BaseObject>& pObject, uint32_t boneIndex, const DualQuaterniond& boneOffsetDQ);
 	std::shared_ptr<SkeletonAnimationInstance> GetAnimationInstance() const { return m_pAnimationInstance; }
-	float GetAnimationPlayedTime() const { return m_animationPlayedTime; }
+	double GetAnimationPlayedTime() const { return m_animationPlayedTime; }
 
 	void Update() override;
 
@@ -31,7 +31,7 @@ protected:
 protected:
 	std::shared_ptr<SkeletonAnimationInstance>	m_pAnimationInstance;
 
-	float		m_animationPlayedTime;
+	double		m_animationPlayedTime;
 
 	uint32_t*	m_pCurrentAnimationIndices;
 };
