@@ -5,14 +5,14 @@
 
 bool HaltonSequence::Initialized = false;
 uint32_t HaltonSequence::PatternLength = 32;
-float HaltonSequence::PatternScale = 1.0f;
+double HaltonSequence::PatternScale = 1.0;
 
-float HaltonSequence::POINTS_HALTON_2_3_X8[8 * 2];
-float HaltonSequence::POINTS_HALTON_2_3_X16[16 * 2];
-float HaltonSequence::POINTS_HALTON_2_3_X32[32 * 2];
-float HaltonSequence::POINTS_HALTON_2_3_X256[256 * 2];
+double HaltonSequence::POINTS_HALTON_2_3_X8[8 * 2];
+double HaltonSequence::POINTS_HALTON_2_3_X16[16 * 2];
+double HaltonSequence::POINTS_HALTON_2_3_X32[32 * 2];
+double HaltonSequence::POINTS_HALTON_2_3_X256[256 * 2];
 
-std::pair<float*, uint32_t> HaltonSequence::POINTS_HALTON_2_3[HaltonModeCount] =
+std::pair<double*, uint32_t> HaltonSequence::POINTS_HALTON_2_3[HaltonModeCount] =
 {
 	{ POINTS_HALTON_2_3_X8, 8 * 2 },
 	{ POINTS_HALTON_2_3_X16, 16 * 2 },
@@ -20,7 +20,7 @@ std::pair<float*, uint32_t> HaltonSequence::POINTS_HALTON_2_3[HaltonModeCount] =
 	{ POINTS_HALTON_2_3_X256, 256 * 2 }
 };
 
-Vector2f HaltonSequence::Sample(float* pattern, int index)
+Vector2d HaltonSequence::Sample(double* pattern, int index)
 {
 	int n = PatternLength / 2;
 	int i = index % n;
@@ -28,7 +28,7 @@ Vector2f HaltonSequence::Sample(float* pattern, int index)
 	return { PatternScale * pattern[2 * i + 0],  PatternScale * pattern[2 * i + 1] };
 }
 
-float HaltonSequence::HaltonSeq(uint32_t prime, uint32_t index)
+double HaltonSequence::HaltonSeq(uint32_t prime, uint32_t index)
 {
 	float r = 0.0f;
 	float f = 1.0f;
@@ -51,15 +51,15 @@ void HaltonSequence::InitializeHalton_2_3()
 	{
 		for (int i = 0, n = POINTS_HALTON_2_3[mode].second / 2; i != n; i++)
 		{
-			float u = HaltonSeq(2, i + 1) - 0.5f;
-			float v = HaltonSeq(3, i + 1) - 0.5f;
+			double u = HaltonSeq(2, i + 1) - 0.5;
+			double v = HaltonSeq(3, i + 1) - 0.5;
 			POINTS_HALTON_2_3[mode].first[2 * i + 0] = u;
 			POINTS_HALTON_2_3[mode].first[2 * i + 1] = v;
 		}
 	}
 }
 
-Vector2f HaltonSequence::GetHaltonJitter(HaltonMode mode, uint64_t index)
+Vector2d HaltonSequence::GetHaltonJitter(HaltonMode mode, uint64_t index)
 {
 	return { POINTS_HALTON_2_3[mode].first[index % (POINTS_HALTON_2_3[mode].second / 2)], POINTS_HALTON_2_3[mode].first[(index % (POINTS_HALTON_2_3[mode].second / 2)) + 1] };
 }

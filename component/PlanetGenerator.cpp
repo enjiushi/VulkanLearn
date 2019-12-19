@@ -25,11 +25,11 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 
 	m_pCamera = pCamera;
 
-	float ratio = (1.0f + sqrt(5.0f)) / 2.0f;
-	float scale = 1.0f / Vector2f(ratio, 1.0f).Length();
+	double ratio = (1.0 + sqrt(5.0)) / 2.0;
+	double scale = 1.0 / Vector2d(ratio, 1.0).Length();
 	ratio *= scale;
 
-	Vector3f vertices[] =
+	Vector3d vertices[] =
 	{
 		{ ratio, 0, -scale },			//rf 0
 		{ -ratio, 0, -scale },			//lf 1
@@ -84,28 +84,28 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 
 	memcpy_s(&m_icosahedronIndices, sizeof(m_icosahedronIndices), &indices, sizeof(indices));
 
-	Vector3f a = vertices[indices[0]];
-	Vector3f b = vertices[indices[1]];
-	Vector3f c = vertices[indices[2]];
-	Vector3f center = (a + b + c) / 3.0f;
+	Vector3d a = vertices[indices[0]];
+	Vector3d b = vertices[indices[1]];
+	Vector3d c = vertices[indices[2]];
+	Vector3d center = (a + b + c) / 3.0;
 	center.Normalize();
 
-	float cosin_a_center = a * center;
+	double cosin_a_center = a * center;
 
 	// cosin_a_center = r / h, r = 1(local length)
-	float height_level_0 = 1 / cosin_a_center;
+	double height_level_0 = 1 / cosin_a_center;
 	
 	m_heightLUT.push_back(height_level_0);
 	for (uint32_t i = 1; i < MAX_LEVEL + 1; i++)
 	{
 		// Next level vertices
-		Vector3f A = (b + c) * 0.5f;
-		Vector3f B = (a + c) * 0.5f;
-		Vector3f C = (a + b) * 0.5f;
+		Vector3d A = (b + c) * 0.5;
+		Vector3d B = (a + c) * 0.5;
+		Vector3d C = (a + b) * 0.5;
 		A.Normalize();
 
-		float cosin_A_center = A * center;
-		float height = 1 / cosin_A_center;
+		double cosin_A_center = A * center;
+		double height = 1 / cosin_A_center;
 		m_heightLUT.push_back(height);
 
 		a = A;
@@ -120,17 +120,17 @@ void PlanetGenerator::Start()
 {
 	m_pMeshRenderer = GetComponent<MeshRenderer>();
 
-	float size = (m_icosahedronVertices[m_icosahedronIndices[0]] - m_icosahedronVertices[m_icosahedronIndices[1]]).Length();
-	float frac = tanf(UniformData::GetInstance()->GetGlobalUniforms()->GetMainCameraHorizontalFOV() * TRIANGLE_SCREEN_SIZE / UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x);
+	double size = (m_icosahedronVertices[m_icosahedronIndices[0]] - m_icosahedronVertices[m_icosahedronIndices[1]]).Length();
+	double frac = std::tan(UniformData::GetInstance()->GetGlobalUniforms()->GetMainCameraHorizontalFOV() * TRIANGLE_SCREEN_SIZE / UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x);
 	for (uint32_t i = 0; i < MAX_LEVEL + 1; i++)
 	{
 		m_distanceLUT.push_back(size / frac);
-		size *= 0.5f;
+		size *= 0.5;
 	}
 	//ASSERTION(m_pMeshRenderer != nullptr);
 }
 
-PlanetGenerator::CullState PlanetGenerator::FrustumCull(const Vector3f& a, const Vector3f& b, const Vector3f& c, float height)
+PlanetGenerator::CullState PlanetGenerator::FrustumCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, double height)
 {
 	CullState state = CullState::DIVIDE;
 	for (uint32_t i = 0; i < m_cameraFrustumLocal.FrustumFace_COUNT; i++)
@@ -158,7 +158,7 @@ PlanetGenerator::CullState PlanetGenerator::FrustumCull(const Vector3f& a, const
 	return state;
 }
 
-void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Vector3f& a, const Vector3f& b, const Vector3f& c, IcoTriangle*& pOutputTriangles)
+void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, IcoTriangle*& pOutputTriangles)
 {
 	// Only perform frustum cull if state is CULL_DIVIDE, as it intersects the volumn
 	if (state == CullState::CULL_DIVIDE)
@@ -181,7 +181,7 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 	m_utilityVector0 += c;
 
 	m_utilityVector1 = m_utilityVector0;
-	m_utilityVector1 /= 3.0f;				// Get triangle center
+	m_utilityVector1 /= 3.0;				// Get triangle center
 	m_utilityVector1 -= m_cameraPosLocal;	// Get vector from camera to triangle center
 
 	m_utilityVector0.Normalize();
@@ -190,22 +190,22 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 	if (m_utilityVector1 * m_utilityVector0 > 0.4)
 		return;
 
-	float distA = (m_cameraPosLocal - a).Length();
-	float distB = (m_cameraPosLocal - b).Length();
-	float distC = (m_cameraPosLocal - c).Length();
+	double distA = (m_cameraPosLocal - a).Length();
+	double distB = (m_cameraPosLocal - b).Length();
+	double distC = (m_cameraPosLocal - c).Length();
 
-	float minDist = std::fminf(std::fminf(distA, distB), distC);
+	double minDist = std::fmin(std::fmin(distA, distB), distC);
 
 	if (m_distanceLUT[currentLevel] <= minDist || currentLevel == MAX_LEVEL)
 	{
-		pOutputTriangles->a = a;
-		pOutputTriangles->b = b;
-		pOutputTriangles->c = c;
+		pOutputTriangles->a = a.SinglePrecision();
+		pOutputTriangles->b = b.SinglePrecision();
+		pOutputTriangles->c = c.SinglePrecision();
 		pOutputTriangles++;
 		return;
 	}
 
-	Vector3f A, B, C;
+	Vector3d A, B, C;
 	SceneGenerator::GetInstance()->SubDivideTriangle(a, b, c, A, B, C);
 	A.Normalize();
 	B.Normalize();
@@ -243,7 +243,7 @@ void PlanetGenerator::OnPreRender()
 	{
 		SubDivide(0, CullState::CULL_DIVIDE, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);
 	}
-	uint32_t updatedSize = (uint8_t*)pTriangles - startPtr;
+	uint32_t updatedSize = (uint32_t)((uint8_t*)pTriangles - startPtr);
 
 	PlanetGeoDataManager::GetInstance()->FinishDataUpdate(updatedSize);
 	

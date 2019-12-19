@@ -7,7 +7,7 @@ bool UniformBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shar
 	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 
-	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
+	uint32_t minAlign = (uint32_t)GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
 	uint32_t alignedBytes = numBytes / minAlign * minAlign + (numBytes % minAlign > 0 ? minAlign : 0);
 
 	info.size = alignedBytes;

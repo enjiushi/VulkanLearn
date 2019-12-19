@@ -13,8 +13,8 @@ bool Texture2DArray::Init(const std::shared_ptr<Device>& pDevice, const std::sha
 
 	uint32_t width = gliTextureArray.textures[0].extent().x;
 	uint32_t height = gliTextureArray.textures[0].extent().y;
-	uint32_t mipLevels = gliTextureArray.textures[0].levels();
-	uint32_t layers = gliTextureArray.textures.size();
+	uint32_t mipLevels = (uint32_t)gliTextureArray.textures[0].levels();
+	uint32_t layers = (uint32_t)gliTextureArray.textures.size();
 
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -133,10 +133,8 @@ std::shared_ptr<Texture2DArray> Texture2DArray::CreateMipmapOffscreenTexture(con
 	}
 
 	uint32_t smaller = height < width ? height : width;
-	uint32_t mips = 0;
-	uint32_t mipSize;
 
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, std::log2(smaller) + 1, layers, format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT))
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, (uint32_t)std::log2(smaller) + 1, layers, format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT))
 		return pTexture;
 	return nullptr;
 }
@@ -151,7 +149,7 @@ std::shared_ptr<StagingBuffer> Texture2DArray::PrepareStagingBuffer(const GliIma
 	// Get total bytes of texture vector
 	uint32_t total_bytes = 0;
 	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
-		total_bytes += gliTex.textures[i].size();
+		total_bytes += (uint32_t)gliTex.textures[i].size();
 
 	// Copy all bytes of texture vector into a buffer
 	uint32_t offset = 0;
@@ -159,7 +157,7 @@ std::shared_ptr<StagingBuffer> Texture2DArray::PrepareStagingBuffer(const GliIma
 	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
 	{
 		memcpy_s(buf + offset, total_bytes - offset, gliTex.textures[i].data(), gliTex.textures[i].size());
-		offset += gliTex.textures[i].size();
+		offset += (uint32_t)gliTex.textures[i].size();
 	}
 
 	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, total_bytes);
@@ -222,7 +220,7 @@ void Texture2DArray::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, 
 
 		bufferCopyRegions.push_back(bufferCopyRegion);
 
-		uint32_t size = tex2d[level].size();
+		uint32_t size = (uint32_t)tex2d[level].size();
 		offset += static_cast<uint32_t>(tex2d[level].size());
 	}
 

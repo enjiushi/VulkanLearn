@@ -119,7 +119,7 @@ public:
 	virtual void DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
 	virtual void DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
 
-	virtual void Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, const Vector3f& groupNum, const Vector3f& groupSize, uint32_t pingpong = 0) = 0;
+	virtual void Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, const Vector3d& groupNum, const Vector3d& groupSize, uint32_t pingpong = 0) = 0;
 	virtual void AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
 
 	virtual void OnFrameBegin();

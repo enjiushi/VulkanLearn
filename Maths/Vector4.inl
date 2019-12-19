@@ -200,6 +200,19 @@ Vector4<T>& Vector4<T>::DivHomograph()
 }
 
 template <typename T>
+Vector4<float> Vector4<T>::SinglePrecision() const
+{
+	return { (float)x, (float)y, (float)z, (float)w };
+}
+
+template <typename T>
+Vector4<double> Vector4<T>::DoublePrecision() const
+{
+	return { (double)x, (double)y, (double)z, (double)w };
+}
+
+
+template <typename T>
 Vector3<T> Vector4<T>::xyz() const
 {
 	return Vector3<T>(data[0], data[1], data[2]);

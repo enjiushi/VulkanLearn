@@ -23,7 +23,7 @@
 std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial()
 {
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
-	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon_ws_view_ray.vert.spv", L"", L"", L"", L"../data/shaders/ssao_gen.frag.spv", L"" };
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon_cs_view_ray.vert.spv", L"", L"", L"", L"../data/shaders/ssao_gen.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
 	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
@@ -37,7 +37,7 @@ std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial()
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType)->GetColorTargets().size();
+	uint32_t colorTargetCount = (uint32_t)FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -61,7 +61,7 @@ std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial()
 	VkPipelineColorBlendStateCreateInfo blendCreateInfo = {};
 	blendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	blendCreateInfo.logicOpEnable = VK_FALSE;
-	blendCreateInfo.attachmentCount = blendStatesInfo.size();
+	blendCreateInfo.attachmentCount = (uint32_t)blendStatesInfo.size();
 	blendCreateInfo.pAttachments = blendStatesInfo.data();
 
 	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
@@ -102,7 +102,7 @@ std::shared_ptr<SSAOMaterial> SSAOMaterial::CreateDefaultMaterial()
 
 	VkPipelineDynamicStateCreateInfo dynamicStatesCreateInfo = {};
 	dynamicStatesCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicStatesCreateInfo.dynamicStateCount = dynamicStates.size();
+	dynamicStatesCreateInfo.dynamicStateCount = (uint32_t)dynamicStates.size();
 	dynamicStatesCreateInfo.pDynamicStates = dynamicStates.data();
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -171,7 +171,7 @@ bool SSAOMaterial::Init(const std::shared_ptr<SSAOMaterial>& pSelf,
 
 	uint32_t index;
 	UniformData::GetInstance()->GetGlobalTextures()->GetTextureIndex(RGBA8_1024, "BlueNoise", index);
-	m_blueNoiseTexIndex = index;
+	m_blueNoiseTexIndex = (float)index;
 
 	return true;
 }

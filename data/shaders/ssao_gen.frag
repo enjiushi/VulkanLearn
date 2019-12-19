@@ -11,7 +11,7 @@ layout (set = 3, binding = 5) uniform sampler2D DepthStencilBuffer[3];
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec2 inOneNearPosition;
-layout (location = 2) in vec3 inWsView;
+layout (location = 2) in vec3 inCsView;
 
 layout (location = 0) out vec4 outSSAOFactor;
 layout (location = 1) out vec4 outSSRInfo;
@@ -19,8 +19,6 @@ layout (location = 1) out vec4 outSSRInfo;
 layout(push_constant) uniform PushConsts {
 	layout (offset = 0) float blueNoiseTexIndex;
 } pushConsts;
-
-int index = int(perFrameData.camDir.a);
 
 float maxRegenCount = globalData.SSRSettings0.z;
 float surfaceMargin = globalData.SSRSettings0.w;
@@ -31,35 +29,34 @@ float rayTraceHitThickness = globalData.SSRSettings1.w;
 
 void UnpackNormalRoughness(ivec2 coord, out vec3 normal, out float roughness)
 {
-	vec4 gbuffer0 = texelFetch(GBuffer0[index], coord, 0);
-	vec4 gbuffer2 = texelFetch(GBuffer2[index], coord, 0);
+	vec4 gbuffer0 = texelFetch(GBuffer0[frameIndex], coord, 0);
+	vec4 gbuffer2 = texelFetch(GBuffer2[frameIndex], coord, 0);
 
 	normal = length(gbuffer0) < 0.001f ? vec3(0.0f) : normalize(gbuffer0.xyz * 2.0f - 1.0f);
 	roughness = gbuffer2.r;
 }
 
-vec4 RayMarch(vec3 sampleNormal, vec3 normal, vec3 position, vec3 wsViewRay)
+vec4 RayMarch(vec3 sampleCSNormal, vec3 csNormal, vec3 position, vec3 csViewRay)
 {
-	if (length(sampleNormal) < 0.5f)
+	if (length(sampleCSNormal) < 0.5f)
 		return vec4(0.0f);
 
 	float maxDistance = 20.0f;
 	float csNearPlane = -perFrameData.nearFarAB.x;
 
-	vec3 wsReflectDir = reflect(wsViewRay, sampleNormal);
+	vec3 csReflectDir = reflect(csViewRay, sampleCSNormal);
 
-	if (dot(wsReflectDir, normal) < 0.0f)
+	if (dot(csReflectDir.xyz, csNormal) < 0.0f)
 		return vec4(0.0f);
 
-	vec4 csReflectDir = perFrameData.view * vec4(wsReflectDir, 0.0f);
-	vec4 csRayOrigin = perFrameData.view * vec4(position, 1.0f);
+	vec3 csRayOrigin = position;
 
 	float rayLength = (csRayOrigin.z + csReflectDir.z * maxDistance > csNearPlane) ? (csNearPlane - csRayOrigin.z) / csReflectDir.z : maxDistance;
 
-	vec4 csRayEnd = csRayOrigin + csReflectDir * rayLength;
+	vec3 csRayEnd = csRayOrigin + csReflectDir * rayLength;
 
-	vec4 clipRayOrigin = globalData.projection * csRayOrigin;
-	vec4 clipRayEnd = globalData.projection * csRayEnd;
+	vec4 clipRayOrigin = globalData.projection * vec4(csRayOrigin, 1.0f);
+	vec4 clipRayEnd = globalData.projection * vec4(csRayEnd, 1.0f);
 
 	float k0 = 1.0f / clipRayOrigin.w;
 	float k1 = 1.0f / clipRayEnd.w;
@@ -131,7 +128,7 @@ vec4 RayMarch(vec3 sampleNormal, vec3 normal, vec3 position, vec3 wsViewRay)
 
 		hit = permute ? P.yx : P;
 
-		float window_z = texelFetch(DepthStencilBuffer[index], ivec2(hit), 0).r;
+		float window_z = texelFetch(DepthStencilBuffer[frameIndex], ivec2(hit), 0).r;
 		sampleZ = ReconstructLinearDepth(window_z);
 	}
 
@@ -144,7 +141,7 @@ vec4 RayMarch(vec3 sampleNormal, vec3 normal, vec3 position, vec3 wsViewRay)
 	UnpackNormalRoughness(ivec2(hit), hitNormal, roughness);
 
 	rayHitInfo.b = stepCount;
-	rayHitInfo.a = float((ZMax < sampleZ) && (ZMin > sampleZ - rayTraceHitThickness) && (dot(hitNormal, wsReflectDir) < 0));
+	rayHitInfo.a = float((ZMax < sampleZ) && (ZMin > sampleZ - rayTraceHitThickness) && (dot(hitNormal, csReflectDir.xyz) < 0));
 
 
 	return rayHitInfo;
@@ -159,7 +156,7 @@ void main()
 	UnpackNormalRoughness(coord, normal, roughness);
 
 	float linearDepth;
-	vec3 position = ReconstructWSPosition(coord, inOneNearPosition, DepthStencilBuffer[index], linearDepth);
+	vec3 position = ReconstructCSPosition(coord, inOneNearPosition, DepthStencilBuffer[frameIndex], linearDepth);
 
 	vec3 tangent = texture(SSAO_RANDOM_ROTATIONS, inUv * globalData.SSAOWindowSize.xy / textureSize(SSAO_RANDOM_ROTATIONS, 0)).xyz * 2.0f - 1.0f;
 	tangent = normalize(tangent - dot(normal, tangent) * normal);
@@ -183,12 +180,12 @@ void main()
 			vec3 sampleDir = TBN * globalData.SSAOSamples[i].xyz;
 			vec3 samplePos = position + sampleDir * globalData.SSAOSettings.y;
 
-			vec4 clipSpaceSample = perFrameData.VP * vec4(samplePos, 1.0f);
+			vec4 clipSpaceSample = globalData.projection * vec4(samplePos, 1.0f);
 			clipSpaceSample = clipSpaceSample / clipSpaceSample.w;
 			clipSpaceSample.xy = clipSpaceSample.xy * 0.5f + 0.5f;
 
 			float sampledDepth = clipSpaceSample.z;
-			float textureDepth = texture(DepthStencilBuffer[index], clipSpaceSample.xy).r;
+			float textureDepth = texture(DepthStencilBuffer[frameIndex], clipSpaceSample.xy).r;
 
 			sampledDepth = ReconstructLinearDepth(sampledDepth);
 			textureDepth = ReconstructLinearDepth(textureDepth);
@@ -208,7 +205,7 @@ void main()
 	vec2 randomOffset = PDsrand2(vec2(perFrameData.time.x)) * 0.5f + 0.5f;
 	vec2 noiseUV = (inUv + randomOffset) * globalData.gameWindowSize.xy * 0.5f;
 
-	vec3 wsViewRay = normalize(inWsView);
+	vec3 csViewRay = normalize(inCsView);
 	vec4 H;
 	float RdotN = 0.0f;
 
@@ -223,10 +220,10 @@ void main()
 		H.xyz = normalize(H.xyz);
 		H.xyz = TBN * H.xyz;
 
-		RdotN = dot(normal, reflect(wsViewRay, H.xyz));
+		RdotN = dot(normal, reflect(csViewRay, H.xyz));
 	}
 
-	outSSRInfo = RayMarch(H.xyz, normal, position, wsViewRay);
+	outSSRInfo = RayMarch(H.xyz, normal, position, csViewRay);
 
 	// SSRInfo:
 	// xy: hit position

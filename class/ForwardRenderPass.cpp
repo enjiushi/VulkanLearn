@@ -54,7 +54,7 @@ bool ForwardRenderPass::Init(const std::shared_ptr<ForwardRenderPass>& pSelf, Vk
 
 	VkRenderPassCreateInfo renderpassCreateInfo = {};
 	renderpassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassCreateInfo.attachmentCount = attachmentDescs.size();
+	renderpassCreateInfo.attachmentCount = (uint32_t)attachmentDescs.size();
 	renderpassCreateInfo.pAttachments = attachmentDescs.data();
 	renderpassCreateInfo.subpassCount = 1;
 	renderpassCreateInfo.pSubpasses = &subpass;

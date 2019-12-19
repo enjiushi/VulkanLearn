@@ -15,11 +15,9 @@ layout (location = 0) in vec2 inUv;
 
 layout (location = 0) out vec4 outBloomFrag;
 
-int index = int(perFrameData.camDir.a);
-
 void main() 
 {
-	vec4 color = DownsampleBox13Tap(DOFResults[index], inUv, pushConsts.texelSize);
+	vec4 color = DownsampleBox13Tap(DOFResults[frameIndex], inUv, pushConsts.texelSize);
 	float factor = smoothstep(globalData.BloomSettings0.x, globalData.BloomSettings0.y, Luminance(color.rgb));
 
 	outBloomFrag = vec4(color.rgb * factor, 1.0f);

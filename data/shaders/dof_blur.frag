@@ -11,8 +11,6 @@ layout (location = 0) in vec2 inUv;
 
 layout (location = 0) out vec4 outBlurredColor;
 
-int index = int(perFrameData.camDir.a);
-
 const int BOKEH_KERNEL_COUNT = 43;
 const vec2 BOKEH_KERNEL[BOKEH_KERNEL_COUNT] = {
     vec2(0,0),
@@ -62,7 +60,7 @@ const vec2 BOKEH_KERNEL[BOKEH_KERNEL_COUNT] = {
 
 void main() 
 {
-	vec4 center = texture(PrefilteredCoC[index], inUv);
+	vec4 center = texture(PrefilteredCoC[frameIndex], inUv);
 
 	vec4 farColor = vec4(0);
 	vec4 nearColor = vec4(0);
@@ -74,7 +72,7 @@ void main()
 
 		offset = vec2(offset.x / globalData.MainCameraSettings0.x, offset.y);
 		
-		vec4 curSample = texture(PrefilteredCoC[index], inUv + offset).rgba;
+		vec4 curSample = texture(PrefilteredCoC[frameIndex], inUv + offset).rgba;
 
 		float farCoC = max(min(center.a, curSample.a), 0.0f);
 

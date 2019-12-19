@@ -1,6 +1,6 @@
 #include "AssimpDataConverter.h"
 
-Vector3f AssimpDataConverter::AcquireVector3(const aiVector3D& assimpVector3)
+Vector3d AssimpDataConverter::AcquireVector3(const aiVector3D& assimpVector3)
 {
 	return
 	{
@@ -10,7 +10,7 @@ Vector3f AssimpDataConverter::AcquireVector3(const aiVector3D& assimpVector3)
 	};
 }
 
-Quaternionf AssimpDataConverter::AcquireQuaternion(const aiQuaternion& assimpQuaternion)
+Quaterniond AssimpDataConverter::AcquireQuaternion(const aiQuaternion& assimpQuaternion)
 {
 	return
 	{
@@ -21,7 +21,7 @@ Quaternionf AssimpDataConverter::AcquireQuaternion(const aiQuaternion& assimpQua
 	};
 }
 
-Matrix3f AssimpDataConverter::AcquireMatrix3(const aiMatrix3x3& assimpMatrix3x3)
+Matrix3d AssimpDataConverter::AcquireMatrix3(const aiMatrix3x3& assimpMatrix3x3)
 {
 	return
 	{
@@ -31,7 +31,7 @@ Matrix3f AssimpDataConverter::AcquireMatrix3(const aiMatrix3x3& assimpMatrix3x3)
 	};
 }
 
-Matrix3f AssimpDataConverter::AcquireRotationMatrix(const aiMatrix4x4& assimpMatrix4x4)
+Matrix3d AssimpDataConverter::AcquireRotationMatrix(const aiMatrix4x4& assimpMatrix4x4)
 {
 	return 
 	{
@@ -41,12 +41,12 @@ Matrix3f AssimpDataConverter::AcquireRotationMatrix(const aiMatrix4x4& assimpMat
 	};
 }
 
-Quaternionf AssimpDataConverter::AcquireRotationQuaternion(const aiMatrix4x4& assimpMatrix4x4)
+Quaterniond AssimpDataConverter::AcquireRotationQuaternion(const aiMatrix4x4& assimpMatrix4x4)
 {
 	return AcquireRotationMatrix(assimpMatrix4x4).AcquireQuaternion();
 }
 
-Vector3f AssimpDataConverter::AcquireTranslationVector(const aiMatrix4x4& assimpMatrix4x4)
+Vector3d AssimpDataConverter::AcquireTranslationVector(const aiMatrix4x4& assimpMatrix4x4)
 {
 	return 
 	{
@@ -54,7 +54,7 @@ Vector3f AssimpDataConverter::AcquireTranslationVector(const aiMatrix4x4& assimp
 	};
 }
 
-Matrix4f AssimpDataConverter::AcquireMatrix(const aiMatrix4x4& assimpMatrix4x4)
+Matrix4d AssimpDataConverter::AcquireMatrix(const aiMatrix4x4& assimpMatrix4x4)
 {
 	return
 	{
@@ -65,7 +65,7 @@ Matrix4f AssimpDataConverter::AcquireMatrix(const aiMatrix4x4& assimpMatrix4x4)
 	};
 }
 
-DualQuaternionf AssimpDataConverter::AcquireDualQuaternion(const aiMatrix4x4& assimpMatrix4x4)
+DualQuaterniond AssimpDataConverter::AcquireDualQuaternion(const aiMatrix4x4& assimpMatrix4x4)
 {
 	return
 	{

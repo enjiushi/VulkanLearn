@@ -382,6 +382,18 @@ Quaternion<T> Quaternion<T>::SLerp(const Quaternion<T>& from, const Quaternion<T
 }
 
 template<typename T>
+Quaternion<float> Quaternion<T>::SinglePrecision() const
+{
+	return { (float)x, (float)y, (float)z, (float)w };
+}
+
+template<typename T>
+Quaternion<double> Quaternion<T>::DoublePrecision() const
+{
+	return { (double)x, (double)y, (double)z, (double)w };
+}
+
+template<typename T>
 Quaternion<T> Quaternion<T>::NLerp(const Quaternion<T>& from, const Quaternion<T>& to, T factor)
 {
 	Quaternion<T> ret;

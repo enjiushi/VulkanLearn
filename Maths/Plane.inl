@@ -16,7 +16,7 @@ Plane<T>::Plane(const Vector3<T>& p0, const Vector3<T>& p1, const Vector3<T>& p2
 	normal = v0 ^ v1;
 
 	if (normal * up < 0)
-		normal *= -1.0f;
+		normal *= -1.0;
 
 	D = normal * p2;
 }

@@ -29,7 +29,6 @@
 #include "PerFrameResource.h"
 #include "../thread/ThreadTaskQueue.hpp"
 #include "../Base/BaseObject.h"
-#include "../component/Camera.h"
 #include "../component/Character.h"
 #include "Texture2D.h"
 #include "TextureCube.h"

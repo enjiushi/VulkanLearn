@@ -21,9 +21,7 @@ layout(push_constant) uniform PushConsts {
 layout (location = 0) in vec2 inUv;
 layout (location = 0) out vec4 outFragColor0;
 
-int index = int(perFrameData.camDir.a);
-
 void main() 
 {
-	outFragColor0 = vec4(Blur(InputTexture[index], inUv, pushConsts.params.direction, pushConsts.params.scale, pushConsts.params.strength).rg, 0.0f, 1.0f);
+	outFragColor0 = vec4(Blur(InputTexture[frameIndex], inUv, pushConsts.params.direction, pushConsts.params.scale, pushConsts.params.strength).rg, 0.0f, 1.0f);
 }

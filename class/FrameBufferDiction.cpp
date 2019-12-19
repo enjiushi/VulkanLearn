@@ -57,6 +57,8 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateFrameBuffer(Frame
 		ASSERTION(false);
 		break;
 	}
+
+	return {};
 }
 
 bool FrameBufferDiction::Init()
@@ -78,7 +80,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::GetFrameBuffers(FrameBu
 	if (m_frameBuffers[type].size() <= layer)
 	{
 		for (uint32_t i = 0; i < layer - m_frameBuffers[type].size() + 1; i++)
-			m_frameBuffers[type].push_back(CreateFrameBuffer(type, m_frameBuffers[type].size()));
+			m_frameBuffers[type].push_back(CreateFrameBuffer(type, (uint32_t)m_frameBuffers[type].size()));
 	}
 	return m_frameBuffers[type][layer];
 }
@@ -89,7 +91,7 @@ std::shared_ptr<FrameBuffer> FrameBufferDiction::GetFrameBuffer(FrameBufferType 
 	if (m_frameBuffers[type].size() <= layer)
 	{
 		for (uint32_t i = 0; i < layer - m_frameBuffers[type].size() + 1; i++)
-			m_frameBuffers[type].push_back(CreateFrameBuffer(type, m_frameBuffers[type].size()));
+			m_frameBuffers[type].push_back(CreateFrameBuffer(type, (uint32_t)m_frameBuffers[type].size()));
 	}
 	return m_frameBuffers[type][layer][FrameMgr()->FrameIndex()];
 }
@@ -115,7 +117,7 @@ std::shared_ptr<FrameBuffer> FrameBufferDiction::GetPingPongFrameBuffer(FrameBuf
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
@@ -123,12 +125,12 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffe
 	{
 		std::vector<std::shared_ptr<Image>> gbuffer_vec(GBufferCount);
 
-		gbuffer_vec[GBuffer0] = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, m_GBufferFormatTable[GBuffer0]);
-		gbuffer_vec[GBuffer1] = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, m_GBufferFormatTable[GBuffer1]);
-		gbuffer_vec[GBuffer2] = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, m_GBufferFormatTable[GBuffer2]);
-		gbuffer_vec[MotionVector] = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, m_GBufferFormatTable[MotionVector]);
+		gbuffer_vec[GBuffer0] = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, m_GBufferFormatTable[GBuffer0]);
+		gbuffer_vec[GBuffer1] = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, m_GBufferFormatTable[GBuffer1]);
+		gbuffer_vec[GBuffer2] = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, m_GBufferFormatTable[GBuffer2]);
+		gbuffer_vec[MotionVector] = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, m_GBufferFormatTable[MotionVector]);
 
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, windowSize.x, windowSize.y);
+		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, (uint32_t)windowSize.x, (uint32_t)windowSize.y);
 
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), gbuffer_vec, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->GetRenderPass()));
 	}
@@ -138,7 +140,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffe
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionTileMaxFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
@@ -153,7 +155,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionTileMaxFram
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionNeighborMaxFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetMotionTileWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
@@ -168,13 +170,13 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateMotionNeighborMax
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadowMapFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetShadowGenWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_FORMAT, windowSize.x, windowSize.y);
+		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_FORMAT, (uint32_t)windowSize.x, (uint32_t)windowSize.y);
 
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), std::vector<std::shared_ptr<Image>>(), pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap)->GetRenderPass()));
 	}
@@ -184,14 +186,14 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadowMapFrameBuf
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOSSRFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pSSAO = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, SSAO_FORMAT);
-		std::shared_ptr<Image> pSSR = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, SSR_FORMAT);
+		std::shared_ptr<Image> pSSAO = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, SSAO_FORMAT);
+		std::shared_ptr<Image> pSSR = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, SSR_FORMAT);
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pSSAO, pSSR }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOSSR)->GetRenderPass()));
 	}
 
@@ -200,13 +202,13 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOSSRFrameBuffe
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferV(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, SSAO_FORMAT);
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, SSAO_FORMAT);
 
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), pColorTarget, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurV)->GetRenderPass()));
 	}
@@ -216,13 +218,13 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBuff
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBufferH(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetSSAOSSRWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, SSAO_FORMAT);
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, SSAO_FORMAT);
 
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), pColorTarget, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurH)->GetRenderPass()));
 	}
@@ -233,14 +235,14 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOBlurFrameBuff
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pShadingResult = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
-		std::shared_ptr<Image> pSSResult = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pShadingResult = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pSSResult = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
 		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = m_frameBuffers[FrameBufferType_GBuffer][0][i]->GetDepthStencilTarget();
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pShadingResult, pSSResult }, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()));
 	}
@@ -251,30 +253,30 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffe
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
 	std::vector<std::shared_ptr<Image>> temporalShadingResult =
 	{
-		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
-		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
+		Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 	};
 
 	std::vector<std::shared_ptr<Image>> temporalSSRResult =
 	{
-		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
-		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x,(uint32_t)windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
+		Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 	};
 
 	std::vector<std::shared_ptr<Image>> temporalResult =
 	{
-		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
-		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
+		Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 	};
 
 	std::vector<std::shared_ptr<Image>> temporalCoC =
 	{
-		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, COC_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
-		Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, COC_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, COC_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
+		Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, COC_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 	};
 
 	FrameBufferCombo frameBuffers;
@@ -295,10 +297,10 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFr
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateDOFFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
 	uint32_t div = (layer == CombineLayer ? 1 : 2);
-	Vector2f layerSize = { windowSize.x / div, windowSize.y / div };
+	Vector2d layerSize = { windowSize.x / div, windowSize.y / div };
 
 	FrameBufferCombo frameBuffers;
 
@@ -308,7 +310,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateDOFFrameBuffer(ui
 		if (layer == PostfilterLayer)
 			pColorTarget = GetFrameBuffers(FrameBufferType_DOF, PrefilterLayer)[i]->GetColorTarget(0);
 		else
-			pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), layerSize.x, layerSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
+			pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)layerSize.x, (uint32_t)layerSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->GetRenderPass()));
 	}
 
@@ -317,22 +319,22 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateDOFFrameBuffer(ui
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
 #if defined(_DEBUG)
-	uint32_t min = std::fminf(windowSize.x, windowSize.y);
-	uint32_t layerMin = log2(min);
+	uint32_t min = (uint32_t)std::fmin(windowSize.x, windowSize.y);
+	uint32_t layerMin = (uint32_t)log2(min);
 	ASSERTION(layerMin != 1);
 #endif
 
-	float div = std::powf(2.0f, layer);
-	Vector2f layerSize = { windowSize.x / div, windowSize.y / div };
+	double div = std::pow(2.0, layer);
+	Vector2d layerSize = { windowSize.x / div, windowSize.y / div };
 
 	FrameBufferCombo frameBuffers;
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), layerSize.x, layerSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)layerSize.x, (uint32_t)layerSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->GetRenderPass()));
 	}
 
@@ -341,13 +343,13 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBuffer(
 
 FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateCombineResultFrameBuffer(uint32_t layer)
 {
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 
 	FrameBufferCombo frameBuffers;
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), windowSize.x, windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)windowSize.x, (uint32_t)windowSize.y, OFFSCREEN_HDR_COLOR_FORMAT);
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassCombine)->GetRenderPass()));
 	}
 
@@ -373,7 +375,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardEnvGenOffS
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, OFFSCREEN_HDR_COLOR_FORMAT);
 
 		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height);
 

@@ -8,7 +8,7 @@ void InputHub::ProcessKey(KeyState keyState, uint8_t keyCode)
 	}
 }
 
-void InputHub::ProcessMouse(KeyState keyState, const Vector2f& mousePosition)
+void InputHub::ProcessMouse(KeyState keyState, const Vector2d& mousePosition)
 {
 	for (auto & pListener : m_registeredListener)
 	{
@@ -16,7 +16,7 @@ void InputHub::ProcessMouse(KeyState keyState, const Vector2f& mousePosition)
 	}
 }
 
-void InputHub::ProcessMouse(const Vector2f& mousePosition)
+void InputHub::ProcessMouse(const Vector2d& mousePosition)
 {
 	for (auto & pListener : m_registeredListener)
 	{

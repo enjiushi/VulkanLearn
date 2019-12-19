@@ -68,7 +68,7 @@ std::vector<std::shared_ptr<Mesh>> Mesh::CreateMeshes(const std::string& filePat
 	ASSERTION(pScene != nullptr);
 
 	std::vector<std::shared_ptr<Mesh>> meshes;
-	for (int32_t i = 0; i < pScene->mNumMeshes; i++)
+	for (uint32_t i = 0; i < (uint32_t)pScene->mNumMeshes; i++)
 	{
 		std::shared_ptr<Mesh> pMesh = Create(pScene->mMeshes[i], argumentedVertexFormat);
 		if (pMesh == nullptr)
@@ -217,7 +217,7 @@ std::shared_ptr<Mesh> Mesh::Create(const aiMesh* pMesh, uint32_t argumentedVerte
 
 		for (uint32_t i = 0; i < pMesh->mNumBones; i++)
 		{
-			DualQuaternionf dq = AssimpDataConverter::AcquireDualQuaternion(pMesh->mBones[i]->mOffsetMatrix);
+			DualQuaterniond dq = AssimpDataConverter::AcquireDualQuaternion(pMesh->mBones[i]->mOffsetMatrix);
 			UniformData::GetInstance()->GetPerBoneIndirectUniforms()->SetBoneTransform(pRetMesh->m_meshBoneChunkIndexOffset, std::hash<std::wstring>()(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pMesh->mBones[i]->mName.C_Str())), dq);
 		}
 

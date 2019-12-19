@@ -51,7 +51,10 @@ public:
 
 	Vector3<T> Transform(const Vector3<T>& input);
 
-	static DualQuaternion<T> DLB(const DualQuaternion<T>& from, const DualQuaternion<T>& to, float factor);
+	DualQuaternion<float> SinglePrecision() const;
+	DualQuaternion<double> DoublePrecision() const;
+
+	static DualQuaternion<T> DLB(const DualQuaternion<T>& from, const DualQuaternion<T>& to, double factor);
 
 public:
 	union
@@ -70,5 +73,6 @@ public:
 };
 
 typedef DualQuaternion<float> DualQuaternionf;
+typedef DualQuaternion<double> DualQuaterniond;
 
 #include "DualQuaternion.inl"

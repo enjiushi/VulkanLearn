@@ -35,7 +35,22 @@ private:
 	static void GenerateTriangles(uint32_t level, const VertexIndex& a, const VertexIndex& b, const VertexIndex& c, std::vector<Vector3f>& vertices, std::vector<uint32_t>& indices);
 
 public:
-	static void SubDivideTriangle(const Vector3f& a, const Vector3f& b, const Vector3f& c, Vector3f& A, Vector3f& B, Vector3f& C);
+	template<typename T>
+	static void SubDivideTriangle(const Vector3<T>& a, const Vector3<T>& b, const Vector3<T>& c, Vector3<T>& A, Vector3<T>& B, Vector3<T>& C)
+	{
+		A = c;
+		A += b;
+		A *= 0.5f;
+
+		B = c;
+		B += a;
+		B *= 0.5f;
+
+		C = b;
+		C += a;
+		C *= 0.5f;
+	}
+
 	static std::shared_ptr<Mesh> GenerateTriangleMesh(uint32_t level = 0);
 	static std::shared_ptr<Mesh> GenerateBoxMesh();
 	static std::shared_ptr<Mesh> GenerateQuadMesh();

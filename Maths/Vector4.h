@@ -50,6 +50,9 @@ public:
 	const Vector4 Normal() const;
 	Vector4<T>& DivHomograph();
 
+	Vector4<float> SinglePrecision() const;
+	Vector4<double> DoublePrecision() const;
+
 	Vector3<T> xyz() const;
 	Vector3<T> rgb() const { return xyz(); }
 	Vector3<T> stp() const { return xyz(); }

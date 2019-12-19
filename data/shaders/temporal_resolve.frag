@@ -16,15 +16,11 @@ layout (set = 3, binding = 10) uniform sampler2D TemporalResult;
 layout (set = 3, binding = 11) uniform sampler2D TemporalCoC;
 
 layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec2 inOneNearPosition;
 
 layout (location = 0) out vec4 outTemporalShadingResult;
 layout (location = 1) out vec4 outTemporalSSRResult;
 layout (location = 2) out vec4 outTemporalResult;
 layout (location = 3) out vec4 outTemporalCoC;
-
-int index = int(perFrameData.camDir.a + 0.5f);
-int pingpong = int(perFrameData.camPos.a + 0.5f);
 
 float motionImpactLowerBound = globalData.TemporalSettings0.x;
 float motionImpactUpperBound = globalData.TemporalSettings0.y;
@@ -137,12 +133,12 @@ void main()
 {
 	vec2 unjitteredUV = inUv - perFrameData.cameraJitterOffset;
 	
-	vec2 motionVec = texture(MotionVector[index], unjitteredUV).rg;
-	vec2 motionNeighborMaxFetch = abs(texelFetch(MotionNeighborMax[index], ivec2(unjitteredUV * globalData.motionTileWindowSize.zw), 0).rg);
+	vec2 motionVec = texture(MotionVector[frameIndex], unjitteredUV).rg;
+	vec2 motionNeighborMaxFetch = abs(texelFetch(MotionNeighborMax[frameIndex], ivec2(unjitteredUV * globalData.motionTileWindowSize.zw), 0).rg);
 
-	outTemporalShadingResult = ResolveShadingResult(ShadingResult[index], TemporalShadingResult, unjitteredUV, motionVec);
-	outTemporalSSRResult = ResolveSSRResult(SSRResult[index], TemporalSSRResult, unjitteredUV, motionVec, length(motionNeighborMaxFetch));
-	outTemporalCoC = vec4(ResolveCoC(GBuffer1[index], TemporalCoC, MotionVector[index], unjitteredUV));
+	outTemporalShadingResult = ResolveShadingResult(ShadingResult[frameIndex], TemporalShadingResult, unjitteredUV, motionVec);
+	outTemporalSSRResult = ResolveSSRResult(SSRResult[frameIndex], TemporalSSRResult, unjitteredUV, motionVec, length(motionNeighborMaxFetch));
+	outTemporalCoC = vec4(ResolveCoC(GBuffer1[frameIndex], TemporalCoC, MotionVector[frameIndex], unjitteredUV));
 
 	outTemporalResult = outTemporalShadingResult + outTemporalSSRResult;
 }

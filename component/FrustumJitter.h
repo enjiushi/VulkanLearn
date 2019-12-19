@@ -17,26 +17,26 @@ public:
 		HaltonModeCount,
 	};
 
-	static float POINTS_HALTON_2_3_X8[8 * 2];
-	static float POINTS_HALTON_2_3_X16[16 * 2];
-	static float POINTS_HALTON_2_3_X32[32 * 2];
-	static float POINTS_HALTON_2_3_X256[256 * 2];
+	static double POINTS_HALTON_2_3_X8[8 * 2];
+	static double POINTS_HALTON_2_3_X16[16 * 2];
+	static double POINTS_HALTON_2_3_X32[32 * 2];
+	static double POINTS_HALTON_2_3_X256[256 * 2];
 
 	static bool Initialized;
 	static uint32_t PatternLength;
-	static float PatternScale;
+	static double PatternScale;
 
-	static std::pair<float*, uint32_t> POINTS_HALTON_2_3[HaltonModeCount];
+	static std::pair<double*, uint32_t> POINTS_HALTON_2_3[HaltonModeCount];
 
-	static Vector2f Sample(float* pattern, int index);
-	static float HaltonSeq(uint32_t prime, uint32_t index);
+	static Vector2d Sample(double* pattern, int index);
+	static double HaltonSeq(uint32_t prime, uint32_t index);
 	static void InitializeHalton_2_3();
-	static Vector2f GetHaltonJitter(HaltonMode mode, uint64_t index);
+	static Vector2d GetHaltonJitter(HaltonMode mode, uint64_t index);
 };
 
 class FrustumJitter : public BaseComponent
 {
-	DECLARE_CLASS_RTTI(FrustumJitter, BaseComponent);
+	DECLARE_CLASS_RTTI(FrustumJitter);
 
 public:
 	static std::shared_ptr<FrustumJitter> Create();

@@ -14,20 +14,20 @@ class AnimationController;
 
 typedef struct _RotationKeyFrame
 {
-	float			time;			// When does this key frame start
-	Quaternionf		transform;		// Rotation
+	double			time;			// When does this key frame start
+	Quaterniond		transform;		// Rotation
 }RotationKeyFrame;
 
 typedef struct _TranslationKeyFrame
 {
-	float			time;			// When does this key frame start
-	Vector3f		transform;		// Translation
+	double			time;			// When does this key frame start
+	Vector3d		transform;		// Translation
 }TranslationKeyFrame;
 
 typedef struct _ScaleKeyFrame
 {
-	float			time;			// When does this key frame start
-	Vector3f		transform;		// Scale
+	double			time;			// When does this key frame start
+	Vector3d		transform;		// Scale
 }ScaleKeyFrame;
 
 typedef struct _ObjectAnimation
@@ -41,7 +41,7 @@ typedef struct _ObjectAnimation
 typedef struct _AnimationData
 {
 	std::wstring					animationName;			// Animation name
-	float							duration;				// Total duration of this animation
+	double							duration;				// Total duration of this animation
 	std::vector<ObjectAnimation>	objectAnimationDiction;
 	std::unordered_map<std::size_t, uint32_t> objectAnimationLookupTable;	// Using this to lookup specific index in object animation dictionary
 }AnimationData;
@@ -56,7 +56,7 @@ public:
 
 protected:
 	static void AssemblyAnimationData(const aiAnimation* pAssimpAnimation, AnimationData& animationData);
-	static void AssemblyObjectAnimation(const aiNodeAnim* pAssimpNodeAnimation, float ticksPerSecond, ObjectAnimation& objectAnimation);
+	static void AssemblyObjectAnimation(const aiNodeAnim* pAssimpNodeAnimation, double ticksPerSecond, ObjectAnimation& objectAnimation);
 
 protected:
 	std::vector<AnimationData>						m_animationDataDiction;			// Entire animation dictionary, containing all the data of current assimp scene's animation

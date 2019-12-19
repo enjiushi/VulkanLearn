@@ -52,7 +52,7 @@ bool GraphicPipeline::Init(const std::shared_ptr<Device>& pDevice, const std::sh
 	};
 
 	m_dynamicStatesCreateInfo = *m_info.pDynamicState;
-	m_dynamicStatesCreateInfo.dynamicStateCount = m_dynamicStates.size();
+	m_dynamicStatesCreateInfo.dynamicStateCount = (uint32_t)m_dynamicStates.size();
 	m_dynamicStatesCreateInfo.pDynamicStates = m_dynamicStates.data();
 	m_info.pDynamicState = &m_dynamicStatesCreateInfo;
 
@@ -106,10 +106,10 @@ std::shared_ptr<GraphicPipeline> GraphicPipeline::Create
 		stages[i].module = shaders[i]->GetDeviceHandle();
 
 		char* pEntryName = new char[ENTRY_NAME_LENGTH];
-		strcpy(pEntryName, shaders[i]->GetEntryName().c_str());
+		strcpy_s(pEntryName, ENTRY_NAME_LENGTH, shaders[i]->GetEntryName().c_str());
 		stages[i].pName = pEntryName;
 	}
-	createInfo.stageCount = stages.size();
+	createInfo.stageCount = (uint32_t)stages.size();
 	createInfo.pStages = stages.data();
 
 	if (pPipeline.get() && pPipeline->Init(pDevice, pPipeline, createInfo))
@@ -192,13 +192,13 @@ std::shared_ptr<GraphicPipeline> GraphicPipeline::Create(const std::shared_ptr<D
 
 	VkPipelineDynamicStateCreateInfo dynamicStatesCreateInfo = {};
 	dynamicStatesCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicStatesCreateInfo.dynamicStateCount = dynamicStates.size();
+	dynamicStatesCreateInfo.dynamicStateCount = (uint32_t)dynamicStates.size();
 	dynamicStatesCreateInfo.pDynamicStates = dynamicStates.data();
 
 	char* pVertEntryName = new char[ENTRY_NAME_LENGTH];
 	char* pFragEntryName = new char[ENTRY_NAME_LENGTH];
-	strcpy(pVertEntryName, info.pVertShader->GetEntryName().c_str());
-	strcpy(pFragEntryName, info.pFragShader->GetEntryName().c_str());
+	strcpy_s(pVertEntryName, ENTRY_NAME_LENGTH, info.pVertShader->GetEntryName().c_str());
+	strcpy_s(pFragEntryName, ENTRY_NAME_LENGTH, info.pFragShader->GetEntryName().c_str());
 
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStageInfo(2);
 	shaderStageInfo[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -209,7 +209,7 @@ std::shared_ptr<GraphicPipeline> GraphicPipeline::Create(const std::shared_ptr<D
 	shaderStageInfo[1].stage = info.pFragShader->GetShaderStage();
 	shaderStageInfo[1].module = info.pFragShader->GetDeviceHandle();
 	shaderStageInfo[1].pName = pFragEntryName;
-	createInfo.stageCount = shaderStageInfo.size();
+	createInfo.stageCount = (uint32_t)shaderStageInfo.size();
 	createInfo.pStages = shaderStageInfo.data();
 
 	std::vector<VkVertexInputBindingDescription> vertexBindingsInfo(info.vertexBindingsInfo.size());
@@ -222,9 +222,9 @@ std::shared_ptr<GraphicPipeline> GraphicPipeline::Create(const std::shared_ptr<D
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
 	vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputCreateInfo.vertexBindingDescriptionCount = vertexBindingsInfo.size();
+	vertexInputCreateInfo.vertexBindingDescriptionCount = (uint32_t)vertexBindingsInfo.size();
 	vertexInputCreateInfo.pVertexBindingDescriptions = vertexBindingsInfo.data();
-	vertexInputCreateInfo.vertexAttributeDescriptionCount = vertexAttributesInfo.size();
+	vertexInputCreateInfo.vertexAttributeDescriptionCount = (uint32_t)vertexAttributesInfo.size();
 	vertexInputCreateInfo.pVertexAttributeDescriptions = vertexAttributesInfo.data();
 
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -263,9 +263,9 @@ void GraphicPipeline::FillupPipelineCreateInfo
 		stages[i].module = shaders[i]->GetDeviceHandle();
 
 		char* pEntryName = new char[ENTRY_NAME_LENGTH];
-		strcpy(pEntryName, shaders[i]->GetEntryName().c_str());
+		strcpy_s(pEntryName, ENTRY_NAME_LENGTH, shaders[i]->GetEntryName().c_str());
 		stages[i].pName = pEntryName;
 	}
-	info.stageCount = stages.size();
+	info.stageCount = (uint32_t)stages.size();
 	info.pStages = stages.data();
 }

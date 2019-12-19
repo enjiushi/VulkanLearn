@@ -23,7 +23,7 @@
 std::shared_ptr<TemporalResolveMaterial> TemporalResolveMaterial::CreateDefaultMaterial(uint32_t pingpong)
 {
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
-	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad_vert_recon.vert.spv", L"", L"", L"", L"../data/shaders/temporal_resolve.frag.spv", L"" };
+	simpleMaterialInfo.shaderPaths = { L"../data/shaders/screen_quad.vert.spv", L"", L"", L"", L"../data/shaders/temporal_resolve.frag.spv", L"" };
 	simpleMaterialInfo.vertexFormat = VertexFormatNul;
 	simpleMaterialInfo.vertexFormatInMem = VertexFormatNul;
 	simpleMaterialInfo.subpassIndex = 0;
@@ -37,7 +37,7 @@ std::shared_ptr<TemporalResolveMaterial> TemporalResolveMaterial::CreateDefaultM
 	VkGraphicsPipelineCreateInfo createInfo = {};
 
 	std::vector<VkPipelineColorBlendAttachmentState> blendStatesInfo;
-	uint32_t colorTargetCount = FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType)->GetColorTargets().size();
+	uint32_t colorTargetCount = (uint32_t)FrameBufferDiction::GetInstance()->GetFrameBuffer(simpleMaterialInfo.frameBufferType)->GetColorTargets().size();
 
 	for (uint32_t i = 0; i < colorTargetCount; i++)
 	{
@@ -61,7 +61,7 @@ std::shared_ptr<TemporalResolveMaterial> TemporalResolveMaterial::CreateDefaultM
 	VkPipelineColorBlendStateCreateInfo blendCreateInfo = {};
 	blendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	blendCreateInfo.logicOpEnable = VK_FALSE;
-	blendCreateInfo.attachmentCount = blendStatesInfo.size();
+	blendCreateInfo.attachmentCount = (uint32_t)blendStatesInfo.size();
 	blendCreateInfo.pAttachments = blendStatesInfo.data();
 
 	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
@@ -103,7 +103,7 @@ std::shared_ptr<TemporalResolveMaterial> TemporalResolveMaterial::CreateDefaultM
 
 	VkPipelineDynamicStateCreateInfo dynamicStatesCreateInfo = {};
 	dynamicStatesCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicStatesCreateInfo.dynamicStateCount = dynamicStates.size();
+	dynamicStatesCreateInfo.dynamicStateCount = (uint32_t)dynamicStates.size();
 	dynamicStatesCreateInfo.pDynamicStates = dynamicStates.data();
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
@@ -334,7 +334,7 @@ void TemporalResolveMaterial::AfterRenderPass(const std::shared_ptr<CommandBuffe
 	uint32_t index;
 	ASSERTION(UniformData::GetInstance()->GetGlobalTextures()->GetScreenSizeTextureIndex("MipmapTemporalResult", index) && pTextureArray != nullptr);
 
-	Vector2f windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+	Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
 	VkImageBlit blit =
 	{
 		{
@@ -343,7 +343,7 @@ void TemporalResolveMaterial::AfterRenderPass(const std::shared_ptr<CommandBuffe
 			index,
 			1
 		},
-		{ { 0, 0, 0 },{ windowSize.x, windowSize.y, 1 } },
+		{ { 0, 0, 0 },{ (int32_t)windowSize.x, (int32_t)windowSize.y, 1 } },
 
 		{
 			VK_IMAGE_ASPECT_COLOR_BIT,
@@ -351,7 +351,7 @@ void TemporalResolveMaterial::AfterRenderPass(const std::shared_ptr<CommandBuffe
 			index,
 			1
 		},
-		{ { 0, 0, 0 },{ windowSize.x, windowSize.y, 1 } }
+		{ { 0, 0, 0 },{ (int32_t)windowSize.x, (int32_t)windowSize.y, 1 } }
 	};
 	pCmdBuf->BlitImage(pTemporalResult, pTextureArray, blit);
 	pCmdBuf->GenerateMipmaps(pTextureArray, index);

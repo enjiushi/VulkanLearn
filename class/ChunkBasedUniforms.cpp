@@ -113,7 +113,7 @@ void ChunkBasedUniforms::InsertIntoFreeChunk(uint32_t index, uint32_t chunkIndex
 
 void ChunkBasedUniforms::FreePreObjectChunk(uint32_t index)
 {
-	FreePreObjectChunk(index, 0, m_freeChunks.size() - 1);
+	FreePreObjectChunk(index, 0, (uint32_t)m_freeChunks.size() - 1);
 }
 
 void ChunkBasedUniforms::UpdateUniformDataInternal()

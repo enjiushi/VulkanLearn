@@ -19,7 +19,7 @@ bool SkeletonAnimation::Init(const std::shared_ptr<SkeletonAnimation>& pSelf, co
 		AssemblyAnimationData(pAssimpScene->mAnimations[i], animationData);
 
 		m_animationDataDiction.push_back(animationData);
-		m_animationDataLookupTable[std::hash<std::wstring>()(animationData.animationName)] = m_animationDataDiction.size() - 1;
+		m_animationDataLookupTable[std::hash<std::wstring>()(animationData.animationName)] = (uint32_t)m_animationDataDiction.size() - 1;
 	}
 
 	return true;
@@ -45,11 +45,11 @@ void SkeletonAnimation::AssemblyAnimationData(const aiAnimation* pAssimpAnimatio
 		AssemblyObjectAnimation(pAssimpAnimation->mChannels[i], pAssimpAnimation->mTicksPerSecond, objectAnimation);
 
 		animationData.objectAnimationDiction.push_back(objectAnimation);
-		animationData.objectAnimationLookupTable[std::hash<std::wstring>()(objectAnimation.objectName)] = animationData.objectAnimationDiction.size() - 1;
+		animationData.objectAnimationLookupTable[std::hash<std::wstring>()(objectAnimation.objectName)] = (uint32_t)animationData.objectAnimationDiction.size() - 1;
 	}
 }
 
-void SkeletonAnimation::AssemblyObjectAnimation(const aiNodeAnim* pAssimpNodeAnimation, float ticksPerSecond, ObjectAnimation& objectAnimation)
+void SkeletonAnimation::AssemblyObjectAnimation(const aiNodeAnim* pAssimpNodeAnimation, double ticksPerSecond, ObjectAnimation& objectAnimation)
 {
 	objectAnimation.objectName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pAssimpNodeAnimation->mNodeName.C_Str());
 

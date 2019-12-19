@@ -190,10 +190,22 @@ const Vector3<T> Vector3<T>::Negative() const
 template <typename T>
 Vector3<T> Vector3<T>::Orthogonal() const
 {
-	float _x = abs(x);
-	float _y = abs(y);
-	float _z = abs(z);
+	T _x = abs(x);
+	T _y = abs(y);
+	T _z = abs(z);
 
 	Vector3<T> other = _x < _y ? (_x < _z ? Vector3<T>(1, 0, 0) : Vector3<T>(0, 0, 1)) : (_y < _z ? Vector3<T>(0, 1, 0) : Vector3<T>(0, 0, 1));
 	return *this ^ other;
+}
+
+template <typename T>
+Vector3<float> Vector3<T>::SinglePrecision() const
+{
+	return { (float)x, (float)y, (float)z };
+}
+
+template <typename T>
+Vector3<double> Vector3<T>::DoublePrecision() const
+{
+	return { (double)x, (double)y, (double)z };
 }

@@ -79,7 +79,7 @@ public:
 	uint32_t GetTaskQueueSize()
 	{
 		std::unique_lock<std::mutex> lock(m_queueMutex);
-		return m_taskQueue.size();
+		return (uint32_t)m_taskQueue.size();
 	}
 
 private:

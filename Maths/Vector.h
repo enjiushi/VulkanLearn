@@ -7,6 +7,10 @@ typedef Vector2<float> Vector2f;
 typedef Vector3<float> Vector3f;
 typedef Vector4<float> Vector4f;
 
+typedef Vector2<double> Vector2d;
+typedef Vector3<double> Vector3d;
+typedef Vector4<double> Vector4d;
+
 typedef Vector2<uint32_t> Vector2ui;
 typedef Vector3<uint32_t> Vector3ui;
 typedef Vector4<uint32_t> Vector4ui;

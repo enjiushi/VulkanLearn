@@ -20,9 +20,6 @@ layout (location = 1) in vec2 inOneNearPosition;
 layout (location = 0) out vec4 outShadingColor;
 layout (location = 1) out vec4 outSSRColor;
 
-int index = int(perFrameData.camDir.a);
-int pingpong = int(perFrameData.camPos.a);
-
 float rayTraceMaxStep = globalData.SSRSettings1.z;
 float rayTraceBorderFadeDist = globalData.SSRSettings2.x;
 float rayTraceMaxStepFadeDist = globalData.SSRSettings2.y;
@@ -44,7 +41,7 @@ float BorderFading(vec2 hitUV)
 	return smoothstep(0.0f, rayTraceBorderFadeDist, borderDist);
 }
 
-vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosition, float metalic, vec3 skyBoxReflection)
+vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 CSPosition, float metalic, vec3 skyBoxReflection)
 {
 	ivec2 coord = ivec2(inUv * globalData.gameWindowSize.xy);
 
@@ -59,11 +56,11 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 	int count = 4;
 	for (int i = 0; i < count; i++)
 	{
-		vec4 SSRHitInfo = texelFetch(SSRInfo[index], (coord + ivec2(offsetRotation * offset[i])) / 2, 0);
+		vec4 SSRHitInfo = texelFetch(SSRInfo[frameIndex], (coord + ivec2(offsetRotation * offset[i])) / 2, 0);
 		float hitFlag = sign(SSRHitInfo.a) * 0.5f + 0.5f;
 		vec2 hitUV = SSRHitInfo.xy * globalData.gameWindowSize.zw;
 
-		vec2 motionVec = texelFetch(MotionVector[index], ivec2(SSRHitInfo.xy + perFrameData.cameraJitterOffset * globalData.gameWindowSize.xy), 0).rg;
+		vec2 motionVec = texelFetch(MotionVector[frameIndex], ivec2(SSRHitInfo.xy + perFrameData.cameraJitterOffset * globalData.gameWindowSize.xy), 0).rg;
 
 		float intersectionCircleRadius = coneTangent * length(hitUV - inUv);
 		float mip = clamp(log2(intersectionCircleRadius * max(globalData.gameWindowSize.x, globalData.gameWindowSize.y)), 0.0, screenSizeMiplevel) * globalData.SSRSettings0.y;
@@ -71,9 +68,9 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 wsPosi
 		vec3 SSRSurfColor = textureLod(RGBA16_SCREEN_SIZE_MIP_2DARRAY, vec3(hitUV + motionVec, 0), mip).rgb * hitFlag;
 
 		float SSRSurfDepth;
-		vec3 SSRSurfPosition = ReconstructWSPosition(ivec2(SSRHitInfo.xy), inOneNearPosition, DepthStencilBuffer[index], SSRSurfDepth);
+		vec3 SSRSurfPosition = ReconstructCSPosition(ivec2(SSRHitInfo.xy), inOneNearPosition, DepthStencilBuffer[frameIndex], SSRSurfDepth);
 
-		vec3 l = normalize(SSRSurfPosition.xyz - wsPosition);
+		vec3 l = normalize(SSRSurfPosition.xyz - CSPosition);
 		vec3 h = normalize(l + v);
 
 		float NdotH = max(0.0f, dot(n, h));
@@ -112,13 +109,13 @@ void main()
 {
 	ivec2 coord = ivec2(floor(inUv * globalData.gameWindowSize.xy));
 
-	GBufferVariables vars = UnpackGBuffers(coord, inUv, inOneNearPosition, GBuffer0[index], GBuffer1[index], GBuffer2[index], DepthStencilBuffer[index], BlurredSSAOBuffer[index], ShadowMapDepthBuffer[index]);
+	GBufferVariables vars = UnpackGBuffers(coord, inUv, inOneNearPosition, GBuffer0[frameIndex], GBuffer1[frameIndex], GBuffer2[frameIndex], DepthStencilBuffer[frameIndex], BlurredSSAOBuffer[frameIndex], ShadowMapDepthBuffer[frameIndex]);
 
 	if (length(vars.normal_ao.xyz) > 1.1f)
 		discard;
 
 	vec3 n = normalize(vars.normal_ao.xyz);
-	vec3 v = normalize(perFrameData.camPos.xyz - vars.world_position.xyz);
+	vec3 v = normalize(-vec3(inOneNearPosition, -1));	// Beware, you'll have to multiply camera space linear depth -1(or any depth you want), and view ray goes towards camera
 	vec3 l = globalData.mainLightDir.xyz;
 	vec3 h = normalize(l + v);
 
@@ -138,7 +135,7 @@ void main()
 
 	vec3 irradiance = texture(RGBA16_512_CUBE_IRRADIANCE, vec3(n.x, -n.y, n.z)).rgb * vars.albedo_roughness.rgb / PI;
 
-	vec3 reflectSampleDir = reflect(-v, n);
+	vec3 reflectSampleDir = mat3(perFrameData.viewCoordSystem) * reflect(-v, n);
 	reflectSampleDir.y *= -1.0;
 
 	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
@@ -149,7 +146,7 @@ void main()
 
 	// Here we use NdotV rather than LdotH, since L's direction is based on punctual light, and here ambient reflection calculation
 	// requires reflection vector dot with N, which is RdotN, equals NdotV
-	vec4 SSRRadiance = CalculateSSR(n, v, NdotV, vars.albedo_roughness, vars.world_position.xyz, vars.metalic, reflect);
+	vec4 SSRRadiance = CalculateSSR(n, v, NdotV, vars.albedo_roughness, vars.camera_position.xyz, vars.metalic, reflect);
 
 	float aoFactor = min(vars.normal_ao.a, 1.0f - vars.ssaoFactor);
 

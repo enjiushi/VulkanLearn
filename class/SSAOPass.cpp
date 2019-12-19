@@ -24,7 +24,7 @@ bool SSAOPass::Init(const std::shared_ptr<SSAOPass>& pSelf, VkFormat format, VkI
 	ssaoPassColorAttach[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription ssaoSubPass = {};
-	ssaoSubPass.colorAttachmentCount = ssaoPassColorAttach.size();
+	ssaoSubPass.colorAttachmentCount = (uint32_t)ssaoPassColorAttach.size();
 	ssaoSubPass.pColorAttachments = ssaoPassColorAttach.data();
 	ssaoSubPass.pDepthStencilAttachment = nullptr;
 	ssaoSubPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -52,11 +52,11 @@ bool SSAOPass::Init(const std::shared_ptr<SSAOPass>& pSelf, VkFormat format, VkI
 
 	VkRenderPassCreateInfo renderpassCreateInfo = {};
 	renderpassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassCreateInfo.attachmentCount = attachmentDescs.size();
+	renderpassCreateInfo.attachmentCount = (uint32_t)attachmentDescs.size();
 	renderpassCreateInfo.pAttachments = attachmentDescs.data();
-	renderpassCreateInfo.subpassCount = subPasses.size();
+	renderpassCreateInfo.subpassCount = (uint32_t)subPasses.size();
 	renderpassCreateInfo.pSubpasses = subPasses.data();
-	renderpassCreateInfo.dependencyCount = dependencies.size();
+	renderpassCreateInfo.dependencyCount = (uint32_t)dependencies.size();
 	renderpassCreateInfo.pDependencies = dependencies.data();
 
 	if (!RenderPassBase::Init(pSelf, renderpassCreateInfo))

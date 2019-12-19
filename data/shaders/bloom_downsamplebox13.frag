@@ -15,10 +15,7 @@ layout (location = 0) in vec2 inUv;
 
 layout (location = 0) out vec4 outBloomFrag;
 
-int index = int(perFrameData.camDir.a);
-int pingpong = (int(perFrameData.camPos.a) + 1) % 2;
-
 void main() 
 {
-	outBloomFrag = vec4(DownsampleBox13Tap(PrevBloomDownsample[index], inUv, pushConsts.texelSize).rgb, 1.0f);
+	outBloomFrag = vec4(DownsampleBox13Tap(PrevBloomDownsample[frameIndex], inUv, pushConsts.texelSize).rgb, 1.0f);
 }

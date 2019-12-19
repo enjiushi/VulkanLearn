@@ -11,14 +11,12 @@ layout (location = 0) in vec2 inUv;
 
 layout (location = 0) out vec4 outPostfilter;
 
-int index = int(perFrameData.camDir.a);
-
 void main() 
 {
 	vec4 offset = globalData.gameWindowSize.zwzw * vec4(1, 1, -1, 0.0f);
-	vec4 c = texture(DOFBlurredResult[index], inUv - offset.xy);
-	c += texture(DOFBlurredResult[index], inUv - offset.zy);
-	c += texture(DOFBlurredResult[index], inUv + offset.zy);
-	c += texture(DOFBlurredResult[index], inUv + offset.xy);
+	vec4 c = texture(DOFBlurredResult[frameIndex], inUv - offset.xy);
+	c += texture(DOFBlurredResult[frameIndex], inUv - offset.zy);
+	c += texture(DOFBlurredResult[frameIndex], inUv + offset.zy);
+	c += texture(DOFBlurredResult[frameIndex], inUv + offset.xy);
 	outPostfilter = c * 0.25f;
 }

@@ -11,15 +11,14 @@ layout (location = 5) in vec4 inBoneWeight;
 layout (location = 6) in uint inBoneIndices;
 
 layout (location = 0) out vec2 outUv;
-layout (location = 1) out vec3 outNormal;
-layout (location = 2) out vec3 outTangent;
-layout (location = 3) out vec3 outBitangent;
+layout (location = 1) out vec3 outCSNormal;
+layout (location = 2) out vec3 outCSTangent;
+layout (location = 3) out vec3 outCSBitangent;
 layout (location = 4) flat out int perMaterialIndex;
 layout (location = 5) flat out int perObjectIndex;
-layout (location = 6) out vec3 outWorldPos;
-layout (location = 7) out vec3 outEyePos;
-layout (location = 8) noperspective out vec2 outScreenPos;
-layout (location = 9) out vec3 outPrevWorldPos;
+layout (location = 6) out vec3 outCSPosition;
+layout (location = 7) noperspective out vec2 outScreenPosition;
+layout (location = 8) out vec3 outPrevCSPosition;
 
 #include "uniform_layout.sh"
 #include "quaternion.sh"
@@ -98,17 +97,16 @@ void main()
 
 	gl_Position = perObjectData[perObjectIndex].MVP * vec4(animated_pos.xyz, 1.0);
 
-	outNormal = normalize(vec3(perObjectData[perObjectIndex].model * vec4(animated_normal, 0.0)));
-	outWorldPos = (perObjectData[perObjectIndex].model * vec4(animated_pos.xyz, 1.0)).xyz;
-	outPrevWorldPos = (perObjectData[perObjectIndex].prevModel * vec4(prev_animated_pos.xyz, 1.0)).xyz;
-	outEyePos = (perFrameData.view * vec4(outWorldPos, 1.0)).xyz;
-	outScreenPos = gl_Position.xy / gl_Position.w;
+	outCSNormal = normalize(vec3(perObjectData[perObjectIndex].MV * vec4(animated_normal, 0.0)));
+	outCSPosition = (perObjectData[perObjectIndex].MV * vec4(animated_pos.xyz, 1.0)).xyz;
+	outPrevCSPosition = (perObjectData[perObjectIndex].prevMV * vec4(prev_animated_pos.xyz, 1.0)).xyz;
+	outScreenPosition = gl_Position.xy / gl_Position.w;
 
 	outUv = inUv;
 	outUv.t = 1.0 - inUv.t;
 
-	outTangent = normalize(vec3(perObjectData[perObjectIndex].model * vec4(animated_tangent, 0.0)));
-	outBitangent = normalize(cross(outNormal, outTangent));
+	outCSTangent = normalize(vec3(perObjectData[perObjectIndex].MV * vec4(animated_tangent, 0.0)));
+	outCSBitangent = normalize(cross(outCSNormal, outCSTangent));
 
 	perMaterialIndex = objectDataIndex[indirectIndex].perMaterialIndex;
 }

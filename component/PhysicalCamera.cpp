@@ -42,8 +42,12 @@ void PhysicalCamera::UpdateViewMatrix()
 		return;
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraPosition(GetBaseObject()->GetCachedWorldPosition());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(m_pObject.lock()->GetCachedWorldTransform().Inverse());
-	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(GetCameraDir());
+
+	Matrix4d matrix = m_pObject.lock()->GetCachedWorldTransform();
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetCameraDirection(matrix[2].xyz().Negative());
+
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewCoordinateSystem(matrix);
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetViewMatrix(matrix.Inverse());
 }
 
 void PhysicalCamera::UpdateProjMatrix()
@@ -68,10 +72,10 @@ void PhysicalCamera::UpdateProjMatrix()
 	// so a identity matrix z2 = -1, w2 = 1
 	// Let this matrix post multiply with projection matrix
 	// Which leads to this:
-	float A = 0;
-	float B = m_supplementProps.fixedNearPlane;
+	double A = 0;
+	double B = m_supplementProps.fixedNearPlane;
 
-	Matrix4f proj;
+	Matrix4d proj;
 
 	proj.x0 = 2.0f * m_supplementProps.fixedNearPlane / m_supplementProps.fixedNearPlaneWidth;	//	2 * n / (right - left)
 	// 1). x2 = ((right + jitter_offset_near_plane) + (left + jitter_offset_near_plane)) / ((right + jitter_offset_near_plane) - (left + jitter_offset_near_plane))
@@ -123,7 +127,7 @@ void PhysicalCamera::UpdateCameraProps()
 	m_propDirty = false;
 }
 
-void PhysicalCamera::SetJitterOffset(Vector2f jitterOffset)
+void PhysicalCamera::SetJitterOffset(Vector2d jitterOffset)
 {
 	m_jitterOffset = jitterOffset;
 	m_jitterOffset.x /= FrameBufferDiction::WINDOW_WIDTH;
@@ -131,42 +135,42 @@ void PhysicalCamera::SetJitterOffset(Vector2f jitterOffset)
 	m_projDirty = true;
 }
 
-void PhysicalCamera::SetFilmWidth(float filmWidth)
+void PhysicalCamera::SetFilmWidth(double filmWidth)
 {
 	m_props.filmWidth = filmWidth;
 
 	UpdateCameraSupplementProps();
 }
 
-void PhysicalCamera::SetFocalLength(float focalLength)
+void PhysicalCamera::SetFocalLength(double focalLength)
 {
 	m_props.focalLength = focalLength;
 
 	UpdateCameraSupplementProps();
 }
 
-void PhysicalCamera::SetFStop(float fstop)
+void PhysicalCamera::SetFStop(double fstop)
 {
 	m_props.fstop = fstop;
 
 	UpdateCameraSupplementProps();
 }
 
-void PhysicalCamera::SetShutterSpeed(float shutterSpeed)
+void PhysicalCamera::SetShutterSpeed(double shutterSpeed)
 {
 	m_props.shutterSpeed = shutterSpeed;
 
 	m_propDirty = true;
 }
 
-void PhysicalCamera::SetISO(float ISO)
+void PhysicalCamera::SetISO(double ISO)
 {
 	m_props.ISO = ISO;
 
 	m_propDirty = true;
 }
 
-void PhysicalCamera::SetFarPlane(float farPlane)
+void PhysicalCamera::SetFarPlane(double farPlane)
 {
 	m_props.farPlane = farPlane;
 
@@ -187,8 +191,8 @@ void PhysicalCamera::UpdateCameraSupplementProps()
 	m_supplementProps.apertureDiameter = m_props.focalLength / m_props.fstop;
 	m_supplementProps.tangentHorizontalFOV_2 = m_props.filmWidth * 0.5f / m_props.focalLength;
 	m_supplementProps.tangentVerticalFOV_2 = m_props.filmWidth * 0.5f / (m_props.aspect * m_props.focalLength);
-	m_supplementProps.horizontalFOV_2 = std::atanf(m_supplementProps.tangentHorizontalFOV_2);
-	m_supplementProps.verticalFOV_2 = std::atanf(m_supplementProps.tangentVerticalFOV_2);
+	m_supplementProps.horizontalFOV_2 = std::atan(m_supplementProps.tangentHorizontalFOV_2);
+	m_supplementProps.verticalFOV_2 = std::atan(m_supplementProps.tangentVerticalFOV_2);
 	m_supplementProps.fixedNearPlaneHeight = m_supplementProps.fixedNearPlane * m_supplementProps.filmHeight / m_props.focalLength;	// 2 * n * tan(FOV_2)
 	m_supplementProps.fixedNearPlaneWidth = m_supplementProps.fixedNearPlaneHeight * m_props.aspect;
 
@@ -198,7 +202,7 @@ void PhysicalCamera::UpdateCameraSupplementProps()
 	m_propDirty = true;
 }
 
-const Vector3f PhysicalCamera::GetCameraDir() const
+const Vector3d PhysicalCamera::GetCameraDir() const
 {
 	return m_pObject.lock()->GetCachedWorldTransform()[2].xyz().Negative();
 }

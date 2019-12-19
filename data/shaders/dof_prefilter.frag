@@ -12,9 +12,6 @@ layout (location = 0) in vec2 inUv;
 
 layout (location = 0) out vec4 outPrefilter;
 
-int index = int(perFrameData.camDir.a);
-int pingpong = (int(perFrameData.camPos.a) + 1) % 2;
-
 void main() 
 {
 	vec3 offset = globalData.gameWindowSize.zwz * vec3(0.5f, 0.5f, -0.5f);
@@ -24,15 +21,15 @@ void main()
 	vec2 uv2 = inUv + offset.zy;
 	vec2 uv3 = inUv + offset.xy;
 	
-	vec3 color0 = texture(TemporalResult[pingpong], uv0).rgb;
-	vec3 color1 = texture(TemporalResult[pingpong], uv1).rgb;
-	vec3 color2 = texture(TemporalResult[pingpong], uv2).rgb;
-	vec3 color3 = texture(TemporalResult[pingpong], uv3).rgb;
+	vec3 color0 = texture(TemporalResult[pingpongIndex], uv0).rgb;
+	vec3 color1 = texture(TemporalResult[pingpongIndex], uv1).rgb;
+	vec3 color2 = texture(TemporalResult[pingpongIndex], uv2).rgb;
+	vec3 color3 = texture(TemporalResult[pingpongIndex], uv3).rgb;
 
-	float coc0 = texture(TemporalCoC[pingpong], uv0).r * 2.0f - 1.0f;
-	float coc1 = texture(TemporalCoC[pingpong], uv1).r * 2.0f - 1.0f;
-	float coc2 = texture(TemporalCoC[pingpong], uv2).r * 2.0f - 1.0f;
-	float coc3 = texture(TemporalCoC[pingpong], uv3).r * 2.0f - 1.0f;
+	float coc0 = texture(TemporalCoC[pingpongIndex], uv0).r * 2.0f - 1.0f;
+	float coc1 = texture(TemporalCoC[pingpongIndex], uv1).r * 2.0f - 1.0f;
+	float coc2 = texture(TemporalCoC[pingpongIndex], uv2).r * 2.0f - 1.0f;
+	float coc3 = texture(TemporalCoC[pingpongIndex], uv3).r * 2.0f - 1.0f;
 
 	float w0 = abs(coc0) / (max(color0.r, max(color0.g, color0.b)) + 1.0f);
 	float w1 = abs(coc1) / (max(color1.r, max(color1.g, color1.b)) + 1.0f);

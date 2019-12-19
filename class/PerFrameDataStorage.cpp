@@ -13,7 +13,7 @@ bool PerFrameDataStorage::Init(const std::shared_ptr<PerFrameDataStorage>& pSelf
 	m_pendingSync.resize(GetSwapChain()->GetSwapChainImageCount(), true);
 	m_pendingSyncCount = 0;
 
-	uint32_t minAlign = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
+	uint32_t minAlign = (uint32_t)GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
 	m_frameOffset = numBytes / minAlign * minAlign + (numBytes % minAlign > 0 ? minAlign : 0);
 	uint32_t totalUniformBytes = m_frameOffset * GetSwapChain()->GetSwapChainImageCount();
 
@@ -63,7 +63,7 @@ void PerFrameDataStorage::SyncBufferDataInternal()
 
 void PerFrameDataStorage::SetDirty()
 {
-	m_pendingSyncCount = m_pendingSync.size();
+	m_pendingSyncCount = (uint32_t)m_pendingSync.size();
 	for (uint32_t i = 0; i < m_pendingSyncCount; i++)
 		m_pendingSync[i] = false;
 	SetDirtyInternal();

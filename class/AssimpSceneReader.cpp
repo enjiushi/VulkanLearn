@@ -20,7 +20,7 @@ std::vector<std::shared_ptr<Mesh>> AssimpSceneReader::Read(const std::string& pa
 	ASSERTION(pScene != nullptr);
 
 	std::vector<std::shared_ptr<Mesh>> meshes;
-	for (int32_t i = 0; i < pScene->mNumMeshes; i++)
+	for (uint32_t i = 0; i < (uint32_t)pScene->mNumMeshes; i++)
 	{
 		std::shared_ptr<Mesh> pMesh = nullptr;
 
@@ -104,7 +104,7 @@ std::shared_ptr<BaseObject> AssimpSceneReader::AssemblyNode(const aiNode* pAssim
 	std::wstring wstr_name = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(pAssimpNode->mName.C_Str());
 	pObject->SetName(wstr_name);
 
-	for (int32_t i = 0; i < pAssimpNode->mNumMeshes; i++)
+	for (uint32_t i = 0; i < (uint32_t)pAssimpNode->mNumMeshes; i++)
 	{
 		std::shared_ptr<Mesh> pMesh = nullptr;
 
@@ -142,7 +142,7 @@ void AssimpSceneReader::ExtractAnimations(const aiScene* pScene)
 	uint32_t index = 0;
 }
 
-DualQuaternionf AssimpSceneReader::ExtractBoneInfo(const aiBone* pBone)
+DualQuaterniond AssimpSceneReader::ExtractBoneInfo(const aiBone* pBone)
 {
 	return AssimpDataConverter::AcquireDualQuaternion(pBone->mOffsetMatrix);
 }

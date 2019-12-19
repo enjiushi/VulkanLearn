@@ -180,3 +180,15 @@ const Vector2<T> Vector2<T>::Negative() const
 {
 	return Vector2<T>() - *this;
 }
+
+template <typename T>
+Vector2<float> Vector2<T>::SinglePrecision() const
+{
+	return { (float)x, (float)y };
+}
+
+template <typename T>
+Vector2<double> Vector2<T>::DoublePrecision() const
+{
+	return { (double)x, (double)y };
+}

@@ -34,7 +34,7 @@ void SceneGenerator::GenerateIrradianceGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera((uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMesh0 = GenerateBoxMesh();
@@ -56,7 +56,7 @@ void SceneGenerator::GeneratePrefilterEnvGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera((uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMesh0 = GenerateBoxMesh();
@@ -78,7 +78,7 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 
 	m_pRootObj = BaseObject::Create();
 
-	m_pCameraObj = GenerateIBLGenOffScreenCamera(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
+	m_pCameraObj = GenerateIBLGenOffScreenCamera((uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	m_pRootObj->AddChild(m_pCameraObj);
 
 	m_pMaterial0 = GenerateBRDFLUTGenMaterial();
@@ -91,21 +91,6 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 	m_pRootObj->AddChild(pQuadObj);
 
 	StagingBufferMgr()->FlushDataMainThread();
-}
-
-void SceneGenerator::SubDivideTriangle(const Vector3f& a, const Vector3f& b, const Vector3f& c, Vector3f& A, Vector3f& B, Vector3f& C)
-{
-	A = c;
-	A += b;
-	A *= 0.5f;
-
-	B = c;
-	B += a;
-	B *= 0.5f;
-
-	C = b;
-	C += a;
-	C *= 0.5f;
 }
 
 // FIXME: This logic will generate one more triangle in vertices
@@ -128,7 +113,7 @@ void SceneGenerator::GenerateTriangles(uint32_t level, const VertexIndex& a, con
 
 	// I need to make a note on this
 
-	uint32_t startOffset = vertices.size();
+	uint32_t startOffset = (uint32_t)vertices.size();
 
 	// Add 3 new vertices
 	vertices.push_back({});
@@ -169,8 +154,8 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh(uint32_t level)
 
 	std::shared_ptr<Mesh> pTriangleMesh = Mesh::Create
 	(
-		vertices.data(), vertices.size(), VertexFormatP,
-		indices.data(), indices.size(), VK_INDEX_TYPE_UINT32
+		vertices.data(), (uint32_t)vertices.size(), VertexFormatP,
+		indices.data(), (uint32_t)indices.size(), VK_INDEX_TYPE_UINT32
 	);
 
 	return pTriangleMesh;
@@ -346,20 +331,20 @@ std::shared_ptr<Mesh> SceneGenerator::GenPBRIcosahedronMesh()
 	float scale = 1.0f / glm::length(glm::vec2(ratio, 1.0f));
 	ratio *= scale;
 
-	Vector3f icoVertices[] = 
+	Vector3d icoVertices[] = 
 	{
 		{ ratio, 0, -scale },			//rf 0
-		{ -ratio, 0, -scale },		//lf 1
+		{ -ratio, 0, -scale },			//lf 1
 		{ ratio, 0, scale },			//rb 2
 		{ -ratio, 0, scale },			//lb 3
 												 
 		{ 0, -scale, ratio },			//db 4
-		{ 0, -scale, -ratio },		//df 5
+		{ 0, -scale, -ratio },			//df 5
 		{ 0, scale, ratio },			//ub 6
 		{ 0, scale, -ratio },			//uf 7
 												 
 		{ -scale, ratio, 0 },			//lu 8
-		{ -scale, -ratio, 0 },		//ld 9
+		{ -scale, -ratio, 0 },			//ld 9
 		{ scale, ratio, 0 },			//ru 10
 		{ scale, -ratio, 0 }			//rd 11
 	};
@@ -443,10 +428,10 @@ std::shared_ptr<BaseObject> SceneGenerator::GenerateIBLGenOffScreenCamera(uint32
 {
 	CameraInfo camInfo =
 	{
-		3.1415f / 2.0f,
-		screenSize / screenSize,
-		1.0f,
-		2000.0f,
+		3.1415 / 2.0,
+		1.0,
+		1.0,
+		2000.0,
 	};
 	std::shared_ptr<BaseObject> pOffScreenCamObj = BaseObject::Create();
 	std::shared_ptr<Camera> pOffScreenCamComp = Camera::Create(camInfo);

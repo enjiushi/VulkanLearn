@@ -204,7 +204,7 @@ void UniformData::BuildDescriptorSets()
 	VkDescriptorPoolCreateInfo descPoolInfo = {};
 	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descPoolInfo.pPoolSizes = descPoolSize.data();
-	descPoolInfo.poolSizeCount = descPoolSize.size();
+	descPoolInfo.poolSizeCount = (uint32_t)descPoolSize.size();
 	descPoolInfo.maxSets = PerObjectMaterialVariableBufferLocation;
 
 	m_pDescriptorPool = DescriptorPool::Create(GetDevice(), descPoolInfo);

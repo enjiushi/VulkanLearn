@@ -30,7 +30,7 @@ public:
 
 	PyramidFrustum(const Vector3<T>& head, const Vector3<T>& bottomLeft, const Vector3<T>& bottomRight, const Vector3<T>& topLeft, const Vector3<T>& topRight);
 
-	PyramidFrustum(const Vector3<T>& head, const Vector3<T>& lookAt, float fovv, float aspect);
+	PyramidFrustum(const Vector3<T>& head, const Vector3<T>& lookAt, T fovv, T aspect);
 
 public:
 	bool Contain(const Vector3<T>& p) const;

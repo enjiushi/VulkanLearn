@@ -67,3 +67,6 @@ if (!pRet || !pRet->Init()) \
 }
 
 #define EQUAL(type, x, y) ((((x) - (std::numeric_limits<type>::epsilon())) <= (y)) && (((x) + (std::numeric_limits<type>::epsilon())) >= (y)))
+
+#define CONVERT2SINGLEVAL(src, dst, val) (dst.val = (float)src.val);
+#define CONVERT2SINGLE(src, dst, val) (dst.val = src.val.SinglePrecision());
