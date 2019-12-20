@@ -313,7 +313,7 @@ bool DeferredShadingMaterial::Init(const std::shared_ptr<DeferredShadingMaterial
 
 		depthBuffers.push_back({
 			pShadowPassFrameBuffer->GetDepthStencilTarget(),
-			pShadowPassFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToEdgeSampler(VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK),
+			pShadowPassFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToBorderSampler(VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK),
 			pShadowPassFrameBuffer->GetDepthStencilTarget()->CreateDepthSampleImageView()
 		});
 	}
