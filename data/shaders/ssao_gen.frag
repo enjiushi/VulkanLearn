@@ -171,32 +171,38 @@ void main()
 
 	float occlusion = 0.0f;
 
-	if (ssaoRaiusInScreenSapce > globalData.SSAOSettings.w)
+	//if (ssaoRaiusInScreenSapce > globalData.SSAOSettings.w)
 	{
-		float ssaoAvailableFactor = min(1.0f, (ssaoRaiusInScreenSapce - globalData.SSAOSettings.w) / (globalData.SSAOSettings.z - globalData.SSAOSettings.w));
-
 		for (int i = 0; i < int(globalData.SSAOSettings.x); i++)
 		{
 			vec3 sampleDir = TBN * globalData.SSAOSamples[i].xyz;
 			vec3 samplePos = position + sampleDir * globalData.SSAOSettings.y;
+
+			// If sample position's z is greater than camera near plane, it means that this sample lies behind
+			// Impossible for any surface on screen to block a point lies behind camera
+			float hitThroughCamera = samplePos.z + perFrameData.nearFarAB.x;
+			if (hitThroughCamera > 0)
+				continue;
 
 			vec4 clipSpaceSample = globalData.projection * vec4(samplePos, 1.0f);
 			clipSpaceSample = clipSpaceSample / clipSpaceSample.w;
 			clipSpaceSample.xy = clipSpaceSample.xy * 0.5f + 0.5f;
 
 			float sampledDepth = clipSpaceSample.z;
+			//float textureDepth = texelFetch(DepthStencilBuffer[frameIndex], ivec2(clipSpaceSample.xy * globalData.gameWindowSize.xy), 0).r;
 			float textureDepth = texture(DepthStencilBuffer[frameIndex], clipSpaceSample.xy).r;
+
+
+			float confidence = float(abs(sampledDepth - textureDepth) > 0.00001);
 
 			sampledDepth = ReconstructLinearDepth(sampledDepth);
 			textureDepth = ReconstructLinearDepth(textureDepth);
 
-			float rangeCheck = smoothstep(0.0f, 1.0f, globalData.SSAOSettings.y / abs(textureDepth - sampledDepth));
-			occlusion += (sampledDepth < textureDepth ? 1.0f : 0.0f) * rangeCheck;    
+			float rangeCheck = 1.0f - smoothstep(0.0f, 1.0f, abs(textureDepth - sampledDepth) / globalData.SSAOSettings.y);
+
+			occlusion += (sampledDepth < textureDepth ? 1.0f : 0.0f) * rangeCheck * confidence;  
 		}
-
 		occlusion /= globalData.SSAOSettings.x;
-
-		occlusion *= ssaoAvailableFactor;
 	}
 
 	outSSAOFactor = vec4(vec3(occlusion), 1.0);

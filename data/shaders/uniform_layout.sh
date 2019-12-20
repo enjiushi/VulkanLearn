@@ -541,8 +541,9 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord, vec2 oneNearPosition
 	vars.shadowFactor = AcquireShadowFactor(vars.camera_position, ShadowMapDepthBuffer);
 
 	vars.ssaoFactor = texture(BlurredSSAOBuffer, texcoord).r;
+
 	vars.ssaoFactor = min(1.0f, vars.ssaoFactor);
-	vars.ssaoFactor = pow(vars.ssaoFactor, 0.6f) * 1.1f;
+    vars.ssaoFactor = max(0.0f, min(1.0f, pow(vars.ssaoFactor * 3.0f, 0.7f)) - 0.03f);
 
 	return vars;
 }
