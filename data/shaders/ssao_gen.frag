@@ -165,39 +165,51 @@ void main()
 
 	mat3 TBN = mat3(tangent, bitangent, normal);
 
-	// Calculate camera space width of this particular depth of current pixel
-	float csWidth = globalData.MainCameraSettings3.x * abs(linearDepth) * 2;
-	float ssaoRaiusInScreenSapce = globalData.SSAOSettings.y / csWidth;
+	// x / z = x_near / z_near
+	// Let x_near = camera space near plane size x, z_near = near plane z
+	// x = z * x_near / z_near
+	// x is the camera space size in x axis of the view frustum in this particular depth
+	// Have it multiplied with screen space ssao length ratio gives us ssao sample length in camera space(roughly)
+	float ssaoCSLength = globalData.SSAOSettings.z * linearDepth * perFrameData.cameraSpaceSize.x / (-perFrameData.nearFarAB.x);
 
 	float occlusion = 0.0f;
 
-	if (ssaoRaiusInScreenSapce > globalData.SSAOSettings.w)
+	for (int i = 0; i < int(globalData.SSAOSettings.x); i++)
 	{
-		float ssaoAvailableFactor = min(1.0f, (ssaoRaiusInScreenSapce - globalData.SSAOSettings.w) / (globalData.SSAOSettings.z - globalData.SSAOSettings.w));
+		vec3 sampleDir = TBN * globalData.SSAOSamples[i].xyz;
+		vec3 samplePos = position + sampleDir * ssaoCSLength;
 
-		for (int i = 0; i < int(globalData.SSAOSettings.x); i++)
-		{
-			vec3 sampleDir = TBN * globalData.SSAOSamples[i].xyz;
-			vec3 samplePos = position + sampleDir * globalData.SSAOSettings.y;
+		// If sample position's z is greater than camera near plane, it means that this sample lies behind
+		// Impossible for any surface on screen to block a point lies behind camera
+		float hitThroughCamera = samplePos.z + perFrameData.nearFarAB.x;
+		if (hitThroughCamera > 0)
+			continue;
 
-			vec4 clipSpaceSample = globalData.projection * vec4(samplePos, 1.0f);
-			clipSpaceSample = clipSpaceSample / clipSpaceSample.w;
-			clipSpaceSample.xy = clipSpaceSample.xy * 0.5f + 0.5f;
+		vec4 clipSpaceSample = globalData.projection * vec4(samplePos, 1.0f);
+		clipSpaceSample = clipSpaceSample / clipSpaceSample.w;
+		clipSpaceSample.xy = clipSpaceSample.xy * 0.5f + 0.5f;
 
-			float sampledDepth = clipSpaceSample.z;
-			float textureDepth = texture(DepthStencilBuffer[frameIndex], clipSpaceSample.xy).r;
+		float sampledDepth = clipSpaceSample.z;
+		float textureDepth = texture(DepthStencilBuffer[frameIndex], clipSpaceSample.xy).r;
 
-			sampledDepth = ReconstructLinearDepth(sampledDepth);
-			textureDepth = ReconstructLinearDepth(textureDepth);
+		sampledDepth = ReconstructLinearDepth(sampledDepth);
+		textureDepth = ReconstructLinearDepth(textureDepth);
 
-			float rangeCheck = smoothstep(0.0f, 1.0f, globalData.SSAOSettings.y / abs(textureDepth - sampledDepth));
-			occlusion += (sampledDepth < textureDepth ? 1.0f : 0.0f) * rangeCheck;    
-		}
+		// abs(textureDepth - sampledDepth) : The depth difference between sample position and texture position in camera space
+		// ssaoCSLength : ssao sample length in camera space
+		// max(abs(textureDepth - sampledDepth), ssaoCSLength) : maximum value of the above variables, to determine if current sample is within ssao radius or not
+		// max(0, max(abs(textureDepth - sampledDepth), ssaoCSLength) - globalData.SSAOSettings.y) : If either depth difference or sample length is larger than pre-defined
+		// radius, acquire the amount the larger part
+		// max(0, max(abs(textureDepth - sampledDepth), ssaoCSLength) - globalData.SSAOSettings.y) / globalData.SSAOSettings.y : Larger part in terms of the ratio of pre-defined radius
+		// 
+		// The whole operation here is to check if either depth difference or ssao sample length is larger than pre-defined ssao radius
+		// If it's larger, we get the larger part and use it as a factor to fade out ssao
+		float rangeCheck = 1.0f - smoothstep(0.0f, 1.0f, max(0, max(abs(textureDepth - sampledDepth), ssaoCSLength) - globalData.SSAOSettings.y) / globalData.SSAOSettings.y);
 
-		occlusion /= globalData.SSAOSettings.x;
-
-		occlusion *= ssaoAvailableFactor;
+		occlusion += (sampledDepth < textureDepth ? 1.0f : 0.0f) * rangeCheck;  
 	}
+
+	occlusion /= globalData.SSAOSettings.x;
 
 	outSSAOFactor = vec4(vec3(occlusion), 1.0);
 

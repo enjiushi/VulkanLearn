@@ -216,7 +216,36 @@ std::shared_ptr<Sampler> Image::CreateNearestRepeatSampler() const
 	return Sampler::Create(GetDevice(), samplerCreateInfo);
 }
 
-std::shared_ptr<Sampler> Image::CreateLinearClampToEdgeSampler(VkBorderColor borderColor) const
+std::shared_ptr<Sampler> Image::CreateLinearClampToBorderSampler(VkBorderColor borderColor) const
+{
+	VkSamplerCreateInfo samplerCreateInfo = {};
+	samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+	samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+	samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+	samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+	samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+	samplerCreateInfo.mipLodBias = 0.0f;
+	samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
+	samplerCreateInfo.minLod = 0.0f;
+	samplerCreateInfo.maxLod = (float)m_info.mipLevels;
+	//if (GetPhysicalDevice()->GetPhysicalDeviceFeatures().samplerAnisotropy)
+	//{
+	//	sampler.maxAnisotropy = GetPhysicalDevice()->GetPhysicalDeviceProperties().limits.maxSamplerAnisotropy;
+	//	sampler.anisotropyEnable = VK_TRUE;
+	//}
+	//else
+	{
+		samplerCreateInfo.maxAnisotropy = 1.0;
+		samplerCreateInfo.anisotropyEnable = VK_FALSE;
+	}
+	samplerCreateInfo.borderColor = borderColor;
+
+	return Sampler::Create(GetDevice(), samplerCreateInfo);
+}
+
+std::shared_ptr<Sampler> Image::CreateLinearClampToEdgeSampler() const
 {
 	VkSamplerCreateInfo samplerCreateInfo = {};
 	samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -240,7 +269,6 @@ std::shared_ptr<Sampler> Image::CreateLinearClampToEdgeSampler(VkBorderColor bor
 		samplerCreateInfo.maxAnisotropy = 1.0;
 		samplerCreateInfo.anisotropyEnable = VK_FALSE;
 	}
-	samplerCreateInfo.borderColor = borderColor;
 
 	return Sampler::Create(GetDevice(), samplerCreateInfo);
 }

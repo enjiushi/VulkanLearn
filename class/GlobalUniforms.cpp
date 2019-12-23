@@ -518,23 +518,23 @@ void GlobalUniforms::SetSSAOSampleCount(double sampleCount)
 	SetDirty();
 }
 
-void GlobalUniforms::SetSSAOSampleVectorLength(double sampleVectorLength)
+void GlobalUniforms::SetSSAOSampleRadius(double radius)
 {
-	m_globalVariables.SSAOSettings.y = sampleVectorLength;
+	m_globalVariables.SSAOSettings.y = radius;
 	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, SSAOSettings.y);
 	SetDirty();
 }
 
-void GlobalUniforms::SetSSAOExtinctionStartingRadius(double startingRadius)
+void GlobalUniforms::SetSSAOScreenSpaceSampleLength(double length)
 {
-	m_globalVariables.SSAOSettings.z = startingRadius;
+	m_globalVariables.SSAOSettings.z = length;
 	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, SSAOSettings.z);
 	SetDirty();
 }
 
-void GlobalUniforms::SetSSAOExtinctionEndingRadius(double endingRadius)
+void GlobalUniforms::SetSSAOCurveFactor(double factor)
 {
-	m_globalVariables.SSAOSettings.w = endingRadius;
+	m_globalVariables.SSAOSettings.w = factor;
 	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, SSAOSettings.w);
 	SetDirty();
 }
@@ -653,6 +653,7 @@ void GlobalUniforms::InitSSAORandomSample()
 	for (uint32_t i = 0; i < SSAO_SAMPLE_COUNT; i++)
 	{
 		Vector3d sample = { randomFloats(randomEngine) * 2.0f - 1.0f, randomFloats(randomEngine) * 2.0f - 1.0f, randomFloats(randomEngine) };
+		sample.z = std::pow(sample.z, 0.5);
 
 		float length = randomFloats(randomEngine);
 		length = length * length;		// Make sample length more distributed near hemisphere center

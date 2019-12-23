@@ -852,9 +852,9 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteAmplify(0.7);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleCount(32);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleVectorLength(0.3f);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOExtinctionStartingRadius(1.0 / FrameBufferDiction::WINDOW_WIDTH * 80);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOExtinctionEndingRadius(1.0 / FrameBufferDiction::WINDOW_WIDTH * 40);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleRadius(0.3);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOScreenSpaceSampleLength(1.0 / FrameBufferDiction::WINDOW_WIDTH * 100);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOCurveFactor(0.3);
 }
 
 class VariableChanger : public IInputListener

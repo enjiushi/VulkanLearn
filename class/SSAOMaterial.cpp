@@ -160,7 +160,7 @@ bool SSAOMaterial::Init(const std::shared_ptr<SSAOMaterial>& pSelf,
 
 		depthBuffer.push_back({
 			pGBufferFrameBuffer->GetDepthStencilTarget(),
-			pGBufferFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToEdgeSampler(),
+			pGBufferFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToBorderSampler(VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK),
 			pGBufferFrameBuffer->GetDepthStencilTarget()->CreateDepthSampleImageView()
 		});
 	}
