@@ -543,7 +543,7 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord, vec2 oneNearPosition
 	vars.ssaoFactor = texture(BlurredSSAOBuffer, texcoord).r;
 
 	vars.ssaoFactor = min(1.0f, vars.ssaoFactor);
-    vars.ssaoFactor = min(1.0f, pow(vars.ssaoFactor, 0.3f));
+    vars.ssaoFactor = min(1.0f, pow(vars.ssaoFactor, globalData.SSAOSettings.w));
 
 	return vars;
 }

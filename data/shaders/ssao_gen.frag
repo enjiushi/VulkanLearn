@@ -147,8 +147,6 @@ vec4 RayMarch(vec3 sampleCSNormal, vec3 csNormal, vec3 position, vec3 csViewRay)
 	return rayHitInfo;
 }
 
-float SSAO_SAMPLE_SCREEN_SIZE = 80;
-
 void main() 
 {
 	ivec2 coord = ivec2(floor(inUv * globalData.gameWindowSize.xy));
@@ -167,14 +165,12 @@ void main()
 
 	mat3 TBN = mat3(tangent, bitangent, normal);
 
-	float ssaoLengthScreenRatio = SSAO_SAMPLE_SCREEN_SIZE * globalData.gameWindowSize.z;
-
 	// x / z = x_near / z_near
 	// Let x_near = camera space near plane size x, z_near = near plane z
 	// x = z * x_near / z_near
 	// x is the camera space size in x axis of the view frustum in this particular depth
-	// Have it multiplied with ssaoLengthScreenRatio gives us ssao sample length in camera space(roughly)
-	float ssaoCSLength = ssaoLengthScreenRatio * linearDepth * perFrameData.cameraSpaceSize.x / (-perFrameData.nearFarAB.x);
+	// Have it multiplied with screen space ssao length ratio gives us ssao sample length in camera space(roughly)
+	float ssaoCSLength = globalData.SSAOSettings.z * linearDepth * perFrameData.cameraSpaceSize.x / (-perFrameData.nearFarAB.x);
 
 	float occlusion = 0.0f;
 

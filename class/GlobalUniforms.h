@@ -197,14 +197,9 @@ public:
 	* DESCRIPTION: SSAO Settings
 	*
 	* X: Sample count
-	* Y: Sample vector length in meters
-	* Z: SSAO factor extinction starting radius.
-	* W: SSAO factor extinction ending radius
-	Note: If an object is extremly far away, the pixel that sample vector lands will be very near to current pixel,
-	      which doesn't really produce valid information as its reconstructed linear depth in camera space will be short of precision. 
-		  Z and W provide a radius in screen space ranging from 0 to 1, so that if SSAO sample always lands within it,
-		  it should start to fade or else lacking of precision will eventually create noise.
-		  If radius shorter even than ending radius, ssao factor will be completely ignored.
+	* Y: SSAO active radius, any ssao factor outside of this radius will fade away
+	* Z: SSAO sample length ratio in screen space
+	* W: SSAO curve factor -- pow(ssao, curve)
 	*/
 	Vector4<T>	SSAOSettings;
 
@@ -356,12 +351,12 @@ public:
 
 	void SetSSAOSampleCount(double sampleCount);
 	double GetSSAOSampleCount() const { return m_globalVariables.SSAOSettings.x; }
-	void SetSSAOSampleVectorLength(double sampleVectorLength);
-	double GetSSAOSampleVectorLength() const { return m_globalVariables.SSAOSettings.y; }
-	void SetSSAOExtinctionStartingRadius(double startingRadius);
-	double GetSSAOExtinctionStartingRadius() const { return m_globalVariables.SSAOSettings.z; }
-	void SetSSAOExtinctionEndingRadius(double endingRadius);
-	double GetSSAOExtinctionEndingRadius() const { return m_globalVariables.SSAOSettings.w; }
+	void SetSSAOSampleRadius(double radius);
+	double GetSSAOSampleRadius() const { return m_globalVariables.SSAOSettings.y; }
+	void SetSSAOScreenSpaceSampleLength(double length);
+	double GetSSAOScreenSpaceSampleLength() const { return m_globalVariables.SSAOSettings.z; }
+	void SetSSAOCurveFactor(double factor);
+	double GetSSAOCurveFactor() const { return m_globalVariables.SSAOSettings.w; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);
