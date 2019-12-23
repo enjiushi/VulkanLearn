@@ -653,6 +653,7 @@ void GlobalUniforms::InitSSAORandomSample()
 	for (uint32_t i = 0; i < SSAO_SAMPLE_COUNT; i++)
 	{
 		Vector3d sample = { randomFloats(randomEngine) * 2.0f - 1.0f, randomFloats(randomEngine) * 2.0f - 1.0f, randomFloats(randomEngine) };
+		sample.z = std::pow(sample.z, 0.5);
 
 		float length = randomFloats(randomEngine);
 		length = length * length;		// Make sample length more distributed near hemisphere center
