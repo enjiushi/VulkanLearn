@@ -10,10 +10,12 @@ class PerObjectVariables
 {
 public:
 	Matrix4x4<T> MV;
-	Matrix4x4<T> MVP;	// projection * view * model
+	Matrix4x4<T> MVP;			// projection * view * model
+	Matrix4x4<T> MV_Rotation_P;	// Model view only has rotation, no translation
 
 	Matrix4x4<T> prevMV;
 	Matrix4x4<T> prevMVP;
+	Matrix4x4<T> prevMV_Rotation_P;
 };
 
 typedef PerObjectVariables<float> PerObjectVariablesf;

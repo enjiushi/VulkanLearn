@@ -45,17 +45,14 @@ void main()
 	outDistToEdge.w = min(min(inBarycentricCoord.x, inBarycentricCoord.y), inBarycentricCoord.z);
 	outDistToEdge.w = 1.0f - step(0.01, outDistToEdge.w);
 
-	position = normalize(position);
+	//position = normalize(position);
 
-	gl_Position = perObjectData[perObjectIndex].MVP * vec4(position, 1.0);
+	gl_Position = perObjectData[perObjectIndex].MV_Rotation_P * vec4(position, 1.0);
 
-	vec3 localNormal = normalize(position);
+	vec3 normal = normalize(position + perFrameData.wsCameraPosition.xyz);
 
-	outCSNormal = normalize(vec3(perObjectData[perObjectIndex].MV * vec4(localNormal, 0.0)));
-	outCSPosition = (perObjectData[perObjectIndex].MV * vec4(position, 1.0)).xyz;
-	outPrevCSPosition = (perObjectData[perObjectIndex].prevMV * vec4(position, 1.0)).xyz;
+	outCSNormal = normalize(mat3(perObjectData[perObjectIndex].MV) * normal);
+	outCSPosition = mat3(perObjectData[perObjectIndex].MV) * position;
+	outPrevCSPosition = mat3(perObjectData[perObjectIndex].prevMV) * position;
 	outScreenPosition = gl_Position.xy / gl_Position.w;
-
-	outUv = vec2(0, 0);
-	outUv.t = 1.0 - outUv.t;
 }

@@ -33,6 +33,10 @@ class PlanetGenerator : public BaseComponent
 public:
 	static std::shared_ptr<PlanetGenerator> Create(const std::shared_ptr<PhysicalCamera>& pCamera);
 
+public:
+	double GetPlanetRadius() const { return m_planetRadius; }
+	void SetPlanetRadius(double radius) { m_planetRadius = radius; }
+
 protected:
 	bool Init(const std::shared_ptr<PlanetGenerator>& pSelf, const std::shared_ptr<PhysicalCamera>& pCamera);
 
@@ -48,6 +52,8 @@ public:
 	void ToggleCameraInfoUpdate(bool flag) { m_toggleCameraInfoUpdate = flag; }
 
 private:
+	double			m_planetRadius = 1;
+
 	Vector3d		m_icosahedronVertices[20];
 	uint32_t		m_icosahedronIndices[20 * 3];
 

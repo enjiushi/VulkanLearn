@@ -86,9 +86,11 @@ struct PerObjectData
 {
 	mat4 MV;			// We can keep the translation of modelview matrix, as it's relative to camera. Larger number means far away, float rounding isn't visible
 	mat4 MVP;			// Same as above
+	mat4 MV_Rotation_P; // Model view matrix only has rotation, no translation
 
 	mat4 prevMV;		// We can keep the translation of modelview matrix, as it's relative to camera. Larger number means far away, float rounding isn't visible
 	mat4 prevMVP;
+	mat4 prevMV_Rotation_P;
 };
 
 struct IndirectOffset

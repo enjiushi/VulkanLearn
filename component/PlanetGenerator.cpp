@@ -190,17 +190,21 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 	if (m_utilityVector1 * m_utilityVector0 > 0.4)
 		return;
 
-	double distA = (m_cameraPosLocal - a).Length();
-	double distB = (m_cameraPosLocal - b).Length();
-	double distC = (m_cameraPosLocal - c).Length();
+	Vector3d camera_relative_a = a - m_cameraPosLocal;
+	Vector3d camera_relative_b = b - m_cameraPosLocal;
+	Vector3d camera_relative_c = c - m_cameraPosLocal;
+
+	double distA = camera_relative_a.Length();
+	double distB = camera_relative_b.Length();
+	double distC = camera_relative_c.Length();
 
 	double minDist = std::fmin(std::fmin(distA, distB), distC);
 
-	if (m_distanceLUT[currentLevel] <= minDist || currentLevel == MAX_LEVEL)
+	if (m_distanceLUT[currentLevel] * m_planetRadius <= minDist || currentLevel == MAX_LEVEL)
 	{
-		pOutputTriangles->a = a.SinglePrecision();
-		pOutputTriangles->b = b.SinglePrecision();
-		pOutputTriangles->c = c.SinglePrecision();
+		pOutputTriangles->a = camera_relative_a.SinglePrecision();
+		pOutputTriangles->b = camera_relative_b.SinglePrecision();
+		pOutputTriangles->c = camera_relative_c.SinglePrecision();
 		pOutputTriangles++;
 		return;
 	}
@@ -210,6 +214,9 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 	A.Normalize();
 	B.Normalize();
 	C.Normalize();
+	A *= m_planetRadius;
+	B *= m_planetRadius;
+	C *= m_planetRadius;
 
 	SubDivide(currentLevel + 1, state, a, C, B, pOutputTriangles);
 	SubDivide(currentLevel + 1, state, C, b, A, pOutputTriangles);
@@ -241,7 +248,7 @@ void PlanetGenerator::OnPreRender()
 
 	for (uint32_t i = 0; i < 20; i++)
 	{
-		SubDivide(0, CullState::CULL_DIVIDE, m_icosahedronVertices[m_icosahedronIndices[i * 3]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]], m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]], pTriangles);
+		SubDivide(0, CullState::CULL_DIVIDE, m_icosahedronVertices[m_icosahedronIndices[i * 3]] * m_planetRadius, m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]] * m_planetRadius, m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]] * m_planetRadius, pTriangles);
 	}
 	uint32_t updatedSize = (uint32_t)((uint8_t*)pTriangles - startPtr);
 
