@@ -69,7 +69,8 @@ private:
 
 	// Camera infor in planet local space
 	PyramidFrustumd	m_cameraFrustumLocal;
-	Vector3d		m_cameraPosLocal;
+	Vector3d		m_planetSpaceCameraPosition;
+	Vector3d		m_lockedPlanetSpaceCameraPosition;
 
 	// Whether to update camera info in planet local space
 	// This is used mostly for debugging
