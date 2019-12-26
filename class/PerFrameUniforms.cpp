@@ -39,17 +39,14 @@ void PerFrameUniforms::SetViewCoordinateSystem(const Matrix4d& viewCoordinateSys
 
 void PerFrameUniforms::SetCameraPosition(const Vector3d& camPos)
 {
-	m_perFrameVariables.cameraPosition.x = camPos.x;
-	m_perFrameVariables.cameraPosition.y = camPos.y;
-	m_perFrameVariables.cameraPosition.z = camPos.z;
+	m_perFrameVariables.cameraDeltaPosition = camPos - m_perFrameVariables.cameraPosition.xyz();
+	m_perFrameVariables.cameraPosition = camPos;
 	SetDirty();
 }
 
 void PerFrameUniforms::SetCameraDirection(const Vector3d& camDir)
 {
-	m_perFrameVariables.cameraDirection.x = camDir.x;
-	m_perFrameVariables.cameraDirection.y = camDir.y;
-	m_perFrameVariables.cameraDirection.z = camDir.z;
+	m_perFrameVariables.cameraDirection = camDir;
 	SetDirty();
 }
 
@@ -131,6 +128,7 @@ void PerFrameUniforms::UpdateUniformDataInternal()
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, viewCoordSystem);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, prevView);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraPosition);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraDeltaPosition);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraDirection);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, eyeSpaceSize);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, nearFarAB);
@@ -162,6 +160,7 @@ std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList() const
 				{ Mat4Unit, "ViewCoordSystem" },
 				{ Mat4Unit, "prevViewMatrix" },
 				{ Vec4Unit, "CameraPosition_Padding" },
+				{ Vec4Unit, "CameraDeltaPosition_Padding" },
 				{ Vec4Unit, "CameraDirection_FrameIndex" },
 				{ Vec4Unit, "EyeSpaceSize" },
 				{ Vec4Unit, "NearFarAB" },

@@ -67,6 +67,7 @@ struct PerFrameData
 	mat4 viewCoordSystem;		
 	mat4 prevView;			
 	vec4 wsCameraPosition;
+	vec4 wsCameraDeltaPosition;
 	vec4 wsCameraDirection;
 	vec4 cameraSpaceSize;
 	vec4 nearFarAB;
