@@ -17,6 +17,7 @@ layout (location = 4) out vec3 outPrevCSPosition;
 layout (location = 5) out vec4 outDistToEdge;
 
 #include "uniform_layout.sh"
+#include "utilities.sh"
 
 void main() 
 {

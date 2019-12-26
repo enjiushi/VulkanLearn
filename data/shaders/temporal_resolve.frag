@@ -4,6 +4,8 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 #include "uniform_layout.sh"
+#include "global_parameters.sh"
+#include "utilities.sh"
 
 layout (set = 3, binding = 3) uniform sampler2D MotionVector[3];
 layout (set = 3, binding = 4) uniform sampler2D ShadingResult[3];

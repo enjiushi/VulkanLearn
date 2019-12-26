@@ -4,6 +4,8 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 #include "uniform_layout.sh"
+#include "global_parameters.sh"
+#include "utilities.sh"
 
 layout (set = 3, binding = 3) uniform sampler2D PrevBloomDownsample[3];
 

@@ -8,6 +8,7 @@ layout (location = 3) in vec2 inUv;
 layout (location = 0) out vec2 outUv;
 
 #include "uniform_layout.sh"
+#include "utilities.sh"
 
 void main() 
 {
