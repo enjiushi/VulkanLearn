@@ -90,6 +90,6 @@ void main()
 
 	outCSNormal = normalize(mat3(perObjectData[perObjectIndex].MV) * normal);
 	outCSPosition = mat3(perObjectData[perObjectIndex].MV) * position;
-	outPrevCSPosition = mat3(perObjectData[perObjectIndex].prevMV) * position + perFrameData.wsCameraDeltaPosition.xyz;
+	outPrevCSPosition = mat3(perObjectData[perObjectIndex].prevMV) * (position + perFrameData.wsCameraDeltaPosition.xyz);
 	outScreenPosition = gl_Position.xy / gl_Position.w;
 }
