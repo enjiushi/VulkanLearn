@@ -466,7 +466,7 @@ float AcquireShadowFactor(vec4 csPosition, sampler2D ShadowMapDepthBuffer)
 	vec2 texelSize = 1.0f / textureSize(ShadowMapDepthBuffer, 0);
 	float shadowFactor = 0.0f;
 	float pcfDepth;
-	float bias = -0.0005f;
+	float bias = 0.0f;
 
 	pcfDepth = texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(-1, -1) * texelSize).r + bias;
 	shadowFactor += (lsPosition.z < pcfDepth ? 1.0 : 0.0) * 0.077847;

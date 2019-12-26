@@ -75,15 +75,15 @@ std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(bool
 	VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = {};
 	rasterizerCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-	rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizerCreateInfo.cullMode = VK_CULL_MODE_FRONT_BIT;
 	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizerCreateInfo.lineWidth = 1.0f;
 	rasterizerCreateInfo.depthClampEnable = VK_FALSE;
 	rasterizerCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 	rasterizerCreateInfo.depthBiasEnable = VK_TRUE;
-	rasterizerCreateInfo.depthBiasConstantFactor = -3;
-	rasterizerCreateInfo.depthBiasClamp = -10;
-	rasterizerCreateInfo.depthBiasSlopeFactor = -3;
+	rasterizerCreateInfo.depthBiasConstantFactor = 1;
+	rasterizerCreateInfo.depthBiasClamp = 2;
+	rasterizerCreateInfo.depthBiasSlopeFactor = 1;
 
 	VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {};
 	viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
