@@ -4,6 +4,7 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 #include "uniform_layout.sh"
+#include "global_parameters.sh"
 
 layout (set = 3, binding = 3) uniform sampler2D DOFPostfilterResult[3];
 layout (set = 3, binding = 4) uniform sampler2D TemporalShadingResult[2];

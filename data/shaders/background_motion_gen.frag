@@ -11,6 +11,8 @@ layout (location = 0) out vec4 outBGCoC;
 layout (location = 1) out vec4 outBGMotionVec;
 
 #include "uniform_layout.sh"
+#include "global_parameters.sh"
+#include "utilities.sh"
 
 void main() 
 {

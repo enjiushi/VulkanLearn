@@ -6,6 +6,7 @@
 layout (location = 0) in vec3 inPos;
 
 #include "uniform_layout.sh"
+#include "utilities.sh"
 
 void main() 
 {

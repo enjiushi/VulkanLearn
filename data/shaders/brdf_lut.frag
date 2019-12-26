@@ -8,6 +8,8 @@ layout (location = 0) in vec2 inUv;
 layout (location = 0) out vec4 outFragColor;
 
 #include "uniform_layout.sh"
+#include "utilities.sh"
+#include "pbr_functions.sh"
 
 const uint numSamples = 1024;
 

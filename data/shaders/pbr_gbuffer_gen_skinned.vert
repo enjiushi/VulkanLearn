@@ -22,6 +22,7 @@ layout (location = 8) out vec3 outPrevCSPosition;
 
 #include "uniform_layout.sh"
 #include "quaternion.sh"
+#include "utilities.sh"
 
 void main() 
 {

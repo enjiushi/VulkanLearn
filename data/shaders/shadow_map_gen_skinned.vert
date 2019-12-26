@@ -9,6 +9,7 @@ layout (location = 6) in uint inBoneIndices;
 
 #include "uniform_layout.sh"
 #include "quaternion.sh"
+#include "utilities.sh"
 
 void main() 
 {

@@ -8,6 +8,7 @@ layout (location = 0) in vec3 inSampleDir;
 layout (location = 0) out vec4 outFragColor;
 
 #include "uniform_layout.sh"
+#include "global_parameters.sh"
 
 const float sampleDelta = 0.03;
 

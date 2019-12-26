@@ -19,6 +19,7 @@ layout (location = 7) noperspective out vec2 outScreenPosition;
 layout (location = 8) out vec3 outPrevCSPosition;
 
 #include "uniform_layout.sh"
+#include "utilities.sh"
 
 void main() 
 {

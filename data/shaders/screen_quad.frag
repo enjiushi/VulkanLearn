@@ -11,6 +11,7 @@ layout (location = 0) in vec2 inUv;
 layout (location = 0) out vec4 outFragColor;
 
 #include "uniform_layout.sh"
+#include "utilities.sh"
 
 void main() 
 {
