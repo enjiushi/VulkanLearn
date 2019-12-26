@@ -43,32 +43,32 @@ void main()
 	if (textures[perMaterialIndex].metallicIndex >= 0)
 		metalic *= texture(R8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].metallicIndex), 0.0).r * textures[perMaterialIndex].AOMetalic.g;
 
-	vec4 normal_ao = vec4(vec3(0), textures[perMaterialIndex].AOMetalic.x);
+	vec4 normalAO = vec4(vec3(0), textures[perMaterialIndex].AOMetalic.x);
 	if (textures[perMaterialIndex].normalAOIndex < 0)
 	{
-		normal_ao.xyz = normalize(inCSNormal);
+		normalAO.xyz = normalize(inCSNormal);
 	}
 	else
 	{
-		normal_ao = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].normalAOIndex), 0.0);
+		normalAO = texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].normalAOIndex), 0.0);
 
-		vec3 n = normalize(normal_ao.xyz * 2.0 - 1.0);
+		vec3 n = normalize(normalAO.xyz * 2.0 - 1.0);
 		mat3 TBN = mat3(normalize(inCSTangent), normalize(inCSBitangent), normalize(inCSNormal));
 		n = TBN * n;
 
-		normal_ao.xyz = n;
-		normal_ao.w *= textures[perMaterialIndex].AOMetalic.x;
+		normalAO.xyz = n;
+		normalAO.w *= textures[perMaterialIndex].AOMetalic.x;
 	}
 
-	vec4 albedo_roughness = textures[perMaterialIndex].albedoRougness;
+	vec4 albedoRoughness = textures[perMaterialIndex].albedoRougness;
 	if (textures[perMaterialIndex].albedoRoughnessIndex >= 0)
-		albedo_roughness *= texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].albedoRoughnessIndex), 0.0);
+		albedoRoughness *= texture(RGBA8_1024_MIP_2DARRAY, vec3(inUv.st, textures[perMaterialIndex].albedoRoughnessIndex), 0.0);
 
-	outGBuffer0.xyz = normal_ao.xyz * 0.5f + 0.5f;
-	outGBuffer0.w = albedo_roughness.w;
+	outGBuffer0.xyz = normalAO.xyz * 0.5f + 0.5f;
+	outGBuffer0.w = albedoRoughness.w;
 
-	outGBuffer1 = vec4(albedo_roughness.rgb, 0);
-	outGBuffer2 = vec4(vec3(albedo_roughness.w, metalic, 0), normal_ao.a);
+	outGBuffer1 = vec4(albedoRoughness.rgb, 0);
+	outGBuffer2 = vec4(vec3(albedoRoughness.w, metalic, 0), normalAO.a);
 
 	vec4 prevNDCPos = globalData.projection * vec4(inPrevCSPosition, 1.0f);
 	vec2 prevTexCoord = (prevNDCPos.xy / prevNDCPos.w);

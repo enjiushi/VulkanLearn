@@ -23,21 +23,21 @@ void main()
 {
 	float metalic = 0.9f;
 
-	vec4 normal_ao = vec4(vec3(0), 1);
-	normal_ao.xyz = normalize(inCSNormal);
+	vec4 normalAO = vec4(vec3(0), 1);
+	normalAO.xyz = normalize(inCSNormal);
 
-	vec4 albedo_roughness = vec4(mix(vec3(1), vec3(1, 0, 0), inDistToEdge.w), 0.2f);
+	vec4 albedoRoughness = vec4(mix(vec3(1), vec3(1, 0, 0), inDistToEdge.w), 0.2f);
 	vec3 edgeFactor = 1.0f - inDistToEdge.xyz;
 	edgeFactor = step(vec3(0.99f), edgeFactor);
 	float edge = max(max(edgeFactor.x, edgeFactor.y), edgeFactor.z);
 	metalic = mix(metalic, 0, edge);
-	albedo_roughness.w = mix(albedo_roughness.w, 1, edge);
+	albedoRoughness.w = mix(albedoRoughness.w, 1, edge);
 
-	outGBuffer0.xyz = normal_ao.xyz * 0.5f + 0.5f;
-	outGBuffer0.w = albedo_roughness.w;
+	outGBuffer0.xyz = normalAO.xyz * 0.5f + 0.5f;
+	outGBuffer0.w = albedoRoughness.w;
 
-	outGBuffer1 = vec4(albedo_roughness.rgb, 0);
-	outGBuffer2 = vec4(vec3(albedo_roughness.w, metalic, 0), normal_ao.a);
+	outGBuffer1 = vec4(albedoRoughness.rgb, 0);
+	outGBuffer2 = vec4(vec3(albedoRoughness.w, metalic, 0), normalAO.a);
 
 	vec4 prevNDCPos = globalData.projection * vec4(inPrevCSPosition, 1.0f);
 	vec2 prevTexCoord = (prevNDCPos.xy / prevNDCPos.w);
