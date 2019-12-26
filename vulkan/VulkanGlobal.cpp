@@ -858,6 +858,10 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleRadius(0.3);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOScreenSpaceSampleLength(1.0 / FrameBufferDiction::WINDOW_WIDTH * 100);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOCurveFactor(0.3);
+
+	// Render normalized spherical planet at the height of 0.001 * planet radius
+	// For earth it should be higher than 6km
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetSphericalTransitionRatio(0.001);
 }
 
 class VariableChanger : public IInputListener

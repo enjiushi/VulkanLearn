@@ -539,6 +539,14 @@ void GlobalUniforms::SetSSAOCurveFactor(double factor)
 	SetDirty();
 }
 
+void GlobalUniforms::SetPlanetSphericalTransitionRatio(double ratio)
+{
+	m_globalVariables.PlanetRenderingSettings.x = ratio;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.x);
+	SetDirty();
+}
+
+
 
 
 std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
@@ -595,6 +603,22 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				},
 				{
 					Vec4Unit,
+					"Main Camera settings0"
+				},
+				{
+					Vec4Unit,
+					"Main Camera settings1"
+				},
+				{
+					Vec4Unit,
+					"Main Camera settings2"
+				},
+				{
+					Vec4Unit,
+					"Main Camera settings3"
+				},
+				{
+					Vec4Unit,
 					"Settings: Gamma, Exposure, White Scale"
 				},
 				{
@@ -615,15 +639,27 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				},
 				{
 					Vec4Unit,
-					"Temporal Settings1"
-				},
-				{
-					Vec4Unit,
 					"Bloom Settings0"
 				},
 				{
 					Vec4Unit,
 					"Bloom Settings1"
+				},
+				{
+					Vec4Unit,
+					"Depth of field Settings0"
+				},
+				{
+					Vec4Unit,
+					"Motion blur settings"
+				},
+				{
+					Vec4Unit,
+					"Vignette settings"
+				},
+				{
+					Vec4Unit,
+					"SSAO settings"
 				},
 				{
 					Vec4Unit,

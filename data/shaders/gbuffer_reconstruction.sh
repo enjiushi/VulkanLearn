@@ -3,9 +3,9 @@
 
 struct GBufferVariables
 {
-	vec4 albedo_roughness;
-	vec4 normal_ao;
-	vec4 camera_position;
+	vec4 albedoRoughness;
+	vec4 normalAO;
+	vec4 csPosition;
 	float metalic;
 	float shadowFactor;
 	float ssaoFactor;
@@ -90,14 +90,14 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 oneNearPosition, sampler2D GBu
 	vec4 gbuffer1 = texelFetch(GBuffer1, coord, 0);
 	vec4 gbuffer2 = texelFetch(GBuffer2, coord, 0);
 
-	vars.albedo_roughness.rgb = gbuffer1.rgb;
-	vars.albedo_roughness.a = gbuffer2.r;
+	vars.albedoRoughness.rgb = gbuffer1.rgb;
+	vars.albedoRoughness.a = gbuffer2.r;
 
-	vars.normal_ao.xyz = normalize(gbuffer0.xyz * 2.0f - 1.0f);
-	vars.normal_ao.w = gbuffer2.a;
+	vars.normalAO.xyz = normalize(gbuffer0.xyz * 2.0f - 1.0f);
+	vars.normalAO.w = gbuffer2.a;
 
 	float linearDepth;
-	vars.camera_position = vec4(ReconstructCSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0f);
+	vars.csPosition = vec4(ReconstructCSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0f);
 
 	vars.metalic = gbuffer2.g;
 
@@ -112,18 +112,18 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord, vec2 oneNearPosition
 	vec4 gbuffer1 = texelFetch(GBuffer1, coord, 0);
 	vec4 gbuffer2 = texelFetch(GBuffer2, coord, 0);
 
-	vars.albedo_roughness.rgb = gbuffer1.rgb;
-	vars.albedo_roughness.a = gbuffer2.r;
+	vars.albedoRoughness.rgb = gbuffer1.rgb;
+	vars.albedoRoughness.a = gbuffer2.r;
 
-	vars.normal_ao.xyz = gbuffer0.xyz * 2.0f - 1.0f;
-	vars.normal_ao.w = gbuffer2.a;
+	vars.normalAO.xyz = gbuffer0.xyz * 2.0f - 1.0f;
+	vars.normalAO.w = gbuffer2.a;
 
 	float linearDepth;
-	vars.camera_position = vec4(ReconstructCSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0);
+	vars.csPosition = vec4(ReconstructCSPosition(coord, oneNearPosition, DepthStencilBuffer, linearDepth), 1.0);
 
 	vars.metalic = gbuffer2.g;
 
-	vars.shadowFactor = AcquireShadowFactor(vars.camera_position, ShadowMapDepthBuffer);
+	vars.shadowFactor = AcquireShadowFactor(vars.csPosition, ShadowMapDepthBuffer);
 
 	vars.ssaoFactor = texture(BlurredSSAOBuffer, texcoord).r;
 

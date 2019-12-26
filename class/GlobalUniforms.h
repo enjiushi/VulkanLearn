@@ -203,6 +203,16 @@ public:
 	*/
 	Vector4<T>	SSAOSettings;
 
+	/*******************************************************************
+	* DESCRIPTION: Planet Rendering Settings
+	*
+	* X: The ratio in planet radius that transition between rendering raw vertices to normalized spherical vertices
+	* Y: Reserved
+	* Z: Reserved
+	* W: Reserved
+	*/
+	Vector4<T>	PlanetRenderingSettings;
+
 	// SSAO settings
 	Vector4<T>	SSAOSamples[SSAO_SAMPLE_COUNT];
 };
@@ -357,6 +367,9 @@ public:
 	double GetSSAOScreenSpaceSampleLength() const { return m_globalVariables.SSAOSettings.z; }
 	void SetSSAOCurveFactor(double factor);
 	double GetSSAOCurveFactor() const { return m_globalVariables.SSAOSettings.w; }
+
+	void SetPlanetSphericalTransitionRatio(double ratio);
+	double GetPlanetSphericalTransitionRatio() const { return m_globalVariables.PlanetRenderingSettings.x; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

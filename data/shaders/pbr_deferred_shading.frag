@@ -115,10 +115,10 @@ void main()
 
 	GBufferVariables vars = UnpackGBuffers(coord, inUv, inOneNearPosition, GBuffer0[frameIndex], GBuffer1[frameIndex], GBuffer2[frameIndex], DepthStencilBuffer[frameIndex], BlurredSSAOBuffer[frameIndex], ShadowMapDepthBuffer[frameIndex]);
 
-	if (length(vars.normal_ao.xyz) > 1.1f)
+	if (length(vars.normalAO.xyz) > 1.1f)
 		discard;
 
-	vec3 n = normalize(vars.normal_ao.xyz);
+	vec3 n = normalize(vars.normalAO.xyz);
 	vec3 v = normalize(-vec3(inOneNearPosition, -1));	// Beware, you'll have to multiply camera space linear depth -1(or any depth you want), and view ray goes towards camera
 	vec3 l = globalData.mainLightDir.xyz;
 	vec3 h = normalize(l + v);
@@ -128,31 +128,31 @@ void main()
 	float NdotV = max(0.0f, dot(n, v));
 	float LdotH = max(0.0f, dot(l, h));
 
-	F0 = mix(F0, vars.albedo_roughness.rgb, vars.metalic);
+	F0 = mix(F0, vars.albedoRoughness.rgb, vars.metalic);
 
 	vec3 fresnel = Fresnel_Schlick(F0, LdotH);
 	vec3 kD = (1.0 - vars.metalic) * (vec3(1.0) - fresnel);
 
 	//-------------- Ambient -----------------------
-	vec3 fresnel_roughness = Fresnel_Schlick_Roughness(F0, NdotV, vars.albedo_roughness.a);
+	vec3 fresnel_roughness = Fresnel_Schlick_Roughness(F0, NdotV, vars.albedoRoughness.a);
 	vec3 kD_roughness = (1.0 - vars.metalic) * (vec3(1.0) - fresnel_roughness);
 
-	vec3 irradiance = texture(RGBA16_512_CUBE_IRRADIANCE, vec3(n.x, -n.y, n.z)).rgb * vars.albedo_roughness.rgb / PI;
+	vec3 irradiance = texture(RGBA16_512_CUBE_IRRADIANCE, vec3(n.x, -n.y, n.z)).rgb * vars.albedoRoughness.rgb / PI;
 
 	vec3 reflectSampleDir = mat3(perFrameData.viewCoordSystem) * reflect(-v, n);
 	reflectSampleDir.y *= -1.0;
 
 	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
-	float lod = vars.albedo_roughness.a * MAX_REFLECTION_LOD;
+	float lod = vars.albedoRoughness.a * MAX_REFLECTION_LOD;
 	vec3 reflect = textureLod(RGBA16_512_CUBE_PREFILTERENV, reflectSampleDir, lod).rgb;
 
-	vec2 brdf_lut = texture(RGBA16_512_2D_BRDFLUT, vec2(NdotV, vars.albedo_roughness.a)).rg;
+	vec2 brdf_lut = texture(RGBA16_512_2D_BRDFLUT, vec2(NdotV, vars.albedoRoughness.a)).rg;
 
 	// Here we use NdotV rather than LdotH, since L's direction is based on punctual light, and here ambient reflection calculation
 	// requires reflection vector dot with N, which is RdotN, equals NdotV
-	vec4 SSRRadiance = CalculateSSR(n, v, NdotV, vars.albedo_roughness, vars.camera_position.xyz, vars.metalic, reflect);
+	vec4 SSRRadiance = CalculateSSR(n, v, NdotV, vars.albedoRoughness, vars.csPosition.xyz, vars.metalic, reflect);
 
-	float aoFactor = min(vars.normal_ao.a, 1.0f - vars.ssaoFactor);
+	float aoFactor = min(vars.normalAO.a, 1.0f - vars.ssaoFactor);
 
 	vec3 skyBoxRadiance = mix(reflect, SSRRadiance.rgb, SSRRadiance.a);
 	vec3 brdfFactor = brdf_lut.x * fresnel_roughness + brdf_lut.y;
@@ -163,10 +163,10 @@ void main()
 	vec3 skyBoxAmbient	= (irradiance + skyBoxRadiance) * aoFactor;
 	//----------------------------------------------
 
-	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedo_roughness.a) * min(1.0f, GGX_D(NdotH, vars.albedo_roughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
-	vec3 dirLightDiffuse = vars.albedo_roughness.rgb * kD / PI;
+	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedoRoughness.a) * min(1.0f, GGX_D(NdotH, vars.albedoRoughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
+	vec3 dirLightDiffuse = vars.albedoRoughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
 
-	outShadingColor = vec4(punctualRadiance, vars.albedo_roughness.a);
+	outShadingColor = vec4(punctualRadiance, vars.albedoRoughness.a);
 	outSSRColor = vec4(skyBoxAmbient, SSRRadiance.a);
 }
