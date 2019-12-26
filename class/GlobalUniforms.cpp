@@ -539,6 +539,14 @@ void GlobalUniforms::SetSSAOCurveFactor(double factor)
 	SetDirty();
 }
 
+void GlobalUniforms::SetPlanetSphericalTransitionRatio(double ratio)
+{
+	m_globalVariables.PlanetRenderingSettings.x = ratio;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.x);
+	SetDirty();
+}
+
+
 
 
 std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
