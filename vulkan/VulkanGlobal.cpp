@@ -792,27 +792,30 @@ void VulkanGlobal::InitScene()
 	m_pPlanetRenderer = MeshRenderer::Create(m_pTriangleMesh, m_pPlanetMaterialInstance);
 
 	m_pPlanetObject = BaseObject::Create();
-	m_pPlanetObject->SetPos({ 10, 0, 8 });
-	m_pPlanetObject->SetScale(8);
+	m_pPlanetGenerator->SetPlanetRadius(32);
 	m_pPlanetObject->AddComponent(m_pPlanetGenerator);
 	m_pPlanetObject->AddComponent(m_pPlanetRenderer);
 
 
+	m_pSceneRootObject = BaseObject::Create();
+	m_pSceneRootObject->AddChild(m_pCameraObj);
+	m_pSceneRootObject->AddChild(m_pGunObject);
+	m_pSceneRootObject->AddChild(m_pSphere0);
+	m_pSceneRootObject->AddChild(m_pSphere1);
+	m_pSceneRootObject->AddChild(m_pSphere2);
+	m_pSceneRootObject->AddChild(m_pInnerBall);
+	m_pSceneRootObject->AddChild(m_pQuadObject);
+	m_pSceneRootObject->AddChild(m_pBoxObject0);
+	m_pSceneRootObject->AddChild(m_pBoxObject1);
+	m_pSceneRootObject->AddChild(m_pBoxObject2);
+	m_pSceneRootObject->AddChild(m_pSophiaObject);
+	m_pSceneRootObject->AddChild(m_pSkyBoxObject);
+	m_pSceneRootObject->AddChild(m_pDirLightObj);
+	m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 0.5);
+
 	m_pRootObject = BaseObject::Create();
-	m_pRootObject->AddChild(m_pCameraObj);
-	m_pRootObject->AddChild(m_pGunObject);
-	m_pRootObject->AddChild(m_pSphere0);
-	m_pRootObject->AddChild(m_pSphere1);
-	m_pRootObject->AddChild(m_pSphere2);
-	m_pRootObject->AddChild(m_pInnerBall);
-	m_pRootObject->AddChild(m_pQuadObject);
-	m_pRootObject->AddChild(m_pBoxObject0);
-	m_pRootObject->AddChild(m_pBoxObject1);
-	m_pRootObject->AddChild(m_pBoxObject2);
+	m_pRootObject->AddChild(m_pSceneRootObject);
 	m_pRootObject->AddChild(m_pPlanetObject);
-	m_pRootObject->AddChild(m_pSophiaObject);
-	m_pRootObject->AddChild(m_pSkyBoxObject);
-	m_pRootObject->AddChild(m_pDirLightObj);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor({ 1, 1, 1 });
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ 1, 1, -1 });

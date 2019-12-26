@@ -206,6 +206,7 @@ public:
 	std::shared_ptr<BaseObject>			m_pPlanetObject;
 
 	std::shared_ptr<BaseObject>			m_pRootObject;
+	std::shared_ptr<BaseObject>			m_pSceneRootObject;
 
 	std::vector<std::shared_ptr<CommandBuffer>> m_commandBufferList;
 

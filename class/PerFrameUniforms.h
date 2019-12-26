@@ -15,11 +15,12 @@ public:
 	Matrix4x4<T>	viewCoordSystem;
 	Matrix4x4<T>	prevView;
 	Vector4<T>		cameraPosition;
+	Vector4<T>		cameraDeltaPosition;	// Camera position delta between 2 consecutive frames
 	Vector4<T>		cameraDirection;
-	Vector4<T>		eyeSpaceSize;		// xy: eye space size, zw: inverted eye space size
+	Vector4<T>		eyeSpaceSize;			// xy: eye space size, zw: inverted eye space size
 	Vector4<T>		nearFarAB;
 	Vector2<T>		cameraJitterOffset;
-	Vector2<T>		time;				//x: delta time, y: SineTime
+	Vector2<T>		time;					//x: delta time, y: SineTime
 
 	Vector2<T>		haltonX8Jitter;
 	Vector2<T>		haltonX16Jitter;

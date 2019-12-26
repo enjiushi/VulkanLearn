@@ -32,13 +32,30 @@ void PerObjectUniforms::SetModelMatrix(uint32_t index, const Matrix4d& modelMatr
 
 void PerObjectUniforms::UpdateDirtyChunkInternal(uint32_t index)
 {
-	m_perObjectVariables[index].MVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perObjectVariables[index].MV;
-	m_perObjectVariables[index].prevMVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix() * m_perObjectVariables[index].prevMV;
+	m_perObjectVariables[index].MVP = UniformData::GetInstance()->GetGlobalUniforms()->GetProjectionMatrix();
+	m_perObjectVariables[index].prevMVP = m_perObjectVariables[index].MVP;
+	m_perObjectVariables[index].MV_Rotation_P = m_perObjectVariables[index].MVP;
+	m_perObjectVariables[index].prevMV_Rotation_P = m_perObjectVariables[index].MVP;
+
+
+	m_perObjectVariables[index].MVP *= m_perObjectVariables[index].MV;
+	m_perObjectVariables[index].prevMVP *= m_perObjectVariables[index].prevMV;
+
+
+	Matrix4d temp = m_perObjectVariables[index].MV;
+	temp.c30 = temp.c31 = temp.c32 = 0;
+	m_perObjectVariables[index].MV_Rotation_P *= temp;
+
+	temp = m_perObjectVariables[index].prevMV;
+	temp.c30 = temp.c31 = temp.c32 = 0;
+	m_perObjectVariables[index].prevMV_Rotation_P *= temp;
 
 	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], MV);
 	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], MVP);
+	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], MV_Rotation_P);
 	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], prevMV);
 	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], prevMVP);
+	CONVERT2SINGLE(m_perObjectVariables[index], m_singlePrecisionPerObjectVariables[index], prevMV_Rotation_P);
 }
 
 std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList() const
@@ -51,8 +68,10 @@ std::vector<UniformVarList> PerObjectUniforms::PrepareUniformVarList() const
 			{
 				{ Mat4Unit, "MV" },
 				{ Mat4Unit, "MVP" },
+				{ Mat4Unit, "MV_Rotation_P" },
 				{ Mat4Unit, "prevMV" },
 				{ Mat4Unit, "prevMVP" },
+				{ Mat4Unit, "prevMV_Rotation_P" },
 			}
 		}
 	};

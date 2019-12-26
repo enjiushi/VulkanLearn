@@ -45,17 +45,50 @@ void main()
 	outDistToEdge.w = min(min(inBarycentricCoord.x, inBarycentricCoord.y), inBarycentricCoord.z);
 	outDistToEdge.w = 1.0f - step(0.01, outDistToEdge.w);
 
-	position = normalize(position);
+	vec3 planetPosition = position + perFrameData.wsCameraPosition.xyz;
 
-	gl_Position = perObjectData[perObjectIndex].MVP * vec4(position, 1.0);
+	vec3 normal = normalize(planetPosition);
 
-	vec3 localNormal = normalize(position);
+	float distToCamera = length(position);
+	// FIXME: Remove this when I have a per-planet uniform containing planet related data including planet radius
+	float radius = length(inTriangleVertexA + perFrameData.wsCameraPosition.xyz);
 
-	outCSNormal = normalize(vec3(perObjectData[perObjectIndex].MV * vec4(localNormal, 0.0)));
-	outCSPosition = (perObjectData[perObjectIndex].MV * vec4(position, 1.0)).xyz;
-	outPrevCSPosition = (perObjectData[perObjectIndex].prevMV * vec4(position, 1.0)).xyz;
+	// FIXME: remove magic number
+	float sphericDistanceAmplifier = 0.001f;
+
+	// Calculate the factor which controls if a position should be rendered directly or normalized and multiplied with radius to simulate sphere
+	// We cannot directly use planet radius to renormalize every vertex as it's potentially a huge number
+	// Using planet radius will introduce single precision float rounding when camera approaches to planet surface
+	// Without using it also introduces another side effect: when camera is very far away from planet, the planet appears non-sphere in low lod
+	// Code below solves this problem by creating a factor, that it controls if a position should be rendered directly or normalized and multiplied
+	// with radius to simulate sphere 
+	//
+	// We put camera to a position that its view frustum just covers the entire planet
+	// let sx = perFrameData.cameraSpaceSize.x, n = perFrameData.nearFarAB.x * 0.5f, r = planet radius, d = distance from camera to planet center
+	// sx / n = r / sqrt(d * d - r * r)
+	// d = r * sqrt(n * n / (sx * sx) + 1)
+	// startSphericalDistance = d - r
+	// So the final factor should be 
+	// (planet vertex dist to camera) / (startSphericalDistance)
+
+	float startSphericalDistance = radius * (pow(pow(perFrameData.nearFarAB.x / (perFrameData.cameraSpaceSize.x * 0.5f), 2.0f) + 1.0f, 0.5f) - 1.0f);
+
+	// Add an amplifier to adjust the distance
+	startSphericalDistance *= sphericDistanceAmplifier;
+
+	// Add a bias to adjust the factor
+	float factor = distToCamera / startSphericalDistance;
+
+	// Clamp between 0 and 1
+	factor = clamp(factor, 0, 1);
+
+	// Choose to render with raw vertices or renormalized sphere vertices
+	position = mix(position, normal * radius - perFrameData.wsCameraPosition.xyz, factor);
+
+	gl_Position = perObjectData[perObjectIndex].MV_Rotation_P * vec4(position, 1.0);
+
+	outCSNormal = normalize(mat3(perObjectData[perObjectIndex].MV) * normal);
+	outCSPosition = mat3(perObjectData[perObjectIndex].MV) * position;
+	outPrevCSPosition = mat3(perObjectData[perObjectIndex].prevMV) * position + perFrameData.wsCameraDeltaPosition.xyz;
 	outScreenPosition = gl_Position.xy / gl_Position.w;
-
-	outUv = vec2(0, 0);
-	outUv.t = 1.0 - outUv.t;
 }

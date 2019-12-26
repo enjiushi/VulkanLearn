@@ -12,7 +12,7 @@ class PlanetGenerator : public BaseComponent
 {
 	DECLARE_CLASS_RTTI(PlanetGenerator);
 
-	static const uint32_t MAX_LEVEL = 16;
+	static const uint32_t MAX_LEVEL = 32;
 	static const uint32_t TRIANGLE_SCREEN_SIZE = 400;
 
 	enum class CullState
@@ -33,6 +33,10 @@ class PlanetGenerator : public BaseComponent
 public:
 	static std::shared_ptr<PlanetGenerator> Create(const std::shared_ptr<PhysicalCamera>& pCamera);
 
+public:
+	double GetPlanetRadius() const { return m_planetRadius; }
+	void SetPlanetRadius(double radius) { m_planetRadius = radius; }
+
 protected:
 	bool Init(const std::shared_ptr<PlanetGenerator>& pSelf, const std::shared_ptr<PhysicalCamera>& pCamera);
 
@@ -48,6 +52,8 @@ public:
 	void ToggleCameraInfoUpdate(bool flag) { m_toggleCameraInfoUpdate = flag; }
 
 private:
+	double			m_planetRadius = 1;
+
 	Vector3d		m_icosahedronVertices[20];
 	uint32_t		m_icosahedronIndices[20 * 3];
 
@@ -63,7 +69,8 @@ private:
 
 	// Camera infor in planet local space
 	PyramidFrustumd	m_cameraFrustumLocal;
-	Vector3d		m_cameraPosLocal;
+	Vector3d		m_planetSpaceCameraPosition;
+	Vector3d		m_lockedPlanetSpaceCameraPosition;
 
 	// Whether to update camera info in planet local space
 	// This is used mostly for debugging

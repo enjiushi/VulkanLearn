@@ -67,6 +67,7 @@ struct PerFrameData
 	mat4 viewCoordSystem;		
 	mat4 prevView;			
 	vec4 wsCameraPosition;
+	vec4 wsCameraDeltaPosition;
 	vec4 wsCameraDirection;
 	vec4 cameraSpaceSize;
 	vec4 nearFarAB;
@@ -86,9 +87,11 @@ struct PerObjectData
 {
 	mat4 MV;			// We can keep the translation of modelview matrix, as it's relative to camera. Larger number means far away, float rounding isn't visible
 	mat4 MVP;			// Same as above
+	mat4 MV_Rotation_P; // Model view matrix only has rotation, no translation
 
 	mat4 prevMV;		// We can keep the translation of modelview matrix, as it's relative to camera. Larger number means far away, float rounding isn't visible
 	mat4 prevMVP;
+	mat4 prevMV_Rotation_P;
 };
 
 struct IndirectOffset
@@ -458,8 +461,7 @@ float AcquireShadowFactor(vec4 csPosition, sampler2D ShadowMapDepthBuffer)
 	lsPosition /= lsPosition.w;
 	lsPosition.xy = lsPosition.xy * 0.5f + 0.5f;	// NOTE: Don't do this to z, as it's already within [0, 1] after vulkan ndc transform
 
-	if (min(lsPosition.x, lsPosition.y) < 0 || max(lsPosition.x, lsPosition.y) > 1)
-		return 1;
+	lsPosition.z = max(0, lsPosition.z);
 
 	vec2 texelSize = 1.0f / textureSize(ShadowMapDepthBuffer, 0);
 	float shadowFactor = 0.0f;
@@ -493,7 +495,6 @@ float AcquireShadowFactor(vec4 csPosition, sampler2D ShadowMapDepthBuffer)
 	pcfDepth = texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(1, 1) * texelSize).r + bias;
 	shadowFactor += (lsPosition.z < pcfDepth ? 1.0 : 0.0) * 0.077847;
 
-	//return 1.0f - (lsPosition.z < pcfDepth ? 1.0 : 0.0) * texture(ShadowMapDepthBuffer, lsPosition.xy + vec2(0, 0) * texelSize).r;
 	return 1.0f - shadowFactor;
 }
 
