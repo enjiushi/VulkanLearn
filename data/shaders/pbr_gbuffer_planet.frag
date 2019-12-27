@@ -8,7 +8,7 @@ layout (location = 1) in vec3 inCSNormal;
 layout (location = 2) in vec3 inCSPosition;
 layout (location = 3) noperspective in vec2 inScreenPosition;
 layout (location = 4) in vec3 inPrevCSPosition;
-layout (location = 5) in vec2 inBarycentricCoord;
+layout (location = 5) in vec4 inBarycentricCoord;
 
 layout (location = 0) out vec4 outGBuffer0;
 layout (location = 1) out vec4 outGBuffer1;
@@ -32,7 +32,7 @@ void main()
 	vec4 normalAO = vec4(vec3(0), 1);
 	normalAO.xyz = normalize(inCSNormal);
 
-	float patchEdge = min(min(inBarycentricCoord.x, inBarycentricCoord.y), 1.0f - inBarycentricCoord.x - inBarycentricCoord.y);
+	float patchEdge = min(min(inBarycentricCoord.z, inBarycentricCoord.w), 1.0f - inBarycentricCoord.z - inBarycentricCoord.w);
 	patchEdge = step(1.0f - patchEdgeLength, 1.0f - patchEdge) * renderEdge;
 
 	float edge0 = inBarycentricCoord.x * divideCount - floor(inBarycentricCoord.x * divideCount);

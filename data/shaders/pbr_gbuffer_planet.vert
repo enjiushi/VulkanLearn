@@ -14,7 +14,7 @@ layout (location = 1) out vec3 outCSNormal;
 layout (location = 2) out vec3 outCSPosition;
 layout (location = 3) noperspective out vec2 outScreenPosition;
 layout (location = 4) out vec3 outPrevCSPosition;
-layout (location = 5) out vec2 outBarycentricCoord;
+layout (location = 5) out vec4 outBarycentricCoord;
 
 #include "uniform_layout.sh"
 #include "utilities.sh"
@@ -25,8 +25,9 @@ void main()
 
 	int perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
-
-	vec3 position = inTriangleVertex + inTriangleEdge0 * inBarycentricCoord.x + inTriangleEdge1 * inBarycentricCoord.y;
+	float mixture = 0.0;
+	vec2 mixBarycentric = mix(inBarycentricCoord.xy, inBarycentricCoord.zw, mixture);
+	vec3 position = inTriangleVertex + inTriangleEdge0 * mixBarycentric.x + inTriangleEdge1 * mixBarycentric.y;
 
 
 
@@ -53,5 +54,6 @@ void main()
 	outCSPosition = mat3(perObjectData[perObjectIndex].MV) * position;
 	outPrevCSPosition = mat3(perObjectData[perObjectIndex].prevMV) * (position + perFrameData.wsCameraDeltaPosition.xyz);
 	outScreenPosition = gl_Position.xy / gl_Position.w;
-	outBarycentricCoord = inBarycentricCoord.xy;
+	outBarycentricCoord.xy = inBarycentricCoord.xy;
+	outBarycentricCoord.zw = mixBarycentric.xy;
 }
