@@ -37,7 +37,7 @@ void main()
 
 	float edge0 = inBarycentricCoord.x * divideCount - floor(inBarycentricCoord.x * divideCount);
 	float edge1 = inBarycentricCoord.y * divideCount - floor(inBarycentricCoord.y * divideCount);
-	float edge2 = (inBarycentricCoord.x + inBarycentricCoord.y) * divideCount - floor((inBarycentricCoord.x + inBarycentricCoord.y) * divideCount);
+	float edge2 = ceil((inBarycentricCoord.x + inBarycentricCoord.y) * divideCount) - (inBarycentricCoord.x + inBarycentricCoord.y) * divideCount;
 	float trianlgeEdge = min(min(edge0, edge1), edge2);
 	trianlgeEdge = step(1.0f - triangleEdgeLength, 1.0f - trianlgeEdge) * renderEdge;
 
