@@ -137,6 +137,42 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh(uint32_t level)
 		currentRowStartIndex = (uint32_t)vertices.size();
 	}
 
+	// Add morph factors for each vertex
+	for (uint32_t row = 0; row < rowCount; row++)
+	{
+		currentRowStartIndex = row * (row + 1) / 2;
+
+		bool flag = (row % 2 != 0);
+		
+		if (flag)
+		{
+			for (uint32_t i = 0; i < row + 1; i++)
+			{
+				if (i % 2 == 0)
+				{
+					vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x + subdivideLength;
+					vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+				}
+				else
+				{
+					vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x;
+					vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y - subdivideLength;
+				}
+			}
+		}
+		else
+		{
+			uint32_t index = currentRowStartIndex;
+			for (uint32_t i = 0; i < row / 2; i++)
+			{
+				vertices[index + 1].z = vertices[index + 1].x - subdivideLength;
+				vertices[index + 1].w = vertices[index + 1].y + subdivideLength;
+
+				index += 2;
+			}
+		}
+	}
+
 	std::shared_ptr<Mesh> pTriangleMesh = Mesh::Create
 	(
 		vertices.data(), (uint32_t)vertices.size(), 1 << VAFColor,
