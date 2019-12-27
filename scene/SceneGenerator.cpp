@@ -162,7 +162,14 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh(uint32_t level)
 		}
 		else
 		{
+			for (uint32_t i = 0; i < row + 1; i++)
+			{
+				vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x;
+				vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+			}
+
 			uint32_t index = currentRowStartIndex;
+
 			for (uint32_t i = 0; i < row / 2; i++)
 			{
 				vertices[index + 1].z = vertices[index + 1].x - subdivideLength;
