@@ -52,8 +52,8 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 	SimpleMaterialCreateInfo simpleMaterialInfo = {};
 	simpleMaterialInfo.shaderPaths = { L"../data/shaders/pbr_gbuffer_planet.vert.spv", L"", L"", L"", L"../data/shaders/pbr_gbuffer_planet.frag.spv", L"" };
 	simpleMaterialInfo.materialUniformVars = vars;
-	simpleMaterialInfo.vertexFormat =  VertexFormatP;
-	simpleMaterialInfo.vertexFormatInMem = VertexFormatP;
+	simpleMaterialInfo.vertexFormat =  1 << VAFColor;
+	simpleMaterialInfo.vertexFormatInMem = 1 << VAFColor;
 	simpleMaterialInfo.subpassIndex = 0;
 	simpleMaterialInfo.frameBufferType = FrameBufferDiction::FrameBufferType_GBuffer;
 	simpleMaterialInfo.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer);
@@ -134,19 +134,30 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 
 	std::vector<VkVertexInputBindingDescription> vertexBindingsInfo;
 	std::vector<VkVertexInputAttributeDescription> vertexAttributesInfo;
+
+	// FIXME: this place needs a serious refactor
 	if (simpleMaterialInfo.vertexFormat)
 	{
-		// FIXME: this place needs a serious refactor
-		vertexBindingsInfo.push_back(GenerateReservedVBBindingDesc(simpleMaterialInfo.vertexFormatInMem));
-		vertexAttributesInfo = GenerateReservedVBAttribDesc(simpleMaterialInfo.vertexFormat, simpleMaterialInfo.vertexFormatInMem);
-
 		VkVertexInputBindingDescription bindingDesc = {};
+		bindingDesc.binding = ReservedVBBindingSlot_MeshData;
+		bindingDesc.stride = sizeof(Vector4f);
+		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		vertexBindingsInfo.push_back(bindingDesc);
+
+		VkVertexInputAttributeDescription attribDesc = {};
+		attribDesc.binding = ReservedVBBindingSlot_MeshData;
+		attribDesc.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		attribDesc.location = 0;
+		attribDesc.offset = 0;
+		vertexAttributesInfo.push_back(attribDesc);
+
+		bindingDesc = {};
 		bindingDesc.binding = 1;
 		bindingDesc.stride = 3 * sizeof(Vector3f);
 		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
 		vertexBindingsInfo.push_back(bindingDesc);
 
-		VkVertexInputAttributeDescription attribDesc = {};
+		attribDesc = {};
 		attribDesc.binding = 1;
 		attribDesc.location = 1;
 		attribDesc.format = VK_FORMAT_R32G32B32_SFLOAT;

@@ -207,6 +207,13 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 			pOutputTriangles->a = camera_relative_a.SinglePrecision();
 			pOutputTriangles->b = camera_relative_b.SinglePrecision();
 			pOutputTriangles->c = camera_relative_c.SinglePrecision();
+
+			pOutputTriangles->b -= pOutputTriangles->a;
+			pOutputTriangles->c -= pOutputTriangles->a;
+
+			double x = pOutputTriangles->b.Length();
+			x = pOutputTriangles->c.Length();
+
 			pOutputTriangles++;
 		}
 		else
@@ -218,13 +225,28 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 			pOutputTriangles->a = camera_relative_a.SinglePrecision();
 			pOutputTriangles->b = camera_relative_b.SinglePrecision();
 			pOutputTriangles->c = camera_relative_c.SinglePrecision();
+
+			pOutputTriangles->b -= pOutputTriangles->a;
+			pOutputTriangles->c -= pOutputTriangles->a;
+
 			pOutputTriangles++;
 		}
 		return;
 	}
 
-	Vector3d A, B, C;
-	SceneGenerator::GetInstance()->SubDivideTriangle(a, b, c, A, B, C);
+	Vector3d A = c;
+	Vector3d B = c;
+	Vector3d C = b;
+
+	A += b;
+	A *= 0.5f;
+
+	B += a;
+	B *= 0.5f;
+
+	C += a;
+	C *= 0.5f;
+
 	A.Normalize();
 	B.Normalize();
 	C.Normalize();

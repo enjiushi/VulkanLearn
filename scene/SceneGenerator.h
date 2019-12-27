@@ -30,27 +30,7 @@ public:
 	std::shared_ptr<Mesh> GetMesh0() const { return m_pMesh0; }
 	std::shared_ptr<MeshRenderer> GetMeshRenderer0() const { return m_pMeshRenderer0; }
 
-private:
-	typedef std::pair<Vector3f, uint32_t> VertexIndex;
-	static void GenerateTriangles(uint32_t level, const VertexIndex& a, const VertexIndex& b, const VertexIndex& c, std::vector<Vector3f>& vertices, std::vector<uint32_t>& indices);
-
 public:
-	template<typename T>
-	static void SubDivideTriangle(const Vector3<T>& a, const Vector3<T>& b, const Vector3<T>& c, Vector3<T>& A, Vector3<T>& B, Vector3<T>& C)
-	{
-		A = c;
-		A += b;
-		A *= 0.5f;
-
-		B = c;
-		B += a;
-		B *= 0.5f;
-
-		C = b;
-		C += a;
-		C *= 0.5f;
-	}
-
 	static std::shared_ptr<Mesh> GenerateTriangleMesh(uint32_t level = 0);
 	static std::shared_ptr<Mesh> GenerateBoxMesh();
 	static std::shared_ptr<Mesh> GenerateQuadMesh();
