@@ -5,9 +5,9 @@
 
 layout (location = 0) in vec4 inBarycentricCoord;
 
-layout (location = 1) in vec3 inTriangleVertexA;
-layout (location = 2) in vec3 inTriangleVertexB;
-layout (location = 3) in vec3 inTriangleVertexC;
+layout (location = 1) in vec3 inTriangleVertex;
+layout (location = 2) in vec3 inTriangleEdge0;
+layout (location = 3) in vec3 inTriangleEdge1;
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outCSNormal;
@@ -26,7 +26,7 @@ void main()
 	int perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
 
-	vec3 position = inTriangleVertexA + inTriangleVertexB * inBarycentricCoord.x + inTriangleVertexC * inBarycentricCoord.y;
+	vec3 position = inTriangleVertex + inTriangleEdge0 * inBarycentricCoord.x + inTriangleEdge1 * inBarycentricCoord.y;
 
 
 
@@ -36,7 +36,7 @@ void main()
 
 	float distToCamera = length(position);
 	// FIXME: Remove this when I have a per-planet uniform containing planet related data including planet radius
-	float radius = length(inTriangleVertexA + perFrameData.wsCameraPosition.xyz);
+	float radius = length(inTriangleVertex + perFrameData.wsCameraPosition.xyz);
 
 	// Add a bias to adjust the factor
 	float factor = distToCamera / (radius * globalData.PlanetRenderingSettings.x);
