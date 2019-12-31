@@ -227,8 +227,9 @@ typedef GlobalVariables<double> GlobalVariablesd;
 class GlobalUniforms : public UniformDataStorage
 {
 public:
-	Vector3d IcosahedronVertices[12];
-	uint32_t IcosahedronIndices[60];
+	Vector3d	IcosahedronVertices[12];
+	uint32_t	IcosahedronIndices[60];
+	bool		IcosahedronMorphingReverse[20];
 
 public:
 	void SetProjectionMatrix(const Matrix4d& proj);
@@ -400,6 +401,7 @@ protected:
 
 	void InitSSAORandomSample();
 	void InitIcosahedron();
+	void InitIcosahedrronReverseFlags(uint32_t triangleIndex, bool initedFlags[]);
 	void InitPlanetLODDistanceLUT();
 
 protected:

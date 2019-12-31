@@ -785,6 +785,40 @@ void GlobalUniforms::InitIcosahedron()
 
 	for (uint32_t i = 0; i < 60; i++)
 		IcosahedronIndices[i] = indices[i];
+
+	bool initedFlags[20];
+	memset(initedFlags, 0, sizeof(initedFlags));
+
+	IcosahedronMorphingReverse[0] = false;
+	initedFlags[0] = true;
+	InitIcosahedrronReverseFlags(0, initedFlags);
+}
+
+void GlobalUniforms::InitIcosahedrronReverseFlags(uint32_t triangleIndex, bool initedFlags[])
+{
+	for (uint32_t i = 0; i < 20; i++)
+	{
+		if (initedFlags[i])
+			continue;
+
+		uint32_t equalCount = 0;
+		for (uint32_t j = 0; j < 3; j++)
+		{
+			if (IcosahedronIndices[i * 3 + j] == IcosahedronIndices[triangleIndex * 3 + 0] ||
+				IcosahedronIndices[i * 3 + j] == IcosahedronIndices[triangleIndex * 3 + 1] ||
+				IcosahedronIndices[i * 3 + j] == IcosahedronIndices[triangleIndex * 3 + 2])
+				equalCount++;
+		}
+
+		// If 2 triangles are adjacent, morphing direction should be reversed
+		if (equalCount == 2)
+		{
+			IcosahedronMorphingReverse[i] = !IcosahedronMorphingReverse[triangleIndex];
+			initedFlags[i] = true;
+			InitIcosahedrronReverseFlags(i, initedFlags);
+		}
+		
+	}
 }
 
 void GlobalUniforms::InitPlanetLODDistanceLUT()
