@@ -231,6 +231,9 @@ public:
 	uint32_t	IcosahedronIndices[60];
 	bool		IcosahedronMorphingReverse[20];
 
+	Vector3d    CubeVertices[8];
+	uint32_t	CubeIndices[24];
+
 public:
 	void SetProjectionMatrix(const Matrix4d& proj);
 	Matrix4d GetProjectionMatrix() const { return m_globalVariables.projectionMatrix; }

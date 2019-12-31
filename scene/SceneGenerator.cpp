@@ -93,6 +93,49 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 	StagingBufferMgr()->FlushDataMainThread();
 }
 
+void SceneGenerator::GenerateCube(Vector3d vertices[], uint32_t indices[])
+{
+	vertices[0] = { -1, -1, -1 };
+	vertices[1] = {  1, -1, -1 };
+	vertices[2] = { -1, -1,  1 };
+	vertices[3] = {  1, -1,  1 };
+
+	vertices[4] = { -1,  1, -1 };
+	vertices[5] = {  1,  1, -1 };
+	vertices[6] = { -1,  1,  1 };
+	vertices[7] = {  1,  1,  1 };
+
+	indices[0] = 0;
+	indices[1] = 1;
+	indices[2] = 2;
+	indices[3] = 3;
+
+	indices[4] = 4;
+	indices[5] = 5;
+	indices[6] = 0;
+	indices[7] = 1;
+
+	indices[8] = 5;
+	indices[9] = 6;
+	indices[10] = 1;
+	indices[11] = 3;
+
+	indices[12] = 7;
+	indices[13] = 6;
+	indices[14] = 3;
+	indices[15] = 2;
+
+	indices[16] = 6;
+	indices[17] = 4;
+	indices[18] = 2;
+	indices[19] = 0;
+
+	indices[20] = 5;
+	indices[21] = 4;
+	indices[22] = 7;
+	indices[23] = 6;
+}
+
 std::shared_ptr<Mesh> SceneGenerator::GenerateLODTriangleMesh(uint32_t level)
 {
 	std::vector<Vector4f> vertices;

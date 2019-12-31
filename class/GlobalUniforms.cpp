@@ -8,6 +8,7 @@
 #include "../vulkan/Texture2DArray.h"
 #include "../vulkan/TextureCube.h"
 #include "../vulkan/ShaderStorageBuffer.h"
+#include "../scene/SceneGenerator.h"
 #include "UniformData.h"
 #include "GlobalTextures.h"
 #include "GlobalUniforms.h"
@@ -28,6 +29,8 @@ bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 
 	InitSSAORandomSample();
 	InitIcosahedron();
+
+	SceneGenerator::GenerateCube(CubeVertices, CubeIndices);
 
 	return true;
 }
