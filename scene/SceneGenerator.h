@@ -31,7 +31,8 @@ public:
 	std::shared_ptr<MeshRenderer> GetMeshRenderer0() const { return m_pMeshRenderer0; }
 
 public:
-	static std::shared_ptr<Mesh> GenerateTriangleMesh(uint32_t level = 0);
+	static std::shared_ptr<Mesh> GenerateLODTriangleMesh(uint32_t level);
+	static std::shared_ptr<Mesh> GenerateLODQuadMesh(uint32_t level);
 	static std::shared_ptr<Mesh> GenerateBoxMesh();
 	static std::shared_ptr<Mesh> GenerateQuadMesh();
 	static std::shared_ptr<Mesh> GeneratePBRQuadMesh();

@@ -359,7 +359,9 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	m_pTriangleMesh = SceneGenerator::GenerateTriangleMesh(3);
+	m_pTriangleMesh = SceneGenerator::GenerateLODTriangleMesh(3);
+
+	m_pLODQuadMesh = SceneGenerator::GenerateLODQuadMesh(1);
 
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
@@ -792,7 +794,7 @@ void VulkanGlobal::InitScene()
 	m_pPlanetRenderer = MeshRenderer::Create(m_pTriangleMesh, m_pPlanetMaterialInstance);
 
 	m_pPlanetObject = BaseObject::Create();
-	m_pPlanetGenerator->SetPlanetRadius(32);
+	m_pPlanetGenerator->SetPlanetRadius(4);
 	m_pPlanetObject->AddComponent(m_pPlanetGenerator);
 	m_pPlanetObject->AddComponent(m_pPlanetRenderer);
 

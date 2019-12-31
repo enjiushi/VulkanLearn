@@ -93,7 +93,7 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 	StagingBufferMgr()->FlushDataMainThread();
 }
 
-std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh(uint32_t level)
+std::shared_ptr<Mesh> SceneGenerator::GenerateLODTriangleMesh(uint32_t level)
 {
 	std::vector<Vector4f> vertices;
 	std::vector<uint32_t> indices;
@@ -187,6 +187,54 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh(uint32_t level)
 	);
 
 	return pTriangleMesh;
+}
+
+std::shared_ptr<Mesh> SceneGenerator::GenerateLODQuadMesh(uint32_t level)
+{
+	std::vector<Vector4f> vertices;
+	std::vector<uint32_t> indices;
+
+	uint32_t divideCount = (uint32_t)std::pow(2, level);
+	float subdivideLength = 1 / (float)divideCount;
+
+	Vector2f morphStartPosition;
+	Vector2f morphEndPosition;
+
+	for (uint32_t row = 0; row < divideCount + 1; row++)
+	{
+		for (uint32_t column = 0; column < divideCount + 1; column++)
+		{
+			morphEndPosition = { subdivideLength * column, subdivideLength * row };
+			morphStartPosition = morphEndPosition;
+
+			if (row % 2 != 0)
+				morphStartPosition.y += subdivideLength;
+			if (column % 2 != 0)
+				morphStartPosition.x += subdivideLength;
+
+			vertices.push_back({ morphEndPosition.x, morphEndPosition.y, morphStartPosition.x, morphStartPosition.y });
+		}
+	}
+
+	for (uint32_t row = 0; row < divideCount; row++)
+	{
+		for (uint32_t column = 0; column < divideCount; column++)
+		{
+			indices.push_back((row + 1) * (divideCount + 1) + column);
+			indices.push_back((row + 1 )* (divideCount + 1) + column + 1);
+			indices.push_back(row * (divideCount + 1) + column);
+
+			indices.push_back(row * (divideCount + 1) + column);
+			indices.push_back((row + 1)* (divideCount + 1) + column + 1);
+			indices.push_back(row* (divideCount + 1) + column + 1);
+		}
+	}
+
+	return Mesh::Create
+	(
+		vertices.data(), (uint32_t)vertices.size(), 1 << VAFColor,
+		indices.data(), (uint32_t)indices.size(), VK_INDEX_TYPE_UINT32
+	);
 }
 
 std::shared_ptr<Mesh> SceneGenerator::GenerateBoxMesh()
