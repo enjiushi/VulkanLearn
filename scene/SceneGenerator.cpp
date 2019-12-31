@@ -142,7 +142,7 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateLODTriangleMesh(uint32_t level)
 	std::vector<uint32_t> indices;
 
 	uint32_t rowCount = (uint32_t)std::pow(2, level) + 1;
-	double subdivideLength = 1 / (double)(rowCount - 1);
+	float subdivideLength = 1 / (float)(rowCount - 1);
 	uint32_t lastRowstartIndex = 0;
 	uint32_t currentRowStartIndex = 0;
 	for (uint32_t row = 0; row < rowCount; row++)
