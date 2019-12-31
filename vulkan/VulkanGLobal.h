@@ -111,6 +111,7 @@ public:
 	std::vector<std::shared_ptr<Mesh>>	m_bunnyMeshes;
 	std::vector<std::shared_ptr<Mesh>>	m_dragonMeshes;
 	std::shared_ptr<Mesh>				m_pTriangleMesh;
+	std::shared_ptr<Mesh>				m_pLODQuadMesh;
 	std::shared_ptr<Mesh>				m_pSphereMesh;
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
