@@ -12,9 +12,6 @@ class PlanetGenerator : public BaseComponent
 {
 	DECLARE_CLASS_RTTI(PlanetGenerator);
 
-	static const uint32_t MAX_LEVEL = 32;
-	static const uint32_t TRIANGLE_SCREEN_SIZE = 400;
-
 	enum class CullState
 	{
 		CULL,			// If a triangle is fully out of a volumn
@@ -54,11 +51,13 @@ public:
 private:
 	double			m_planetRadius = 1;
 
-	Vector3d		m_icosahedronVertices[20];
-	uint32_t		m_icosahedronIndices[20 * 3];
-
-	std::vector<double>				m_distanceLUT;
+	// Make a copy here to avoid frequent uniform reading
 	std::vector<double>				m_heightLUT;
+	std::vector<double>				m_distanceLUT;
+	uint32_t						m_maxLODLevel;
+	Vector3d*						m_pIcosahedronVertices;
+	uint32_t*						m_pIcosahedronIndices;
+
 	std::shared_ptr<MeshRenderer>	m_pMeshRenderer;
 	std::shared_ptr<PhysicalCamera>	m_pCamera;
 

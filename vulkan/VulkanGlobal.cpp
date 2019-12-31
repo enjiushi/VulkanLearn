@@ -862,6 +862,8 @@ void VulkanGlobal::InitScene()
 	// Render normalized spherical planet at the height of 0.001 * planet radius
 	// For earth it should be higher than 6km
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetSphericalTransitionRatio(0.001);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetTriangleScreenSize(400);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxPlanetLODLevel(32);
 }
 
 class VariableChanger : public IInputListener

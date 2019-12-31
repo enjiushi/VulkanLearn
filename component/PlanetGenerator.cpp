@@ -25,68 +25,9 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 
 	m_pCamera = pCamera;
 
-	double ratio = (1.0 + sqrt(5.0)) / 2.0;
-	double scale = 1.0 / Vector2d(ratio, 1.0).Length();
-	ratio *= scale;
-
-	Vector3d vertices[] =
-	{
-		{ ratio, 0, -scale },			//rf 0
-		{ -ratio, 0, -scale },			//lf 1
-		{ ratio, 0, scale },			//rb 2
-		{ -ratio, 0, scale },			//lb 3
-
-		{ 0, -scale, ratio },			//db 4
-		{ 0, -scale, -ratio },			//df 5
-		{ 0, scale, ratio },			//ub 6
-		{ 0, scale, -ratio },			//uf 7
-
-		{ -scale, ratio, 0 },			//lu 8
-		{ -scale, -ratio, 0 },			//ld 9
-		{ scale, ratio, 0 },			//ru 10
-		{ scale, -ratio, 0 }			//rd 11
-	};
-
-	for (uint32_t i = 0; i < 12; i++)
-	{
-		vertices[i].Normalize();
-	}
-
-	memcpy_s(&m_icosahedronVertices, sizeof(m_icosahedronVertices), &vertices, sizeof(vertices));
-
-	uint32_t indices[20 * 3] =
-	{
-		1, 3, 8,
-		3, 1, 9,
-		0, 10, 2,
-		2, 11, 0,
-
-		5, 7, 0,
-		7, 5, 1,
-		4, 2, 6,
-		6, 3, 4,
-
-		9, 11, 4,
-		11, 9, 5,
-		8, 6, 10,
-		10, 7, 8,
-
-		1, 8, 7,
-		5, 9, 1,
-		0, 7, 10,
-		5, 0, 11,
-
-		3, 6, 8,
-		4, 3, 9,
-		2, 10, 6,
-		4, 11, 2
-	};
-
-	memcpy_s(&m_icosahedronIndices, sizeof(m_icosahedronIndices), &indices, sizeof(indices));
-
-	Vector3d a = vertices[indices[0]];
-	Vector3d b = vertices[indices[1]];
-	Vector3d c = vertices[indices[2]];
+	Vector3d a = UniformData::GetInstance()->GetGlobalUniforms()->IcosahedronVertices[UniformData::GetInstance()->GetGlobalUniforms()->IcosahedronIndices[0]];
+	Vector3d b = UniformData::GetInstance()->GetGlobalUniforms()->IcosahedronVertices[UniformData::GetInstance()->GetGlobalUniforms()->IcosahedronIndices[1]];
+	Vector3d c = UniformData::GetInstance()->GetGlobalUniforms()->IcosahedronVertices[UniformData::GetInstance()->GetGlobalUniforms()->IcosahedronIndices[2]];
 	Vector3d center = (a + b + c) / 3.0;
 	center.Normalize();
 
@@ -96,7 +37,7 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 	double height_level_0 = 1 / cosin_a_center;
 	
 	m_heightLUT.push_back(height_level_0);
-	for (uint32_t i = 1; i < MAX_LEVEL + 1; i++)
+	for (uint32_t i = 1; i < PLANET_LOD_MAX_LEVEL + 1; i++)
 	{
 		// Next level vertices
 		Vector3d A = (b + c) * 0.5;
@@ -120,13 +61,15 @@ void PlanetGenerator::Start()
 {
 	m_pMeshRenderer = GetComponent<MeshRenderer>();
 
-	double size = (m_icosahedronVertices[m_icosahedronIndices[0]] - m_icosahedronVertices[m_icosahedronIndices[1]]).Length();
-	double frac = std::tan(UniformData::GetInstance()->GetGlobalUniforms()->GetMainCameraHorizontalFOV() * TRIANGLE_SCREEN_SIZE / UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x);
-	for (uint32_t i = 0; i < MAX_LEVEL + 1; i++)
-	{
-		m_distanceLUT.push_back(size / frac);
-		size *= 0.5;
-	}
+	m_maxLODLevel = (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetMaxPlanetLODLevel();
+
+	// Make a copy here
+	for (uint32_t i = 0; i < m_maxLODLevel; i++)
+		m_distanceLUT.push_back(UniformData::GetInstance()->GetGlobalUniforms()->GetLODDistance(i));
+
+	m_pIcosahedronVertices = UniformData::GetInstance()->GetGlobalUniforms()->IcosahedronVertices;
+	m_pIcosahedronIndices = UniformData::GetInstance()->GetGlobalUniforms()->IcosahedronIndices;
+
 	//ASSERTION(m_pMeshRenderer != nullptr);
 }
 
@@ -200,7 +143,7 @@ void PlanetGenerator::SubDivide(uint32_t currentLevel, CullState state, const Ve
 
 	double minDist = std::fmin(std::fmin(distA, distB), distC);
 
-	if (m_distanceLUT[currentLevel] * m_planetRadius <= minDist || currentLevel == MAX_LEVEL)
+	if (m_distanceLUT[currentLevel] * m_planetRadius <= minDist || currentLevel == m_maxLODLevel)
 	{
 		if (m_toggleCameraInfoUpdate)
 		{
@@ -286,7 +229,7 @@ void PlanetGenerator::OnPreRender()
 
 	for (uint32_t i = 0; i < 20; i++)
 	{
-		SubDivide(0, CullState::CULL_DIVIDE, m_icosahedronVertices[m_icosahedronIndices[i * 3]] * m_planetRadius, m_icosahedronVertices[m_icosahedronIndices[i * 3 + 1]] * m_planetRadius, m_icosahedronVertices[m_icosahedronIndices[i * 3 + 2]] * m_planetRadius, pTriangles);
+		SubDivide(0, CullState::CULL_DIVIDE, m_pIcosahedronVertices[m_pIcosahedronIndices[i * 3]] * m_planetRadius, m_pIcosahedronVertices[m_pIcosahedronIndices[i * 3 + 1]] * m_planetRadius, m_pIcosahedronVertices[m_pIcosahedronIndices[i * 3 + 2]] * m_planetRadius, pTriangles);
 	}
 	uint32_t updatedSize = (uint32_t)((uint8_t*)pTriangles - startPtr);
 

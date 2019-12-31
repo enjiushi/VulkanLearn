@@ -27,6 +27,7 @@ bool GlobalUniforms::Init(const std::shared_ptr<GlobalUniforms>& pSelf)
 	SetMotionTileSize({ (double)FrameBufferDiction::MOTION_TILE_SIZE, (double)FrameBufferDiction::MOTION_TILE_SIZE });
 
 	InitSSAORandomSample();
+	InitIcosahedron();
 
 	return true;
 }
@@ -546,6 +547,22 @@ void GlobalUniforms::SetPlanetSphericalTransitionRatio(double ratio)
 	SetDirty();
 }
 
+void GlobalUniforms::SetPlanetTriangleScreenSize(double size)
+{
+	m_globalVariables.PlanetRenderingSettings.y = size;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.y);
+	InitPlanetLODDistanceLUT();
+	SetDirty();
+}
+
+void GlobalUniforms::SetMaxPlanetLODLevel(double maxLevel)
+{
+	m_globalVariables.PlanetRenderingSettings.z = maxLevel;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.z);
+	InitPlanetLODDistanceLUT();
+	SetDirty();
+}
+
 
 
 
@@ -663,6 +680,15 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				},
 				{
 					Vec4Unit,
+					"Planet settings"
+				},
+				{
+					OneUnit,
+					"Planet LOD distance look up table",
+					PLANET_LOD_MAX_LEVEL
+				},
+				{
+					Vec4Unit,
 					"SSAO Samples",
 					SSAO_SAMPLE_COUNT
 				}
@@ -701,6 +727,76 @@ void GlobalUniforms::InitSSAORandomSample()
 	}
 
 	SetDirty();
+}
+
+void GlobalUniforms::InitIcosahedron()
+{
+	double ratio = (1.0 + sqrt(5.0)) / 2.0;
+	double scale = 1.0 / Vector2d(ratio, 1.0).Length();
+	ratio *= scale;
+
+	IcosahedronVertices[0] = { ratio, 0, -scale };			//rf 0
+	IcosahedronVertices[1] = { -ratio, 0, -scale };			//lf 1
+	IcosahedronVertices[2] = { ratio, 0, scale };			//rb 2
+	IcosahedronVertices[3] = { -ratio, 0, scale };			//lb 3
+
+	IcosahedronVertices[4] = { 0, -scale, ratio };			//db 4
+	IcosahedronVertices[5] = { 0, -scale, -ratio };			//df 5
+	IcosahedronVertices[6] = { 0, scale, ratio };			//ub 6
+	IcosahedronVertices[7] = { 0, scale, -ratio };			//uf 7
+
+	IcosahedronVertices[8] = { -scale, ratio, 0 };			//lu 8
+	IcosahedronVertices[9] = { -scale, -ratio, 0 };			//ld 9
+	IcosahedronVertices[10] = { scale, ratio, 0 };			//ru 10
+	IcosahedronVertices[11] = { scale, -ratio, 0 };			//rd 11
+
+	for (uint32_t i = 0; i < 12; i++)
+	{
+		IcosahedronVertices[i].Normalize();
+	}
+
+	uint32_t indices[60] =
+	{
+		1, 3, 8,
+		3, 1, 9,
+		0, 10, 2,
+		2, 11, 0,
+
+		5, 7, 0,
+		7, 5, 1,
+		4, 2, 6,
+		6, 3, 4,
+
+		9, 11, 4,
+		11, 9, 5,
+		8, 6, 10,
+		10, 7, 8,
+
+		1, 8, 7,
+		5, 9, 1,
+		0, 7, 10,
+		5, 0, 11,
+
+		3, 6, 8,
+		4, 3, 9,
+		2, 10, 6,
+		4, 11, 2
+	};
+
+	for (uint32_t i = 0; i < 60; i++)
+		IcosahedronIndices[i] = indices[i];
+}
+
+void GlobalUniforms::InitPlanetLODDistanceLUT()
+{
+	double size = (IcosahedronVertices[IcosahedronIndices[0]] - IcosahedronVertices[IcosahedronIndices[1]]).Length();
+	double frac = std::tan(m_globalVariables.mainCameraSettings2.y * m_globalVariables.PlanetRenderingSettings.y / m_globalVariables.gameWindowSize.x);
+	for (uint32_t i = 0; i < m_globalVariables.PlanetRenderingSettings.z + 1; i++)
+	{
+		m_globalVariables.PlanetLODDistanceLUT[i] = size / frac;
+		CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetLODDistanceLUT[i]);
+		size *= 0.5;
+	}
 }
 
 bool PerBoneUniforms::Init(const std::shared_ptr<PerBoneUniforms>& pSelf)

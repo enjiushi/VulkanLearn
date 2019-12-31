@@ -25,7 +25,7 @@ void main()
 
 	int perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
-	float mixture = 0.0;
+	float mixture = 0.3;
 	vec2 mixBarycentric = mix(inBarycentricCoord.xy, inBarycentricCoord.zw, mixture);
 	vec3 position = inTriangleVertex + inTriangleEdge0 * mixBarycentric.x + inTriangleEdge1 * mixBarycentric.y;
 
