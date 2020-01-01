@@ -153,7 +153,7 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 
 		bindingDesc = {};
 		bindingDesc.binding = 1;
-		bindingDesc.stride = 3 * sizeof(Vector3f);
+		bindingDesc.stride = 3 * sizeof(Vector3f) + sizeof(float);
 		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
 		vertexBindingsInfo.push_back(bindingDesc);
 
@@ -176,6 +176,13 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 		attribDesc.location = 3;
 		attribDesc.format = VK_FORMAT_R32G32B32_SFLOAT;
 		attribDesc.offset = 2 * sizeof(Vector3f);
+		vertexAttributesInfo.push_back(attribDesc);
+
+		attribDesc = {};
+		attribDesc.binding = 1;
+		attribDesc.location = 4;
+		attribDesc.format = VK_FORMAT_R32_SFLOAT;
+		attribDesc.offset = 3 * sizeof(Vector3f);
 		vertexAttributesInfo.push_back(attribDesc);
 	}
 

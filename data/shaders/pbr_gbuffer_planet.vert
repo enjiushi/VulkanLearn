@@ -8,6 +8,7 @@ layout (location = 0) in vec4 inBarycentricCoord;
 layout (location = 1) in vec3 inTriangleVertex;
 layout (location = 2) in vec3 inTriangleEdge0;
 layout (location = 3) in vec3 inTriangleEdge1;
+layout (location = 4) in float level;
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outCSNormal;
@@ -25,8 +26,20 @@ void main()
 
 	int perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
-	float mixture = 0.3;
-	vec2 mixBarycentric = mix(inBarycentricCoord.xy, inBarycentricCoord.zw, mixture);
+	// FIXME: remove
+	float mixture = 0.0;
+
+	// Vector from morphing ending position to morphing start position
+	vec2 morphEnd2Start = inBarycentricCoord.zw - inBarycentricCoord.xy;
+
+	// Morphing start position depends on the sign(level), which is a reverse flag indicating whether morphing direction should be reversed.
+	// If the flag is negative, we reverse morphing direction
+	vec2 morphStart = inBarycentricCoord.xy + sign(level) * morphEnd2Start;
+
+	// Acquire mixed barycentric position by interpolate from morphing start position and end position
+	vec2 mixBarycentric = mix(inBarycentricCoord.xy, morphStart, mixture);
+
+	// Acquire actual position with berycentric coordinate
 	vec3 position = inTriangleVertex + inTriangleEdge0 * mixBarycentric.x + inTriangleEdge1 * mixBarycentric.y;
 
 

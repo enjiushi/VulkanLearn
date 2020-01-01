@@ -32,7 +32,7 @@ public:
 
 public:
 	static void GenerateCube(Vector3d vertices[], uint32_t indices[]);
-	static std::shared_ptr<Mesh> GenerateLODTriangleMesh(uint32_t level);
+	static std::shared_ptr<Mesh> GenerateLODTriangleMesh(uint32_t level, bool forQuadTriangle);	// Otherwise, it's for icosahedron triangle
 	static std::shared_ptr<Mesh> GenerateLODQuadMesh(uint32_t level);
 	static std::shared_ptr<Mesh> GenerateBoxMesh();
 	static std::shared_ptr<Mesh> GenerateQuadMesh();

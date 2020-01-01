@@ -22,7 +22,7 @@ layout (location = 3) out vec4 outMotionVec;
 // FIXME: Temp variables
 const float patchEdgeLength = 0.01f;
 const float triangleEdgeLength = 0.03f;
-const float divideCount = 2;
+const float divideCount = 8;
 const float renderEdge = 1.0f;
 
 void main() 

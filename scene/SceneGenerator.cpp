@@ -108,38 +108,56 @@ void SceneGenerator::GenerateCube(Vector3d vertices[], uint32_t indices[])
 	for (uint32_t i = 0; i < 8; i++)
 		vertices[i].Normalize();
 
+	// Bottom
 	indices[0] = 1;
 	indices[1] = 0;
 	indices[2] = 3;
-	indices[3] = 2;
-
+	indices[3] = 3;
 	indices[4] = 0;
-	indices[5] = 1;
+	indices[5] = 2;
+
+	// Top
 	indices[6] = 4;
 	indices[7] = 5;
-
-	indices[8] = 1;
-	indices[9] = 3;
+	indices[8] = 6;
+	indices[9] = 6;
 	indices[10] = 5;
 	indices[11] = 7;
 
-	indices[12] = 3;
-	indices[13] = 2;
-	indices[14] = 7;
-	indices[15] = 6;
+	// Front
+	indices[12] = 0;
+	indices[13] = 1;
+	indices[14] = 4;
+	indices[15] = 4;
+	indices[16] = 1;
+	indices[17] = 5;
 
-	indices[16] = 2;
-	indices[17] = 0;
-	indices[18] = 6;
-	indices[19] = 4;
+	// Back
+	indices[18] = 3;
+	indices[19] = 2;
+	indices[20] = 7;
+	indices[21] = 7;
+	indices[22] = 2;
+	indices[23] = 6;
 
-	indices[20] = 4;
-	indices[21] = 5;
-	indices[22] = 6;
-	indices[23] = 7;
+	// Left
+	indices[24] = 2;
+	indices[25] = 0;
+	indices[26] = 6;
+	indices[27] = 6;
+	indices[28] = 0;
+	indices[29] = 4;
+
+	// Right
+	indices[30] = 1;
+	indices[31] = 3;
+	indices[32] = 5;
+	indices[33] = 5;
+	indices[34] = 3;
+	indices[35] = 7;
 }
 
-std::shared_ptr<Mesh> SceneGenerator::GenerateLODTriangleMesh(uint32_t level)
+std::shared_ptr<Mesh> SceneGenerator::GenerateLODTriangleMesh(uint32_t level, bool forQuad)
 {
 	std::vector<Vector4f> vertices;
 	std::vector<uint32_t> indices;
@@ -184,44 +202,92 @@ std::shared_ptr<Mesh> SceneGenerator::GenerateLODTriangleMesh(uint32_t level)
 	}
 
 	// Add morph factors for each vertex
-	for (uint32_t row = 0; row < rowCount; row++)
-	{
-		currentRowStartIndex = row * (row + 1) / 2;
 
-		bool flag = (row % 2 != 0);
-		
-		if (flag)
+	if (!forQuad)
+	{
+		for (uint32_t row = 0; row < rowCount; row++)
 		{
-			for (uint32_t i = 0; i < row + 1; i++)
+			currentRowStartIndex = row * (row + 1) / 2;
+
+			bool flag = (row % 2 != 0);
+
+			if (flag)
 			{
-				if (i % 2 == 0)
+				for (uint32_t i = 0; i < row + 1; i++)
 				{
-					vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x + subdivideLength;
-					vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+					if (i % 2 == 0)
+					{
+						vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x + subdivideLength;
+						vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+					}
+					else
+					{
+						vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x;
+						vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y - subdivideLength;
+					}
 				}
-				else
+			}
+			else
+			{
+				for (uint32_t i = 0; i < row + 1; i++)
 				{
 					vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x;
-					vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y - subdivideLength;
+					vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+				}
+
+				uint32_t index = currentRowStartIndex;
+
+				for (uint32_t i = 0; i < row / 2; i++)
+				{
+					vertices[index + 1].z = vertices[index + 1].x - subdivideLength;
+					vertices[index + 1].w = vertices[index + 1].y + subdivideLength;
+
+					index += 2;
 				}
 			}
 		}
-		else
+	}
+	else
+	{
+		for (uint32_t row = 0; row < rowCount; row++)
 		{
-			for (uint32_t i = 0; i < row + 1; i++)
+			currentRowStartIndex = row * (row + 1) / 2;
+
+			bool flag = (row % 2 != 0);
+
+			if (flag)
 			{
-				vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x;
-				vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+				for (uint32_t i = 0; i < row + 1; i++)
+				{
+					if (i % 2 == 0)
+					{
+						vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x + subdivideLength;
+						vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+					}
+					else
+					{
+						vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x;
+						vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y + subdivideLength;
+					}
+				}
 			}
-
-			uint32_t index = currentRowStartIndex;
-
-			for (uint32_t i = 0; i < row / 2; i++)
+			else
 			{
-				vertices[index + 1].z = vertices[index + 1].x - subdivideLength;
-				vertices[index + 1].w = vertices[index + 1].y + subdivideLength;
+				for (uint32_t i = 0; i < row + 1; i++)
+				{
+					vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x;
+					vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+				}
 
-				index += 2;
+				uint32_t index = currentRowStartIndex;
+
+				for (uint32_t i = 0; i < row / 2; i++)
+				{
+					vertices[index + 1].z = vertices[index + 1].x - subdivideLength;
+					vertices[index + 1].w = vertices[index + 1].y + subdivideLength;
+
+					index += 2;
+				}
 			}
 		}
 	}

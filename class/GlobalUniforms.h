@@ -232,7 +232,7 @@ public:
 	bool		IcosahedronMorphingReverse[20];
 
 	Vector3d    CubeVertices[8];
-	uint32_t	CubeIndices[24];
+	uint32_t	CubeIndices[36];
 
 public:
 	void SetProjectionMatrix(const Matrix4d& proj);
