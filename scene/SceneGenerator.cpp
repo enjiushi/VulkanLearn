@@ -95,45 +95,48 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 
 void SceneGenerator::GenerateCube(Vector3d vertices[], uint32_t indices[])
 {
-	vertices[0] = { -1, -1, -1 };
-	vertices[1] = {  1, -1, -1 };
-	vertices[2] = { -1, -1,  1 };
-	vertices[3] = {  1, -1,  1 };
+	vertices[0] = { -1, -1,  1 };
+	vertices[1] = {  1, -1,  1 };
+	vertices[2] = { -1, -1, -1 };
+	vertices[3] = {  1, -1, -1 };
 
-	vertices[4] = { -1,  1, -1 };
-	vertices[5] = {  1,  1, -1 };
-	vertices[6] = { -1,  1,  1 };
-	vertices[7] = {  1,  1,  1 };
+	vertices[4] = { -1,  1,  1 };
+	vertices[5] = {  1,  1,  1 };
+	vertices[6] = { -1,  1, -1 };
+	vertices[7] = {  1,  1, -1 };
 
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 2;
-	indices[3] = 3;
+	for (uint32_t i = 0; i < 8; i++)
+		vertices[i].Normalize();
 
-	indices[4] = 4;
-	indices[5] = 5;
-	indices[6] = 0;
-	indices[7] = 1;
+	indices[0] = 1;
+	indices[1] = 0;
+	indices[2] = 3;
+	indices[3] = 2;
 
-	indices[8] = 5;
-	indices[9] = 6;
-	indices[10] = 1;
-	indices[11] = 3;
+	indices[4] = 0;
+	indices[5] = 1;
+	indices[6] = 4;
+	indices[7] = 5;
 
-	indices[12] = 7;
-	indices[13] = 6;
-	indices[14] = 3;
-	indices[15] = 2;
+	indices[8] = 1;
+	indices[9] = 3;
+	indices[10] = 5;
+	indices[11] = 7;
 
-	indices[16] = 6;
-	indices[17] = 4;
-	indices[18] = 2;
-	indices[19] = 0;
+	indices[12] = 3;
+	indices[13] = 2;
+	indices[14] = 7;
+	indices[15] = 6;
 
-	indices[20] = 5;
-	indices[21] = 4;
-	indices[22] = 7;
-	indices[23] = 6;
+	indices[16] = 2;
+	indices[17] = 0;
+	indices[18] = 6;
+	indices[19] = 4;
+
+	indices[20] = 4;
+	indices[21] = 5;
+	indices[22] = 6;
+	indices[23] = 7;
 }
 
 std::shared_ptr<Mesh> SceneGenerator::GenerateLODTriangleMesh(uint32_t level)
