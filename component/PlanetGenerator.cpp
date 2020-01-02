@@ -215,9 +215,11 @@ bool PlanetGenerator::BackFaceCull(const Vector3d& a, const Vector3d& b, const V
 		return false;
 
 	// Now we're done for checking trianlge 1, now start triangle 2
-	m_utilityVector4 = d;
+	m_utilityVector3 = d;
+	m_utilityVector4 = c;
+	m_utilityVector3 -= b;
 	m_utilityVector4 -= b;
-	m_utilityVector3 = m_utilityVector4 ^ m_utilityVector3;
+	m_utilityVector3 = m_utilityVector3 ^ m_utilityVector4;
 
 	m_utilityVector4 = d;
 	m_utilityVector4 -= m_lockedPlanetSpaceCameraPosition;
