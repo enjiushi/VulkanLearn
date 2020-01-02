@@ -40,7 +40,11 @@ protected:
 protected:
 	CullState FrustumCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, double height);
 	CullState FrustumCull(const Vector3d& p0, const Vector3d& p1, const Vector3d& p2, const Vector3d& p3, double height);
-	void SubDivideIcoTriangle(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, bool reversed, Triangle*& pOutputTriangles);
+	bool BackFaceCull(const Vector3d& a, const Vector3d& b, const Vector3d& c);
+	// Though we can do it with simply 2 triangle back face cullings, this function could potentially reduce some calculation
+	bool BackFaceCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d);
+	void SubDivideTriangle(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, bool reversed, Triangle*& pOutputTriangles);
+	void SubDivideQuad(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d, Triangle*& pOutputTriangles);
 
 public:
 	void Start() override;

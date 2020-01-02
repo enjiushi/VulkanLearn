@@ -131,7 +131,116 @@ PlanetGenerator::CullState PlanetGenerator::FrustumCull(const Vector3d& p0, cons
 	return state;
 }
 
-void PlanetGenerator::SubDivideIcoTriangle(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, bool reversed, Triangle*& pOutputTriangles)
+bool PlanetGenerator::BackFaceCull(const Vector3d& a, const Vector3d& b, const Vector3d& c)
+{
+	// Utility vector No.3 represents triangle normal
+	// Utility vector No.4 represents vector from camera to one triangle vertex
+	m_utilityVector3 = b;
+	m_utilityVector4 = b;
+	m_utilityVector3 -= c;
+	m_utilityVector4 -= a;
+	m_utilityVector3 = m_utilityVector3 ^ m_utilityVector4;
+
+	m_utilityVector4 = a;
+	m_utilityVector4 -= m_lockedPlanetSpaceCameraPosition;
+
+	// If camera is located at the negative side of this triangle(dot product greater than 0)
+	// Then more check will perform
+	// Otherwise(camera at positive side of this triangle), proceeding to subdivide step
+	// NOTE: No need to normalize, as what we want is the dot product sign only
+	if (m_utilityVector3 * m_utilityVector4 > 0.0)
+	{
+		// Utility vector 0, 1 and 2 are vectors from camera to them respectively
+		m_utilityVector0 = a;
+		m_utilityVector1 = b;
+		m_utilityVector2 = c;
+
+		m_utilityVector0 -= m_lockedPlanetSpaceCameraPosition;
+		m_utilityVector1 -= m_lockedPlanetSpaceCameraPosition;
+		m_utilityVector2 -= m_lockedPlanetSpaceCameraPosition;
+
+		// This checks if camera could observe the sphere surface within current triangle 
+		// NOTE: No need to normalize, as what we want is the dot product sign only
+		if (a * m_utilityVector0 > 0.0
+			&& b * m_utilityVector1 > 0.0
+			&& c * m_utilityVector2 > 0.0)
+			return true;
+	}
+
+	return false;
+}
+
+// Assume a quad is arranged like this
+// c--------d
+// | \      |
+// |   \    |
+// |     \  |
+// a--------b
+// trianlge 1: abc, triangle 2: cbd
+bool PlanetGenerator::BackFaceCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d)
+{
+	// Triangle 1 start
+	// Utility vector No.3 represents triangle normal
+	// Utility vector No.4 represents vector from camera to one triangle vertex
+	m_utilityVector3 = b;
+	m_utilityVector4 = b;
+	m_utilityVector3 -= c;
+	m_utilityVector4 -= a;
+	m_utilityVector3 = m_utilityVector3 ^ m_utilityVector4;
+
+	m_utilityVector4 = a;
+	m_utilityVector4 -= m_lockedPlanetSpaceCameraPosition;
+
+	// If camera is located at the negative side of this triangle(dot product greater than 0)
+	// Then more check will perform
+	// Otherwise(camera at positive side of this triangle), proceeding to subdivide step
+	// NOTE: No need to normalize, as what we want is the dot product sign only
+	if (m_utilityVector3 * m_utilityVector4 < 0.0)
+		return false;
+
+	// Utility vector 0, 1 and 2 are vectors from camera to them respectively
+	m_utilityVector0 = a;
+	m_utilityVector1 = b;
+	m_utilityVector2 = c;
+
+	m_utilityVector0 -= m_lockedPlanetSpaceCameraPosition;
+	m_utilityVector1 -= m_lockedPlanetSpaceCameraPosition;
+	m_utilityVector2 -= m_lockedPlanetSpaceCameraPosition;
+
+	// This checks if camera could observe the sphere surface within current triangle 
+	// NOTE: No need to normalize, as what we want is the dot product sign only
+	if (a * m_utilityVector0 < 0.0
+		|| b * m_utilityVector1 < 0.0
+		|| c * m_utilityVector2 < 0.0)
+		return false;
+
+	// Now we're done for checking trianlge 1, now start triangle 2
+	m_utilityVector3 *= -1.0;
+	m_utilityVector4 = b;
+	m_utilityVector4 -= d;
+	m_utilityVector3 = m_utilityVector3 ^ m_utilityVector4;
+
+	m_utilityVector4 = d;
+	m_utilityVector4 -= m_lockedPlanetSpaceCameraPosition;
+
+	if (m_utilityVector3 * m_utilityVector4 < 0.0)
+		return false;
+
+	// Only deal with 4th vertex
+	m_utilityVector0 = d;
+
+	m_utilityVector0 -= m_lockedPlanetSpaceCameraPosition;
+
+	// This checks if camera could observe the sphere surface within current triangle 
+	// NOTE: No need to normalize, as what we want is the dot product sign only
+	if (d * m_utilityVector0 < 0.0)
+		return false;
+
+	// Finally we're sure that nothing can be seen from this angle, we return true as a permission to cull this quad
+	return true;
+}
+
+void PlanetGenerator::SubDivideTriangle(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, bool reversed, Triangle*& pOutputTriangles)
 {
 	Vector3d newA = a;
 	Vector3d newB = b;
@@ -155,35 +264,8 @@ void PlanetGenerator::SubDivideIcoTriangle(uint32_t currentLevel, CullState stat
 		// This state will be passed on to the next sub divide level
 	}
 
-	// Utility vector No.3 represents triangle center
-	// Utility vector No.4 represents vector from camera to triangle center
-	m_utilityVector3 = newA;
-	m_utilityVector3 += newB;
-	m_utilityVector3 += newC;
-	m_utilityVector4 -= m_lockedPlanetSpaceCameraPosition;
-
-	// If camera is located at the negative side of this triangle(dot product greater than 0)
-	// Then more check will perform
-	// Otherwise(camera at positive side of this triangle), proceeding to subdivide step
-	// NOTE: No need to normalize, as what we want is the dot product sign only
-	if (m_utilityVector3 * m_utilityVector4 > 0.0)
-	{
-		// Utility vector 0, 1 and 2 are vectors from camera to them respectively
-		m_utilityVector0 = newA;
-		m_utilityVector1 = newB;
-		m_utilityVector2 = newC;
-
-		m_utilityVector0 -= m_lockedPlanetSpaceCameraPosition;
-		m_utilityVector1 -= m_lockedPlanetSpaceCameraPosition;
-		m_utilityVector2 -= m_lockedPlanetSpaceCameraPosition;
-
-		// This checks if camera could observe the sphere surface within current triangle 
-		// NOTE: No need to normalize, as what we want is the dot product sign only
-		if (a * m_utilityVector0 > 0.0
-			&& b * m_utilityVector1 > 0.0
-			&& c * m_utilityVector2 > 0.0)
-			return;
-	}
+	if (BackFaceCull(newA, newB, newC))
+		return;
 
 	Vector3d camera_relative_a = newA - m_lockedPlanetSpaceCameraPosition;
 	Vector3d camera_relative_b = newB - m_lockedPlanetSpaceCameraPosition;
@@ -236,10 +318,122 @@ void PlanetGenerator::SubDivideIcoTriangle(uint32_t currentLevel, CullState stat
 	B.Normalize();
 	C.Normalize();
 
-	SubDivideIcoTriangle(currentLevel + 1, state, a, C, B, reversed, pOutputTriangles);
-	SubDivideIcoTriangle(currentLevel + 1, state, C, b, A, reversed, pOutputTriangles);
-	SubDivideIcoTriangle(currentLevel + 1, state, B, A, c, reversed, pOutputTriangles);
-	SubDivideIcoTriangle(currentLevel + 1, state, A, B, C, reversed, pOutputTriangles);
+	SubDivideTriangle(currentLevel + 1, state, a, C, B, reversed, pOutputTriangles);
+	SubDivideTriangle(currentLevel + 1, state, C, b, A, reversed, pOutputTriangles);
+	SubDivideTriangle(currentLevel + 1, state, B, A, c, reversed, pOutputTriangles);
+	SubDivideTriangle(currentLevel + 1, state, A, B, C, reversed, pOutputTriangles);
+}
+
+void PlanetGenerator::SubDivideQuad(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d, Triangle*& pOutputTriangles)
+{
+	Vector3d realSizeA = a;
+	Vector3d realSizeB = b;
+	Vector3d realSizeC = c;
+	Vector3d realSizeD = d;
+
+	realSizeA.Normalize();
+	realSizeB.Normalize();
+	realSizeC.Normalize();
+	realSizeD.Normalize();
+
+	realSizeA *= m_planetRadius;
+	realSizeB *= m_planetRadius;
+	realSizeC *= m_planetRadius;
+	realSizeD *= m_planetRadius;
+
+	// Only perform frustum cull if state is CULL_DIVIDE, as it intersects the volumn
+	if (state == CullState::CULL_DIVIDE)
+	{
+		// Frustum cull
+		state = FrustumCull(realSizeA, realSizeB, realSizeC, realSizeD, m_heightLUT[currentLevel]);
+
+		// Early quit if triangle is totally outside of the volumn
+		if (state == CullState::CULL)
+			return;
+
+		// Whatever has left should be either CULL_DIVIDE or DIVIDE
+		// This state will be passed on to the next sub divide level
+	}
+
+	if (BackFaceCull(realSizeA, realSizeB, realSizeC, realSizeD))
+		return;
+
+	Vector3d camera_relative_a = realSizeA - m_lockedPlanetSpaceCameraPosition;
+	Vector3d camera_relative_b = realSizeB - m_lockedPlanetSpaceCameraPosition;
+	Vector3d camera_relative_c = realSizeC - m_lockedPlanetSpaceCameraPosition;
+	Vector3d camera_relative_d = realSizeD - m_lockedPlanetSpaceCameraPosition;
+
+	double distA = camera_relative_a.Length();
+	double distB = camera_relative_b.Length();
+	double distC = camera_relative_c.Length();
+	double distD = camera_relative_d.Length();
+
+	double minDist = std::fmin(std::fmin(std::fmin(distA, distB), distC), distD);
+
+	if (m_distanceLUT[currentLevel] * m_planetRadius <= minDist || currentLevel == m_maxLODLevel)
+	{
+		if (!m_toggleCameraInfoUpdate)
+		{
+			camera_relative_a = realSizeA - m_planetSpaceCameraPosition;
+			camera_relative_b = realSizeB - m_planetSpaceCameraPosition;
+			camera_relative_c = realSizeC - m_planetSpaceCameraPosition;
+			camera_relative_d = realSizeD - m_planetSpaceCameraPosition;
+		}
+
+		// Triangle abc
+		pOutputTriangles->p = camera_relative_a.SinglePrecision();
+		pOutputTriangles->edge0 = camera_relative_b.SinglePrecision();
+		pOutputTriangles->edge1 = camera_relative_c.SinglePrecision();
+
+		pOutputTriangles->edge0 -= pOutputTriangles->p;
+		pOutputTriangles->edge1 -= pOutputTriangles->p;
+
+		// Level + 1 to avoid zero
+		pOutputTriangles->level = (float)currentLevel + 1.0f;
+
+		pOutputTriangles++;
+
+		// Triangle cbd
+		pOutputTriangles->p = camera_relative_d.SinglePrecision();
+		pOutputTriangles->edge0 = camera_relative_c.SinglePrecision();
+		pOutputTriangles->edge1 = camera_relative_b.SinglePrecision();
+
+		pOutputTriangles->edge0 -= pOutputTriangles->p;
+		pOutputTriangles->edge1 -= pOutputTriangles->p;
+
+		// Minus gives a sign whether to reverse morphing in vertex shader
+		pOutputTriangles->level = pOutputTriangles->level * -1.0f;
+
+		pOutputTriangles++;
+
+		return;
+	}
+
+	Vector3d ab = a;
+	Vector3d ac = a;
+	Vector3d bd = b;
+	Vector3d cd = c;
+
+	ab += b;
+	ab *= 0.5f;
+
+	ac += c;
+	ac *= 0.5f;
+
+	bd += d;
+	bd *= 0.5f;
+
+	cd += d;
+	cd *= 0.5f;
+
+	Vector3d center = ab;
+	center += cd;
+	center *= 0.5f;
+
+	SubDivideQuad(currentLevel + 1, state, a, ab, ac, center, pOutputTriangles);
+	SubDivideQuad(currentLevel + 1, state, ab, b, center, bd, pOutputTriangles);
+	SubDivideQuad(currentLevel + 1, state, ac, center, c, cd, pOutputTriangles);
+	SubDivideQuad(currentLevel + 1, state, center, bd, cd, d, pOutputTriangles);
 }
 
 void PlanetGenerator::OnPreRender()
@@ -268,18 +462,11 @@ void PlanetGenerator::OnPreRender()
 
 	for (uint32_t i = 0; i < 6; i++)
 	{
-		SubDivideIcoTriangle(0, CullState::CULL_DIVIDE, 
-			m_pVertices[m_pIndices[i * 6 + 0]],
-			m_pVertices[m_pIndices[i * 6 + 1]],
-			m_pVertices[m_pIndices[i * 6 + 2]],
-			false,
-			pTriangles);
-
-		SubDivideIcoTriangle(0, CullState::CULL_DIVIDE,
-			m_pVertices[m_pIndices[i * 6 + 3]],
-			m_pVertices[m_pIndices[i * 6 + 4]],
-			m_pVertices[m_pIndices[i * 6 + 5]],
-			true,
+		SubDivideQuad(0, CullState::CULL_DIVIDE,
+			m_pVertices[m_pIndices[i * 6 + 0]],	// a
+			m_pVertices[m_pIndices[i * 6 + 1]],	// b
+			m_pVertices[m_pIndices[i * 6 + 2]],	// c
+			m_pVertices[m_pIndices[i * 6 + 5]],	// d
 			pTriangles);
 	}
 	uint32_t updatedSize = (uint32_t)((uint8_t*)pTriangles - startPtr);
