@@ -3,18 +3,19 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (location = 0) in vec3 inBarycentricCoord;
+layout (location = 0) in vec4 inBarycentricCoord;
 
-layout (location = 1) in vec3 inTriangleVertexA;
-layout (location = 2) in vec3 inTriangleVertexB;
-layout (location = 3) in vec3 inTriangleVertexC;
+layout (location = 1) in vec3 inTriangleVertex;
+layout (location = 2) in vec3 inTriangleEdge0;
+layout (location = 3) in vec3 inTriangleEdge1;
+layout (location = 4) in float level;
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outCSNormal;
 layout (location = 2) out vec3 outCSPosition;
 layout (location = 3) noperspective out vec2 outScreenPosition;
 layout (location = 4) out vec3 outPrevCSPosition;
-layout (location = 5) out vec4 outDistToEdge;
+layout (location = 5) out vec4 outBarycentricCoord;
 
 #include "uniform_layout.sh"
 #include "utilities.sh"
@@ -25,26 +26,23 @@ void main()
 
 	int perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
+	// FIXME: remove
+	float mixture = 0.0;
 
-	vec3 position = inTriangleVertexA * inBarycentricCoord.x + inTriangleVertexB * inBarycentricCoord.y + inTriangleVertexC * inBarycentricCoord.z;
+	// Vector from morphing ending position to morphing start position
+	vec2 morphEnd2Start = inBarycentricCoord.zw - inBarycentricCoord.xy;
 
-	int vertexID = gl_VertexIndex % 3;
-	if (vertexID == 0)
-	{
-		outDistToEdge.xyz = vec3(0, 0, 1);
-	}
-	else if (vertexID == 1)
-	{
-		outDistToEdge.xyz = vec3(1, 0, 0);
-	}
-	else
-	{
-		outDistToEdge.xyz = vec3(0, 1, 0);
-	}
+	// Morphing start position depends on the sign(level), which is a reverse flag indicating whether morphing direction should be reversed.
+	// If the flag is negative, we reverse morphing direction
+	vec2 morphStart = inBarycentricCoord.xy + sign(level) * morphEnd2Start;
 
-	// w represents the edge of the patch rather than sub triangles
-	outDistToEdge.w = min(min(inBarycentricCoord.x, inBarycentricCoord.y), inBarycentricCoord.z);
-	outDistToEdge.w = 1.0f - step(0.01, outDistToEdge.w);
+	// Acquire mixed barycentric position by interpolate from morphing start position and end position
+	vec2 mixBarycentric = mix(inBarycentricCoord.xy, morphStart, mixture);
+
+	// Acquire actual position with berycentric coordinate
+	vec3 position = inTriangleVertex + inTriangleEdge0 * mixBarycentric.x + inTriangleEdge1 * mixBarycentric.y;
+
+
 
 	vec3 planetPosition = position + perFrameData.wsCameraPosition.xyz;
 
@@ -52,7 +50,7 @@ void main()
 
 	float distToCamera = length(position);
 	// FIXME: Remove this when I have a per-planet uniform containing planet related data including planet radius
-	float radius = length(inTriangleVertexA + perFrameData.wsCameraPosition.xyz);
+	float radius = length(inTriangleVertex + perFrameData.wsCameraPosition.xyz);
 
 	// Add a bias to adjust the factor
 	float factor = distToCamera / (radius * globalData.PlanetRenderingSettings.x);
@@ -69,4 +67,6 @@ void main()
 	outCSPosition = mat3(perObjectData[perObjectIndex].MV) * position;
 	outPrevCSPosition = mat3(perObjectData[perObjectIndex].prevMV) * (position + perFrameData.wsCameraDeltaPosition.xyz);
 	outScreenPosition = gl_Position.xy / gl_Position.w;
+	outBarycentricCoord.xy = inBarycentricCoord.xy;
+	outBarycentricCoord.zw = mixBarycentric.xy;
 }

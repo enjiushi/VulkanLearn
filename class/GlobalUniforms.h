@@ -14,6 +14,7 @@ class Mesh;
 class SkeletonAnimationInstance;
 
 const static uint32_t SSAO_SAMPLE_COUNT = 64;
+const static uint32_t PLANET_LOD_MAX_LEVEL = 32;
 
 template<typename T>
 class GlobalVariables
@@ -207,11 +208,14 @@ public:
 	* DESCRIPTION: Planet Rendering Settings
 	*
 	* X: The ratio in planet radius that transition between rendering raw vertices to normalized spherical vertices
-	* Y: Reserved
-	* Z: Reserved
+	* Y: Planet triangle screen size
+	* Z: Planet max lod level
 	* W: Reserved
 	*/
 	Vector4<T>	PlanetRenderingSettings;
+
+	// Planet LOD level distance look up table
+	T			PlanetLODDistanceLUT[PLANET_LOD_MAX_LEVEL];
 
 	// SSAO settings
 	Vector4<T>	SSAOSamples[SSAO_SAMPLE_COUNT];
@@ -222,6 +226,14 @@ typedef GlobalVariables<double> GlobalVariablesd;
 
 class GlobalUniforms : public UniformDataStorage
 {
+public:
+	Vector3d	IcosahedronVertices[12];
+	uint32_t	IcosahedronIndices[60];
+	bool		IcosahedronMorphingReverse[20];
+
+	Vector3d    CubeVertices[8];
+	uint32_t	CubeIndices[36];
+
 public:
 	void SetProjectionMatrix(const Matrix4d& proj);
 	Matrix4d GetProjectionMatrix() const { return m_globalVariables.projectionMatrix; }
@@ -370,6 +382,12 @@ public:
 
 	void SetPlanetSphericalTransitionRatio(double ratio);
 	double GetPlanetSphericalTransitionRatio() const { return m_globalVariables.PlanetRenderingSettings.x; }
+	void SetPlanetTriangleScreenSize(double size);
+	double GetPlanetTriangleScreenSize() const { return m_globalVariables.PlanetRenderingSettings.y; }
+	void SetMaxPlanetLODLevel(double maxLevel);
+	double GetMaxPlanetLODLevel() const { return m_globalVariables.PlanetRenderingSettings.z; }
+
+	double GetLODDistance(uint32_t level) const { return m_globalVariables.PlanetLODDistanceLUT[level]; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);
@@ -385,6 +403,9 @@ protected:
 	uint32_t AcquireDataSize() const override { return sizeof(GlobalVariables<float>); }
 
 	void InitSSAORandomSample();
+	void InitIcosahedron();
+	void InitIcosahedrronReverseFlags(uint32_t triangleIndex, bool initedFlags[]);
+	void InitPlanetLODDistanceLUT();
 
 protected:
 	GlobalVariablesd	m_globalVariables;

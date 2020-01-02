@@ -12,9 +12,6 @@ class PlanetGenerator : public BaseComponent
 {
 	DECLARE_CLASS_RTTI(PlanetGenerator);
 
-	static const uint32_t MAX_LEVEL = 32;
-	static const uint32_t TRIANGLE_SCREEN_SIZE = 400;
-
 	enum class CullState
 	{
 		CULL,			// If a triangle is fully out of a volumn
@@ -22,27 +19,32 @@ class PlanetGenerator : public BaseComponent
 		DIVIDE			// If a triangle is fully inside a volumn
 	};
 
-	typedef struct _IcoTriangle
+	typedef struct _Triangle
 	{
-		// A triangle consists of 3 vertices, a, b and c
-		Vector3f	a;
-		Vector3f	b;
-		Vector3f	c;
-	}IcoTriangle;
+		// A triangle consists of a vertex, and 2 edge vectors: edge0 and edge1
+		Vector3f	p;
+		Vector3f	edge0;
+		Vector3f	edge1;
+		float		level;	// the sign of this variable gives morphing direction
+	}Triangle;
 
 public:
-	static std::shared_ptr<PlanetGenerator> Create(const std::shared_ptr<PhysicalCamera>& pCamera);
+	static std::shared_ptr<PlanetGenerator> Create(const std::shared_ptr<PhysicalCamera>& pCamera, float planetRadius);
 
 public:
 	double GetPlanetRadius() const { return m_planetRadius; }
-	void SetPlanetRadius(double radius) { m_planetRadius = radius; }
 
 protected:
-	bool Init(const std::shared_ptr<PlanetGenerator>& pSelf, const std::shared_ptr<PhysicalCamera>& pCamera);
+	bool Init(const std::shared_ptr<PlanetGenerator>& pSelf, const std::shared_ptr<PhysicalCamera>& pCamera, float planetRadius);
 
 protected:
 	CullState FrustumCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, double height);
-	void SubDivide(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, IcoTriangle*& pOutputTriangles);
+	CullState FrustumCull(const Vector3d& p0, const Vector3d& p1, const Vector3d& p2, const Vector3d& p3, double height);
+	bool BackFaceCull(const Vector3d& a, const Vector3d& b, const Vector3d& c);
+	// Though we can do it with simply 2 triangle back face cullings, this function could potentially reduce some calculation
+	bool BackFaceCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d);
+	void SubDivideTriangle(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, bool reversed, Triangle*& pOutputTriangles);
+	void SubDivideQuad(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d, Triangle*& pOutputTriangles);
 
 public:
 	void Start() override;
@@ -54,11 +56,14 @@ public:
 private:
 	double			m_planetRadius = 1;
 
-	Vector3d		m_icosahedronVertices[20];
-	uint32_t		m_icosahedronIndices[20 * 3];
-
-	std::vector<double>				m_distanceLUT;
+	// Make a copy here to avoid frequent uniform reading
 	std::vector<double>				m_heightLUT;
+	std::vector<double>				m_distanceLUT;
+	uint32_t						m_maxLODLevel;
+	Vector3d*						m_pVertices;
+	uint32_t*						m_pIndices;
+	bool*							m_pMorphReverse;
+
 	std::shared_ptr<MeshRenderer>	m_pMeshRenderer;
 	std::shared_ptr<PhysicalCamera>	m_pCamera;
 
@@ -66,6 +71,9 @@ private:
 	Matrix4d		m_utilityTransfrom;
 	Vector3d		m_utilityVector0;
 	Vector3d		m_utilityVector1;
+	Vector3d		m_utilityVector2;
+	Vector3d		m_utilityVector3;
+	Vector3d		m_utilityVector4;
 
 	// Camera infor in planet local space
 	PyramidFrustumd	m_cameraFrustumLocal;

@@ -359,7 +359,9 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	m_pTriangleMesh = SceneGenerator::GenerateTriangleMesh(3);
+	m_pTriangleMesh = SceneGenerator::GenerateLODTriangleMesh(3, true);
+
+	m_pLODQuadMesh = SceneGenerator::GenerateLODQuadMesh(1);
 
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
@@ -713,7 +715,7 @@ void VulkanGlobal::InitScene()
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
 
-	m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp);
+	m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp, 4);
 
 	AssimpSceneReader::SceneInfo sceneInfo;
 
@@ -792,7 +794,6 @@ void VulkanGlobal::InitScene()
 	m_pPlanetRenderer = MeshRenderer::Create(m_pTriangleMesh, m_pPlanetMaterialInstance);
 
 	m_pPlanetObject = BaseObject::Create();
-	m_pPlanetGenerator->SetPlanetRadius(32);
 	m_pPlanetObject->AddComponent(m_pPlanetGenerator);
 	m_pPlanetObject->AddComponent(m_pPlanetRenderer);
 
@@ -862,6 +863,8 @@ void VulkanGlobal::InitScene()
 	// Render normalized spherical planet at the height of 0.001 * planet radius
 	// For earth it should be higher than 6km
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetSphericalTransitionRatio(0.001);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetTriangleScreenSize(400);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxPlanetLODLevel(32);
 }
 
 class VariableChanger : public IInputListener

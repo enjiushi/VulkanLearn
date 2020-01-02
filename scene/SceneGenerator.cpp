@@ -93,72 +93,260 @@ void SceneGenerator::GenerateBRDFLUTGenScene()
 	StagingBufferMgr()->FlushDataMainThread();
 }
 
-// FIXME: This logic will generate one more triangle in vertices
-void SceneGenerator::GenerateTriangles(uint32_t level, const VertexIndex& a, const VertexIndex& b, const VertexIndex& c, std::vector<Vector3f>& vertices, std::vector<uint32_t>& indices)
+void SceneGenerator::GenerateCube(Vector3d vertices[], uint32_t indices[])
 {
-	// Start to construct indices at bottom level
-	if (level == 0)
-	{
-		indices.push_back(a.second);
-		indices.push_back(b.second);
-		indices.push_back(c.second);
-		return;
-	}
+	vertices[0] = { -1, -1,  1 };
+	vertices[1] = {  1, -1,  1 };
+	vertices[2] = { -1, -1, -1 };
+	vertices[3] = {  1, -1, -1 };
 
-	// New vertices for this level
-	VertexIndex A, B, C;
+	vertices[4] = { -1,  1,  1 };
+	vertices[5] = {  1,  1,  1 };
+	vertices[6] = { -1,  1, -1 };
+	vertices[7] = {  1,  1, -1 };
 
-	// Acquire vertices for this level
-	SubDivideTriangle(a.first, b.first, c.first, A.first, B.first, C.first);
+	for (uint32_t i = 0; i < 8; i++)
+		vertices[i].Normalize();
 
-	// I need to make a note on this
+	// Bottom
+	indices[0] = 1;
+	indices[1] = 0;
+	indices[2] = 3;
+	indices[3] = 3;
+	indices[4] = 0;
+	indices[5] = 2;
 
-	uint32_t startOffset = (uint32_t)vertices.size();
+	// Top
+	indices[6] = 4;
+	indices[7] = 5;
+	indices[8] = 6;
+	indices[9] = 6;
+	indices[10] = 5;
+	indices[11] = 7;
 
-	// Add 3 new vertices
-	vertices.push_back({});
-	vertices.push_back({});
-	vertices.push_back({});
+	// Front
+	indices[12] = 0;
+	indices[13] = 1;
+	indices[14] = 4;
+	indices[15] = 4;
+	indices[16] = 1;
+	indices[17] = 5;
 
-	// Increase indices accordingly
-	uint32_t modA = a.second % 3;
-	uint32_t modB = b.second % 3;
-	uint32_t modC = c.second % 3;
+	// Back
+	indices[18] = 3;
+	indices[19] = 2;
+	indices[20] = 7;
+	indices[21] = 7;
+	indices[22] = 2;
+	indices[23] = 6;
 
-	A.second = startOffset + modA;
-	B.second = startOffset + modB;
-	C.second = startOffset + modC;
+	// Left
+	indices[24] = 2;
+	indices[25] = 0;
+	indices[26] = 6;
+	indices[27] = 6;
+	indices[28] = 0;
+	indices[29] = 4;
 
-	vertices[A.second] = A.first;
-	vertices[B.second] = B.first;
-	vertices[C.second] = C.first;
-
-	// Recursively generate next level
-	GenerateTriangles(level - 1, a, C, B, vertices, indices);
-	GenerateTriangles(level - 1, C, b, A, vertices, indices);
-	GenerateTriangles(level - 1, B, A, c, vertices, indices);
-	GenerateTriangles(level - 1, A, B, C, vertices, indices);
+	// Right
+	indices[30] = 1;
+	indices[31] = 3;
+	indices[32] = 5;
+	indices[33] = 5;
+	indices[34] = 3;
+	indices[35] = 7;
 }
 
-std::shared_ptr<Mesh> SceneGenerator::GenerateTriangleMesh(uint32_t level)
+std::shared_ptr<Mesh> SceneGenerator::GenerateLODTriangleMesh(uint32_t level, bool forQuad)
 {
-	std::vector<Vector3f> vertices;
+	std::vector<Vector4f> vertices;
 	std::vector<uint32_t> indices;
 
-	// Triangle with barycentric coordinate
-	vertices.push_back({ 1, 0, 0 });
-	vertices.push_back({ 0, 1, 0 });
-	vertices.push_back({ 0, 0, 1 });
+	uint32_t rowCount = (uint32_t)std::pow(2, level) + 1;
+	float subdivideLength = 1 / (float)(rowCount - 1);
+	uint32_t lastRowstartIndex = 0;
+	uint32_t currentRowStartIndex = 0;
+	for (uint32_t row = 0; row < rowCount; row++)
+	{
+		if (row == 0)
+		{
+			vertices.push_back({ 0, 0, 0, 0 });
+			lastRowstartIndex = 0;
+			currentRowStartIndex = 1;
+			continue;
+		}
 
-	GenerateTriangles(level, { {1, 0, 0}, 0 }, { {0, 1, 0}, 1 }, { {0, 0, 1}, 2 }, vertices, indices);
+		double ratioStep = (1.0 / (double)row);
+		for (uint32_t index = 0; index < (row + 1); index++)
+		{
+			double edgeLength = row * subdivideLength;
+			vertices.push_back({ (float)(edgeLength * (1.0 - index * ratioStep)), (float)(edgeLength * (index * ratioStep)), 0, 0 });
+		}
+
+		for (uint32_t evenIndex = 0; evenIndex < row; evenIndex++)
+		{
+			indices.push_back(lastRowstartIndex + evenIndex);
+			indices.push_back(currentRowStartIndex + evenIndex);
+			indices.push_back(currentRowStartIndex + evenIndex + 1);
+		}
+
+		for (uint32_t oddIndex = 0; oddIndex < row - 1; oddIndex++)
+		{
+			indices.push_back(currentRowStartIndex + 1 + oddIndex);
+			indices.push_back(lastRowstartIndex + oddIndex + 1);
+			indices.push_back(lastRowstartIndex + oddIndex);
+		}
+
+		lastRowstartIndex = currentRowStartIndex;
+		currentRowStartIndex = (uint32_t)vertices.size();
+	}
+
+	// Add morph factors for each vertex
+
+	if (!forQuad)
+	{
+		for (uint32_t row = 0; row < rowCount; row++)
+		{
+			currentRowStartIndex = row * (row + 1) / 2;
+
+			bool flag = (row % 2 != 0);
+
+			if (flag)
+			{
+				for (uint32_t i = 0; i < row + 1; i++)
+				{
+					if (i % 2 == 0)
+					{
+						vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x + subdivideLength;
+						vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+					}
+					else
+					{
+						vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x;
+						vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y - subdivideLength;
+					}
+				}
+			}
+			else
+			{
+				for (uint32_t i = 0; i < row + 1; i++)
+				{
+					vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x;
+					vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+				}
+
+				uint32_t index = currentRowStartIndex;
+
+				for (uint32_t i = 0; i < row / 2; i++)
+				{
+					vertices[index + 1].z = vertices[index + 1].x - subdivideLength;
+					vertices[index + 1].w = vertices[index + 1].y + subdivideLength;
+
+					index += 2;
+				}
+			}
+		}
+	}
+	else
+	{
+		for (uint32_t row = 0; row < rowCount; row++)
+		{
+			currentRowStartIndex = row * (row + 1) / 2;
+
+			bool flag = (row % 2 != 0);
+
+			if (flag)
+			{
+				for (uint32_t i = 0; i < row + 1; i++)
+				{
+					if (i % 2 == 0)
+					{
+						vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x + subdivideLength;
+						vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+					}
+					else
+					{
+						vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x;
+						vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y + subdivideLength;
+					}
+				}
+			}
+			else
+			{
+				for (uint32_t i = 0; i < row + 1; i++)
+				{
+					vertices[currentRowStartIndex + i].z = vertices[currentRowStartIndex + i].x;
+					vertices[currentRowStartIndex + i].w = vertices[currentRowStartIndex + i].y;
+				}
+
+				uint32_t index = currentRowStartIndex;
+
+				for (uint32_t i = 0; i < row / 2; i++)
+				{
+					vertices[index + 1].z = vertices[index + 1].x - subdivideLength;
+					vertices[index + 1].w = vertices[index + 1].y + subdivideLength;
+
+					index += 2;
+				}
+			}
+		}
+	}
 
 	std::shared_ptr<Mesh> pTriangleMesh = Mesh::Create
 	(
-		vertices.data(), (uint32_t)vertices.size(), VertexFormatP,
+		vertices.data(), (uint32_t)vertices.size(), 1 << VAFColor,
 		indices.data(), (uint32_t)indices.size(), VK_INDEX_TYPE_UINT32
 	);
 
 	return pTriangleMesh;
+}
+
+std::shared_ptr<Mesh> SceneGenerator::GenerateLODQuadMesh(uint32_t level)
+{
+	std::vector<Vector4f> vertices;
+	std::vector<uint32_t> indices;
+
+	uint32_t divideCount = (uint32_t)std::pow(2, level);
+	float subdivideLength = 1 / (float)divideCount;
+
+	Vector2f morphStartPosition;
+	Vector2f morphEndPosition;
+
+	for (uint32_t row = 0; row < divideCount + 1; row++)
+	{
+		for (uint32_t column = 0; column < divideCount + 1; column++)
+		{
+			morphEndPosition = { subdivideLength * column, subdivideLength * row };
+			morphStartPosition = morphEndPosition;
+
+			if (row % 2 != 0)
+				morphStartPosition.y += subdivideLength;
+			if (column % 2 != 0)
+				morphStartPosition.x += subdivideLength;
+
+			vertices.push_back({ morphEndPosition.x, morphEndPosition.y, morphStartPosition.x, morphStartPosition.y });
+		}
+	}
+
+	for (uint32_t row = 0; row < divideCount; row++)
+	{
+		for (uint32_t column = 0; column < divideCount; column++)
+		{
+			indices.push_back((row + 1) * (divideCount + 1) + column);
+			indices.push_back((row + 1 )* (divideCount + 1) + column + 1);
+			indices.push_back(row * (divideCount + 1) + column);
+
+			indices.push_back(row * (divideCount + 1) + column);
+			indices.push_back((row + 1)* (divideCount + 1) + column + 1);
+			indices.push_back(row* (divideCount + 1) + column + 1);
+		}
+	}
+
+	return Mesh::Create
+	(
+		vertices.data(), (uint32_t)vertices.size(), 1 << VAFColor,
+		indices.data(), (uint32_t)indices.size(), VK_INDEX_TYPE_UINT32
+	);
 }
 
 std::shared_ptr<Mesh> SceneGenerator::GenerateBoxMesh()
