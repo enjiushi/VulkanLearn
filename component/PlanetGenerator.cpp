@@ -182,10 +182,10 @@ bool PlanetGenerator::BackFaceCull(const Vector3d& a, const Vector3d& b, const V
 	// Triangle 1 start
 	// Utility vector No.3 represents triangle normal
 	// Utility vector No.4 represents vector from camera to one triangle vertex
-	m_utilityVector3 = b;
-	m_utilityVector4 = b;
-	m_utilityVector3 -= c;
-	m_utilityVector4 -= a;
+	m_utilityVector3 = c;
+	m_utilityVector4 = a;
+	m_utilityVector3 -= b;
+	m_utilityVector4 -= b;
 	m_utilityVector3 = m_utilityVector3 ^ m_utilityVector4;
 
 	m_utilityVector4 = a;
@@ -215,10 +215,9 @@ bool PlanetGenerator::BackFaceCull(const Vector3d& a, const Vector3d& b, const V
 		return false;
 
 	// Now we're done for checking trianlge 1, now start triangle 2
-	m_utilityVector3 *= -1.0;
-	m_utilityVector4 = b;
-	m_utilityVector4 -= d;
-	m_utilityVector3 = m_utilityVector3 ^ m_utilityVector4;
+	m_utilityVector4 = d;
+	m_utilityVector4 -= b;
+	m_utilityVector3 = m_utilityVector4 ^ m_utilityVector3;
 
 	m_utilityVector4 = d;
 	m_utilityVector4 -= m_lockedPlanetSpaceCameraPosition;
