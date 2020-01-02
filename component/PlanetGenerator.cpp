@@ -135,10 +135,10 @@ bool PlanetGenerator::BackFaceCull(const Vector3d& a, const Vector3d& b, const V
 {
 	// Utility vector No.3 represents triangle normal
 	// Utility vector No.4 represents vector from camera to one triangle vertex
-	m_utilityVector3 = b;
-	m_utilityVector4 = b;
-	m_utilityVector3 -= c;
-	m_utilityVector4 -= a;
+	m_utilityVector3 = c;
+	m_utilityVector4 = a;
+	m_utilityVector3 -= b;
+	m_utilityVector4 -= b;
 	m_utilityVector3 = m_utilityVector3 ^ m_utilityVector4;
 
 	m_utilityVector4 = a;
