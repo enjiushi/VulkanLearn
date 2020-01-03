@@ -214,11 +214,11 @@ public:
 	*/
 	Vector4<T>	PlanetRenderingSettings;
 
-	// Planet LOD level distance look up table
-	T			PlanetLODDistanceLUT[PLANET_LOD_MAX_LEVEL];
-
 	// SSAO settings
 	Vector4<T>	SSAOSamples[SSAO_SAMPLE_COUNT];
+
+	// Planet LOD level distance look up table
+	T			PlanetLODDistanceLUT[PLANET_LOD_MAX_LEVEL];
 };
 
 typedef GlobalVariables<float> GlobalVariablesf;
