@@ -686,14 +686,14 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 					"Planet settings"
 				},
 				{
-					Vec4Unit,
-					"SSAO Samples",
-					SSAO_SAMPLE_COUNT
-				},
-				{
 					OneUnit,
 					"Planet LOD distance look up table",
 					PLANET_LOD_MAX_LEVEL
+				},
+				{
+					Vec4Unit,
+					"SSAO Samples",
+					SSAO_SAMPLE_COUNT
 				}
 			}
 		}

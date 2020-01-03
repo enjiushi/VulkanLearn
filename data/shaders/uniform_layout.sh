@@ -1,8 +1,6 @@
 #if !defined(SHADER_UNIFORM_LAYOUT)
 #define SHADER_UNIFORM_LAYOUT
 
-#extension GL_EXT_scalar_block_layout :enable
-
 struct GlobalData
 {
 	// Camera Settings
@@ -41,8 +39,8 @@ struct GlobalData
 	vec4 VignetteSettings;
 	vec4 SSAOSettings;
 	vec4 PlanetRenderingSettings;
-	vec4 SSAOSamples[64];
 	float PlanetLODDistanceLUT[32];
+	vec4 SSAOSamples[64];
 };
 
 struct BoneData
@@ -112,32 +110,32 @@ struct ObjectDataIndex
 	int perAnimationIndex;
 };
 
-layout(std430, set = 0, binding = 0) uniform GlobalUniforms
+layout(set = 0, binding = 0) uniform GlobalUniforms
 {
 	GlobalData		globalData;
 };
 
-layout(std430, set = 0, binding = 1) buffer PerBoneUniforms
+layout(set = 0, binding = 1) buffer PerBoneUniforms
 {
 	BoneData		boneData[];
 };
 
-layout(std430, set = 0, binding = 2) buffer BoneIndirectUniforms
+layout(set = 0, binding = 2) buffer BoneIndirectUniforms
 {
 	uint	boneChunkIndirect[];
 };
 
-layout(std430, set = 0, binding = 3) buffer PerFrameBoneIndirectUniforms
+layout(set = 0, binding = 3) buffer PerFrameBoneIndirectUniforms
 {
 	uint	perFrameBoneChunkIndirect[];
 };
 
-layout(std430, set = 0, binding = 4) buffer PerMeshUniforms
+layout(set = 0, binding = 4) buffer PerMeshUniforms
 {
 	MeshData		meshData[];
 };
 
-layout(std430, set = 0, binding = 5) buffer PerAnimationUniforms
+layout(set = 0, binding = 5) buffer PerAnimationUniforms
 {
 	AnimationData	animationData[];
 };
@@ -151,27 +149,27 @@ layout(set = 0, binding = 11) uniform samplerCube RGBA16_512_CUBE_PREFILTERENV;
 layout(set = 0, binding = 12) uniform sampler2D RGBA16_512_2D_BRDFLUT;
 layout(set = 0, binding = 13) uniform sampler2D SSAO_RANDOM_ROTATIONS;
 
-layout(std430, set = 1, binding = 0) uniform PerFrameUniforms
+layout(set = 1, binding = 0) uniform PerFrameUniforms
 {
 	PerFrameData perFrameData;
 };
 
-layout(std430, set = 1, binding = 1) buffer PerFrameBoneUniforms
+layout(set = 1, binding = 1) buffer PerFrameBoneUniforms
 {
 	PerFrameBoneData perFrameBoneData[];
 };
 
-layout(std430, set = 2, binding = 0) buffer PerObjectUniforms
+layout(set = 2, binding = 0) buffer PerObjectUniforms
 {
 	PerObjectData perObjectData[];
 };
 
-layout(std430, set = 3, binding = 1) buffer PerMaterialIndirectUniformOffset
+layout(set = 3, binding = 1) buffer PerMaterialIndirectUniformOffset
 {
 	IndirectOffset indirectOffsets[];
 };
 
-layout(std430, set = 3, binding = 2) buffer PerMaterialIndirectUniforms
+layout(set = 3, binding = 2) buffer PerMaterialIndirectUniforms
 {
 	ObjectDataIndex objectDataIndex[];
 };
