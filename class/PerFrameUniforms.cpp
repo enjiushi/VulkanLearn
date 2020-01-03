@@ -122,6 +122,13 @@ void PerFrameUniforms::SetPadding0(double val)
 	SetDirty();
 }
 
+void PerFrameUniforms::SetPadding1(double val)
+{
+	m_perFrameVariables.padding1 = val;
+	SetDirty();
+}
+
+
 void PerFrameUniforms::UpdateUniformDataInternal()
 {
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, viewMatrix);

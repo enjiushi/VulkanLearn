@@ -74,6 +74,8 @@ public:
 	double GetPingpongIndex() const { return m_perFrameVariables.pingpongIndex; }
 	void SetPadding0(double val);
 	double GetPadding0() const { return m_perFrameVariables.padding0; }
+	void SetPadding1(double val);
+	double GetPadding1() const { return m_perFrameVariables.padding1; }
 
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
