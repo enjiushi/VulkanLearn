@@ -382,9 +382,9 @@ void PlanetGenerator::SubDivideQuad(uint32_t currentLevel, CullState state, cons
 		}
 
 		// Triangle abc
-		pOutputTriangles->p = camera_relative_a.SinglePrecision();
-		pOutputTriangles->edge0 = camera_relative_b.SinglePrecision();
-		pOutputTriangles->edge1 = camera_relative_c.SinglePrecision();
+		pOutputTriangles->p = camera_relative_c.SinglePrecision();
+		pOutputTriangles->edge0 = camera_relative_a.SinglePrecision();
+		pOutputTriangles->edge1 = camera_relative_b.SinglePrecision();
 
 		pOutputTriangles->edge0 -= pOutputTriangles->p;
 		pOutputTriangles->edge1 -= pOutputTriangles->p;
@@ -395,15 +395,15 @@ void PlanetGenerator::SubDivideQuad(uint32_t currentLevel, CullState state, cons
 		pOutputTriangles++;
 
 		// Triangle cbd
-		pOutputTriangles->p = camera_relative_d.SinglePrecision();
-		pOutputTriangles->edge0 = camera_relative_c.SinglePrecision();
-		pOutputTriangles->edge1 = camera_relative_b.SinglePrecision();
+		pOutputTriangles->p = camera_relative_b.SinglePrecision();
+		pOutputTriangles->edge0 = camera_relative_d.SinglePrecision();
+		pOutputTriangles->edge1 = camera_relative_c.SinglePrecision();
 
 		pOutputTriangles->edge0 -= pOutputTriangles->p;
 		pOutputTriangles->edge1 -= pOutputTriangles->p;
 
 		// Minus gives a sign whether to reverse morphing in vertex shader
-		pOutputTriangles->level = pOutputTriangles->level * -1.0f;
+		pOutputTriangles->level = ((float)currentLevel + 1.0f) * -1.0f;
 
 		pOutputTriangles++;
 
