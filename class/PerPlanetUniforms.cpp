@@ -17,8 +17,8 @@ bool PerPlanetUniforms::Init(const std::shared_ptr<PerPlanetUniforms>& pSelf)
 std::shared_ptr<PerPlanetUniforms> PerPlanetUniforms::Create()
 {
 	std::shared_ptr<PerPlanetUniforms> pPerPlanetUniforms = std::make_shared<PerPlanetUniforms>();
-	if (pPerObjectUniforms.get() && pPerObjectUniforms->Init(pPerObjectUniforms))
-		return pPerObjectUniforms;
+	if (pPerPlanetUniforms.get() && pPerPlanetUniforms->Init(pPerPlanetUniforms))
+		return pPerPlanetUniforms;
 	return nullptr;
 }
 
