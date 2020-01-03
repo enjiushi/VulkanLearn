@@ -7,6 +7,7 @@
 #include "../scene/SceneGenerator.h"
 #include "../class/UniformData.h"
 #include "PhysicalCamera.h"
+#include "../class/PerPlanetUniforms.h"
 
 DEFINITE_CLASS_RTTI(PlanetGenerator, BaseComponent);
 
@@ -54,6 +55,9 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 		b = B;
 	}
 
+	m_chunkIndex = UniformData::GetInstance()->GetPerPerPlanetUniforms()->AllocatePerObjectChunk();
+	UniformData::GetInstance()->GetPerPerPlanetUniforms()->SetPlanetRadius(m_chunkIndex, m_planetRadius);
+
 	return true;
 }
 
@@ -65,7 +69,7 @@ void PlanetGenerator::Start()
 
 	// Make a copy here
 	for (uint32_t i = 0; i < m_maxLODLevel; i++)
-		m_distanceLUT.push_back(UniformData::GetInstance()->GetGlobalUniforms()->GetLODDistance(i));
+		m_distanceLUT.push_back(UniformData::GetInstance()->GetPerPerPlanetUniforms()->GetLODDistance(m_chunkIndex, i));
 
 	m_pVertices = UniformData::GetInstance()->GetGlobalUniforms()->CubeVertices;
 	m_pIndices = UniformData::GetInstance()->GetGlobalUniforms()->CubeIndices;
@@ -371,7 +375,7 @@ void PlanetGenerator::SubDivideQuad(uint32_t currentLevel, CullState state, cons
 
 	double minDist = std::fmin(std::fmin(std::fmin(distA, distB), distC), distD);
 
-	if (m_distanceLUT[currentLevel] * m_planetRadius <= minDist || currentLevel == m_maxLODLevel)
+	if (m_distanceLUT[currentLevel] <= minDist || currentLevel == m_maxLODLevel)
 	{
 		if (!m_toggleCameraInfoUpdate)
 		{

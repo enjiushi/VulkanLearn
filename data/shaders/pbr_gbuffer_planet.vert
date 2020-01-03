@@ -42,7 +42,7 @@ void main()
 
 	if (level > 0)
 	{
-		float morphRange = 0.025f;
+		float morphRange = 0.25f;
 		float distance = length(inTriangleVertex + inTriangleEdge0 * inBarycentricCoord.x + inTriangleEdge1 * inBarycentricCoord.y);
 		float currLevelDistance = globalData.PlanetLODDistanceLUT[level];
 		float prevLevelDistance = globalData.PlanetLODDistanceLUT[level - 1];
@@ -56,7 +56,6 @@ void main()
 	outSomething.x = morphFactor;
 
 	// Acquire mixed barycentric position by interpolate from morphing start position and end position
-	//vec2 mixBarycentric = mix(inBarycentricCoord.xy, morphStart, perFrameData.reservedPadding1);
 	vec2 mixBarycentric = mix(inBarycentricCoord.xy, morphStart, morphFactor);
 
 	// Acquire actual position with berycentric coordinate

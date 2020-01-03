@@ -55,6 +55,12 @@ struct MeshData
 	uint boneChunkIndexOffset;
 };
 
+struct PlanetData
+{
+	vec4	planetDescriptor0;
+	float	PlanetLODDistanceLUT[32];
+};
+
 struct AnimationData
 {
 	uint boneChunkIndexOffset;
@@ -137,19 +143,24 @@ layout(std430, set = 0, binding = 4) buffer PerMeshUniforms
 	MeshData		meshData[];
 };
 
-layout(std430, set = 0, binding = 5) buffer PerAnimationUniforms
+layout(std430, set = 0, binding = 5) buffer PerPlanetUniforms
+{
+	PlanetData		planetData[];
+};
+
+layout(std430, set = 0, binding = 6) buffer PerAnimationUniforms
 {
 	AnimationData	animationData[];
 };
 
-layout(set = 0, binding = 6) uniform sampler2DArray RGBA8_1024_MIP_2DARRAY;
-layout(set = 0, binding = 7) uniform sampler2DArray R8_1024_MIP_2DARRAY;
-layout(set = 0, binding = 8) uniform sampler2DArray RGBA16_SCREEN_SIZE_MIP_2DARRAY;
-layout(set = 0, binding = 9) uniform samplerCube RGBA16_1024_MIP_CUBE_SKYBOX;
-layout(set = 0, binding = 10) uniform samplerCube RGBA16_512_CUBE_IRRADIANCE;
-layout(set = 0, binding = 11) uniform samplerCube RGBA16_512_CUBE_PREFILTERENV;
-layout(set = 0, binding = 12) uniform sampler2D RGBA16_512_2D_BRDFLUT;
-layout(set = 0, binding = 13) uniform sampler2D SSAO_RANDOM_ROTATIONS;
+layout(set = 0, binding = 7) uniform sampler2DArray RGBA8_1024_MIP_2DARRAY;
+layout(set = 0, binding = 8) uniform sampler2DArray R8_1024_MIP_2DARRAY;
+layout(set = 0, binding = 9) uniform sampler2DArray RGBA16_SCREEN_SIZE_MIP_2DARRAY;
+layout(set = 0, binding = 10) uniform samplerCube RGBA16_1024_MIP_CUBE_SKYBOX;
+layout(set = 0, binding = 11) uniform samplerCube RGBA16_512_CUBE_IRRADIANCE;
+layout(set = 0, binding = 12) uniform samplerCube RGBA16_512_CUBE_PREFILTERENV;
+layout(set = 0, binding = 13) uniform sampler2D RGBA16_512_2D_BRDFLUT;
+layout(set = 0, binding = 14) uniform sampler2D SSAO_RANDOM_ROTATIONS;
 
 layout(std430, set = 1, binding = 0) uniform PerFrameUniforms
 {

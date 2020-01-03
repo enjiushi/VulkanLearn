@@ -26,6 +26,7 @@ bool UniformData::Init()
 		case UniformStorageType::PerBoneIndirectBuffer:		m_uniformStorageBuffers[i] = BoneIndirectUniform::Create(PerBoneBuffer); break;
 		case UniformStorageType::PerFrameBoneIndirectBuffer:m_uniformStorageBuffers[i] = BoneIndirectUniform::Create(PerFrameBoneBuffer); break;
 		case UniformStorageType::PerMeshUniformBuffer:		m_uniformStorageBuffers[i] = PerMeshUniforms::Create(); break;
+		case UniformStorageType::PerPlanetBuffer:			m_uniformStorageBuffers[i] = PerPlanetUniforms::Create(); break;
 		case UniformStorageType::PerAnimationUniformBuffer:	m_uniformStorageBuffers[i] = PerAnimationUniforms::Create(); break;
 		case UniformStorageType::PerFrameBoneBuffer:		m_uniformStorageBuffers[i] = PerBoneUniforms::Create(); break;
 		case UniformStorageType::PerFrameVariableBuffer:	m_uniformStorageBuffers[i] = PerFrameUniforms::Create(); break;
@@ -96,6 +97,9 @@ void UniformData::BuildDescriptorSets()
 
 	std::vector<UniformVarList> perMeshVars = m_uniformStorageBuffers[UniformStorageType::PerMeshUniformBuffer]->PrepareUniformVarList();
 	globalUniformVars.insert(globalUniformVars.end(), perMeshVars.begin(), perMeshVars.end());
+
+	std::vector<UniformVarList> perPlanetVars = m_uniformStorageBuffers[UniformStorageType::PerPlanetBuffer]->PrepareUniformVarList();
+	globalUniformVars.insert(globalUniformVars.end(), perPlanetVars.begin(), perPlanetVars.end());
 
 	std::vector<UniformVarList> perAnimationVars = m_uniformStorageBuffers[UniformStorageType::PerAnimationUniformBuffer]->PrepareUniformVarList();
 	globalUniformVars.insert(globalUniformVars.end(), perAnimationVars.begin(), perAnimationVars.end());
@@ -224,6 +228,7 @@ void UniformData::BuildDescriptorSets()
 	bindingSlot = m_uniformStorageBuffers[PerBoneIndirectBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 	bindingSlot = m_uniformStorageBuffers[PerFrameBoneIndirectBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 	bindingSlot = m_uniformStorageBuffers[PerMeshUniformBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
+	bindingSlot = m_uniformStorageBuffers[PerPlanetBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 	bindingSlot = m_uniformStorageBuffers[PerAnimationUniformBuffer]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 	bindingSlot = m_uniformTextures[GlobalUniformTextures]->SetupDescriptorSet(m_descriptorSets[GlobalUniformsLocation], bindingSlot);
 

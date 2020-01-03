@@ -38,6 +38,7 @@ public:
 	double GetPlanetRadius(uint32_t index) const { return m_perPlanetVariables[index].PlanetDescriptor0.x; }
 	void SetPlanetTriangleSubdivideLevel(uint32_t index, uint32_t level);
 	double SetPlanetTriangleSubdivideLevel(uint32_t index) const { return m_perPlanetVariables[index].PlanetDescriptor0.y; }
+	double GetLODDistance(uint32_t index, uint32_t level) const { return m_perPlanetVariables[index].PlanetLODDistanceLUT[level]; }
 
 public:
 	std::vector<UniformVarList> PrepareUniformVarList() const override;

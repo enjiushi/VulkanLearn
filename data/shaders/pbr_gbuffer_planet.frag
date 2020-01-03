@@ -41,7 +41,7 @@ void main()
 	float trianlgeEdge = min(min(edge0, edge1), edge2);
 	trianlgeEdge = step(1.0f - triangleEdgeLength, 1.0f - trianlgeEdge) * renderEdge;
 
-	vec4 albedoRoughness = vec4(mix(vec3(1), vec3(1, 0, 0), patchEdge), 0.2f);
+	vec4 albedoRoughness = vec4(mix(vec3(1), vec3(1, 0, 0), 0), 0.2f);
 	metalic = mix(metalic, 0, trianlgeEdge);
 	albedoRoughness.w = mix(albedoRoughness.w, 1, trianlgeEdge);
 
