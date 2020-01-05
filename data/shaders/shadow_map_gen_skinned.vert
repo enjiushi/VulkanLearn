@@ -17,7 +17,7 @@ void main()
 
 	int perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
-	int perAnimationChunkIndex = objectDataIndex[indirectIndex].perAnimationIndex;
+	int perAnimationChunkIndex = objectDataIndex[indirectIndex].utilityIndex;
 
 	vec4 bone_weights = inBoneWeight;
 

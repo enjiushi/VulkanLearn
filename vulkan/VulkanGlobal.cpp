@@ -830,7 +830,8 @@ void VulkanGlobal::InitScene()
 	m_pSophiaMesh = sceneInfo.meshLinks[0].first;
 
 	std::shared_ptr<AnimationController> pAnimationController = m_pSophiaObject->GetComponent<AnimationController>();
-	m_pSophiaRenderer = MeshRenderer::Create(m_pSophiaMesh, { m_pSophiaMaterialInstance, m_pSkinnedShadowMapMaterialInstance }, pAnimationController);
+	m_pSophiaRenderer = MeshRenderer::Create(m_pSophiaMesh, { m_pSophiaMaterialInstance, m_pSkinnedShadowMapMaterialInstance });
+	pAnimationController->SetMeshRenderer(m_pSophiaRenderer);
 	sceneInfo.meshLinks[0].second->AddComponent(m_pSophiaRenderer);
 	m_pSophiaRenderer->SetName(L"hehe");
 	m_pSophiaObject->SetScale(0.005f);

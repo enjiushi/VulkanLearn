@@ -115,7 +115,7 @@ struct ObjectDataIndex
 	int perObjectIndex;
 	int perMaterialIndex;
 	int perMeshIndex;
-	int perAnimationIndex;
+	int utilityIndex;	// Could be used to indirect to material specific data, like bone, or planet
 };
 
 layout(std430, set = 0, binding = 0) uniform GlobalUniforms

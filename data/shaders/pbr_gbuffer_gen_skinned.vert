@@ -30,7 +30,7 @@ void main()
 
 	perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
-	int perAnimationChunkIndex = objectDataIndex[indirectIndex].perAnimationIndex;
+	int perAnimationChunkIndex = objectDataIndex[indirectIndex].utilityIndex;
 
 	vec4 bone_weights = inBoneWeight;
 	uvec4 boneIndices = uvec4(perFrameBoneChunkIndirect[animationData[perAnimationChunkIndex].boneChunkIndexOffset + (inBoneIndices >> 0) & 255],
