@@ -545,25 +545,52 @@ void GlobalUniforms::SetSSAOCurveFactor(double factor)
 
 void GlobalUniforms::SetPlanetSphericalTransitionRatio(double ratio)
 {
-	m_globalVariables.PlanetRenderingSettings.x = ratio;
-	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.x);
+	m_globalVariables.PlanetRenderingSettings0.x = ratio;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings0.x);
 	SetDirty();
 }
 
 void GlobalUniforms::SetPlanetTriangleScreenSize(double size)
 {
-	m_globalVariables.PlanetRenderingSettings.y = size;
-	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.y);
+	m_globalVariables.PlanetRenderingSettings0.y = size;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings0.y);
 	SetDirty();
 }
 
 void GlobalUniforms::SetMaxPlanetLODLevel(double maxLevel)
 {
-	m_globalVariables.PlanetRenderingSettings.z = maxLevel;
-	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.z);
+	m_globalVariables.PlanetRenderingSettings0.z = maxLevel;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings0.z);
 	SetDirty();
 }
 
+void GlobalUniforms::SetPatchSubdivideCount(double subdivideCount)
+{
+	m_globalVariables.PlanetRenderingSettings0.w = subdivideCount;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings0.w);
+	SetDirty();
+}
+
+void GlobalUniforms::SetEdgeRenderFactor(double factor)
+{
+	m_globalVariables.PlanetRenderingSettings1.x = factor;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings1.x);
+	SetDirty();
+}
+
+void GlobalUniforms::SetPatchEdgeWidth(double width)
+{
+	m_globalVariables.PlanetRenderingSettings1.y = width;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings1.y);
+	SetDirty();
+}
+
+void GlobalUniforms::SetTriangleEdgeWidth(double width)
+{
+	m_globalVariables.PlanetRenderingSettings1.z = width;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings1.z);
+	SetDirty();
+}
 
 
 
@@ -681,7 +708,11 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				},
 				{
 					Vec4Unit,
-					"Planet settings"
+					"Planet settings0"
+				},
+				{
+					Vec4Unit,
+					"Planet settings1"
 				},
 				{
 					Vec4Unit,

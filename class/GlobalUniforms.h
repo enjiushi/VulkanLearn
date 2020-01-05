@@ -205,14 +205,24 @@ public:
 	Vector4<T>	SSAOSettings;
 
 	/*******************************************************************
-	* DESCRIPTION: Planet Rendering Settings
+	* DESCRIPTION: Planet Rendering Settings0
 	*
 	* X: The ratio in planet radius that transition between rendering raw vertices to normalized spherical vertices
 	* Y: Planet triangle screen size
 	* Z: Planet max lod level
+	* W: Planet patch subdivide level
+	*/
+	Vector4<T>	PlanetRenderingSettings0;
+
+	/*******************************************************************
+	* DESCRIPTION: Planet Rendering Settings0
+	*
+	* X: Whether to draw triangle edge
+	* Y: Patch edge width
+	* Z: Triangle edge width
 	* W: Reserved
 	*/
-	Vector4<T>	PlanetRenderingSettings;
+	Vector4<T>	PlanetRenderingSettings1;
 
 	// SSAO settings
 	Vector4<T>	SSAOSamples[SSAO_SAMPLE_COUNT];
@@ -378,11 +388,20 @@ public:
 	double GetSSAOCurveFactor() const { return m_globalVariables.SSAOSettings.w; }
 
 	void SetPlanetSphericalTransitionRatio(double ratio);
-	double GetPlanetSphericalTransitionRatio() const { return m_globalVariables.PlanetRenderingSettings.x; }
+	double GetPlanetSphericalTransitionRatio() const { return m_globalVariables.PlanetRenderingSettings0.x; }
 	void SetPlanetTriangleScreenSize(double size);
-	double GetPlanetTriangleScreenSize() const { return m_globalVariables.PlanetRenderingSettings.y; }
+	double GetPlanetTriangleScreenSize() const { return m_globalVariables.PlanetRenderingSettings0.y; }
 	void SetMaxPlanetLODLevel(double maxLevel);
-	double GetMaxPlanetLODLevel() const { return m_globalVariables.PlanetRenderingSettings.z; }
+	double GetMaxPlanetLODLevel() const { return m_globalVariables.PlanetRenderingSettings0.z; }
+	void SetPatchSubdivideCount(double subdivideCount);
+	double GetPatchSubdivideCount() const { return m_globalVariables.PlanetRenderingSettings0.w; }
+
+	void SetEdgeRenderFactor(double factor);
+	double GetEdgeRenderFactor() const { return m_globalVariables.PlanetRenderingSettings1.x; }
+	void SetPatchEdgeWidth(double width);
+	double GetPatchEdgeWidth() const { return m_globalVariables.PlanetRenderingSettings1.y; }
+	void SetTriangleEdgeWidth(double width);
+	double GetTriangleEdgeWidth() const { return m_globalVariables.PlanetRenderingSettings1.z; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

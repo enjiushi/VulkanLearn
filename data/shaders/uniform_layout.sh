@@ -40,7 +40,8 @@ struct GlobalData
 	vec4 MotionBlurSettings;
 	vec4 VignetteSettings;
 	vec4 SSAOSettings;
-	vec4 PlanetRenderingSettings;
+	vec4 PlanetRenderingSettings0;
+	vec4 PlanetRenderingSettings1;
 	vec4 SSAOSamples[64];
 };
 

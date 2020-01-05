@@ -19,12 +19,6 @@ layout (location = 3) out vec4 outMotionVec;
 #include "global_parameters.sh"
 #include "utilities.sh"
 
-// FIXME: Temp variables
-const float patchEdgeLength = 0.01f;
-const float triangleEdgeLength = 0.03f;
-const float divideCount = 8;
-const float renderEdge = 1.0f;
-
 void main() 
 {
 	float metalic = 0.9f;
@@ -33,15 +27,15 @@ void main()
 	normalAO.xyz = normalize(inCSNormal);
 
 	float patchEdge = min(min(inBarycentricCoord.z, inBarycentricCoord.w), 1.0f - inBarycentricCoord.z - inBarycentricCoord.w);
-	patchEdge = step(1.0f - patchEdgeLength, 1.0f - patchEdge) * renderEdge;
+	patchEdge = step(1.0f - globalData.PlanetRenderingSettings1.y, 1.0f - patchEdge) * globalData.PlanetRenderingSettings1.x;
 
-	float edge0 = inBarycentricCoord.x * divideCount - floor(inBarycentricCoord.x * divideCount);
-	float edge1 = inBarycentricCoord.y * divideCount - floor(inBarycentricCoord.y * divideCount);
-	float edge2 = ceil((inBarycentricCoord.x + inBarycentricCoord.y) * divideCount) - (inBarycentricCoord.x + inBarycentricCoord.y) * divideCount;
+	float edge0 = inBarycentricCoord.x * globalData.PlanetRenderingSettings0.w - floor(inBarycentricCoord.x * globalData.PlanetRenderingSettings0.w );
+	float edge1 = inBarycentricCoord.y * globalData.PlanetRenderingSettings0.w  - floor(inBarycentricCoord.y * globalData.PlanetRenderingSettings0.w );
+	float edge2 = ceil((inBarycentricCoord.x + inBarycentricCoord.y) * globalData.PlanetRenderingSettings0.w ) - (inBarycentricCoord.x + inBarycentricCoord.y) * globalData.PlanetRenderingSettings0.w ;
 	float trianlgeEdge = min(min(edge0, edge1), edge2);
-	trianlgeEdge = step(1.0f - triangleEdgeLength, 1.0f - trianlgeEdge) * renderEdge;
+	trianlgeEdge = step(1.0f - globalData.PlanetRenderingSettings1.z, 1.0f - trianlgeEdge) * globalData.PlanetRenderingSettings1.x;
 
-	vec4 albedoRoughness = vec4(mix(vec3(1), vec3(1, 0, 0), 0), 0.2f);
+	vec4 albedoRoughness = vec4(mix(vec3(1), vec3(1, 0, 0), patchEdge), 0.2f);
 	metalic = mix(metalic, 0, trianlgeEdge);
 	albedoRoughness.w = mix(albedoRoughness.w, 1, trianlgeEdge);
 

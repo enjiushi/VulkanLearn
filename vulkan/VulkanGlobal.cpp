@@ -359,9 +359,9 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	m_pTriangleMesh = SceneGenerator::GenerateLODTriangleMesh(3, true);
+	m_LODPatchLevel = 3;
 
-	m_pLODQuadMesh = SceneGenerator::GenerateLODQuadMesh(1);
+	m_pLODTriangleMesh = SceneGenerator::GenerateLODTriangleMesh(m_LODPatchLevel, true);
 
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
@@ -719,6 +719,11 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetSphericalTransitionRatio(0.001);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetTriangleScreenSize(400);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxPlanetLODLevel(32);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPatchSubdivideCount(std::pow(2, m_LODPatchLevel));
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetEdgeRenderFactor(1);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPatchEdgeWidth(0.01);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetTriangleEdgeWidth(0.03);
 
 	PhysicalCamera::PhysicalCameraProps props =
 	{
@@ -840,7 +845,7 @@ void VulkanGlobal::InitScene()
 	//AddBoneBox(m_pSophiaObject);
 	sceneInfo.meshLinks.clear();
 
-	m_pPlanetRenderer = MeshRenderer::Create(m_pTriangleMesh, m_pPlanetMaterialInstance);
+	m_pPlanetRenderer = MeshRenderer::Create(m_pLODTriangleMesh, m_pPlanetMaterialInstance);
 
 	m_pPlanetObject = BaseObject::Create();
 	m_pPlanetObject->AddComponent(m_pPlanetGenerator);

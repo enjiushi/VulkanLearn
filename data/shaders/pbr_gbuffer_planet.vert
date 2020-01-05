@@ -27,9 +27,6 @@ void main()
 
 	int perObjectIndex = objectDataIndex[indirectIndex].perObjectIndex;
 
-	// FIXME: remove
-	float mixture = 0.0;
-
 	// Vector from morphing ending position to morphing start position
 	vec2 morphEnd2Start = inBarycentricCoord.zw - inBarycentricCoord.xy;
 
@@ -72,7 +69,7 @@ void main()
 	float radius = length(inTriangleVertex + perFrameData.wsCameraPosition.xyz);
 
 	// Add a bias to adjust the factor
-	float factor = distToCamera / (radius * globalData.PlanetRenderingSettings.x);
+	float factor = distToCamera / (radius * globalData.PlanetRenderingSettings0.x);
 
 	// Clamp between 0 and 1
 	factor = clamp(factor, 0, 1);
