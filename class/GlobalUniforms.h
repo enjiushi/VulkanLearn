@@ -205,17 +205,24 @@ public:
 	Vector4<T>	SSAOSettings;
 
 	/*******************************************************************
-	* DESCRIPTION: Planet Rendering Settings
+	* DESCRIPTION: Planet Rendering Settings0
 	*
 	* X: The ratio in planet radius that transition between rendering raw vertices to normalized spherical vertices
 	* Y: Planet triangle screen size
 	* Z: Planet max lod level
-	* W: Reserved
+	* W: Planet patch subdivide level
 	*/
-	Vector4<T>	PlanetRenderingSettings;
+	Vector4<T>	PlanetRenderingSettings0;
 
-	// Planet LOD level distance look up table
-	T			PlanetLODDistanceLUT[PLANET_LOD_MAX_LEVEL];
+	/*******************************************************************
+	* DESCRIPTION: Planet Rendering Settings0
+	*
+	* X: Whether to draw triangle edge
+	* Y: Patch edge width
+	* Z: Triangle edge width
+	* W: Morphing range
+	*/
+	Vector4<T>	PlanetRenderingSettings1;
 
 	// SSAO settings
 	Vector4<T>	SSAOSamples[SSAO_SAMPLE_COUNT];
@@ -381,13 +388,22 @@ public:
 	double GetSSAOCurveFactor() const { return m_globalVariables.SSAOSettings.w; }
 
 	void SetPlanetSphericalTransitionRatio(double ratio);
-	double GetPlanetSphericalTransitionRatio() const { return m_globalVariables.PlanetRenderingSettings.x; }
+	double GetPlanetSphericalTransitionRatio() const { return m_globalVariables.PlanetRenderingSettings0.x; }
 	void SetPlanetTriangleScreenSize(double size);
-	double GetPlanetTriangleScreenSize() const { return m_globalVariables.PlanetRenderingSettings.y; }
+	double GetPlanetTriangleScreenSize() const { return m_globalVariables.PlanetRenderingSettings0.y; }
 	void SetMaxPlanetLODLevel(double maxLevel);
-	double GetMaxPlanetLODLevel() const { return m_globalVariables.PlanetRenderingSettings.z; }
+	double GetMaxPlanetLODLevel() const { return m_globalVariables.PlanetRenderingSettings0.z; }
+	void SetPlanetPatchSubdivideCount(double subdivideCount);
+	double GetPlanetPatchSubdivideCount() const { return m_globalVariables.PlanetRenderingSettings0.w; }
 
-	double GetLODDistance(uint32_t level) const { return m_globalVariables.PlanetLODDistanceLUT[level]; }
+	void SetPlanetEdgeRenderFactor(double factor);
+	double GetPlanetEdgeRenderFactor() const { return m_globalVariables.PlanetRenderingSettings1.x; }
+	void SetPlanetPatchEdgeWidth(double width);
+	double GetPlanetPatchEdgeWidth() const { return m_globalVariables.PlanetRenderingSettings1.y; }
+	void SetPlanetTriangleEdgeWidth(double width);
+	double GetPlanetTriangleEdgeWidth() const { return m_globalVariables.PlanetRenderingSettings1.z; }
+	void SetPlanetMorphingRange(double range);
+	double SetPlanetMorphingRange() const { return m_globalVariables.PlanetRenderingSettings1.w; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);
@@ -405,7 +421,6 @@ protected:
 	void InitSSAORandomSample();
 	void InitIcosahedron();
 	void InitIcosahedrronReverseFlags(uint32_t triangleIndex, bool initedFlags[]);
-	void InitPlanetLODDistanceLUT();
 
 protected:
 	GlobalVariablesd	m_globalVariables;

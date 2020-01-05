@@ -46,7 +46,7 @@ public:
 		return m_pMaterial->GetParameter<T>(m_materialBufferChunkIndex, paramName);
 	}
 
-	void InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, uint32_t instanceCount, uint32_t startInstance);
+	void InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMeshIndex, uint32_t utilityIndex, uint32_t instanceCount, uint32_t startInstance);
 
 protected:
 	bool Init(const std::shared_ptr<MaterialInstance>& pMaterialInstance);

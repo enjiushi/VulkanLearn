@@ -85,4 +85,6 @@ private:
 	// You can investigate culling result around by setting it to false
 	bool			m_toggleCameraInfoUpdate = true;
 
+	uint32_t		m_chunkIndex;
+
 };

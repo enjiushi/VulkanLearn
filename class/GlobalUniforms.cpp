@@ -545,27 +545,59 @@ void GlobalUniforms::SetSSAOCurveFactor(double factor)
 
 void GlobalUniforms::SetPlanetSphericalTransitionRatio(double ratio)
 {
-	m_globalVariables.PlanetRenderingSettings.x = ratio;
-	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.x);
+	m_globalVariables.PlanetRenderingSettings0.x = ratio;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings0.x);
 	SetDirty();
 }
 
 void GlobalUniforms::SetPlanetTriangleScreenSize(double size)
 {
-	m_globalVariables.PlanetRenderingSettings.y = size;
-	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.y);
-	InitPlanetLODDistanceLUT();
+	m_globalVariables.PlanetRenderingSettings0.y = size;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings0.y);
 	SetDirty();
 }
 
 void GlobalUniforms::SetMaxPlanetLODLevel(double maxLevel)
 {
-	m_globalVariables.PlanetRenderingSettings.z = maxLevel;
-	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.z);
-	InitPlanetLODDistanceLUT();
+	m_globalVariables.PlanetRenderingSettings0.z = maxLevel;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings0.z);
 	SetDirty();
 }
 
+void GlobalUniforms::SetPlanetPatchSubdivideCount(double subdivideCount)
+{
+	m_globalVariables.PlanetRenderingSettings0.w = subdivideCount;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings0.w);
+	SetDirty();
+}
+
+void GlobalUniforms::SetPlanetEdgeRenderFactor(double factor)
+{
+	m_globalVariables.PlanetRenderingSettings1.x = factor;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings1.x);
+	SetDirty();
+}
+
+void GlobalUniforms::SetPlanetPatchEdgeWidth(double width)
+{
+	m_globalVariables.PlanetRenderingSettings1.y = width;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings1.y);
+	SetDirty();
+}
+
+void GlobalUniforms::SetPlanetTriangleEdgeWidth(double width)
+{
+	m_globalVariables.PlanetRenderingSettings1.z = width;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings1.z);
+	SetDirty();
+}
+
+void GlobalUniforms::SetPlanetMorphingRange(double range)
+{
+	m_globalVariables.PlanetRenderingSettings1.w = range;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings1.w);
+	SetDirty();
+}
 
 
 
@@ -683,12 +715,11 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				},
 				{
 					Vec4Unit,
-					"Planet settings"
+					"Planet settings0"
 				},
 				{
-					OneUnit,
-					"Planet LOD distance look up table",
-					PLANET_LOD_MAX_LEVEL
+					Vec4Unit,
+					"Planet settings1"
 				},
 				{
 					Vec4Unit,
@@ -821,18 +852,6 @@ void GlobalUniforms::InitIcosahedrronReverseFlags(uint32_t triangleIndex, bool i
 			InitIcosahedrronReverseFlags(i, initedFlags);
 		}
 		
-	}
-}
-
-void GlobalUniforms::InitPlanetLODDistanceLUT()
-{
-	double size = (IcosahedronVertices[IcosahedronIndices[0]] - IcosahedronVertices[IcosahedronIndices[1]]).Length();
-	double frac = std::tan(m_globalVariables.mainCameraSettings2.y * m_globalVariables.PlanetRenderingSettings.y / m_globalVariables.gameWindowSize.x);
-	for (uint32_t i = 0; i < m_globalVariables.PlanetRenderingSettings.z + 1; i++)
-	{
-		m_globalVariables.PlanetLODDistanceLUT[i] = size / frac;
-		CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetLODDistanceLUT[i]);
-		size *= 0.5;
 	}
 }
 

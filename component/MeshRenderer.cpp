@@ -23,23 +23,21 @@
 #include "../vulkan/Framebuffer.h"
 #include "../class/UniformData.h"
 #include "../class/Material.h"
-#include "AnimationController.h"
-#include "../class/SkeletonAnimationInstance.h"
 
 DEFINITE_CLASS_RTTI(MeshRenderer, BaseComponent);
 
-std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance, const std::shared_ptr<AnimationController>& pAnimationController)
+std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::shared_ptr<MaterialInstance>& pMaterialInstance)
 {
 	std::shared_ptr<MeshRenderer> pMeshRenderer = std::make_shared<MeshRenderer>();
-	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, pMesh, { pMaterialInstance }, pAnimationController))
+	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, pMesh, { pMaterialInstance }))
 		return pMeshRenderer;
 	return nullptr;
 }
 
-std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances, const std::shared_ptr<AnimationController>& pAnimationController)
+std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances)
 {
 	std::shared_ptr<MeshRenderer> pMeshRenderer = std::make_shared<MeshRenderer>();
-	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, pMesh, materialInstances, pAnimationController))
+	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, pMesh, materialInstances))
 		return pMeshRenderer;
 	return nullptr;
 }
@@ -47,7 +45,7 @@ std::shared_ptr<MeshRenderer> MeshRenderer::Create(const std::shared_ptr<Mesh> p
 std::shared_ptr<MeshRenderer> MeshRenderer::Create()
 {
 	std::shared_ptr<MeshRenderer> pMeshRenderer = std::make_shared<MeshRenderer>();
-	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, nullptr, {}, nullptr))
+	if (pMeshRenderer.get() && pMeshRenderer->Init(pMeshRenderer, nullptr, {}))
 		return pMeshRenderer;
 	return nullptr;
 }
@@ -57,7 +55,7 @@ MeshRenderer::~MeshRenderer()
 	UniformData::GetInstance()->GetPerObjectUniforms()->FreePreObjectChunk(m_perObjectBufferIndex);
 }
 
-bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances, const std::shared_ptr<AnimationController>& pAnimationController)
+bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::shared_ptr<Mesh> pMesh, const std::vector<std::shared_ptr<MaterialInstance>>& materialInstances)
 {
 	if (!BaseComponent::Init(pSelf))
 		return false;
@@ -76,8 +74,6 @@ bool MeshRenderer::Init(const std::shared_ptr<MeshRenderer>& pSelf, const std::s
 
 	m_perObjectBufferIndex = UniformData::GetInstance()->GetPerObjectUniforms()->AllocatePerObjectChunk();
 
-	m_pAnimationController = pAnimationController;
-
 	return true;
 }
 
@@ -90,8 +86,11 @@ void MeshRenderer::OnRenderObject()
 	if (m_instanceCount == 0)
 		return;
 
-	if (m_pAnimationController != nullptr)
-		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, m_pAnimationController->GetBaseObject()->GetCachedWorldTransform());
+	if (m_modelMatrixOverride)
+	{
+		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, m_overrideModelMatrix);
+		m_modelMatrixOverride = false;
+	}
 	else
 		UniformData::GetInstance()->GetPerObjectUniforms()->SetModelMatrix(m_perObjectBufferIndex, GetBaseObject()->GetCachedWorldTransform());
 
@@ -100,8 +99,6 @@ void MeshRenderer::OnRenderObject()
 		if ((RenderWorkManager::GetInstance()->GetRenderStateMask() & m_materialInstances[i]->GetRenderMask()) == 0)
 			continue;
 
-		uint32_t animationChunkIndex = m_pAnimationController == nullptr ? 0 : m_pAnimationController->GetAnimationInstance()->GetAnimationChunkIndex();
-
-		m_materialInstances[i]->InsertIntoRenderQueue(m_pMesh, m_perObjectBufferIndex, m_pMesh->GetMeshChunkIndex(), animationChunkIndex, m_instanceCount, m_startInstance);
+		m_materialInstances[i]->InsertIntoRenderQueue(m_pMesh, m_perObjectBufferIndex, m_pMesh->GetMeshChunkIndex(), m_utilityIndex, m_instanceCount, m_startInstance);
 	}
 }

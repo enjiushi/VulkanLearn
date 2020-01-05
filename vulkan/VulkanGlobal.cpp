@@ -359,9 +359,9 @@ void VulkanGlobal::InitFrameBuffer()
 
 void VulkanGlobal::InitVertices()
 {
-	m_pTriangleMesh = SceneGenerator::GenerateLODTriangleMesh(3, true);
+	m_LODPatchLevel = 3;
 
-	m_pLODQuadMesh = SceneGenerator::GenerateLODQuadMesh(1);
+	m_pLODTriangleMesh = SceneGenerator::GenerateLODTriangleMesh(m_LODPatchLevel, true);
 
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 
@@ -672,6 +672,60 @@ void VulkanGlobal::AddBoneBox(const std::shared_ptr<BaseObject>& pObject)
 
 void VulkanGlobal::InitScene()
 {
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor({ 1, 1, 1 });
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ 1, 1, -1 });
+	UniformData::GetInstance()->GetGlobalUniforms()->SetRenderSettings({ 1.0 / 2.2, 4.5, 11.2, 0.0 });
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBRDFBias(0.7);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRMip(1.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSampleNormalRegenCount(15.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSampleNormalRegenMargin(0.19);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStride(3.7);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTInitOffset(2.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxSSRTStepCount(200.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTThickness(0.05);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTBorderFadingDist(0.05);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStepCountFadingDist(0.1);
+
+	uint32_t smaller = FrameBufferDiction::WINDOW_HEIGHT < FrameBufferDiction::WINDOW_WIDTH ? FrameBufferDiction::WINDOW_HEIGHT : FrameBufferDiction::WINDOW_WIDTH;
+	UniformData::GetInstance()->GetGlobalUniforms()->SetScreenSizeMipLevel(log2(smaller) + 1);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactLowerBound(0.0001);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.003);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetHighResponseSSRPortion(0.7);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingLowerBound(0.99);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingUpperBound(1.1);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetUpsampleScale(1.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomAmplify(1.0);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomSlope(1.0);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxCOC(16.0 / FrameBufferDiction::WINDOW_WIDTH);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionBlurAmplify(0.06);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionBlurSampleCount(16);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMinDist(0.2);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMaxDist(0.8);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteAmplify(0.7);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleCount(32);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleRadius(0.3);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOScreenSpaceSampleLength(1.0 / FrameBufferDiction::WINDOW_WIDTH * 100);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOCurveFactor(0.3);
+
+	// Render normalized spherical planet at the height of 0.001 * planet radius
+	// For earth it should be higher than 6km
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetSphericalTransitionRatio(0.001);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetTriangleScreenSize(400);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxPlanetLODLevel(32);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetPatchSubdivideCount(std::pow(2, m_LODPatchLevel));
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetEdgeRenderFactor(1);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetPatchEdgeWidth(0.01);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetTriangleEdgeWidth(0.03);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetMorphingRange(0.25f);
+
 	PhysicalCamera::PhysicalCameraProps props =
 	{
 		1440.0f / 1024.0f,
@@ -715,7 +769,7 @@ void VulkanGlobal::InitScene()
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
 
-	m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp, 4);
+	m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp, 6378000);
 
 	AssimpSceneReader::SceneInfo sceneInfo;
 
@@ -782,7 +836,8 @@ void VulkanGlobal::InitScene()
 	m_pSophiaMesh = sceneInfo.meshLinks[0].first;
 
 	std::shared_ptr<AnimationController> pAnimationController = m_pSophiaObject->GetComponent<AnimationController>();
-	m_pSophiaRenderer = MeshRenderer::Create(m_pSophiaMesh, { m_pSophiaMaterialInstance, m_pSkinnedShadowMapMaterialInstance }, pAnimationController);
+	m_pSophiaRenderer = MeshRenderer::Create(m_pSophiaMesh, { m_pSophiaMaterialInstance, m_pSkinnedShadowMapMaterialInstance });
+	pAnimationController->SetMeshRenderer(m_pSophiaRenderer);
 	sceneInfo.meshLinks[0].second->AddComponent(m_pSophiaRenderer);
 	m_pSophiaRenderer->SetName(L"hehe");
 	m_pSophiaObject->SetScale(0.005f);
@@ -791,7 +846,7 @@ void VulkanGlobal::InitScene()
 	//AddBoneBox(m_pSophiaObject);
 	sceneInfo.meshLinks.clear();
 
-	m_pPlanetRenderer = MeshRenderer::Create(m_pTriangleMesh, m_pPlanetMaterialInstance);
+	m_pPlanetRenderer = MeshRenderer::Create(m_pLODTriangleMesh, m_pPlanetMaterialInstance);
 
 	m_pPlanetObject = BaseObject::Create();
 	m_pPlanetObject->AddComponent(m_pPlanetGenerator);
@@ -817,54 +872,6 @@ void VulkanGlobal::InitScene()
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pSceneRootObject);
 	m_pRootObject->AddChild(m_pPlanetObject);
-
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor({ 1, 1, 1 });
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ 1, 1, -1 });
-	UniformData::GetInstance()->GetGlobalUniforms()->SetRenderSettings({ 1.0 / 2.2, 4.5, 11.2, 0.0 });
-
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBRDFBias(0.7);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRMip(1.0);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSampleNormalRegenCount(15.0);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSampleNormalRegenMargin(0.19);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStride(3.7);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTInitOffset(2.0);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxSSRTStepCount(200.0);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTThickness(0.05);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTBorderFadingDist(0.05);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStepCountFadingDist(0.1);
-
-	uint32_t smaller = FrameBufferDiction::WINDOW_HEIGHT < FrameBufferDiction::WINDOW_WIDTH ? FrameBufferDiction::WINDOW_HEIGHT : FrameBufferDiction::WINDOW_WIDTH;
-	UniformData::GetInstance()->GetGlobalUniforms()->SetScreenSizeMipLevel(log2(smaller) + 1);
-
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactLowerBound(0.0001);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.003);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetHighResponseSSRPortion(0.7);
-
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingLowerBound(0.99);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingUpperBound(1.1);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetUpsampleScale(1.0);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomAmplify(1.0);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomSlope(1.0);
-
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxCOC(16.0 / FrameBufferDiction::WINDOW_WIDTH);
-
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionBlurAmplify(0.06);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionBlurSampleCount(16);
-
-	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMinDist(0.2);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteMaxDist(0.8);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetVignetteAmplify(0.7);
-
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleCount(32);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOSampleRadius(0.3);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOScreenSpaceSampleLength(1.0 / FrameBufferDiction::WINDOW_WIDTH * 100);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetSSAOCurveFactor(0.3);
-
-	// Render normalized spherical planet at the height of 0.001 * planet radius
-	// For earth it should be higher than 6km
-	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetSphericalTransitionRatio(0.001);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetTriangleScreenSize(400);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxPlanetLODLevel(32);
 }
 
 class VariableChanger : public IInputListener

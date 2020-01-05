@@ -7,6 +7,7 @@
 #include "../class/UniformData.h"
 #include "../class/Mesh.h"
 #include "../class/Timer.h"
+#include "MeshRenderer.h"
 
 DEFINITE_CLASS_RTTI(AnimationController, BaseComponent);
 
@@ -103,6 +104,15 @@ void AnimationController::UpdateBoneTransform(const std::shared_ptr<BaseObject>&
 		pObject->SetRotation(blendRotation);
 		pObject->SetPos(blendTranslation);
 	}
+}
+
+void AnimationController::OnPreRender()
+{
+	if (m_pMeshRenderer == nullptr)
+		return;
+
+	m_pMeshRenderer->SetUtilityIndex(m_pAnimationInstance->GetAnimationChunkIndex());
+	m_pMeshRenderer->OverrideModelMatrix(GetBaseObject()->GetCachedWorldTransform());
 }
 
 void AnimationController::SyncBoneTransformToUniform(const std::shared_ptr<BaseObject>& pObject, uint32_t boneIndex, const DualQuaterniond& boneOffsetDQ)

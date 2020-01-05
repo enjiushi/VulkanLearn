@@ -4,6 +4,7 @@
 #include "../Maths/DualQuaternion.h"
 
 class SkeletonAnimationInstance;
+class MeshRenderer;
 
 class AnimationController : public BaseComponent
 {
@@ -18,8 +19,11 @@ public:
 	void SyncBoneTransformToUniform(const std::shared_ptr<BaseObject>& pObject, uint32_t boneIndex, const DualQuaterniond& boneOffsetDQ);
 	std::shared_ptr<SkeletonAnimationInstance> GetAnimationInstance() const { return m_pAnimationInstance; }
 	double GetAnimationPlayedTime() const { return m_animationPlayedTime; }
+	void SetMeshRenderer(const std::shared_ptr<MeshRenderer>& pMeshRenderer) { m_pMeshRenderer = pMeshRenderer; }
 
+public:
 	void Update() override;
+	void OnPreRender() override;
 
 protected:
 	bool Init(const std::shared_ptr<AnimationController>& pAnimationController, const std::shared_ptr<SkeletonAnimationInstance>& pAnimationInstance = nullptr);
@@ -30,6 +34,7 @@ protected:
 
 protected:
 	std::shared_ptr<SkeletonAnimationInstance>	m_pAnimationInstance;
+	std::shared_ptr<MeshRenderer>				m_pMeshRenderer;
 
 	double		m_animationPlayedTime;
 

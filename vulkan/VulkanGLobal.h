@@ -110,8 +110,8 @@ public:
 	std::vector<std::shared_ptr<Mesh>>	m_innerBallMeshes;
 	std::vector<std::shared_ptr<Mesh>>	m_bunnyMeshes;
 	std::vector<std::shared_ptr<Mesh>>	m_dragonMeshes;
-	std::shared_ptr<Mesh>				m_pTriangleMesh;
-	std::shared_ptr<Mesh>				m_pLODQuadMesh;
+	uint32_t							m_LODPatchLevel;
+	std::shared_ptr<Mesh>				m_pLODTriangleMesh;
 	std::shared_ptr<Mesh>				m_pSphereMesh;
 	std::shared_ptr<Mesh>				m_pCubeMesh;
 	std::shared_ptr<Mesh>				m_pQuadMesh;
