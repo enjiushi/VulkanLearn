@@ -9,6 +9,21 @@
 ![Alt text](assets/dof_img4.png "DOF Screen Shot 4")
 ![Alt text](assets/dof_img5.png "DOF Screen Shot 5")
 
+# Update in 1/5/2020
+The screen shot is kinda out dated as I've been changing the code constantly. Now it looks like this:
+![Alt text](assets/1_5_2020.png "screen shot from 1/5/2020")
+The whole scene sits on a giant plane like a solar panel. This solar panel is actually a very small portion of a giant sphere, which radius is exactly the same as our planet without a single vertex jittering due to precision problem.
+
+You can play around in the scene with traditionaly "w, s, a, d, q, e". You can change camera focus distance with "f" and "l". You can also toggle camera position update on/off by "t" to observe the result of frustum culling, back face culling, and subdivide.
+
+Of course you could change the radius of this planet in:
+```
+m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp, 6378000);
+```
+at VulkanGlobal.cpp.
+
+I'm gonna replace this giant panel with actual terrain with height maps next.
+
 # A Scene Viewer Rendered By Vulkan
 
 ## How To Build
