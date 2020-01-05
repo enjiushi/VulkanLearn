@@ -214,9 +214,6 @@ public:
 	*/
 	Vector4<T>	PlanetRenderingSettings;
 
-	// Planet LOD level distance look up table
-	T			PlanetLODDistanceLUT[PLANET_LOD_MAX_LEVEL];
-
 	// SSAO settings
 	Vector4<T>	SSAOSamples[SSAO_SAMPLE_COUNT];
 };
@@ -387,8 +384,6 @@ public:
 	void SetMaxPlanetLODLevel(double maxLevel);
 	double GetMaxPlanetLODLevel() const { return m_globalVariables.PlanetRenderingSettings.z; }
 
-	double GetLODDistance(uint32_t level) const { return m_globalVariables.PlanetLODDistanceLUT[level]; }
-
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);
 	static std::shared_ptr<GlobalUniforms> Create();
@@ -405,7 +400,6 @@ protected:
 	void InitSSAORandomSample();
 	void InitIcosahedron();
 	void InitIcosahedrronReverseFlags(uint32_t triangleIndex, bool initedFlags[]);
-	void InitPlanetLODDistanceLUT();
 
 protected:
 	GlobalVariablesd	m_globalVariables;

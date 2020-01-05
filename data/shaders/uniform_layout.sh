@@ -41,7 +41,6 @@ struct GlobalData
 	vec4 VignetteSettings;
 	vec4 SSAOSettings;
 	vec4 PlanetRenderingSettings;
-	float PlanetLODDistanceLUT[32];
 	vec4 SSAOSamples[64];
 };
 

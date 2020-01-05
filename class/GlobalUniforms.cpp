@@ -554,7 +554,6 @@ void GlobalUniforms::SetPlanetTriangleScreenSize(double size)
 {
 	m_globalVariables.PlanetRenderingSettings.y = size;
 	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.y);
-	InitPlanetLODDistanceLUT();
 	SetDirty();
 }
 
@@ -562,7 +561,6 @@ void GlobalUniforms::SetMaxPlanetLODLevel(double maxLevel)
 {
 	m_globalVariables.PlanetRenderingSettings.z = maxLevel;
 	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings.z);
-	InitPlanetLODDistanceLUT();
 	SetDirty();
 }
 
@@ -684,11 +682,6 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				{
 					Vec4Unit,
 					"Planet settings"
-				},
-				{
-					OneUnit,
-					"Planet LOD distance look up table",
-					PLANET_LOD_MAX_LEVEL
 				},
 				{
 					Vec4Unit,
@@ -821,18 +814,6 @@ void GlobalUniforms::InitIcosahedrronReverseFlags(uint32_t triangleIndex, bool i
 			InitIcosahedrronReverseFlags(i, initedFlags);
 		}
 		
-	}
-}
-
-void GlobalUniforms::InitPlanetLODDistanceLUT()
-{
-	double size = (IcosahedronVertices[IcosahedronIndices[0]] - IcosahedronVertices[IcosahedronIndices[1]]).Length();
-	double frac = std::tan(m_globalVariables.mainCameraSettings2.y * m_globalVariables.PlanetRenderingSettings.y / m_globalVariables.gameWindowSize.x);
-	for (uint32_t i = 0; i < m_globalVariables.PlanetRenderingSettings.z + 1; i++)
-	{
-		m_globalVariables.PlanetLODDistanceLUT[i] = size / frac;
-		CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetLODDistanceLUT[i]);
-		size *= 0.5;
 	}
 }
 
