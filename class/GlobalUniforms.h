@@ -220,7 +220,7 @@ public:
 	* X: Whether to draw triangle edge
 	* Y: Patch edge width
 	* Z: Triangle edge width
-	* W: Reserved
+	* W: Morphing range
 	*/
 	Vector4<T>	PlanetRenderingSettings1;
 
@@ -393,15 +393,17 @@ public:
 	double GetPlanetTriangleScreenSize() const { return m_globalVariables.PlanetRenderingSettings0.y; }
 	void SetMaxPlanetLODLevel(double maxLevel);
 	double GetMaxPlanetLODLevel() const { return m_globalVariables.PlanetRenderingSettings0.z; }
-	void SetPatchSubdivideCount(double subdivideCount);
-	double GetPatchSubdivideCount() const { return m_globalVariables.PlanetRenderingSettings0.w; }
+	void SetPlanetPatchSubdivideCount(double subdivideCount);
+	double GetPlanetPatchSubdivideCount() const { return m_globalVariables.PlanetRenderingSettings0.w; }
 
-	void SetEdgeRenderFactor(double factor);
-	double GetEdgeRenderFactor() const { return m_globalVariables.PlanetRenderingSettings1.x; }
-	void SetPatchEdgeWidth(double width);
-	double GetPatchEdgeWidth() const { return m_globalVariables.PlanetRenderingSettings1.y; }
-	void SetTriangleEdgeWidth(double width);
-	double GetTriangleEdgeWidth() const { return m_globalVariables.PlanetRenderingSettings1.z; }
+	void SetPlanetEdgeRenderFactor(double factor);
+	double GetPlanetEdgeRenderFactor() const { return m_globalVariables.PlanetRenderingSettings1.x; }
+	void SetPlanetPatchEdgeWidth(double width);
+	double GetPlanetPatchEdgeWidth() const { return m_globalVariables.PlanetRenderingSettings1.y; }
+	void SetPlanetTriangleEdgeWidth(double width);
+	double GetPlanetTriangleEdgeWidth() const { return m_globalVariables.PlanetRenderingSettings1.z; }
+	void SetPlanetMorphingRange(double range);
+	double SetPlanetMorphingRange() const { return m_globalVariables.PlanetRenderingSettings1.w; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

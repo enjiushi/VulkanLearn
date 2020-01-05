@@ -719,11 +719,12 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetSphericalTransitionRatio(0.001);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetTriangleScreenSize(400);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxPlanetLODLevel(32);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetPatchSubdivideCount(std::pow(2, m_LODPatchLevel));
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetPatchSubdivideCount(std::pow(2, m_LODPatchLevel));
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetEdgeRenderFactor(1);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetPatchEdgeWidth(0.01);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetTriangleEdgeWidth(0.03);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetEdgeRenderFactor(1);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetPatchEdgeWidth(0.01);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetTriangleEdgeWidth(0.03);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetMorphingRange(0.25f);
 
 	PhysicalCamera::PhysicalCameraProps props =
 	{

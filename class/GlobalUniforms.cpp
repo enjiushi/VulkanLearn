@@ -564,31 +564,38 @@ void GlobalUniforms::SetMaxPlanetLODLevel(double maxLevel)
 	SetDirty();
 }
 
-void GlobalUniforms::SetPatchSubdivideCount(double subdivideCount)
+void GlobalUniforms::SetPlanetPatchSubdivideCount(double subdivideCount)
 {
 	m_globalVariables.PlanetRenderingSettings0.w = subdivideCount;
 	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings0.w);
 	SetDirty();
 }
 
-void GlobalUniforms::SetEdgeRenderFactor(double factor)
+void GlobalUniforms::SetPlanetEdgeRenderFactor(double factor)
 {
 	m_globalVariables.PlanetRenderingSettings1.x = factor;
 	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings1.x);
 	SetDirty();
 }
 
-void GlobalUniforms::SetPatchEdgeWidth(double width)
+void GlobalUniforms::SetPlanetPatchEdgeWidth(double width)
 {
 	m_globalVariables.PlanetRenderingSettings1.y = width;
 	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings1.y);
 	SetDirty();
 }
 
-void GlobalUniforms::SetTriangleEdgeWidth(double width)
+void GlobalUniforms::SetPlanetTriangleEdgeWidth(double width)
 {
 	m_globalVariables.PlanetRenderingSettings1.z = width;
 	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings1.z);
+	SetDirty();
+}
+
+void GlobalUniforms::SetPlanetMorphingRange(double range)
+{
+	m_globalVariables.PlanetRenderingSettings1.w = range;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings1.w);
 	SetDirty();
 }
 
