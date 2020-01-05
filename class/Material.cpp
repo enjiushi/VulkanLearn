@@ -419,7 +419,7 @@ void Material::SyncBufferData()
 				m_pPerMaterialIndirectUniforms->SetPerObjectIndex(offset, meshRenderData.indirectIndices[instanceCount].perObjectIndex);
 				m_pPerMaterialIndirectUniforms->SetPerMaterialIndex(offset, meshRenderData.indirectIndices[instanceCount].perMaterialIndex);
 				m_pPerMaterialIndirectUniforms->SetPerMeshIndex(offset, meshRenderData.indirectIndices[instanceCount].perMeshIndex);
-				m_pPerMaterialIndirectUniforms->SetPerAnimationIndex(offset, meshRenderData.indirectIndices[instanceCount].perAnimationIndex);
+				m_pPerMaterialIndirectUniforms->SetUtilityIndex(offset, meshRenderData.indirectIndices[instanceCount].utilityIndex);
 				offset++;
 			}
 
@@ -459,7 +459,7 @@ void Material::BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 	pCmdBuffer->BindIndexBuffer(IndexBufferMgr()->GetBuffer(), VK_INDEX_TYPE_UINT32);
 }
 
-void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, uint32_t instanceCount, uint32_t startInstance)
+void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMaterialIndex, uint32_t perMeshIndex, uint32_t utilityIndex, uint32_t instanceCount, uint32_t startInstance)
 {
 	ASSERTION(instanceCount > 0);
 
@@ -478,7 +478,7 @@ void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_
 				pMesh,
 				instanceCount,
 				startInstance,
-				std::vector<PerMaterialIndirectVariables>(1, {perObjectIndex, perMaterialIndex, perMeshIndex, perAnimationIndex})
+				std::vector<PerMaterialIndirectVariables>(1, {perObjectIndex, perMaterialIndex, perMeshIndex, utilityIndex })
 			}
 		);
 
@@ -495,7 +495,7 @@ void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_
 	// If a mesh is already recorded, add instance count by 1
 	auto& renderData = m_cachedMeshRenderData[iter->second];
 	renderData.instanceCount += 1;
-	renderData.indirectIndices.push_back({ perObjectIndex, perMaterialIndex, perMeshIndex, perAnimationIndex });
+	renderData.indirectIndices.push_back({ perObjectIndex, perMaterialIndex, perMeshIndex, utilityIndex });
 }
 
 void Material::BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)

@@ -482,5 +482,6 @@ void PlanetGenerator::OnPreRender()
 	{
 		m_pMeshRenderer->SetStartInstance(offsetInBytes / sizeof(Triangle));
 		m_pMeshRenderer->SetInstanceCount(updatedSize / sizeof(Triangle));
+		m_pMeshRenderer->SetUtilityIndex(m_chunkIndex);
 	}
 }

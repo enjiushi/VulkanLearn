@@ -54,7 +54,7 @@ void MaterialInstance::PrepareMaterial(const std::shared_ptr<CommandBuffer>& pCm
 	BindDescriptorSet(pCmdBuffer);
 }
 
-void MaterialInstance::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMeshIndex, uint32_t perAnimationIndex, uint32_t instanceCount, uint32_t startInstance)
+void MaterialInstance::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_t perObjectIndex, uint32_t perMeshIndex, uint32_t utilityIndex, uint32_t instanceCount, uint32_t startInstance)
 {
-	m_pMaterial->InsertIntoRenderQueue(pMesh, perObjectIndex, m_materialBufferChunkIndex, perMeshIndex, perAnimationIndex, instanceCount, startInstance);
+	m_pMaterial->InsertIntoRenderQueue(pMesh, perObjectIndex, m_materialBufferChunkIndex, perMeshIndex, utilityIndex, instanceCount, startInstance);
 }
