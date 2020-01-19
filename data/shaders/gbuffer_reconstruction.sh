@@ -41,7 +41,7 @@ float AcquireShadowFactor(vec4 csPosition, sampler2D ShadowMapDepthBuffer)
 {
 	// The view matrix in main light VP needs to be the transfrom from main camera space rather than world space
 	// Doing this to avoid large number of world space position in a large scale scene
-	vec4 lsPosition = globalData.mainLightVP * csPosition;
+	vec4 lsPosition = perFrameData.mainLightVP * csPosition;
 	lsPosition /= lsPosition.w;
 	lsPosition.xy = lsPosition.xy * 0.5f + 0.5f;	// NOTE: Don't do this to z, as it's already within [0, 1] after vulkan ndc transform
 

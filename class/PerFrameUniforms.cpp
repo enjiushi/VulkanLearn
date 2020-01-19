@@ -37,6 +37,12 @@ void PerFrameUniforms::SetViewCoordinateSystem(const Matrix4d& viewCoordinateSys
 	SetDirty();
 }
 
+void PerFrameUniforms::SetMainLightVP(const Matrix4d& vp)
+{
+	m_perFrameVariables.mainLightVP = vp;
+	SetDirty();
+}
+
 void PerFrameUniforms::SetCameraPosition(const Vector3d& camPos)
 {
 	m_perFrameVariables.cameraDeltaPosition = camPos - m_perFrameVariables.cameraPosition.xyz();
@@ -59,6 +65,18 @@ void PerFrameUniforms::SetEyeSpaceSize(const Vector2d& eyeSpaceSize)
 void PerFrameUniforms::SetNearFarAB(const Vector4d& nearFarAB)
 {
 	m_perFrameVariables.nearFarAB = nearFarAB;
+	SetDirty();
+}
+
+void PerFrameUniforms::SetMainLightDir(const Vector3d& dir)
+{
+	m_perFrameVariables.mainLightDir = dir.Normal();
+	SetDirty();
+}
+
+void PerFrameUniforms::SetMainLightColor(const Vector3d& color)
+{
+	m_perFrameVariables.mainLightColor = color;
 	SetDirty();
 }
 
@@ -134,11 +152,14 @@ void PerFrameUniforms::UpdateUniformDataInternal()
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, viewMatrix);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, viewCoordSystem);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, prevView);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, mainLightVP);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraPosition);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraDeltaPosition);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraDirection);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, eyeSpaceSize);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, nearFarAB);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, mainLightDir);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, mainLightColor);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraJitterOffset);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, time);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, haltonX8Jitter);
@@ -166,11 +187,14 @@ std::vector<UniformVarList> PerFrameUniforms::PrepareUniformVarList() const
 				{ Mat4Unit, "ViewMatrix" },
 				{ Mat4Unit, "ViewCoordSystem" },
 				{ Mat4Unit, "prevViewMatrix" },
+				{ Mat4Unit, "MainLightVP" },
 				{ Vec4Unit, "CameraPosition_Padding" },
 				{ Vec4Unit, "CameraDeltaPosition_Padding" },
 				{ Vec4Unit, "CameraDirection_FrameIndex" },
 				{ Vec4Unit, "EyeSpaceSize" },
 				{ Vec4Unit, "NearFarAB" },
+				{ Vec4Unit, "MainLightDir" },
+				{ Vec4Unit, "MainLightColor" },
 				{ Vec2Unit, "CameraJitterOffset" },
 				{ Vec2Unit, "Time, x:time, y:sin(time)" },
 				{ Vec2Unit, "HaltonX8 Jitter" },

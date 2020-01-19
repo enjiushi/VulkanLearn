@@ -672,8 +672,9 @@ void VulkanGlobal::AddBoneBox(const std::shared_ptr<BaseObject>& pObject)
 
 void VulkanGlobal::InitScene()
 {
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor({ 1, 1, 1 });
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir({ 1, 1, -1 });
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightColor({ 1, 1, 1 });
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightDir({ 1, 1, -1 });
+
 	UniformData::GetInstance()->GetGlobalUniforms()->SetRenderSettings({ 1.0 / 2.2, 4.5, 11.2, 0.0 });
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBRDFBias(0.7);

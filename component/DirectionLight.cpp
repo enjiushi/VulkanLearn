@@ -74,7 +74,6 @@ void DirectionLight::UpdateData()
 void DirectionLight::SetLightColor(const Vector3d& lightColor)
 {
 	m_lightColor = lightColor;
-	m_isDirty = true;
 }
 
 void DirectionLight::Update()
@@ -85,15 +84,9 @@ void DirectionLight::OnPreRender()
 {
 	UpdateData();
 
-	// FIXME: Put main light stuff to per frame uniform
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightDir(m_csLightDirection);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightVP(m_cs2lsProjMatrix);
-
-	if (m_isDirty)
-	{
-		UniformData::GetInstance()->GetGlobalUniforms()->SetMainLightColor(m_lightColor);
-		m_isDirty = false;
-	}
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightDir(m_csLightDirection);
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightVP(m_cs2lsProjMatrix);
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightColor(m_lightColor);
 }
 
 

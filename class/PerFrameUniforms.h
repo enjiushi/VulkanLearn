@@ -14,11 +14,14 @@ public:
 	Matrix4x4<T>	viewMatrix;
 	Matrix4x4<T>	viewCoordSystem;
 	Matrix4x4<T>	prevView;
+	Matrix4x4<T>	mainLightVP;
 	Vector4<T>		cameraPosition;
 	Vector4<T>		cameraDeltaPosition;	// Camera position delta between 2 consecutive frames
 	Vector4<T>		cameraDirection;
 	Vector4<T>		eyeSpaceSize;			// xy: eye space size, zw: inverted eye space size
 	Vector4<T>		nearFarAB;
+	Vector4<T>		mainLightDir;
+	Vector4<T>		mainLightColor;
 	Vector2<T>		cameraJitterOffset;
 	Vector2<T>		time;					//x: delta time, y: SineTime
 
@@ -49,6 +52,8 @@ public:
 	Matrix4d GetViewMatrix() const { return m_perFrameVariables.viewMatrix; }
 	void SetViewCoordinateSystem(const Matrix4d& viewCoordinateSystem);	// Maybe I should add this to reduce an extra matrix inverse
 	Matrix4d GetViewCoordinateSystem() const { return m_perFrameVariables.viewCoordSystem; }
+	void SetMainLightVP(const Matrix4d& vp);
+	Matrix4d GetmainLightVP() const { return m_perFrameVariables.mainLightVP; }
 	void SetCameraPosition(const Vector3d& camPos);
 	Vector3d GetCameraPosition() const { return m_perFrameVariables.cameraPosition.xyz(); }
 	void SetCameraDirection(const Vector3d& camDir);
@@ -58,6 +63,10 @@ public:
 	Vector2d GetEyeSpaceSizeInv() const { return { m_perFrameVariables.eyeSpaceSize.z, m_perFrameVariables.eyeSpaceSize.w }; }
 	void SetNearFarAB(const Vector4d& nearFarAB);
 	Vector4d GetNearFarAB() const { return m_perFrameVariables.nearFarAB; }
+	void SetMainLightDir(const Vector3d& dir);
+	Vector4d GetMainLightDir() const { return m_perFrameVariables.mainLightDir; }
+	void SetMainLightColor(const Vector3d& color);
+	Vector4d GetMainLightColor() const { return m_perFrameVariables.mainLightColor; }
 	void SetCameraJitterOffset(const Vector2d& jitterOffset);
 	Vector2d GetCameraJitterOffset() const { return m_perFrameVariables.cameraJitterOffset; }
 	void SetDeltaTime(double deltaTime);
