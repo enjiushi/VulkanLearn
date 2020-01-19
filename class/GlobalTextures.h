@@ -65,6 +65,8 @@ public:
 	bool GetTextureIndex(InGameTextureType type, const std::string& textureName, uint32_t& textureIndex);
 	bool GetScreenSizeTextureIndex(const std::string& textureName, uint32_t& textureIndex);
 
+	void PreComputeTransmittance(uint32_t layer);
+
 	virtual std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
@@ -77,6 +79,7 @@ protected:
 	void InitPrefilterEnvTexture();
 	void InitBRDFLUTTexture();
 	void InitSSAORandomRotationTexture();
+	void InitTransmittanceTextureDiction();
 	void InsertTextureDesc(const TextureDesc& desc, TextureArrayDesc& textureArr, uint32_t& emptySlot);
 	bool GetTextureIndex(const TextureArrayDesc& textureArr, const std::string& textureName, uint32_t& textureIndex);
 
@@ -86,4 +89,6 @@ protected:
 	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures;
 	std::vector<std::shared_ptr<Image>>			m_IBL2DTextures;
 	std::shared_ptr<Image>						m_pSSAORandomRotations;
+
+	std::shared_ptr<Image>						m_transmittanceTextureDiction;
 };

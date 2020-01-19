@@ -33,6 +33,7 @@ bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 	InitScreenSizeTextureDiction();
 	InitIBLTextures();
 	InitSSAORandomRotationTexture();
+	InitTransmittanceTextureDiction();
 
 	return true;
 }
@@ -329,6 +330,11 @@ void GlobalTextures::InitBRDFLUTTexture()
 	FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]->ExtractContent(m_IBL2DTextures[RGBA16_512_BRDFLut]);
 }
 
+void GlobalTextures::InitTransmittanceTextureDiction()
+{
+	m_transmittanceTextureDiction = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 256, 64, 16, VK_FORMAT_R32G32B32_SFLOAT);
+}
+
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()
 {
 	std::shared_ptr<GlobalTextures> pGlobalTextures = std::make_shared<GlobalTextures>();
@@ -372,6 +378,10 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 		{
 			CombinedSampler,
 			"RGBA32_4_SSAO_Random_Rotation"
+		},
+		{
+			CombinedSampler,
+			"RGBA32 w:256, h:64, layer:16, transmittance texture diction"
 		}
 	};
 }
@@ -438,6 +448,11 @@ bool GlobalTextures::GetScreenSizeTextureIndex(const std::string& textureName, u
 	return GetTextureIndex(m_screenSizeTextureDiction, textureName, textureIndex);
 }
 
+void GlobalTextures::PreComputeTransmittance(uint32_t layer)
+{
+
+}
+
 uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
 {
 	// Bind global texture array
@@ -464,6 +479,9 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	}
 
 	pDescriptorSet->UpdateImage(bindingIndex++, m_pSSAORandomRotations, m_pSSAORandomRotations->CreateNearestRepeatSampler(), m_pSSAORandomRotations->CreateDefaultImageView());
+
+	// Binding atmosphere precomputed textures
+	pDescriptorSet->UpdateImage(bindingIndex++, m_transmittanceTextureDiction, m_transmittanceTextureDiction->CreateLinearClampToEdgeSampler(), m_transmittanceTextureDiction->CreateDefaultImageView());
 
 	return bindingIndex;
 }
