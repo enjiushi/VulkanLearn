@@ -120,7 +120,7 @@ void main()
 
 	vec3 n = normalize(vars.normalAO.xyz);
 	vec3 v = normalize(-vec3(inOneNearPosition, -1));	// Beware, you'll have to multiply camera space linear depth -1(or any depth you want), and view ray goes towards camera
-	vec3 l = globalData.mainLightDir.xyz;
+	vec3 l = perFrameData.mainLightDir.xyz;
 	vec3 h = normalize(l + v);
 
 	float NdotH = max(0.0f, dot(n, h));
@@ -165,7 +165,7 @@ void main()
 
 	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedoRoughness.a) * min(1.0f, GGX_D(NdotH, vars.albedoRoughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
 	vec3 dirLightDiffuse = vars.albedoRoughness.rgb * kD / PI;
-	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * globalData.mainLightColor.rgb);
+	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * perFrameData.mainLightColor.rgb);
 
 	outShadingColor = vec4(punctualRadiance, vars.albedoRoughness.a);
 	outSSRColor = vec4(skyBoxAmbient, SSRRadiance.a);

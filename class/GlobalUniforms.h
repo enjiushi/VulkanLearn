@@ -34,27 +34,6 @@ public:
 	Vector4<T>		motionTileWindowSize;	// xy: tile size, zw: window size
 
 	/*******************************************************************
-	* DESCRIPTION: Main directional light direction
-	*
-	* XYZ: main light direction
-	* W: Reserved
-	*/
-	Vector4<T>		mainLightDir;
-
-	/*******************************************************************
-	* DESCRIPTION: Main directional light rgb
-	*
-	* XYZ: main light color
-	* W: Reserved
-	*/
-	Vector4<T>		mainLightColor;
-
-	/*******************************************************************
-	* DESCRIPTION: Main directional light vpn matrix
-	*/
-	Matrix4x4<T>	mainLightVP;
-
-	/*******************************************************************
 	* DESCRIPTION: Camera parameters
 	*
 	* X: Aspect
@@ -258,13 +237,6 @@ public:
 	void SetMotionTileSize(const Vector2d& size);
 	Vector2d GetMotionTileSize() const { return { m_globalVariables.motionTileWindowSize.x, m_globalVariables.motionTileWindowSize.y }; }
 	Vector2d GetMotionTileWindowSize() const { return { m_globalVariables.motionTileWindowSize.z, m_globalVariables.motionTileWindowSize.w }; }
-
-	void SetMainLightDir(const Vector3d& dir);
-	Vector4d GetMainLightDir() const { return m_globalVariables.mainLightDir; }
-	void SetMainLightColor(const Vector3d& color);
-	Vector4d GetMainLightColor() const { return m_globalVariables.mainLightColor; }
-	void SetMainLightVP(const Matrix4d& vp);
-	Matrix4d GetmainLightVP() const { return m_globalVariables.mainLightVP; }
 
 	void SetMainCameraSettings0(const Vector4d& settings);
 	Vector4d GetMainCameraSettings0() const { return m_globalVariables.mainCameraSettings0; }

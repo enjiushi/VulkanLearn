@@ -17,11 +17,6 @@ struct GlobalData
 	vec4 bloomWindowSize;
 	vec4 motionTileWindowSize;
 
-	// Scene Settings
-	vec4 mainLightDir;
-	vec4 mainLightColor;
-	mat4 mainLightVP;
-
 	// Main camera settings
 	vec4 MainCameraSettings0;
 	vec4 MainCameraSettings1;
@@ -76,12 +71,15 @@ struct PerFrameData
 {
 	mat4 view;					
 	mat4 viewCoordSystem;		
-	mat4 prevView;			
+	mat4 prevView;	
+	mat4 mainLightVP;
 	vec4 wsCameraPosition;
 	vec4 wsCameraDeltaPosition;
 	vec4 wsCameraDirection;
 	vec4 cameraSpaceSize;
 	vec4 nearFarAB;
+	vec4 mainLightDir;
+	vec4 mainLightColor;
 	vec2 cameraJitterOffset;
 	vec2 time;
 	vec2 haltonX8Jitter;

@@ -127,27 +127,6 @@ void GlobalUniforms::SetDirtyInternal()
 {
 }
 
-void GlobalUniforms::SetMainLightDir(const Vector3d& dir)
-{
-	m_globalVariables.mainLightDir = dir.Normal();
-	CONVERT2SINGLE(m_globalVariables, m_singlePrecisionGlobalVariables, mainLightDir);
-	SetDirty();
-}
-
-void GlobalUniforms::SetMainLightColor(const Vector3d& color)
-{
-	m_globalVariables.mainLightColor = color;
-	CONVERT2SINGLE(m_globalVariables, m_singlePrecisionGlobalVariables, mainLightColor);
-	SetDirty();
-}
-
-void GlobalUniforms::SetMainLightVP(const Matrix4d& vp)
-{
-	m_globalVariables.mainLightVP = vp;
-	CONVERT2SINGLE(m_globalVariables, m_singlePrecisionGlobalVariables, mainLightVP);
-	SetDirty();
-}
-
 void GlobalUniforms::SetMainCameraSettings0(const Vector4d& settings)
 {
 	m_globalVariables.mainCameraSettings0 = settings;
@@ -640,18 +619,6 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				{
 					Vec4Unit,
 					"MotionWindowSize"
-				},
-				{
-					Vec4Unit,
-					"MainLightDir"
-				},
-				{
-					Vec4Unit,
-					"MainLightColor"
-				},
-				{
-					Mat4Unit,
-					"MainLightVP"
 				},
 				{
 					Vec4Unit,
