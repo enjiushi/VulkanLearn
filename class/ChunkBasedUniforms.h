@@ -26,6 +26,8 @@ protected:
 	virtual void UpdateDirtyChunkInternal(uint32_t index) = 0;
 	virtual void SetChunkDirty(uint32_t index);
 
+	virtual void OnChunkAllocated(uint32_t index, uint32_t size) {}
+
 protected:
 	std::vector<std::pair<uint32_t, uint32_t>>	m_freeChunks;
 	uint32_t									m_perChunkBytes;

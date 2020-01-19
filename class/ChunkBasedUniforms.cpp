@@ -28,6 +28,8 @@ uint32_t ChunkBasedUniforms::AllocatePerObjectChunk()
 	// To remind you when chunks are all in use(you'll have to increase the pool, statically or dynamically)
 	ASSERTION(m_freeChunks.size() != 0);
 
+	OnChunkAllocated(index, 1);
+
 	return index;
 }
 
@@ -47,6 +49,8 @@ uint32_t ChunkBasedUniforms::AllocateConsecutiveChunks(uint32_t chunkSize)
 				iter->first += chunkSize;
 
 			ASSERTION(m_freeChunks.size() != 0);
+
+			OnChunkAllocated(offsetChunkIndex, chunkSize);
 
 			return offsetChunkIndex;
 		}

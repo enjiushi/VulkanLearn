@@ -48,6 +48,7 @@ protected:
 	void UpdateDirtyChunkInternal(uint32_t index) override {}
 	const void* AcquireDataPtr() const override { return &m_singlePrecisionPerPlanetVariables[0]; }
 	uint32_t AcquireDataSize() const override { return sizeof(m_singlePrecisionPerPlanetVariables); }
+	void OnChunkAllocated(uint32_t index, uint32_t size) override {}
 
 protected:
 	PerPlanetVariablesd		m_perPlanetVariables[MAXIMUM_OBJECTS];
