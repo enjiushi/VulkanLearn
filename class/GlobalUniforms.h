@@ -14,7 +14,6 @@ class Mesh;
 class SkeletonAnimationInstance;
 
 const static uint32_t SSAO_SAMPLE_COUNT = 64;
-const static uint32_t PLANET_LOD_MAX_LEVEL = 32;
 
 template<typename T>
 class GlobalVariables

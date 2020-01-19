@@ -2,7 +2,7 @@
 
 #include "ChunkBasedUniforms.h"
 
-const static uint32_t PLANET_LOD_MAX_LEVEL1 = 32;
+const static uint32_t PLANET_LOD_MAX_LEVEL = 32;
 
 template <typename T>
 class PerPlanetVariables
@@ -19,7 +19,7 @@ public:
 	Vector4<T>	PlanetDescriptor0;
 
 	// Planet LOD level distance look up table
-	T			PlanetLODDistanceLUT[PLANET_LOD_MAX_LEVEL1];
+	T			PlanetLODDistanceLUT[PLANET_LOD_MAX_LEVEL];
 };
 
 typedef PerPlanetVariables<float> PerPlanetVariablesf;

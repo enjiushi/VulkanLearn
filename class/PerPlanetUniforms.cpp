@@ -60,7 +60,7 @@ std::vector<UniformVarList> PerPlanetUniforms::PrepareUniformVarList() const
 				{
 					OneUnit,
 					"Planet LOD distance look up table",
-					PLANET_LOD_MAX_LEVEL1
+					PLANET_LOD_MAX_LEVEL
 				},
 			}
 		}
