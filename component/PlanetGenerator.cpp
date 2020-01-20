@@ -55,7 +55,7 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 		b = B;
 	}
 
-	m_chunkIndex = UniformData::GetInstance()->GetPerPerPlanetUniforms()->AllocatePerObjectChunk();
+	m_chunkIndex = UniformData::GetInstance()->GetPerPerPlanetUniforms()->AllocatePlanetChunk();
 	UniformData::GetInstance()->GetPerPerPlanetUniforms()->SetPlanetRadius(m_chunkIndex, m_planetRadius);
 
 	return true;

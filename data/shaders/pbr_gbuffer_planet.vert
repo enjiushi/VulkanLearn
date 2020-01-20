@@ -40,8 +40,8 @@ void main()
 	if (level > 0)
 	{
 		float distance = length(inTriangleVertex + inTriangleEdge0 * inBarycentricCoord.x + inTriangleEdge1 * inBarycentricCoord.y);
-		float currLevelDistance = planetData[indirectIndex].PlanetLODDistanceLUT[level];
-		float prevLevelDistance = planetData[indirectIndex].PlanetLODDistanceLUT[level - 1];
+		float currLevelDistance = planetAtmosphereData[indirectIndex].PlanetLODDistanceLUT[level];
+		float prevLevelDistance = planetAtmosphereData[indirectIndex].PlanetLODDistanceLUT[level - 1];
 		morphFactor = 1.0f - (distance - currLevelDistance) / (prevLevelDistance - currLevelDistance);
 		morphFactor = 1.0f - min(morphFactor, globalData.PlanetRenderingSettings1.w) / globalData.PlanetRenderingSettings1.w;
 		morphFactor = clamp(morphFactor, 0, 1);

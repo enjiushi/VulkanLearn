@@ -61,11 +61,10 @@ public:
 	std::shared_ptr<Image>	GetScreenSizeTextureArray() const { return m_screenSizeTextureDiction.pTextureArray; }
 	std::shared_ptr<Image> GetIBLTextureCube(IBLTextureType type) const { return m_IBLCubeTextures[type]; }
 	std::shared_ptr<Image> GetIBLTexture2D(IBLTextureType type) const { return m_IBL2DTextures[type]; }
+	std::shared_ptr<Image> GetTransmittanceTextureDiction() const { return m_transmittanceTextureDiction; }
 	void InitIBLTextures(const gli::texture_cube& skyBoxTex);
 	bool GetTextureIndex(InGameTextureType type, const std::string& textureName, uint32_t& textureIndex);
 	bool GetScreenSizeTextureIndex(const std::string& textureName, uint32_t& textureIndex);
-
-	void PreComputeTransmittance(uint32_t layer);
 
 	virtual std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;

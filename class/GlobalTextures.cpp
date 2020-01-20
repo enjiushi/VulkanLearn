@@ -448,11 +448,6 @@ bool GlobalTextures::GetScreenSizeTextureIndex(const std::string& textureName, u
 	return GetTextureIndex(m_screenSizeTextureDiction, textureName, textureIndex);
 }
 
-void GlobalTextures::PreComputeTransmittance(uint32_t layer)
-{
-
-}
-
 uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const
 {
 	// Bind global texture array
