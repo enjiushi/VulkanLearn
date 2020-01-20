@@ -19,7 +19,7 @@ bool Texture2DArray::Init(const std::shared_ptr<Device>& pDevice, const std::sha
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	textureCreateInfo.format = format;
-	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
 	textureCreateInfo.arrayLayers = layers;
 	textureCreateInfo.extent.depth = 1;
 	textureCreateInfo.extent.width = width;
@@ -45,7 +45,7 @@ bool Texture2DArray::Init(const std::shared_ptr<Device>& pDevice, const std::sha
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	textureCreateInfo.format = format;
-	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
 	textureCreateInfo.extent.depth = 1;
 	textureCreateInfo.extent.width = width;
 	textureCreateInfo.extent.height = height;
@@ -134,7 +134,7 @@ std::shared_ptr<Texture2DArray> Texture2DArray::CreateMipmapOffscreenTexture(con
 
 	uint32_t smaller = height < width ? height : width;
 
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, (uint32_t)std::log2(smaller) + 1, layers, format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT))
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, (uint32_t)std::log2(smaller) + 1, layers, format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT))
 		return pTexture;
 	return nullptr;
 }

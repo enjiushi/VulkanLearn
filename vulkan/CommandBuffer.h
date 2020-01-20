@@ -116,6 +116,8 @@ public:
 
 	void Execute(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers);
 
+	void Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
+
 protected:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);
 

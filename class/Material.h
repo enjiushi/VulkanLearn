@@ -119,7 +119,7 @@ public:
 	virtual void DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
 	virtual void DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
 
-	virtual void Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, const Vector3ui& groupSize, uint32_t pingpong = 0) = 0;
+	virtual void Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
 	virtual void AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
 
 	virtual void OnFrameBegin();
@@ -132,8 +132,8 @@ protected:
 
 	virtual void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong = 0) {}
 
-	virtual void PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
-	virtual void CustomizeSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) {}
+	virtual void PrepareCommandBuffer(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, bool isCompute, uint32_t pingpong = 0, bool overrideVP = false);
+	virtual void CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) {}
 
 protected:
 	void GeneralInit
@@ -174,7 +174,8 @@ protected:
 		const std::wstring& shaderPath,
 		const VkComputePipelineCreateInfo& pipelineCreateInfo,
 		const std::vector<VkPushConstantRange>& pushConstsRanges,
-		const std::vector<UniformVar>& materialUniformVars
+		const std::vector<UniformVar>& materialUniformVars,
+		const Vector3ui& groupSize
 	);
 
 	virtual void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) {}
@@ -226,5 +227,8 @@ protected:
 	
 	uint32_t											m_vertexFormat;
 	uint32_t											m_vertexFormatInMem;
+
+	Vector3ui											m_computeGroupSize;
+
 	friend class MaterialInstance;
 };

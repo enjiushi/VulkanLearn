@@ -218,7 +218,7 @@ std::shared_ptr<GBufferPlanetMaterial> GBufferPlanetMaterial::CreateDefaultMater
 	return nullptr;
 }
 
-void GBufferPlanetMaterial::CustomizeSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
+void GBufferPlanetMaterial::CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
 {
 	std::shared_ptr<PerFrameBuffer> pPerFrameBuffer = PlanetGeoDataManager::GetInstance()->GetPerFrameBuffer();
 	pSecondaryCmdBuf->BindVertexBuffer(pPerFrameBuffer->GetBuffer(), FrameMgr()->FrameIndex() * pPerFrameBuffer->GetFrameOffset(), 1);

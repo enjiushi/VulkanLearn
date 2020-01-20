@@ -208,7 +208,7 @@ void SSAOMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (FrameBufferDiction::GBufferCount + 1));
 }
 
-void SSAOMaterial::CustomizeSecondaryCmd(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
+void SSAOMaterial::CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
 {
 	pCmdBuf->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(float), &m_blueNoiseTexIndex);
 }

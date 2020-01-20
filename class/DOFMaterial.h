@@ -34,7 +34,6 @@ public:
 	static std::shared_ptr<DOFMaterial> CreateDefaultMaterial(DOFPass pass);
 
 public:
-	void Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, const Vector3ui& groupSize, uint32_t pingpong = 0) override {}
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false) override
 	{
 		DrawScreenQuad(pCmdBuf, pFrameBuffer, pingpong, overrideVP);

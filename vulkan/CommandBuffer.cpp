@@ -947,6 +947,11 @@ void CommandBuffer::Execute(const std::vector<std::shared_ptr<CommandBuffer>>& c
 	vkCmdExecuteCommands(GetDeviceHandle(), (uint32_t)cmds.size(), cmds.data());
 }
 
+void CommandBuffer::Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+{
+	vkCmdDispatch(GetDeviceHandle(), groupCountX, groupCountY, groupCountZ);
+}
+
 void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::shared_ptr<RenderPass>& pRenderPass, const std::vector<VkClearValue>& clearValues, bool includeSecondary)
 {
 	VkRenderPassBeginInfo renderPassBeginInfo = {};

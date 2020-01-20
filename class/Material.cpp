@@ -278,10 +278,13 @@ bool Material::Init
 	const std::wstring& shaderPath,
 	const VkComputePipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
-	const std::vector<UniformVar>& materialUniformVars
+	const std::vector<UniformVar>& materialUniformVars,
+	const Vector3ui& groupSize
 )
 {
 	GeneralInit(pushConstsRanges, materialUniformVars, false);
+
+	m_computeGroupSize = groupSize;
 
 	// Init shader
 	std::shared_ptr<ShaderModule> pShader = ShaderModule::Create(GetDevice(), shaderPath, ShaderModule::ShaderType::ShaderTypeCompute, "main");
@@ -507,38 +510,43 @@ void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, ui
 {
 }
 
-void Material::PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
+void Material::PrepareCommandBuffer(const std::shared_ptr<CommandBuffer>& pCommandBuffer, const std::shared_ptr<FrameBuffer>& pFrameBuffer, bool isCompute, uint32_t pingpong, bool overrideVP)
 {
-	if (overrideVP)
-	{ 
-		pSecondaryCmdBuf->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
-		pSecondaryCmdBuf->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
-	}
-	else
+	if (!isCompute)
 	{
-		pSecondaryCmdBuf->SetViewports(
-			{
+		if (overrideVP)
+		{
+			pCommandBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
+			pCommandBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
+		}
+		else
+		{
+			pCommandBuffer->SetViewports(
 				{
-					0, 0,
-					(float)pFrameBuffer->GetFramebufferInfo().width, (float)pFrameBuffer->GetFramebufferInfo().height,
-					0, 1
-				}
-			});
+					{
+						0, 0,
+						(float)pFrameBuffer->GetFramebufferInfo().width, (float)pFrameBuffer->GetFramebufferInfo().height,
+						0, 1
+					}
+				});
 
-		pSecondaryCmdBuf->SetScissors(
-			{
+			pCommandBuffer->SetScissors(
 				{
-					0, 0,
-					pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
-				}
-			});
+					{
+						0, 0,
+						pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
+					}
+				});
+		}
 	}
 
-	BindPipeline(pSecondaryCmdBuf);
-	BindDescriptorSet(pSecondaryCmdBuf);
-	BindMeshData(pSecondaryCmdBuf);
+	BindPipeline(pCommandBuffer);
+	BindDescriptorSet(pCommandBuffer);
 
-	CustomizeSecondaryCmd(pSecondaryCmdBuf, pFrameBuffer, pingpong);
+	if (!isCompute)
+		BindMeshData(pCommandBuffer);
+
+	CustomizeCommandBuffer(pCommandBuffer, pFrameBuffer, pingpong);
 }
 
 void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
@@ -550,7 +558,7 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
 
-	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong, overrideVP);
+	PrepareCommandBuffer(pSecondaryCmd, pFrameBuffer, false, pingpong, overrideVP);
 
 	pSecondaryCmd->DrawIndexedIndirectCount(m_indirectBuffers[FrameMgr()->FrameIndex()], 0, m_indirectCmdCountBuffers[FrameMgr()->FrameIndex()], 0);
 
@@ -565,13 +573,19 @@ void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, con
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
 
-	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong, overrideVP);
+	PrepareCommandBuffer(pSecondaryCmd, pFrameBuffer, false, pingpong, overrideVP);
 
 	pSecondaryCmd->Draw(3, 1, 0, 0);
 
 	pSecondaryCmd->EndSecondaryRecording();
 
 	pCmdBuf->Execute({ pSecondaryCmd });
+}
+
+void Material::Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
+{
+	PrepareCommandBuffer(pCmdBuf, nullptr, true, pingpong, false);
+	pCmdBuf->Dispatch(m_computeGroupSize.x, m_computeGroupSize.y, m_computeGroupSize.z);
 }
 
 void Material::OnFrameBegin()
