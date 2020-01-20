@@ -25,7 +25,7 @@ public:
 	static std::shared_ptr<CombineMaterial> CreateDefaultMaterial();
 
 public:
-	void Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, const Vector3d& groupNum, const Vector3d& groupSize, uint32_t pingpong = 0) override {}
+	void Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, const Vector3ui& groupSize, uint32_t pingpong = 0) override {}
 	void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false) override
 	{
 		DrawScreenQuad(pCmdBuf, pFrameBuffer, pingpong, overrideVP);
