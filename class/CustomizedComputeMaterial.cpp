@@ -20,6 +20,8 @@ bool CustomizedComputeMaterial::Init(const std::shared_ptr<CustomizedComputeMate
 	VkComputePipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
 
+	m_variables = variables;
+
 	if (!Material::Init(pSelf, variables.shaderPath, createInfo, {}, {}, variables.groupSize))
 		return false;
 
@@ -66,9 +68,9 @@ void CustomizedComputeMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 
 void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
 {
-	std::vector<VkImageSubresourceRange> subresourceRanges;
-	std::vector<VkImageMemoryBarrier> imgBarriers;
-	for (uint32_t i = 0; (uint32_t)m_variables.textures.size(); i++)
+	std::vector<VkImageSubresourceRange> subresourceRanges(m_variables.textures.size());
+	std::vector<VkImageMemoryBarrier> imgBarriers(m_variables.textures.size());
+	for (uint32_t i = 0; i < (uint32_t)m_variables.textures.size(); i++)
 	{
 		subresourceRanges[i].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		subresourceRanges[i].baseMipLevel = m_variables.textureSubresRanges[i].x;
