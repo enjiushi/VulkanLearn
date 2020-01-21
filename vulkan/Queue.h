@@ -11,7 +11,7 @@ class Queue : public DeviceObjectBase<Queue>
 public:
 	~Queue();
 
-	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Queue>& pSelf, uint32_t queueIndex);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Queue>& pSelf, uint32_t queueFamilyIndex);
 
 public:
 	VkQueue GetDeviceHandle() { return m_queue; }
@@ -73,7 +73,7 @@ public:
 		bool waitUtilQueueIdle = false);
 
 public:
-	static std::shared_ptr<Queue> Create(const std::shared_ptr<Device>& pDevice, uint32_t queueIndex);
+	static std::shared_ptr<Queue> Create(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex);
 
 protected:
 	VkQueue		m_queue;
