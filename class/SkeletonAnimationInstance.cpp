@@ -17,7 +17,8 @@ bool SkeletonAnimationInstance::Init(const std::shared_ptr<SkeletonAnimationInst
 	m_pMesh = pMesh;
 
 	uint32_t boneCount;
-	ASSERTION(UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneCount(pMesh->GetMeshBoneChunkIndexOffset(), boneCount));
+	bool ret = UniformData::GetInstance()->GetPerBoneIndirectUniforms()->GetBoneCount(pMesh->GetMeshBoneChunkIndexOffset(), boneCount);
+	ASSERTION(ret);
 
 	m_animationChunk = UniformData::GetInstance()->GetPerAnimationUniforms()->AllocatePerObjectChunk();
 	m_boneChunkIndexOffset = UniformData::GetInstance()->GetPerFrameBoneIndirectUniforms()->AllocateConsecutiveChunks(boneCount);
