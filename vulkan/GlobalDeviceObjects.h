@@ -23,6 +23,8 @@ class GlobalDeviceObjects;
 
 GlobalDeviceObjects* GlobalObjects();
 std::shared_ptr<Queue> GlobalGraphicQueue();
+std::shared_ptr<Queue> GlobalComputeQueue();
+std::shared_ptr<Queue> GlobalTransferQueue();
 std::shared_ptr<Queue> GlobalPresentQueue();
 std::shared_ptr<CommandPool> MainThreadPool();
 std::shared_ptr<DeviceMemoryManager> DeviceMemMgr();

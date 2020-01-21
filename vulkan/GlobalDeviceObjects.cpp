@@ -98,6 +98,8 @@ const std::shared_ptr<SharedBufferManager> GlobalDeviceObjects::GetVertexAttribB
 }
 
 std::shared_ptr<Queue> GlobalGraphicQueue() { return GlobalObjects()->GetGraphicQueue(); }
+std::shared_ptr<Queue> GlobalComputeQueue() { return GlobalObjects()->GetComputeQueue(); }
+std::shared_ptr<Queue> GlobalTransferQueue() { return GlobalObjects()->GetTransferQueue(); }
 std::shared_ptr<Queue> GlobalPresentQueue() { return GlobalObjects()->GetPresentQueue(); }
 std::shared_ptr<CommandPool> MainThreadPool() { return GlobalObjects()->GetMainThreadCmdPool(); }
 std::shared_ptr<DeviceMemoryManager> DeviceMemMgr() { return GlobalObjects()->GetDeviceMemMgr(); }
