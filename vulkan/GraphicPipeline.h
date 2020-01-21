@@ -29,6 +29,7 @@ public:
 	std::shared_ptr<RenderPass> GetRenderPass() const { return m_pRenderPass; }
 	std::shared_ptr<ShaderModule> GetShader(ShaderModule::ShaderType type) const { return m_shaders[(uint32_t)type]; }
 	VkPipelineBindPoint GetPipelineBindingPoint() const override { return VK_PIPELINE_BIND_POINT_GRAPHICS; }
+	uint32_t GetSubpassIndex() const override { return m_info.subpass; }
 
 public:
 	static std::shared_ptr<GraphicPipeline> Create(const std::shared_ptr<Device>& pDevice, const SimplePipelineStateCreateInfo& info);
