@@ -332,7 +332,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 void GlobalTextures::InitTransmittanceTextureDiction()
 {
-	m_transmittanceTextureDiction = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 256, 64, 16, VK_FORMAT_R32G32B32_SFLOAT);
+	m_transmittanceTextureDiction = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 256, 64, 16, VK_FORMAT_R32G32B32A32_SFLOAT);
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()
