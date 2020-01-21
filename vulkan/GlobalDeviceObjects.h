@@ -51,6 +51,8 @@ public:
 public:
 	const std::shared_ptr<Device> GetDevice() const { return m_pDevice; }
 	const std::shared_ptr<Queue> GetGraphicQueue() const { return m_pGraphicQueue; }
+	const std::shared_ptr<Queue> GetComputeQueue() const { return m_pComputeQueue; }
+	const std::shared_ptr<Queue> GetTransferQueue() const { return m_pTransferQueue; }
 	const std::shared_ptr<Queue> GetPresentQueue() const { return m_pPresentQueue; }
 	const std::shared_ptr<CommandPool> GetMainThreadCmdPool() const { return m_pMainThreadCmdPool; }
 	const std::shared_ptr<DeviceMemoryManager> GetDeviceMemMgr() const { return m_pDeviceMemMgr; }
@@ -72,6 +74,8 @@ public:
 protected:
 	std::shared_ptr<Device>					m_pDevice;
 	std::shared_ptr<Queue>					m_pGraphicQueue;
+	std::shared_ptr<Queue>					m_pComputeQueue;
+	std::shared_ptr<Queue>					m_pTransferQueue;
 	std::shared_ptr<Queue>					m_pPresentQueue;
 	std::shared_ptr<CommandPool>			m_pMainThreadCmdPool;
 	std::shared_ptr<DeviceMemoryManager>	m_pDeviceMemMgr;

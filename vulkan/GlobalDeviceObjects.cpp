@@ -19,6 +19,8 @@ bool GlobalDeviceObjects::InitObjects(const std::shared_ptr<Device>& pDevice)
 	m_pDevice = pDevice;
 
 	m_pGraphicQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetGraphicQueueIndex());
+	m_pComputeQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetComputeQueueIndex());
+	m_pTransferQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetTransferQueueIndex());
 	m_pPresentQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetPresentQueueIndex());
 
 	m_pMainThreadCmdPool = CommandPool::Create(pDevice);
