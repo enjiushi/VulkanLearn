@@ -13,8 +13,7 @@
 #include "../vulkan/Buffer.h"
 
 class PipelineLayout;
-class GraphicPipeline;
-class ComputePipeline;
+class PipelineBase;
 class DescriptorSetLayout;
 class DescriptorSet;
 class ShaderModule;
@@ -69,8 +68,7 @@ public:
 public:
 	std::shared_ptr<RenderPassBase> GetRenderPass() const { return m_pRenderPass; }
 	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
-	std::shared_ptr<GraphicPipeline> GetGraphicPipeline() const { return m_pGraphicPipeline; }
-	std::shared_ptr<ComputePipeline> GetComputePipeline() const { return m_pComputePipeline; }
+	std::shared_ptr<PipelineBase> GetPipeline() const { return m_pPipeline; }
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
 	uint32_t GetUniformBufferSize() const;
 	std::vector<std::vector<uint32_t>> GetCachedFrameOffsets() const { return m_cachedFrameOffsets; }
@@ -196,8 +194,7 @@ protected:
 	std::shared_ptr<RenderPassBase>						m_pRenderPass;
 
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
-	std::shared_ptr<GraphicPipeline>					m_pGraphicPipeline;
-	std::shared_ptr<ComputePipeline>					m_pComputePipeline;
+	std::shared_ptr<PipelineBase>						m_pPipeline;
 
 	std::shared_ptr<DescriptorSetLayout>				m_pDescriptorSetLayout;
 	std::shared_ptr<DescriptorSet>						m_pUniformStorageDescriptorSet;

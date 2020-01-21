@@ -249,7 +249,7 @@ bool Material::Init
 	}
 
 	// Create pipeline
-	m_pGraphicPipeline = GraphicPipeline::Create(GetDevice(), pipelineCreateInfo, shaders, pRenderPass->GetRenderPass(), m_pPipelineLayout);
+	m_pPipeline = GraphicPipeline::Create(GetDevice(), pipelineCreateInfo, shaders, pRenderPass->GetRenderPass(), m_pPipelineLayout);
 
 	m_pRenderPass = pRenderPass;
 
@@ -290,7 +290,7 @@ bool Material::Init
 	std::shared_ptr<ShaderModule> pShader = ShaderModule::Create(GetDevice(), shaderPath, ShaderModule::ShaderType::ShaderTypeCompute, "main");
 
 	// Create pipeline
-	m_pComputePipeline = ComputePipeline::Create(GetDevice(), pipelineCreateInfo, pShader, m_pPipelineLayout);
+	m_pPipeline = ComputePipeline::Create(GetDevice(), pipelineCreateInfo, pShader, m_pPipelineLayout);
 
 	return true;
 }
@@ -439,7 +439,7 @@ void Material::SyncBufferData()
 
 void Material::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	pCmdBuffer->BindPipeline(GetGraphicPipeline());
+	pCmdBuffer->BindPipeline(GetPipeline());
 }
 
 void Material::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
@@ -556,7 +556,7 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 
 	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
-	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
+	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);
 
 	PrepareCommandBuffer(pSecondaryCmd, pFrameBuffer, false, pingpong, overrideVP);
 
@@ -571,7 +571,7 @@ void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, con
 {
 	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
-	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
+	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);
 
 	PrepareCommandBuffer(pSecondaryCmd, pFrameBuffer, false, pingpong, overrideVP);
 
