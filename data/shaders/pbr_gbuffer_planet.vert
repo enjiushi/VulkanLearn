@@ -16,7 +16,6 @@ layout (location = 2) out vec3 outCSPosition;
 layout (location = 3) noperspective out vec2 outScreenPosition;
 layout (location = 4) out vec3 outPrevCSPosition;
 layout (location = 5) out vec4 outBarycentricCoord;
-layout (location = 6) out vec4 outSomething;
 
 #include "uniform_layout.sh"
 #include "utilities.sh"
@@ -48,8 +47,6 @@ void main()
 	}
 	else
 		morphFactor = 0;
-
-	outSomething.x = morphFactor;
 
 	// Acquire mixed barycentric position by interpolate from morphing start position and end position
 	vec2 mixBarycentric = mix(inBarycentricCoord.xy, morphStart, morphFactor);
