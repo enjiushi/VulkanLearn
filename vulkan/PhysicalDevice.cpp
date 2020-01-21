@@ -80,6 +80,62 @@ bool PhysicalDevice::Init(const std::shared_ptr<Instance>& pVulkanInstance, HINS
 
 	ASSERTION(m_graphicQueueIndex != -1);
 
+	m_computeQueueIndex = -1;
+
+	// Find a dedicated compute queue
+	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
+	{
+		// Find a dedicated compute queue
+		if (m_queueProperties[i].queueFlags == VK_QUEUE_COMPUTE_BIT)
+		{
+			m_computeQueueIndex = i;
+			break;
+		}
+	}
+
+	// No dedicated compute queue? Alright then, get one family that is capable of dealing with compute
+	if (m_computeQueueIndex == -1)
+	{
+		for (uint32_t i = 0; i < m_queueProperties.size(); i++)
+		{
+			if (m_queueProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
+			{
+				m_computeQueueIndex = i;
+				break;
+			}
+		}
+	}
+
+	ASSERTION(m_computeQueueIndex != -1);
+
+	m_transferQueueIndex = -1;
+
+	// Find a dedicated transfer queue
+	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
+	{
+		// Find a dedicated compute queue
+		if (m_queueProperties[i].queueFlags == VK_QUEUE_TRANSFER_BIT)
+		{
+			m_transferQueueIndex = i;
+			break;
+		}
+	}
+
+	// No dedicated transfer queue? Alright then, get one family that is capable of dealing with transfer
+	if (m_transferQueueIndex == -1)
+	{
+		for (uint32_t i = 0; i < m_queueProperties.size(); i++)
+		{
+			if (m_queueProperties[i].queueFlags & VK_QUEUE_TRANSFER_BIT)
+			{
+				m_transferQueueIndex = i;
+				break;
+			}
+		}
+	}
+
+	ASSERTION(m_transferQueueIndex != -1);
+
 	GET_INSTANCE_PROC_ADDR(pVulkanInstance->GetDeviceHandle(), GetPhysicalDeviceSurfaceCapabilitiesKHR);
 	GET_INSTANCE_PROC_ADDR(pVulkanInstance->GetDeviceHandle(), GetPhysicalDeviceSurfaceFormatsKHR);
 	GET_INSTANCE_PROC_ADDR(pVulkanInstance->GetDeviceHandle(), GetPhysicalDeviceSurfacePresentModesKHR);
