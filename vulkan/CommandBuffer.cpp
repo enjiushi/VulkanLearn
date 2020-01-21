@@ -5,7 +5,7 @@
 #include "DescriptorSet.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
-#include "GraphicPipeline.h"
+#include "PipelineBase.h"
 #include "PipelineLayout.h"
 #include "Buffer.h"
 #include "Image.h"
@@ -867,9 +867,9 @@ void CommandBuffer::BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pP
 	AddToReferenceTable(pPipelineLayout);
 }
 
-void CommandBuffer::BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeline)
+void CommandBuffer::BindPipeline(const std::shared_ptr<PipelineBase>& pPipeline)
 {
-	vkCmdBindPipeline(GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pPipeline->GetDeviceHandle());
+	vkCmdBindPipeline(GetDeviceHandle(), pPipeline->GetPipelineBindingPoint(), pPipeline->GetDeviceHandle());
 	AddToReferenceTable(pPipeline);
 }
 
