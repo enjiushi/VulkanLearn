@@ -97,6 +97,9 @@ protected:
 	uint32_t AcquireDataSize() const override { return sizeof(m_singlePrecisionPerPlanetVariables); }
 
 protected:
+	void PreComputeAtmosphereData(uint32_t chunkIndex);
+
+protected:
 	PerPlanetVariablesd		m_perPlanetVariables[MAXIMUM_OBJECTS];
 	PerPlanetVariablesf		m_singlePrecisionPerPlanetVariables[MAXIMUM_OBJECTS];
 

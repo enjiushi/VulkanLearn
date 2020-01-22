@@ -3,9 +3,13 @@
 #include "../vulkan/Buffer.h"
 #include "../vulkan/DescriptorSet.h"
 #include "../vulkan/ShaderStorageBuffer.h"
+#include "../vulkan/CommandPool.h"
+#include "../vulkan/Queue.h"
+#include "../vulkan/CommandBuffer.h"
 #include "GlobalTextures.h"
 #include "UniformData.h"
 #include "Material.h"
+#include "CustomizedComputeMaterial.h"
 
 bool PerPlanetUniforms::Init(const std::shared_ptr<PerPlanetUniforms>& pSelf)
 {
@@ -116,7 +120,30 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		CONVERT2SINGLEVAL(m_perPlanetVariables[chunkIndex], m_singlePrecisionPerPlanetVariables[chunkIndex], AtmosphereParameters.absorptionDensity.layers[i].constantTerm);
 	}
 
+	PreComputeAtmosphereData(chunkIndex);
+
 	return chunkIndex;
+}
+
+void PerPlanetUniforms::PreComputeAtmosphereData(uint32_t chunkIndex)
+{
+	CustomizedComputeMaterial::Variables vars =
+	{
+		L"../data/shaders/transmittance_gen.comp.spv",
+		{ 16, 4, 1 },
+		{ UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction() },
+		{ { 0, 1, 0, 1 } }
+	};
+	std::shared_ptr<Material> pTransmittanceGenMaterial = CustomizedComputeMaterial::CreateMaterial(vars);
+
+	std::shared_ptr<CommandBuffer> pCommandBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
+	pCommandBuffer->StartPrimaryRecording();
+	pTransmittanceGenMaterial->BeforeRenderPass(pCommandBuffer);
+	pTransmittanceGenMaterial->Dispatch(pCommandBuffer);
+	pTransmittanceGenMaterial->AfterRenderPass(pCommandBuffer);
+	pCommandBuffer->EndPrimaryRecording();
+
+	GlobalGraphicQueue()->SubmitCommandBuffer(pCommandBuffer, nullptr, true);
 }
 
 std::vector<UniformVarList> PerPlanetUniforms::PrepareUniformVarList() const
