@@ -29,8 +29,6 @@ protected:
 	void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) override;
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;
 
-	void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong) override;
-
 private:
 	Variables	m_variables;
 };

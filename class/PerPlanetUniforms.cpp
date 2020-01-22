@@ -6,6 +6,7 @@
 #include "../vulkan/CommandPool.h"
 #include "../vulkan/Queue.h"
 #include "../vulkan/CommandBuffer.h"
+#include "../vulkan/Image.h"
 #include "GlobalTextures.h"
 #include "UniformData.h"
 #include "Material.h"
@@ -127,22 +128,83 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 
 void PerPlanetUniforms::PreComputeAtmosphereData(uint32_t chunkIndex)
 {
+	std::shared_ptr<Image> pTransmittanceTexture = UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction();
+
+	std::shared_ptr<CommandBuffer> pCommandBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
+	pCommandBuffer->StartPrimaryRecording();
+
+	// Convert texture layout from original to general for compute write
+	VkImageSubresourceRange subresourceRanges = {};
+	subresourceRanges.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRanges.baseMipLevel = 0;
+	subresourceRanges.levelCount = 1;
+	subresourceRanges.baseArrayLayer = 0;
+	subresourceRanges.layerCount = 16;
+
+	VkImageMemoryBarrier imgBarrier = {};
+	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier.image = pTransmittanceTexture->GetDeviceHandle();
+	imgBarrier.subresourceRange = subresourceRanges;
+	imgBarrier.oldLayout = pTransmittanceTexture->GetImageInfo().initialLayout;
+	imgBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	imgBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+
+	pCommandBuffer->AttachBarriers
+	(
+		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		{},
+		{},
+		{ imgBarrier }
+	);
+
+	pCommandBuffer->EndPrimaryRecording();
+	GlobalGraphicQueue()->SubmitCommandBuffer(pCommandBuffer, nullptr, true);
+
 	CustomizedComputeMaterial::Variables vars =
 	{
 		L"../data/shaders/transmittance_gen.comp.spv",
 		{ 16, 4, 1 },
-		{ UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction() },
-		{ { 0, 1, 0, 1 } }
+		{ pTransmittanceTexture },
+		{ { 0, 1, chunkIndex, 1 } }
 	};
 	std::shared_ptr<Material> pTransmittanceGenMaterial = CustomizedComputeMaterial::CreateMaterial(vars);
 
-	std::shared_ptr<CommandBuffer> pCommandBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
+	// Recording
+	pCommandBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();;
 	pCommandBuffer->StartPrimaryRecording();
 	pTransmittanceGenMaterial->BeforeRenderPass(pCommandBuffer);
 	pTransmittanceGenMaterial->Dispatch(pCommandBuffer);
 	pTransmittanceGenMaterial->AfterRenderPass(pCommandBuffer);
+
+	// Convert back to texture's original layout
+	subresourceRanges.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRanges.baseMipLevel = 0;
+	subresourceRanges.levelCount = 1;
+	subresourceRanges.baseArrayLayer = 0;
+	subresourceRanges.layerCount = 16;
+
+	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgBarrier.image = pTransmittanceTexture->GetDeviceHandle();
+	imgBarrier.subresourceRange = subresourceRanges;
+	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+	imgBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+	imgBarrier.newLayout = pTransmittanceTexture->GetImageInfo().initialLayout;;
+	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	pCommandBuffer->AttachBarriers
+	(
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+		{},
+		{},
+		{ imgBarrier }
+	);
+
 	pCommandBuffer->EndPrimaryRecording();
 
+	// Do the job
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCommandBuffer, nullptr, true);
 }
 
