@@ -143,7 +143,7 @@ void UniformData::BuildDescriptorSets()
 					(uint32_t)bindings.size(),
 					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
 					1,
-					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
 					nullptr
 					});
 
@@ -154,7 +154,7 @@ void UniformData::BuildDescriptorSets()
 					(uint32_t)bindings.size(),
 					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
 					1,
-					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
 					nullptr
 					});
 
@@ -165,7 +165,7 @@ void UniformData::BuildDescriptorSets()
 					(uint32_t)bindings.size(),
 					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 					1,
-					VK_SHADER_STAGE_FRAGMENT_BIT,
+					VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
 					nullptr
 					});
 				break;
