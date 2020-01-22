@@ -98,7 +98,6 @@ public:
 	std::shared_ptr<PhysicalDevice>		m_pPhysicalDevice;
 	std::shared_ptr<Device>				m_pDevice;
 
-	std::shared_ptr<CommandPool>		m_pCommandPool;
 	std::shared_ptr<CommandBuffer>		m_pPrePresentCmdBuffer;
 	std::shared_ptr<CommandBuffer>		m_pPostPresentCmdBuffer;
 
