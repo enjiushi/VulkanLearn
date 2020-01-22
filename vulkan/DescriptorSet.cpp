@@ -80,11 +80,11 @@ void DescriptorSet::UpdateUniformBuffer(uint32_t binding, const std::shared_ptr<
 	m_resourceTable[binding].push_back(pBuffer);
 }
 
-void DescriptorSet::UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage, const std::shared_ptr<Sampler> pSampler, const std::shared_ptr<ImageView> pImageView)
+void DescriptorSet::UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage, const std::shared_ptr<Sampler> pSampler, const std::shared_ptr<ImageView> pImageView, bool isStorageImage)
 {
 	std::vector<VkWriteDescriptorSet> writeData = { {} };
 	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;;
+	writeData[0].descriptorType = isStorageImage ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	writeData[0].dstBinding = binding;
 	writeData[0].descriptorCount = 1;
 	writeData[0].dstSet = GetDeviceHandle();
@@ -103,11 +103,11 @@ void DescriptorSet::UpdateImage(uint32_t binding, const std::shared_ptr<Image>& 
 	AddToReferenceTable(pImageView);
 }
 
-void DescriptorSet::UpdateImage(uint32_t binding, const CombinedImage& image)
+void DescriptorSet::UpdateImage(uint32_t binding, const CombinedImage& image, bool isStorageImage)
 {
 	std::vector<VkWriteDescriptorSet> writeData = { {} };
 	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;;
+	writeData[0].descriptorType = isStorageImage ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	writeData[0].dstBinding = binding;
 	writeData[0].descriptorCount = 1;
 	writeData[0].dstSet = GetDeviceHandle();
@@ -126,11 +126,11 @@ void DescriptorSet::UpdateImage(uint32_t binding, const CombinedImage& image)
 	AddToReferenceTable(image.pImageView);
 }
 
-void DescriptorSet::UpdateImages(uint32_t binding, const std::vector<CombinedImage>& images)
+void DescriptorSet::UpdateImages(uint32_t binding, const std::vector<CombinedImage>& images, bool isStorageImage)
 {
 	std::vector<VkWriteDescriptorSet> writeData = { {} };
 	writeData[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writeData[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;;
+	writeData[0].descriptorType = isStorageImage ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	writeData[0].dstBinding = binding;
 	writeData[0].descriptorCount = (uint32_t)images.size();
 	writeData[0].dstSet = GetDeviceHandle();

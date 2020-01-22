@@ -37,9 +37,9 @@ public:
 	void UpdateUniformBuffer(uint32_t binding, const std::shared_ptr<UniformBuffer>& pBuffer);
 	void UpdateShaderStorageBufferDynamic(uint32_t binding, const std::shared_ptr<ShaderStorageBuffer>& pBuffer);
 	void UpdateShaderStorageBuffer(uint32_t binding, const std::shared_ptr<ShaderStorageBuffer>& pBuffer);
-	void UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage, const std::shared_ptr<Sampler> pSampler, const std::shared_ptr<ImageView> pImageView);
-	void UpdateImage(uint32_t binding, const CombinedImage& image);
-	void UpdateImages(uint32_t binding, const std::vector<CombinedImage>& images);
+	void UpdateImage(uint32_t binding, const std::shared_ptr<Image>& pImage, const std::shared_ptr<Sampler> pSampler, const std::shared_ptr<ImageView> pImageView, bool isStorageImage = false);
+	void UpdateImage(uint32_t binding, const CombinedImage& image, bool isStorageImage = false);
+	void UpdateImages(uint32_t binding, const std::vector<CombinedImage>& images, bool isStorageImage = false);
 	void UpdateInputImage(uint32_t binding, const std::shared_ptr<Image>& pImage, const std::shared_ptr<Sampler> pSampler, const std::shared_ptr<ImageView> pImageView);
 
 	// FIXME: Refactor this when I create texture buffer object class
