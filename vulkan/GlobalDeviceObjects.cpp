@@ -23,7 +23,9 @@ bool GlobalDeviceObjects::InitObjects(const std::shared_ptr<Device>& pDevice)
 	m_pTransferQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetTransferQueueIndex());
 	m_pPresentQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetPresentQueueIndex());
 
-	m_pMainThreadCmdPool = CommandPool::Create(pDevice);
+	m_pMainThreadGraphicCmdPool = CommandPool::Create(pDevice, m_pDevice->GetPhysicalDevice()->GetGraphicQueueIndex());
+	m_pMainThreadComputeCmdPool = CommandPool::Create(pDevice, m_pDevice->GetPhysicalDevice()->GetComputeQueueIndex());
+	m_pMainThreadTransferCmdPool = CommandPool::Create(pDevice, m_pDevice->GetPhysicalDevice()->GetTransferQueueIndex());
 
 	if (m_pDeviceMemMgr == nullptr)
 		m_pDeviceMemMgr = DeviceMemoryManager::Create(pDevice);
@@ -101,7 +103,9 @@ std::shared_ptr<Queue> GlobalGraphicQueue() { return GlobalObjects()->GetGraphic
 std::shared_ptr<Queue> GlobalComputeQueue() { return GlobalObjects()->GetComputeQueue(); }
 std::shared_ptr<Queue> GlobalTransferQueue() { return GlobalObjects()->GetTransferQueue(); }
 std::shared_ptr<Queue> GlobalPresentQueue() { return GlobalObjects()->GetPresentQueue(); }
-std::shared_ptr<CommandPool> MainThreadPool() { return GlobalObjects()->GetMainThreadCmdPool(); }
+std::shared_ptr<CommandPool> MainThreadGraphicPool() { return GlobalObjects()->GetMainThreadGraphicCmdPool(); }
+std::shared_ptr<CommandPool> MainThreadComputePool() { return GlobalObjects()->GetMainThreadComputeCmdPool(); }
+std::shared_ptr<CommandPool> MainThreadTransferPool() { return GlobalObjects()->GetMainThreadTransferCmdPool(); }
 std::shared_ptr<DeviceMemoryManager> DeviceMemMgr() { return GlobalObjects()->GetDeviceMemMgr(); }
 std::shared_ptr<StagingBufferManager> StagingBufferMgr() { return GlobalObjects()->GetStagingBufferMgr(); }
 std::shared_ptr<SwapChain> GetSwapChain() { return GlobalObjects()->GetSwapChain(); }
