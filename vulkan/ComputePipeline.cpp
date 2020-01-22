@@ -21,6 +21,7 @@ bool ComputePipeline::Init(const std::shared_ptr<Device>& pDevice, const std::sh
 	m_shaderStageInfo.pName = pEntryName;
 
 	m_info.stage = m_shaderStageInfo;
+	m_info.layout = m_pPipelineLayout->GetDeviceHandle();
 
 	if (!PipelineBase::Init(pDevice, pSelf, m_pPipelineLayout))
 		return false;
