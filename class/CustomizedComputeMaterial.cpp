@@ -35,7 +35,7 @@ bool CustomizedComputeMaterial::Init(const std::shared_ptr<CustomizedComputeMate
 			variables.textures[i]->CreateDefaultImageView()
 		});
 
-		m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount, combinedImages);
+		m_pUniformStorageDescriptorSet->UpdateImages(0, combinedImages, true);
 	}
 
 	m_variables = variables;
@@ -49,7 +49,7 @@ void CustomizedComputeMaterial::CustomizeMaterialLayout(std::vector<UniformVarLi
 	{
 		materialLayout.push_back(
 		{
-			CombinedSampler,
+			StorageImage,
 			"Input Texture",
 			{}
 		});
@@ -81,10 +81,12 @@ void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<Com
 		imgBarriers[i].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		imgBarriers[i].image = m_variables.textures[i]->GetDeviceHandle();
 		imgBarriers[i].subresourceRange = subresourceRanges[i];
-		imgBarriers[i].oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imgBarriers[i].oldLayout = m_variables.textures[i]->GetImageInfo().initialLayout;
 		imgBarriers[i].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 		imgBarriers[i].newLayout = VK_IMAGE_LAYOUT_GENERAL;
 		imgBarriers[i].dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		imgBarriers[i].srcQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetGraphicQueueIndex();
+		imgBarriers[i].dstQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetComputeQueueIndex();
 	}
 	
 	pCmdBuffer->AttachBarriers
