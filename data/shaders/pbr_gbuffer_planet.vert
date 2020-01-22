@@ -16,7 +16,6 @@ layout (location = 2) out vec3 outCSPosition;
 layout (location = 3) noperspective out vec2 outScreenPosition;
 layout (location = 4) out vec3 outPrevCSPosition;
 layout (location = 5) out vec4 outBarycentricCoord;
-layout (location = 6) out vec4 outSomething;
 
 #include "uniform_layout.sh"
 #include "utilities.sh"
@@ -40,16 +39,14 @@ void main()
 	if (level > 0)
 	{
 		float distance = length(inTriangleVertex + inTriangleEdge0 * inBarycentricCoord.x + inTriangleEdge1 * inBarycentricCoord.y);
-		float currLevelDistance = planetData[indirectIndex].PlanetLODDistanceLUT[level];
-		float prevLevelDistance = planetData[indirectIndex].PlanetLODDistanceLUT[level - 1];
+		float currLevelDistance = planetAtmosphereData[indirectIndex].PlanetLODDistanceLUT[level];
+		float prevLevelDistance = planetAtmosphereData[indirectIndex].PlanetLODDistanceLUT[level - 1];
 		morphFactor = 1.0f - (distance - currLevelDistance) / (prevLevelDistance - currLevelDistance);
 		morphFactor = 1.0f - min(morphFactor, globalData.PlanetRenderingSettings1.w) / globalData.PlanetRenderingSettings1.w;
 		morphFactor = clamp(morphFactor, 0, 1);
 	}
 	else
 		morphFactor = 0;
-
-	outSomething.x = morphFactor;
 
 	// Acquire mixed barycentric position by interpolate from morphing start position and end position
 	vec2 mixBarycentric = mix(inBarycentricCoord.xy, morphStart, morphFactor);

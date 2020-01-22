@@ -6,17 +6,12 @@
 
 GraphicPipeline::~GraphicPipeline()
 {
-	vkDestroyPipeline(GetDevice()->GetDeviceHandle(), m_pipeline, nullptr);
-
 	for (uint32_t i = 0; i < m_shaderStageInfo.size(); i++)
 		delete[] m_shaderStageInfo[i].pName;
 }
 
 bool GraphicPipeline::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<GraphicPipeline>& pSelf, const VkGraphicsPipelineCreateInfo& info)
 {
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
-		return false;
-
 	m_info = info;
 	
 	for (uint32_t i = 0; i < m_info.pColorBlendState->attachmentCount; i++)
@@ -74,9 +69,17 @@ bool GraphicPipeline::Init(const std::shared_ptr<Device>& pDevice, const std::sh
 	m_vertexInputCreateInfo.pVertexAttributeDescriptions = m_vertexAttributesInfo.data();
 	m_info.pVertexInputState = &m_vertexInputCreateInfo;
 
-	CHECK_VK_ERROR(vkCreateGraphicsPipelines(m_pDevice->GetDeviceHandle(), 0, 1, &m_info, nullptr, &m_pipeline));
+	if (!PipelineBase::Init(pDevice, pSelf, m_pPipelineLayout))
+		return false;
 
 	return true;
+}
+
+VkPipeline GraphicPipeline::CreatePipeline()
+{
+	VkPipeline pipeline;
+	CHECK_VK_ERROR(vkCreateGraphicsPipelines(m_pDevice->GetDeviceHandle(), 0, 1, &m_info, nullptr, &pipeline));
+	return pipeline;
 }
 
 std::shared_ptr<GraphicPipeline> GraphicPipeline::Create

@@ -52,7 +52,7 @@ std::shared_ptr<SwapChainImage> SwapChainImage::Create(const std::shared_ptr<Dev
 
 void SwapChainImage::EnsureImageLayout()
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = GlobalObjects()->GetMainThreadCmdPool()->AllocatePrimaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pCmdBuffer = GlobalObjects()->GetMainThreadGraphicCmdPool()->AllocatePrimaryCommandBuffer();
 
 	pCmdBuffer->StartPrimaryRecording();
 

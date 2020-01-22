@@ -3,7 +3,7 @@
 #include "DeviceObjectBase.h"
 
 class CommandPool;
-class GraphicPipeline;
+class PipelineBase;
 class RenderPass;
 class DescriptorSet;
 class VertexBuffer;
@@ -25,7 +25,7 @@ public:
 	{
 		std::shared_ptr<RenderPass>					pRenderPass;
 		std::shared_ptr<FrameBuffer>				pFrameBuffer;
-		std::shared_ptr<GraphicPipeline>			pPipeline;
+		std::shared_ptr<PipelineBase>				pPipeline;
 		std::vector<std::shared_ptr<DescriptorSet>>	descriptorSets;
 
 		std::vector<std::shared_ptr<VertexBuffer>>	vertexBuffers;
@@ -97,8 +97,8 @@ public:
 	void SetViewports(const std::vector<VkViewport>& viewports);
 	void SetScissors(const std::vector<VkRect2D>& scissors);
 
-	void BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets);
-	void BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeline);
+	void BindDescriptorSets(VkPipelineBindPoint bindingPoint, const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets);
+	void BindPipeline(const std::shared_ptr<PipelineBase>& pPipeline);
 	void BindVertexBuffer(const std::shared_ptr<BufferBase>& pBuffer, uint32_t offset = 0, uint32_t startSlot = 0);
 	void BindVertexBuffers(const std::vector<std::shared_ptr<BufferBase>>& vertexBuffers, uint32_t startSlot = 0);
 	void BindIndexBuffer(const std::shared_ptr<BufferBase>& pIndexBuffer, VkIndexType type);
@@ -115,6 +115,8 @@ public:
 	void NextSubpass();
 
 	void Execute(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers);
+
+	void Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 
 protected:
 	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);

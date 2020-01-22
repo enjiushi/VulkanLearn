@@ -35,7 +35,7 @@
 #define CHECK_VK_ERROR(vkExpress) vkExpress;
 #define RETURN_FALSE_VK_RESULT(vkExpress) vkExpress;
 #define CHECK_ERROR(vkExpress) vkExpress;
-#define ASSERTION(express) express;
+#define ASSERTION(express)
 #endif
 #endif
 

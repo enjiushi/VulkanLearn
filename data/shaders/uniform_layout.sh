@@ -50,8 +50,44 @@ struct MeshData
 	uint boneChunkIndexOffset;
 };
 
-struct PlanetData
+struct DensityProfileLayer {
+	float	width;
+	float	exp_term;
+	float	exp_scale;
+	float	linear_term;
+	float	constant_term;
+	float	padding0;
+	float	padding1;
+	float	padding2;
+};
+
+struct DensityProfile {
+	DensityProfileLayer layers[2];
+};
+
+struct AtmosphereParameters {
+	vec4	solarIrradiance;			// w: sunAngularRadius
+
+	// x: Atmosphere bottom radius
+	// y: Atmosphere top radius
+	// z: Mie phase function
+	// w: Minumum sun zenith angle
+	vec4	variables;
+
+	vec4	rayleighScattering;
+	vec4	mieScattering;
+	vec4	mieExtinction;
+	vec4	absorptionExtinction;
+	vec4	groundAlbedo;
+
+	DensityProfile rayleighDensity;
+	DensityProfile mieDensity;
+	DensityProfile absorptionDensity;
+};
+
+struct PlanetAtmosphereData
 {
+	AtmosphereParameters atmosphereParameters;
 	vec4	planetDescriptor0;
 	float	PlanetLODDistanceLUT[32];
 };
@@ -143,7 +179,7 @@ layout(std430, set = 0, binding = 4) buffer PerMeshUniforms
 
 layout(std430, set = 0, binding = 5) buffer PerPlanetUniforms
 {
-	PlanetData		planetData[];
+	PlanetAtmosphereData		planetAtmosphereData[];
 };
 
 layout(std430, set = 0, binding = 6) buffer PerAnimationUniforms
@@ -159,6 +195,7 @@ layout(set = 0, binding = 11) uniform samplerCube RGBA16_512_CUBE_IRRADIANCE;
 layout(set = 0, binding = 12) uniform samplerCube RGBA16_512_CUBE_PREFILTERENV;
 layout(set = 0, binding = 13) uniform sampler2D RGBA16_512_2D_BRDFLUT;
 layout(set = 0, binding = 14) uniform sampler2D SSAO_RANDOM_ROTATIONS;
+layout(set = 0, binding = 15) uniform sampler2DArray TRANSMITTANCE_DICTION;
 
 layout(std430, set = 1, binding = 0) uniform PerFrameUniforms
 {

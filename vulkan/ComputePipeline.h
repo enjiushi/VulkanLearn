@@ -2,21 +2,19 @@
 
 #include "DeviceObjectBase.h"
 #include "ShaderModule.h"
+#include "PipelineBase.h"
 
 class PipelineLayout;
 
-class ComputePipeline : public DeviceObjectBase<ComputePipeline>
+class ComputePipeline : public PipelineBase
 {
-	static const uint32_t ENTRY_NAME_LENGTH = 64;
-
 public:
 	~ComputePipeline();
 
 public:
-	VkPipeline GetDeviceHandle() const { return m_pipeline; }
 	const VkComputePipelineCreateInfo& GetInfo() const { return m_info; }
-	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
 	std::shared_ptr<ShaderModule> GetShader() const { return m_pShaderModule; }
+	VkPipelineBindPoint GetPipelineBindingPoint() const override { return VK_PIPELINE_BIND_POINT_COMPUTE; }
 
 public:
 	static std::shared_ptr<ComputePipeline> Create
@@ -29,11 +27,10 @@ public:
 
 private:
 	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<ComputePipeline>& pSelf, const VkComputePipelineCreateInfo& info);
+	VkPipeline CreatePipeline() override;
 
 protected:
-	VkPipeline							m_pipeline;
 	VkComputePipelineCreateInfo			m_info;
 	VkPipelineShaderStageCreateInfo		m_shaderStageInfo;
-	std::shared_ptr<PipelineLayout>		m_pPipelineLayout;
 	std::shared_ptr<ShaderModule>		m_pShaderModule;
 };

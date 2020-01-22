@@ -43,49 +43,52 @@ void Material::GeneralInit
 (
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
-
+	bool isCompute,
 	// Don't remove this, will be useful later
 	bool includeIndirectBuffer
 )
 {
-	m_materialVariableLayout.resize(MaterialUniformStorageTypeCount);
-	m_materialUniforms.resize(MaterialUniformStorageTypeCount);
-
-
-	std::vector<UniformVarList> _materialVariableLayout;
-
-	// Add per material indirect index uniform layout
-	m_materialUniforms[PerMaterialIndirectOffsetBuffer] = PerMaterialIndirectOffsetUniforms::Create();
-	m_materialVariableLayout[PerMaterialIndirectOffsetBuffer] = m_materialUniforms[PerMaterialIndirectOffsetBuffer]->PrepareUniformVarList()[0];
-	m_pPerMaterialIndirectOffset = std::dynamic_pointer_cast<PerMaterialIndirectOffsetUniforms>(m_materialUniforms[PerMaterialIndirectOffsetBuffer]);
-
-	m_materialUniforms[PerMaterialIndirectVariableBuffer] = PerMaterialIndirectUniforms::Create();
-	m_materialVariableLayout[PerMaterialIndirectVariableBuffer] = m_materialUniforms[PerMaterialIndirectVariableBuffer]->PrepareUniformVarList()[0];
-	m_pPerMaterialIndirectUniforms = std::dynamic_pointer_cast<PerMaterialIndirectUniforms>(m_materialUniforms[PerMaterialIndirectVariableBuffer]);
-
-	// Add material variable layout
-	m_materialVariableLayout[PerMaterialVariableBuffer] =
+	if (!isCompute)
 	{
-		DynamicUniformBuffer,
-		"PBR Material Textures Indices",
-		{}
-	};
+		m_materialVariableLayout.resize(MaterialUniformStorageTypeCount);
+		m_materialUniforms.resize(MaterialUniformStorageTypeCount);
 
-	m_materialVariableLayout[PerMaterialVariableBuffer].vars = materialUniformVars;
 
-	// If there's no per material variable, I just simply add a dummy variable, for the sake of simplicity
-	if (m_materialVariableLayout[PerMaterialVariableBuffer].vars.size() == 0)
-	{
-		m_materialVariableLayout[PerMaterialVariableBuffer].vars =
+		std::vector<UniformVarList> _materialVariableLayout;
+
+		// Add per material indirect index uniform layout
+		m_materialUniforms[PerMaterialIndirectOffsetBuffer] = PerMaterialIndirectOffsetUniforms::Create();
+		m_materialVariableLayout[PerMaterialIndirectOffsetBuffer] = m_materialUniforms[PerMaterialIndirectOffsetBuffer]->PrepareUniformVarList()[0];
+		m_pPerMaterialIndirectOffset = std::dynamic_pointer_cast<PerMaterialIndirectOffsetUniforms>(m_materialUniforms[PerMaterialIndirectOffsetBuffer]);
+
+		m_materialUniforms[PerMaterialIndirectVariableBuffer] = PerMaterialIndirectUniforms::Create();
+		m_materialVariableLayout[PerMaterialIndirectVariableBuffer] = m_materialUniforms[PerMaterialIndirectVariableBuffer]->PrepareUniformVarList()[0];
+		m_pPerMaterialIndirectUniforms = std::dynamic_pointer_cast<PerMaterialIndirectUniforms>(m_materialUniforms[PerMaterialIndirectVariableBuffer]);
+
+		// Add material variable layout
+		m_materialVariableLayout[PerMaterialVariableBuffer] =
 		{
-			{
-				OneUnit,
-				"Dummy"
-			}
+			DynamicUniformBuffer,
+			"PBR Material Textures Indices",
+			{}
 		};
+
+		m_materialVariableLayout[PerMaterialVariableBuffer].vars = materialUniformVars;
+
+		// If there's no per material variable, I just simply add a dummy variable, for the sake of simplicity
+		if (m_materialVariableLayout[PerMaterialVariableBuffer].vars.size() == 0)
+		{
+			m_materialVariableLayout[PerMaterialVariableBuffer].vars =
+			{
+				{
+					OneUnit,
+					"Dummy"
+				}
+			};
+		}
+		m_materialUniforms[PerMaterialVariableBuffer] = PerMaterialUniforms::Create(GetByteSize(m_materialVariableLayout[PerMaterialVariableBuffer].vars));
+		m_pPerMaterialUniforms = std::dynamic_pointer_cast<PerMaterialUniforms>(m_materialUniforms[PerMaterialVariableBuffer]);
 	}
-	m_materialUniforms[PerMaterialVariableBuffer] = PerMaterialUniforms::Create(GetByteSize(m_materialVariableLayout[PerMaterialVariableBuffer].vars));
-	m_pPerMaterialUniforms = std::dynamic_pointer_cast<PerMaterialUniforms>(m_materialUniforms[PerMaterialVariableBuffer]);
 
 	// Force per object material variable to be shader storage buffer
 	for (auto& var : m_materialVariableLayout)
@@ -95,6 +98,8 @@ void Material::GeneralInit
 	}
 
 	CustomizeMaterialLayout(m_materialVariableLayout);
+
+	VkDescriptorType imageType = isCompute ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
 	// Build vulkan layout bindings
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
@@ -108,7 +113,7 @@ void Material::GeneralInit
 				(uint32_t)bindings.size(),
 				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
 				var.count,
-				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
 				nullptr
 				});
 
@@ -119,7 +124,7 @@ void Material::GeneralInit
 				(uint32_t)bindings.size(),
 				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
 				var.count,
-				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
 				nullptr
 				});
 
@@ -128,9 +133,19 @@ void Material::GeneralInit
 			bindings.push_back
 			({
 				(uint32_t)bindings.size(),
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+				imageType,
 				var.count,
-				VK_SHADER_STAGE_FRAGMENT_BIT,
+				VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
+				nullptr
+				});
+			break;
+		case StorageImage:
+			bindings.push_back
+			({
+				(uint32_t)bindings.size(),
+				imageType,
+				var.count,
+				VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
 				nullptr
 				});
 			break;
@@ -186,15 +201,11 @@ void Material::GeneralInit
 	m_descriptorSets = UniformData::GetInstance()->GetDescriptorSets();
 	m_descriptorSets.push_back(m_pUniformStorageDescriptorSet);
 
-	// Setup descriptor set
-	uint32_t bindingIndex = 0;
-	for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
-	{
-		bindingIndex = m_materialUniforms[i]->SetupDescriptorSet(m_pUniformStorageDescriptorSet, bindingIndex);
-	}
-
 	// Setup cached frame offsets
 	m_cachedFrameOffsets = UniformData::GetInstance()->GetCachedFrameOffsets();
+
+	if (isCompute)
+		return;
 
 	for (uint32_t frameIndex = 0; frameIndex < GetSwapChain()->GetSwapChainImageCount(); frameIndex++)
 	{
@@ -203,6 +214,13 @@ void Material::GeneralInit
 		{
 			m_cachedFrameOffsets[frameIndex].push_back(m_materialUniforms[i]->GetFrameOffset() * frameIndex);
 		}
+	}
+
+	// Setup descriptor set
+	uint32_t bindingIndex = 0;
+	for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
+	{
+		bindingIndex = m_materialUniforms[i]->SetupDescriptorSet(m_pUniformStorageDescriptorSet, bindingIndex);
 	}
 }
 
@@ -237,7 +255,7 @@ bool Material::Init
 	if (!SelfRefBase<Material>::Init(pSelf))
 		return false;
 
-	GeneralInit(pushConstsRanges, materialUniformVars, includeIndirectBuffer);
+	GeneralInit(pushConstsRanges, materialUniformVars, false, includeIndirectBuffer);
 
 	// Init shaders
 	std::vector<std::shared_ptr<ShaderModule>> shaders;
@@ -249,7 +267,7 @@ bool Material::Init
 	}
 
 	// Create pipeline
-	m_pGraphicPipeline = GraphicPipeline::Create(GetDevice(), pipelineCreateInfo, shaders, pRenderPass->GetRenderPass(), m_pPipelineLayout);
+	m_pPipeline = GraphicPipeline::Create(GetDevice(), pipelineCreateInfo, shaders, pRenderPass->GetRenderPass(), m_pPipelineLayout);
 
 	m_pRenderPass = pRenderPass;
 
@@ -278,16 +296,19 @@ bool Material::Init
 	const std::wstring& shaderPath,
 	const VkComputePipelineCreateInfo& pipelineCreateInfo,
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
-	const std::vector<UniformVar>& materialUniformVars
+	const std::vector<UniformVar>& materialUniformVars,
+	const Vector3ui& groupSize
 )
 {
-	GeneralInit(pushConstsRanges, materialUniformVars, false);
+	GeneralInit(pushConstsRanges, materialUniformVars, true, false);
+
+	m_computeGroupSize = groupSize;
 
 	// Init shader
 	std::shared_ptr<ShaderModule> pShader = ShaderModule::Create(GetDevice(), shaderPath, ShaderModule::ShaderType::ShaderTypeCompute, "main");
 
 	// Create pipeline
-	m_pComputePipeline = ComputePipeline::Create(GetDevice(), pipelineCreateInfo, pShader, m_pPipelineLayout);
+	m_pPipeline = ComputePipeline::Create(GetDevice(), pipelineCreateInfo, pShader, m_pPipelineLayout);
 
 	return true;
 }
@@ -436,12 +457,12 @@ void Material::SyncBufferData()
 
 void Material::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	pCmdBuffer->BindPipeline(GetGraphicPipeline());
+	pCmdBuffer->BindPipeline(GetPipeline());
 }
 
 void Material::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	pCmdBuffer->BindDescriptorSets(GetPipelineLayout(), m_descriptorSets, m_cachedFrameOffsets[FrameMgr()->FrameIndex()]);
+	pCmdBuffer->BindDescriptorSets(m_pPipeline->GetPipelineBindingPoint(), GetPipelineLayout(), m_descriptorSets, m_cachedFrameOffsets[FrameMgr()->FrameIndex()]);
 }
 
 void Material::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture)
@@ -507,38 +528,43 @@ void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, ui
 {
 }
 
-void Material::PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
+void Material::PrepareCommandBuffer(const std::shared_ptr<CommandBuffer>& pCommandBuffer, const std::shared_ptr<FrameBuffer>& pFrameBuffer, bool isCompute, uint32_t pingpong, bool overrideVP)
 {
-	if (overrideVP)
-	{ 
-		pSecondaryCmdBuf->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
-		pSecondaryCmdBuf->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
-	}
-	else
+	if (!isCompute)
 	{
-		pSecondaryCmdBuf->SetViewports(
-			{
+		if (overrideVP)
+		{
+			pCommandBuffer->SetViewports({ GetGlobalVulkanStates()->GetViewport() });
+			pCommandBuffer->SetScissors({ GetGlobalVulkanStates()->GetScissorRect() });
+		}
+		else
+		{
+			pCommandBuffer->SetViewports(
 				{
-					0, 0,
-					(float)pFrameBuffer->GetFramebufferInfo().width, (float)pFrameBuffer->GetFramebufferInfo().height,
-					0, 1
-				}
-			});
+					{
+						0, 0,
+						(float)pFrameBuffer->GetFramebufferInfo().width, (float)pFrameBuffer->GetFramebufferInfo().height,
+						0, 1
+					}
+				});
 
-		pSecondaryCmdBuf->SetScissors(
-			{
+			pCommandBuffer->SetScissors(
 				{
-					0, 0,
-					pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
-				}
-			});
+					{
+						0, 0,
+						pFrameBuffer->GetFramebufferInfo().width, pFrameBuffer->GetFramebufferInfo().height,
+					}
+				});
+		}
 	}
 
-	BindPipeline(pSecondaryCmdBuf);
-	BindDescriptorSet(pSecondaryCmdBuf);
-	BindMeshData(pSecondaryCmdBuf);
+	BindPipeline(pCommandBuffer);
+	BindDescriptorSet(pCommandBuffer);
 
-	CustomizeSecondaryCmd(pSecondaryCmdBuf, pFrameBuffer, pingpong);
+	if (!isCompute)
+		BindMeshData(pCommandBuffer);
+
+	CustomizeCommandBuffer(pCommandBuffer, pFrameBuffer, pingpong);
 }
 
 void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
@@ -548,9 +574,9 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 
 	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
-	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
+	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);
 
-	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong, overrideVP);
+	PrepareCommandBuffer(pSecondaryCmd, pFrameBuffer, false, pingpong, overrideVP);
 
 	pSecondaryCmd->DrawIndexedIndirectCount(m_indirectBuffers[FrameMgr()->FrameIndex()], 0, m_indirectCmdCountBuffers[FrameMgr()->FrameIndex()], 0);
 
@@ -563,15 +589,21 @@ void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, con
 {
 	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
-	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pGraphicPipeline->GetInfo().subpass, pFrameBuffer);
+	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);
 
-	PrepareSecondaryCmd(pSecondaryCmd, pFrameBuffer, pingpong, overrideVP);
+	PrepareCommandBuffer(pSecondaryCmd, pFrameBuffer, false, pingpong, overrideVP);
 
 	pSecondaryCmd->Draw(3, 1, 0, 0);
 
 	pSecondaryCmd->EndSecondaryRecording();
 
 	pCmdBuf->Execute({ pSecondaryCmd });
+}
+
+void Material::Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
+{
+	PrepareCommandBuffer(pCmdBuf, nullptr, true, pingpong, false);
+	pCmdBuf->Dispatch(m_computeGroupSize.x, m_computeGroupSize.y, m_computeGroupSize.z);
 }
 
 void Material::OnFrameBegin()

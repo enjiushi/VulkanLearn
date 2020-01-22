@@ -10,19 +10,20 @@ Queue::~Queue()
 {
 }
 
-bool Queue::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Queue>& pSelf, uint32_t queueIndex)
+bool Queue::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Queue>& pSelf, uint32_t queueFamilyIndex)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	vkGetDeviceQueue(pDevice->GetDeviceHandle(), pDevice->GetPhysicalDevice()->GetGraphicQueueIndex(), 0, &m_queue);
+	// We only acquire 1st queue in a queue family, for now
+	vkGetDeviceQueue(pDevice->GetDeviceHandle(), queueFamilyIndex, 0, &m_queue);
 	return true;
 }
 
-std::shared_ptr<Queue> Queue::Create(const std::shared_ptr<Device>& pDevice, uint32_t queueIndex)
+std::shared_ptr<Queue> Queue::Create(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex)
 {
 	std::shared_ptr<Queue> pQueue = std::make_shared<Queue>();
-	if (pQueue.get() && pQueue->Init(pDevice, pQueue, queueIndex))
+	if (pQueue.get() && pQueue->Init(pDevice, pQueue, queueFamilyIndex))
 		return pQueue;
 	return nullptr;
 }

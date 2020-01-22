@@ -26,6 +26,8 @@ public:
 	const VkFormat GetDepthStencilFormat() const { return m_depthStencilFormat; }
 
 	const uint32_t GetGraphicQueueIndex() const { return m_graphicQueueIndex; }
+	const uint32_t GetComputeQueueIndex() const { return m_computeQueueIndex; }
+	const uint32_t GetTransferQueueIndex() const { return m_transferQueueIndex; }
 	const uint32_t GetPresentQueueIndex() const { return m_presentQueueIndex; }
 
 	const VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surfaceFormats[0]; }
@@ -46,6 +48,8 @@ private:
 	VkFormat							m_depthStencilFormat;
 
 	uint32_t							m_graphicQueueIndex;
+	uint32_t							m_computeQueueIndex;
+	uint32_t							m_transferQueueIndex;
 
 	//Surface related
 	VkSurfaceKHR						m_surface;

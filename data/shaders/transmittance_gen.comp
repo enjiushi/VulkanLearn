@@ -1,0 +1,15 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+#include "atmosphere/functions.sh"
+
+layout (local_size_x = 16, local_size_y = 16) in;
+layout (set = 3, binding = 0, rgba8) uniform image2DArray resultImage;
+
+void main()
+{	
+	vec3 transmittance = ComputeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, vec2(gl_GlobalInvocationID.xy) + vec2(0.5));
+	imageStore(resultImage, ivec3(gl_GlobalInvocationID.xy, 0), vec4(transmittance, 0));
+}

@@ -2,12 +2,58 @@
 
 #include "ChunkBasedUniforms.h"
 
-const static uint32_t PLANET_LOD_MAX_LEVEL1 = 32;
+const static uint32_t PLANET_LOD_MAX_LEVEL = 32;
+
+template <typename T>
+class DensityProfileLayer
+{
+public:
+	T	width;
+	T	expTerm;
+	T	expScale;
+	T	linearTerm;
+	T	constantTerm;
+	T	padding0;
+	T	padding1;
+	T	padding2;
+};
+
+template <typename T>
+class DensityProfile
+{
+public:
+	DensityProfileLayer<T>	layers[2];
+};
+
+template <typename T>
+class AtmosphereParameters
+{
+public:
+	// w: sunAngularRadius
+	Vector4<T>			solarIrradiance;
+
+	// x: Atmosphere bottom radius
+	// y: Atmosphere top radius
+	// z: Mie phase function
+	// w: Minumum sun zenith angle
+	Vector4<T>			variables;
+
+	Vector4<T>			rayleighScattering;
+	Vector4<T>			mieScattering;
+	Vector4<T>			mieExtinction;
+	Vector4<T>			absorptionExtinction;
+	Vector4<T>			groundAlbedo;
+
+	DensityProfile<T>	rayleighDensity;
+	DensityProfile<T>	mieDensity;
+	DensityProfile<T>	absorptionDensity;
+};
 
 template <typename T>
 class PerPlanetVariables
 {
 public:
+	AtmosphereParameters<T>	AtmosphereParameters;
 	/*******************************************************************
 	* DESCRIPTION: Planet Rendering Settings
 	*
@@ -19,7 +65,7 @@ public:
 	Vector4<T>	PlanetDescriptor0;
 
 	// Planet LOD level distance look up table
-	T			PlanetLODDistanceLUT[PLANET_LOD_MAX_LEVEL1];
+	T			PlanetLODDistanceLUT[PLANET_LOD_MAX_LEVEL];
 };
 
 typedef PerPlanetVariables<float> PerPlanetVariablesf;
@@ -37,8 +83,9 @@ public:
 	void SetPlanetRadius(uint32_t index, double radius);
 	double GetPlanetRadius(uint32_t index) const { return m_perPlanetVariables[index].PlanetDescriptor0.x; }
 	void SetPlanetTriangleSubdivideLevel(uint32_t index, uint32_t level);
-	double SetPlanetTriangleSubdivideLevel(uint32_t index) const { return m_perPlanetVariables[index].PlanetDescriptor0.y; }
+	double GetPlanetTriangleSubdivideLevel(uint32_t index) const { return m_perPlanetVariables[index].PlanetDescriptor0.y; }
 	double GetLODDistance(uint32_t index, uint32_t level) const { return m_perPlanetVariables[index].PlanetLODDistanceLUT[level]; }
+	uint32_t AllocatePlanetChunk();
 
 public:
 	std::vector<UniformVarList> PrepareUniformVarList() const override;
@@ -48,6 +95,9 @@ protected:
 	void UpdateDirtyChunkInternal(uint32_t index) override {}
 	const void* AcquireDataPtr() const override { return &m_singlePrecisionPerPlanetVariables[0]; }
 	uint32_t AcquireDataSize() const override { return sizeof(m_singlePrecisionPerPlanetVariables); }
+
+protected:
+	void PreComputeAtmosphereData(uint32_t chunkIndex);
 
 protected:
 	PerPlanetVariablesd		m_perPlanetVariables[MAXIMUM_OBJECTS];

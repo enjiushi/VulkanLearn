@@ -5,16 +5,11 @@
 
 ComputePipeline::~ComputePipeline()
 {
-	vkDestroyPipeline(GetDevice()->GetDeviceHandle(), m_pipeline, nullptr);
-
 	delete[] m_shaderStageInfo.pName;
 }
 
 bool ComputePipeline::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<ComputePipeline>& pSelf, const VkComputePipelineCreateInfo& info)
 {
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
-		return false;
-
 	m_info = info;
 
 	m_shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -26,10 +21,19 @@ bool ComputePipeline::Init(const std::shared_ptr<Device>& pDevice, const std::sh
 	m_shaderStageInfo.pName = pEntryName;
 
 	m_info.stage = m_shaderStageInfo;
+	m_info.layout = m_pPipelineLayout->GetDeviceHandle();
 
-	CHECK_VK_ERROR(vkCreateComputePipelines(m_pDevice->GetDeviceHandle(), 0, 1, &m_info, nullptr, &m_pipeline));
+	if (!PipelineBase::Init(pDevice, pSelf, m_pPipelineLayout))
+		return false;
 
 	return true;
+}
+
+VkPipeline ComputePipeline::CreatePipeline()
+{
+	VkPipeline pipeline;
+	CHECK_VK_ERROR(vkCreateComputePipelines(m_pDevice->GetDeviceHandle(), 0, 1, &m_info, nullptr, &pipeline));
+	return pipeline;
 }
 
 std::shared_ptr<ComputePipeline> ComputePipeline::Create

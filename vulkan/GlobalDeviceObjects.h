@@ -23,8 +23,12 @@ class GlobalDeviceObjects;
 
 GlobalDeviceObjects* GlobalObjects();
 std::shared_ptr<Queue> GlobalGraphicQueue();
+std::shared_ptr<Queue> GlobalComputeQueue();
+std::shared_ptr<Queue> GlobalTransferQueue();
 std::shared_ptr<Queue> GlobalPresentQueue();
-std::shared_ptr<CommandPool> MainThreadPool();
+std::shared_ptr<CommandPool> MainThreadGraphicPool();
+std::shared_ptr<CommandPool> MainThreadComputePool();
+std::shared_ptr<CommandPool> MainThreadTransferPool();
 std::shared_ptr<DeviceMemoryManager> DeviceMemMgr();
 std::shared_ptr<StagingBufferManager> StagingBufferMgr();
 std::shared_ptr<SwapChain> GetSwapChain();
@@ -51,8 +55,12 @@ public:
 public:
 	const std::shared_ptr<Device> GetDevice() const { return m_pDevice; }
 	const std::shared_ptr<Queue> GetGraphicQueue() const { return m_pGraphicQueue; }
+	const std::shared_ptr<Queue> GetComputeQueue() const { return m_pComputeQueue; }
+	const std::shared_ptr<Queue> GetTransferQueue() const { return m_pTransferQueue; }
 	const std::shared_ptr<Queue> GetPresentQueue() const { return m_pPresentQueue; }
-	const std::shared_ptr<CommandPool> GetMainThreadCmdPool() const { return m_pMainThreadCmdPool; }
+	const std::shared_ptr<CommandPool> GetMainThreadGraphicCmdPool() const { return m_pMainThreadGraphicCmdPool; }
+	const std::shared_ptr<CommandPool> GetMainThreadComputeCmdPool() const { return m_pMainThreadComputeCmdPool; }
+	const std::shared_ptr<CommandPool> GetMainThreadTransferCmdPool() const { return m_pMainThreadTransferCmdPool; }
 	const std::shared_ptr<DeviceMemoryManager> GetDeviceMemMgr() const { return m_pDeviceMemMgr; }
 	const std::shared_ptr<StagingBufferManager> GetStagingBufferMgr() const { return m_pStaingBufferMgr; }
 	const std::shared_ptr<SwapChain> GetSwapChain() const { return m_pSwapChain; }
@@ -72,8 +80,12 @@ public:
 protected:
 	std::shared_ptr<Device>					m_pDevice;
 	std::shared_ptr<Queue>					m_pGraphicQueue;
+	std::shared_ptr<Queue>					m_pComputeQueue;
+	std::shared_ptr<Queue>					m_pTransferQueue;
 	std::shared_ptr<Queue>					m_pPresentQueue;
-	std::shared_ptr<CommandPool>			m_pMainThreadCmdPool;
+	std::shared_ptr<CommandPool>			m_pMainThreadGraphicCmdPool;
+	std::shared_ptr<CommandPool>			m_pMainThreadComputeCmdPool;
+	std::shared_ptr<CommandPool>			m_pMainThreadTransferCmdPool;
 	std::shared_ptr<DeviceMemoryManager>	m_pDeviceMemMgr;
 
 	std::shared_ptr<StagingBufferManager>	m_pStaingBufferMgr;

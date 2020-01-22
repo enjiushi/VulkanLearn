@@ -5,7 +5,7 @@
 #include "DescriptorSet.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
-#include "GraphicPipeline.h"
+#include "PipelineBase.h"
 #include "PipelineLayout.h"
 #include "Buffer.h"
 #include "Image.h"
@@ -847,7 +847,7 @@ void CommandBuffer::SetScissors(const std::vector<VkRect2D>& scissors)
 	vkCmdSetScissor(GetDeviceHandle(), 0, (uint32_t)scissors.size(), scissors.data());
 }
 
-void CommandBuffer::BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets)
+void CommandBuffer::BindDescriptorSets(VkPipelineBindPoint bindingPoint, const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets)
 {
 	std::vector<VkDescriptorSet> rawDSList;
 	for (uint32_t i = 0; i < (uint32_t)descriptorSets.size(); i++)
@@ -859,7 +859,7 @@ void CommandBuffer::BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pP
 	vkCmdBindDescriptorSets
 	(
 		GetDeviceHandle(),
-		VK_PIPELINE_BIND_POINT_GRAPHICS, pPipelineLayout->GetDeviceHandle(),
+		bindingPoint, pPipelineLayout->GetDeviceHandle(),
 		0, (uint32_t)descriptorSets.size(), rawDSList.data(),
 		(uint32_t)offsets.size(), offsets.data()
 	);
@@ -867,9 +867,9 @@ void CommandBuffer::BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pP
 	AddToReferenceTable(pPipelineLayout);
 }
 
-void CommandBuffer::BindPipeline(const std::shared_ptr<GraphicPipeline>& pPipeline)
+void CommandBuffer::BindPipeline(const std::shared_ptr<PipelineBase>& pPipeline)
 {
-	vkCmdBindPipeline(GetDeviceHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pPipeline->GetDeviceHandle());
+	vkCmdBindPipeline(GetDeviceHandle(), pPipeline->GetPipelineBindingPoint(), pPipeline->GetDeviceHandle());
 	AddToReferenceTable(pPipeline);
 }
 
@@ -945,6 +945,11 @@ void CommandBuffer::Execute(const std::vector<std::shared_ptr<CommandBuffer>>& c
 	}
 
 	vkCmdExecuteCommands(GetDeviceHandle(), (uint32_t)cmds.size(), cmds.data());
+}
+
+void CommandBuffer::Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+{
+	vkCmdDispatch(GetDeviceHandle(), groupCountX, groupCountY, groupCountZ);
 }
 
 void CommandBuffer::BeginRenderPass(const std::shared_ptr<FrameBuffer>& pFrameBuffer, const std::shared_ptr<RenderPass>& pRenderPass, const std::vector<VkClearValue>& clearValues, bool includeSecondary)

@@ -330,7 +330,6 @@ void VulkanGlobal::Update()
 
 void VulkanGlobal::InitCommandPool()
 {
-	m_pCommandPool = CommandPool::Create(m_pDevice);
 }
 
 void VulkanGlobal::InitSetupCommandBuffer()

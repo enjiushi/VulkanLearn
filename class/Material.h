@@ -13,8 +13,7 @@
 #include "../vulkan/Buffer.h"
 
 class PipelineLayout;
-class GraphicPipeline;
-class ComputePipeline;
+class PipelineBase;
 class DescriptorSetLayout;
 class DescriptorSet;
 class ShaderModule;
@@ -36,6 +35,7 @@ enum MaterialVariableType
 	DynamicShaderStorageBuffer,
 	CombinedSampler,
 	InputAttachment,
+	StorageImage,
 	MaterialVariableTypeCount
 };
 
@@ -69,8 +69,7 @@ public:
 public:
 	std::shared_ptr<RenderPassBase> GetRenderPass() const { return m_pRenderPass; }
 	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
-	std::shared_ptr<GraphicPipeline> GetGraphicPipeline() const { return m_pGraphicPipeline; }
-	std::shared_ptr<ComputePipeline> GetComputePipeline() const { return m_pComputePipeline; }
+	std::shared_ptr<PipelineBase> GetPipeline() const { return m_pPipeline; }
 	std::shared_ptr<MaterialInstance> CreateMaterialInstance();
 	uint32_t GetUniformBufferSize() const;
 	std::vector<std::vector<uint32_t>> GetCachedFrameOffsets() const { return m_cachedFrameOffsets; }
@@ -119,7 +118,7 @@ public:
 	virtual void DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
 	virtual void DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
 
-	virtual void Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, const Vector3d& groupNum, const Vector3d& groupSize, uint32_t pingpong = 0) = 0;
+	virtual void Dispatch(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
 	virtual void AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
 
 	virtual void OnFrameBegin();
@@ -132,14 +131,15 @@ protected:
 
 	virtual void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong = 0) {}
 
-	virtual void PrepareSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
-	virtual void CustomizeSecondaryCmd(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) {}
+	virtual void PrepareCommandBuffer(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, bool isCompute, uint32_t pingpong = 0, bool overrideVP = false);
+	virtual void CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) {}
 
 protected:
 	void GeneralInit
 	(
 		const std::vector<VkPushConstantRange>& pushConstsRanges,
 		const std::vector<UniformVar>& materialUniformVars,
+		bool isCompute,
 		bool includeIndirectBuffer
 	);
 
@@ -174,7 +174,8 @@ protected:
 		const std::wstring& shaderPath,
 		const VkComputePipelineCreateInfo& pipelineCreateInfo,
 		const std::vector<VkPushConstantRange>& pushConstsRanges,
-		const std::vector<UniformVar>& materialUniformVars
+		const std::vector<UniformVar>& materialUniformVars,
+		const Vector3ui& groupSize
 	);
 
 	virtual void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) {}
@@ -195,8 +196,7 @@ protected:
 	std::shared_ptr<RenderPassBase>						m_pRenderPass;
 
 	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
-	std::shared_ptr<GraphicPipeline>					m_pGraphicPipeline;
-	std::shared_ptr<ComputePipeline>					m_pComputePipeline;
+	std::shared_ptr<PipelineBase>						m_pPipeline;
 
 	std::shared_ptr<DescriptorSetLayout>				m_pDescriptorSetLayout;
 	std::shared_ptr<DescriptorSet>						m_pUniformStorageDescriptorSet;
@@ -226,5 +226,8 @@ protected:
 	
 	uint32_t											m_vertexFormat;
 	uint32_t											m_vertexFormatInMem;
+
+	Vector3ui											m_computeGroupSize;
+
 	friend class MaterialInstance;
 };

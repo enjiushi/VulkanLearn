@@ -2,13 +2,13 @@
 
 #include "DeviceObjectBase.h"
 #include "ShaderModule.h"
+#include "PipelineBase.h"
 
 class RenderPass;
 class PipelineLayout;
 
-class GraphicPipeline : public DeviceObjectBase<GraphicPipeline>
+class GraphicPipeline : public PipelineBase
 {
-	static const uint32_t ENTRY_NAME_LENGTH = 64;
 public:
 	// Simple pipeline state, nearly all are pre-defined
 	typedef struct _SimplePipelineStateCreateInfo
@@ -25,11 +25,11 @@ public:
 	~GraphicPipeline();
 
 public:
-	VkPipeline GetDeviceHandle() const { return m_pipeline; }
 	const VkGraphicsPipelineCreateInfo& GetInfo() const { return m_info; }
-	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
 	std::shared_ptr<RenderPass> GetRenderPass() const { return m_pRenderPass; }
 	std::shared_ptr<ShaderModule> GetShader(ShaderModule::ShaderType type) const { return m_shaders[(uint32_t)type]; }
+	VkPipelineBindPoint GetPipelineBindingPoint() const override { return VK_PIPELINE_BIND_POINT_GRAPHICS; }
+	uint32_t GetSubpassIndex() const override { return m_info.subpass; }
 
 public:
 	static std::shared_ptr<GraphicPipeline> Create(const std::shared_ptr<Device>& pDevice, const SimplePipelineStateCreateInfo& info);
@@ -52,10 +52,9 @@ public:
 
 private:
 	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<GraphicPipeline>& pSelf, const VkGraphicsPipelineCreateInfo& info);
+	VkPipeline CreatePipeline() override;
 
 protected:
-	VkPipeline						m_pipeline;
-
 	std::vector<VkPipelineColorBlendAttachmentState>	m_blendStatesInfo;
 	std::vector<VkDynamicState>							m_dynamicStates;
 	std::vector<VkVertexInputBindingDescription>		m_vertexBindingsInfo;
@@ -73,6 +72,5 @@ protected:
 	VkGraphicsPipelineCreateInfo						m_info;
 
 	std::shared_ptr<RenderPass>							m_pRenderPass;
-	std::shared_ptr<PipelineLayout>						m_pPipelineLayout;
 	std::vector<std::shared_ptr<ShaderModule>>			m_shaders;
 };

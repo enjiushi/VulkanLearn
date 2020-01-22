@@ -33,6 +33,7 @@ bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 	InitScreenSizeTextureDiction();
 	InitIBLTextures();
 	InitSSAORandomRotationTexture();
+	InitTransmittanceTextureDiction();
 
 	return true;
 }
@@ -137,7 +138,7 @@ void GlobalTextures::InitIrradianceTexture()
 
 	for (uint32_t i = 0; i < 6; i++)
 	{
-		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
 
 		std::vector<VkClearValue> clearValues =
 		{
@@ -223,7 +224,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 		uint32_t size = (uint32_t)std::pow(2, mipLevels - mipLevel);
 		for (uint32_t i = 0; i < 6; i++)
 		{
-			std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+			std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
 
 			std::vector<VkClearValue> clearValues =
 			{
@@ -282,7 +283,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask(RenderWorkManager::BrdfLutGen);
 
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
 
 	std::vector<VkClearValue> clearValues =
 	{
@@ -329,6 +330,11 @@ void GlobalTextures::InitBRDFLUTTexture()
 	FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]->ExtractContent(m_IBL2DTextures[RGBA16_512_BRDFLut]);
 }
 
+void GlobalTextures::InitTransmittanceTextureDiction()
+{
+	m_transmittanceTextureDiction = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 256, 64, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
+}
+
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()
 {
 	std::shared_ptr<GlobalTextures> pGlobalTextures = std::make_shared<GlobalTextures>();
@@ -372,6 +378,10 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 		{
 			CombinedSampler,
 			"RGBA32_4_SSAO_Random_Rotation"
+		},
+		{
+			CombinedSampler,
+			"RGBA32 w:256, h:64, layer:16, transmittance texture diction"
 		}
 	};
 }
@@ -464,6 +474,9 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	}
 
 	pDescriptorSet->UpdateImage(bindingIndex++, m_pSSAORandomRotations, m_pSSAORandomRotations->CreateNearestRepeatSampler(), m_pSSAORandomRotations->CreateDefaultImageView());
+
+	// Binding atmosphere precomputed textures
+	pDescriptorSet->UpdateImage(bindingIndex++, m_transmittanceTextureDiction, m_transmittanceTextureDiction->CreateLinearClampToEdgeSampler(), m_transmittanceTextureDiction->CreateDefaultImageView());
 
 	return bindingIndex;
 }
