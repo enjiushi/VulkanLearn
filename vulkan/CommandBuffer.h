@@ -97,7 +97,7 @@ public:
 	void SetViewports(const std::vector<VkViewport>& viewports);
 	void SetScissors(const std::vector<VkRect2D>& scissors);
 
-	void BindDescriptorSets(const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets);
+	void BindDescriptorSets(VkPipelineBindPoint bindingPoint, const std::shared_ptr<PipelineLayout>& pPipelineLayout, const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets, const std::vector<uint32_t>& offsets);
 	void BindPipeline(const std::shared_ptr<PipelineBase>& pPipeline);
 	void BindVertexBuffer(const std::shared_ptr<BufferBase>& pBuffer, uint32_t offset = 0, uint32_t startSlot = 0);
 	void BindVertexBuffers(const std::vector<std::shared_ptr<BufferBase>>& vertexBuffers, uint32_t startSlot = 0);
