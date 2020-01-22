@@ -115,7 +115,7 @@ void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t 
 
 void FrameBuffer::ExtractContent(const std::shared_ptr<Image>& pImage, uint32_t baseMipLevel, uint32_t numMipLevels, uint32_t baseLayer, uint32_t numLayers, uint32_t width, uint32_t height, uint32_t index)
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
 	pCmdBuffer->StartPrimaryRecording();
 
 	VkImageCopy copy = {};

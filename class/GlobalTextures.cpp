@@ -138,7 +138,7 @@ void GlobalTextures::InitIrradianceTexture()
 
 	for (uint32_t i = 0; i < 6; i++)
 	{
-		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
 
 		std::vector<VkClearValue> clearValues =
 		{
@@ -224,7 +224,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 		uint32_t size = (uint32_t)std::pow(2, mipLevels - mipLevel);
 		for (uint32_t i = 0; i < 6; i++)
 		{
-			std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+			std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
 
 			std::vector<VkClearValue> clearValues =
 			{
@@ -283,7 +283,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask(RenderWorkManager::BrdfLutGen);
 
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadPool()->AllocatePrimaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
 
 	std::vector<VkClearValue> clearValues =
 	{
@@ -332,7 +332,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 void GlobalTextures::InitTransmittanceTextureDiction()
 {
-	m_transmittanceTextureDiction = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 256, 64, 16, VK_FORMAT_R32G32B32A32_SFLOAT);
+	m_transmittanceTextureDiction = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 256, 64, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()

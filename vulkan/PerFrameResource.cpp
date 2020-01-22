@@ -12,8 +12,8 @@ bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t fra
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	m_pPersistantCBPool = CommandPool::Create(pDevice, pSelf);
-	m_pTransientCBPool = CommandPool::CreateTransientCBPool(pDevice, pSelf);
+	m_pPersistantCBPool = CommandPool::Create(pDevice, pDevice->GetPhysicalDevice()->GetGraphicQueueIndex(), pSelf);
+	m_pTransientCBPool = CommandPool::CreateTransientCBPool(pDevice, pDevice->GetPhysicalDevice()->GetGraphicQueueIndex(), pSelf);
 
 	std::vector<VkDescriptorPoolSize> descPoolSize =
 	{
