@@ -9,14 +9,14 @@ CommandPool::~CommandPool()
 	vkDestroyCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, nullptr);
 }
 
-bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes, const std::shared_ptr<CommandPool>& pSelf, VkCommandPoolCreateFlags flags)
+bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex, const std::shared_ptr<PerFrameResource>& pPerFrameRes, const std::shared_ptr<CommandPool>& pSelf, VkCommandPoolCreateFlags flags)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	m_info = {};
 	m_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	m_info.queueFamilyIndex = m_pDevice->GetPhysicalDevice()->GetGraphicQueueIndex();
+	m_info.queueFamilyIndex = queueFamilyIndex;
 	m_info.flags = flags;
 	CHECK_VK_ERROR(vkCreateCommandPool(pDevice->GetDeviceHandle(), &m_info, nullptr, &m_commandPool));
 
@@ -55,25 +55,25 @@ std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocateSecondaryComman
 	return cmdBuffers;
 }
 
-std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex, const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 {
 	std::shared_ptr<CommandPool> pCommandPool = std::make_shared<CommandPool>();
-	if (pCommandPool.get() && pCommandPool->Init(pDevice, pPerFrameRes, pCommandPool))
+	if (pCommandPool.get() && pCommandPool->Init(pDevice, queueFamilyIndex, pPerFrameRes, pCommandPool))
 		return pCommandPool;
 	return nullptr;
 }
 
-std::shared_ptr<CommandPool> CommandPool::CreateTransientCBPool(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+std::shared_ptr<CommandPool> CommandPool::CreateTransientCBPool(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex, const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 {
 	std::shared_ptr<CommandPool> pCommandPool = std::make_shared<CommandPool>();
-	if (pCommandPool.get() && pCommandPool->Init(pDevice, pPerFrameRes, pCommandPool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT))
+	if (pCommandPool.get() && pCommandPool->Init(pDevice, queueFamilyIndex, pPerFrameRes, pCommandPool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT))
 		return pCommandPool;
 	return nullptr;
 }
 
-std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice)
+std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex)
 {
-	return Create(pDevice, nullptr);
+	return Create(pDevice, queueFamilyIndex, nullptr);
 }
 
 void CommandPool::Reset(const std::shared_ptr<Fence>& pFence)
