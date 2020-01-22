@@ -35,6 +35,7 @@ enum MaterialVariableType
 	DynamicShaderStorageBuffer,
 	CombinedSampler,
 	InputAttachment,
+	StorageImage,
 	MaterialVariableTypeCount
 };
 
@@ -138,6 +139,7 @@ protected:
 	(
 		const std::vector<VkPushConstantRange>& pushConstsRanges,
 		const std::vector<UniformVar>& materialUniformVars,
+		bool isCompute,
 		bool includeIndirectBuffer
 	);
 

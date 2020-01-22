@@ -43,49 +43,52 @@ void Material::GeneralInit
 (
 	const std::vector<VkPushConstantRange>& pushConstsRanges,
 	const std::vector<UniformVar>& materialUniformVars,
-
+	bool isCompute,
 	// Don't remove this, will be useful later
 	bool includeIndirectBuffer
 )
 {
-	m_materialVariableLayout.resize(MaterialUniformStorageTypeCount);
-	m_materialUniforms.resize(MaterialUniformStorageTypeCount);
-
-
-	std::vector<UniformVarList> _materialVariableLayout;
-
-	// Add per material indirect index uniform layout
-	m_materialUniforms[PerMaterialIndirectOffsetBuffer] = PerMaterialIndirectOffsetUniforms::Create();
-	m_materialVariableLayout[PerMaterialIndirectOffsetBuffer] = m_materialUniforms[PerMaterialIndirectOffsetBuffer]->PrepareUniformVarList()[0];
-	m_pPerMaterialIndirectOffset = std::dynamic_pointer_cast<PerMaterialIndirectOffsetUniforms>(m_materialUniforms[PerMaterialIndirectOffsetBuffer]);
-
-	m_materialUniforms[PerMaterialIndirectVariableBuffer] = PerMaterialIndirectUniforms::Create();
-	m_materialVariableLayout[PerMaterialIndirectVariableBuffer] = m_materialUniforms[PerMaterialIndirectVariableBuffer]->PrepareUniformVarList()[0];
-	m_pPerMaterialIndirectUniforms = std::dynamic_pointer_cast<PerMaterialIndirectUniforms>(m_materialUniforms[PerMaterialIndirectVariableBuffer]);
-
-	// Add material variable layout
-	m_materialVariableLayout[PerMaterialVariableBuffer] =
+	if (!isCompute)
 	{
-		DynamicUniformBuffer,
-		"PBR Material Textures Indices",
-		{}
-	};
+		m_materialVariableLayout.resize(MaterialUniformStorageTypeCount);
+		m_materialUniforms.resize(MaterialUniformStorageTypeCount);
 
-	m_materialVariableLayout[PerMaterialVariableBuffer].vars = materialUniformVars;
 
-	// If there's no per material variable, I just simply add a dummy variable, for the sake of simplicity
-	if (m_materialVariableLayout[PerMaterialVariableBuffer].vars.size() == 0)
-	{
-		m_materialVariableLayout[PerMaterialVariableBuffer].vars =
+		std::vector<UniformVarList> _materialVariableLayout;
+
+		// Add per material indirect index uniform layout
+		m_materialUniforms[PerMaterialIndirectOffsetBuffer] = PerMaterialIndirectOffsetUniforms::Create();
+		m_materialVariableLayout[PerMaterialIndirectOffsetBuffer] = m_materialUniforms[PerMaterialIndirectOffsetBuffer]->PrepareUniformVarList()[0];
+		m_pPerMaterialIndirectOffset = std::dynamic_pointer_cast<PerMaterialIndirectOffsetUniforms>(m_materialUniforms[PerMaterialIndirectOffsetBuffer]);
+
+		m_materialUniforms[PerMaterialIndirectVariableBuffer] = PerMaterialIndirectUniforms::Create();
+		m_materialVariableLayout[PerMaterialIndirectVariableBuffer] = m_materialUniforms[PerMaterialIndirectVariableBuffer]->PrepareUniformVarList()[0];
+		m_pPerMaterialIndirectUniforms = std::dynamic_pointer_cast<PerMaterialIndirectUniforms>(m_materialUniforms[PerMaterialIndirectVariableBuffer]);
+
+		// Add material variable layout
+		m_materialVariableLayout[PerMaterialVariableBuffer] =
 		{
-			{
-				OneUnit,
-				"Dummy"
-			}
+			DynamicUniformBuffer,
+			"PBR Material Textures Indices",
+			{}
 		};
+
+		m_materialVariableLayout[PerMaterialVariableBuffer].vars = materialUniformVars;
+
+		// If there's no per material variable, I just simply add a dummy variable, for the sake of simplicity
+		if (m_materialVariableLayout[PerMaterialVariableBuffer].vars.size() == 0)
+		{
+			m_materialVariableLayout[PerMaterialVariableBuffer].vars =
+			{
+				{
+					OneUnit,
+					"Dummy"
+				}
+			};
+		}
+		m_materialUniforms[PerMaterialVariableBuffer] = PerMaterialUniforms::Create(GetByteSize(m_materialVariableLayout[PerMaterialVariableBuffer].vars));
+		m_pPerMaterialUniforms = std::dynamic_pointer_cast<PerMaterialUniforms>(m_materialUniforms[PerMaterialVariableBuffer]);
 	}
-	m_materialUniforms[PerMaterialVariableBuffer] = PerMaterialUniforms::Create(GetByteSize(m_materialVariableLayout[PerMaterialVariableBuffer].vars));
-	m_pPerMaterialUniforms = std::dynamic_pointer_cast<PerMaterialUniforms>(m_materialUniforms[PerMaterialVariableBuffer]);
 
 	// Force per object material variable to be shader storage buffer
 	for (auto& var : m_materialVariableLayout)
@@ -95,6 +98,8 @@ void Material::GeneralInit
 	}
 
 	CustomizeMaterialLayout(m_materialVariableLayout);
+
+	VkDescriptorType imageType = isCompute ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
 	// Build vulkan layout bindings
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
@@ -108,7 +113,7 @@ void Material::GeneralInit
 				(uint32_t)bindings.size(),
 				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
 				var.count,
-				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
 				nullptr
 				});
 
@@ -119,7 +124,7 @@ void Material::GeneralInit
 				(uint32_t)bindings.size(),
 				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
 				var.count,
-				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
 				nullptr
 				});
 
@@ -128,9 +133,19 @@ void Material::GeneralInit
 			bindings.push_back
 			({
 				(uint32_t)bindings.size(),
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+				imageType,
 				var.count,
-				VK_SHADER_STAGE_FRAGMENT_BIT,
+				VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
+				nullptr
+				});
+			break;
+		case StorageImage:
+			bindings.push_back
+			({
+				(uint32_t)bindings.size(),
+				imageType,
+				var.count,
+				VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
 				nullptr
 				});
 			break;
@@ -186,15 +201,11 @@ void Material::GeneralInit
 	m_descriptorSets = UniformData::GetInstance()->GetDescriptorSets();
 	m_descriptorSets.push_back(m_pUniformStorageDescriptorSet);
 
-	// Setup descriptor set
-	uint32_t bindingIndex = 0;
-	for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
-	{
-		bindingIndex = m_materialUniforms[i]->SetupDescriptorSet(m_pUniformStorageDescriptorSet, bindingIndex);
-	}
-
 	// Setup cached frame offsets
 	m_cachedFrameOffsets = UniformData::GetInstance()->GetCachedFrameOffsets();
+
+	if (isCompute)
+		return;
 
 	for (uint32_t frameIndex = 0; frameIndex < GetSwapChain()->GetSwapChainImageCount(); frameIndex++)
 	{
@@ -203,6 +214,13 @@ void Material::GeneralInit
 		{
 			m_cachedFrameOffsets[frameIndex].push_back(m_materialUniforms[i]->GetFrameOffset() * frameIndex);
 		}
+	}
+
+	// Setup descriptor set
+	uint32_t bindingIndex = 0;
+	for (uint32_t i = 0; i < MaterialUniformStorageTypeCount; i++)
+	{
+		bindingIndex = m_materialUniforms[i]->SetupDescriptorSet(m_pUniformStorageDescriptorSet, bindingIndex);
 	}
 }
 
@@ -237,7 +255,7 @@ bool Material::Init
 	if (!SelfRefBase<Material>::Init(pSelf))
 		return false;
 
-	GeneralInit(pushConstsRanges, materialUniformVars, includeIndirectBuffer);
+	GeneralInit(pushConstsRanges, materialUniformVars, false, includeIndirectBuffer);
 
 	// Init shaders
 	std::vector<std::shared_ptr<ShaderModule>> shaders;
@@ -282,7 +300,7 @@ bool Material::Init
 	const Vector3ui& groupSize
 )
 {
-	GeneralInit(pushConstsRanges, materialUniformVars, false);
+	GeneralInit(pushConstsRanges, materialUniformVars, true, false);
 
 	m_computeGroupSize = groupSize;
 
@@ -444,7 +462,7 @@ void Material::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 
 void Material::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	pCmdBuffer->BindDescriptorSets(GetPipelineLayout(), m_descriptorSets, m_cachedFrameOffsets[FrameMgr()->FrameIndex()]);
+	pCmdBuffer->BindDescriptorSets(m_pPipeline->GetPipelineBindingPoint(), GetPipelineLayout(), m_descriptorSets, m_cachedFrameOffsets[FrameMgr()->FrameIndex()]);
 }
 
 void Material::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture)
