@@ -111,21 +111,6 @@ std::shared_ptr<Texture2D> Texture2D::Create(const std::shared_ptr<Device>& pDev
 	return nullptr;
 }
 
-std::shared_ptr<Texture2D> Texture2D::CreateEmptyTexture(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format)
-{
-	std::shared_ptr<Texture2D> pTexture = std::make_shared<Texture2D>();
-
-	if (pTexture.get())
-	{
-		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
-		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
-	}
-
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
-		return pTexture;
-	return nullptr;
-}
-
 std::shared_ptr<Texture2D> Texture2D::CreateEmptyTextureForCompute(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format)
 {
 	std::shared_ptr<Texture2D> pTexture = std::make_shared<Texture2D>();

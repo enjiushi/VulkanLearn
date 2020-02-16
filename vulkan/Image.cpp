@@ -289,3 +289,118 @@ std::shared_ptr<ImageView> Image::CreateDefaultImageView() const
 
 	return ImageView::Create(GetDevice(), imgViewCreateInfo);
 }
+
+std::shared_ptr<StagingBuffer> Image::PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	// Get total bytes of texture vector
+	uint32_t total_bytes = 0;
+	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
+		total_bytes += (uint32_t)gliTex.textures[i].size();
+
+	// Copy all bytes of texture vector into a buffer
+	uint32_t offset = 0;
+	uint8_t* buf = new uint8_t[total_bytes];
+	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
+	{
+		memcpy_s(buf + offset, total_bytes - offset, gliTex.textures[i].data(), gliTex.textures[i].size());
+		offset += (uint32_t)gliTex.textures[i].size();
+	}
+
+	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, total_bytes);
+	pStagingBuffer->UpdateByteStream(buf, 0, total_bytes);
+
+	delete[] buf;
+
+	return pStagingBuffer;
+}
+
+void Image::ExecuteCopy(const GliImageWrapper& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	std::vector<VkBufferImageCopy> bufferCopyRegions;
+
+	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
+	{
+		uint32_t offset = 0;
+
+		for (uint32_t level = 0; level < gliTex.textures[i].levels(); level++)
+		{
+			gli::texture2d tex2d = (gli::texture2d)gliTex.textures[i];
+			VkBufferImageCopy bufferCopyRegion = {};
+			bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			bufferCopyRegion.imageSubresource.mipLevel = level;
+			bufferCopyRegion.imageSubresource.baseArrayLayer = i;
+			bufferCopyRegion.imageSubresource.layerCount = 1;
+			bufferCopyRegion.imageExtent.width = tex2d[level].extent().x;
+			bufferCopyRegion.imageExtent.height = tex2d[level].extent().y;
+			bufferCopyRegion.imageExtent.depth = 1;
+			bufferCopyRegion.bufferOffset = offset;
+
+			bufferCopyRegions.push_back(bufferCopyRegion);
+
+			offset += static_cast<uint32_t>(tex2d[level].size());
+		}
+		pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
+	}
+
+	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
+}
+
+void Image::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	ASSERTION(gliTex.textures.size() == 1);
+
+	std::vector<VkBufferImageCopy> bufferCopyRegions;
+
+	uint32_t offset = 0;
+
+	for (uint32_t level = 0; level < gliTex.textures[0].levels(); level++)
+	{
+		gli::texture2d tex2d = (gli::texture2d)gliTex.textures[0];
+		VkBufferImageCopy bufferCopyRegion = {};
+		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		bufferCopyRegion.imageSubresource.mipLevel = level;
+		bufferCopyRegion.imageSubresource.baseArrayLayer = layer;
+		bufferCopyRegion.imageSubresource.layerCount = 1;
+		bufferCopyRegion.imageExtent.width = tex2d[level].extent().x;
+		bufferCopyRegion.imageExtent.height = tex2d[level].extent().y;
+		bufferCopyRegion.imageExtent.depth = 1;
+		bufferCopyRegion.bufferOffset = offset;
+
+		bufferCopyRegions.push_back(bufferCopyRegion);
+
+		uint32_t size = (uint32_t)tex2d[level].size();
+		offset += static_cast<uint32_t>(tex2d[level].size());
+	}
+
+	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format)
+{
+	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
+
+	if (pTexture.get())
+	{
+		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
+		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
+	}
+
+	VkImageCreateInfo textureCreateInfo = {};
+	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	textureCreateInfo.format = format;
+	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+	textureCreateInfo.arrayLayers = 1;
+	textureCreateInfo.extent.depth = size.z;
+	textureCreateInfo.extent.width = size.x;
+	textureCreateInfo.extent.height = size.y;
+	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	textureCreateInfo.mipLevels = 1;
+	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+		return pTexture;
+	return nullptr;
+}

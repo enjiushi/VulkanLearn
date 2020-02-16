@@ -77,7 +77,14 @@ void GlobalTextures::InitIBLTextures()
 	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = TextureCube::CreateEmptyTextureCube(GetDevice(), (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, (uint32_t)std::log2(512) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
 
 	m_IBL2DTextures.resize(IBL2DTextureTypeCount);
-	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateEmptyTexture(GetDevice(), (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+
+	Vector3ui size = 
+	{ 
+		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x,
+		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
+		1
+	};
+	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateEmptyTexture(GetDevice(), size, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
