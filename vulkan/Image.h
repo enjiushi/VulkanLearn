@@ -56,6 +56,8 @@ protected:
 
 public:
 	// Factory methods:
+	static std::shared_ptr<Image> Create(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format);
+	static std::shared_ptr<Image> Create(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTex2d, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyTextureForCompute(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format);
 	static std::shared_ptr<Image> CreateOffscreenTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format);

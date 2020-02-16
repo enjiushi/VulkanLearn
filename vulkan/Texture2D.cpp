@@ -80,37 +80,6 @@ bool Texture2D::Init(const std::shared_ptr<Device>& pDevice, const std::shared_p
 	return true;
 }
 
-std::shared_ptr<Texture2D> Texture2D::Create(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
-{
-	gli::texture2d gliTex2d(gli::load(path.c_str()));
-	std::shared_ptr<Texture2D> pTexture = std::make_shared<Texture2D>();
-
-	if (pTexture.get())
-	{
-		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
-		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
-	}
-
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, { {gliTex2d} }, format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
-		return pTexture;
-	return nullptr;
-}
-
-std::shared_ptr<Texture2D> Texture2D::Create(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTex2d, VkFormat format)
-{
-	std::shared_ptr<Texture2D> pTexture = std::make_shared<Texture2D>();
-
-	if (pTexture.get())
-	{
-		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
-		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
-	}
-
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, gliTex2d, format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
-		return pTexture;
-	return nullptr;
-}
-
 std::shared_ptr<StagingBuffer> Texture2D::PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, (uint32_t)gliTex.textures[0].size());

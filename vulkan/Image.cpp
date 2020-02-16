@@ -375,6 +375,46 @@ void Image::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const std
 	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
 }
 
+std::shared_ptr<Image> Image::Create(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
+{
+	gli::texture2d gliTex2d(gli::load(path.c_str()));
+	return Create(pDevice, { {gliTex2d} }, format);
+}
+
+std::shared_ptr<Image> Image::Create(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTex2d, VkFormat format)
+{
+	uint32_t width = static_cast<uint32_t>(gliTex2d.textures[0].extent().x);
+	uint32_t height = static_cast<uint32_t>(gliTex2d.textures[0].extent().y);
+	uint32_t mipLevels = static_cast<uint32_t>(gliTex2d.textures[0].levels());
+
+	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
+
+	if (pTexture.get())
+	{
+		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
+		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
+	}
+
+	VkImageCreateInfo textureCreateInfo = {};
+	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	textureCreateInfo.format = format;
+	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	textureCreateInfo.arrayLayers = 1;
+	textureCreateInfo.extent.depth = 1;
+	textureCreateInfo.extent.width = width;
+	textureCreateInfo.extent.height = height;
+	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	textureCreateInfo.mipLevels = 1;
+	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+		return pTexture;
+	return nullptr;
+}
+
 std::shared_ptr<Image> Image::CreateEmptyTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format)
 {
 	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
