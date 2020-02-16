@@ -92,7 +92,7 @@ public:
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
-	void UpdateDirtyChunkInternal(uint32_t index) override {}
+	void UpdateDirtyChunkInternal(uint32_t index) override;
 	const void* AcquireDataPtr() const override { return &m_singlePrecisionPerPlanetVariables[0]; }
 	uint32_t AcquireDataSize() const override { return sizeof(m_singlePrecisionPerPlanetVariables); }
 

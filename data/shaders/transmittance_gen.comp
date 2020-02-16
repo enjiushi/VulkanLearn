@@ -10,6 +10,6 @@ layout (set = 3, binding = 0, rgba8) uniform image2DArray resultImage;
 
 void main()
 {	
-	vec3 transmittance = ComputeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, vec2(gl_GlobalInvocationID.xy) + vec2(0.5));
+	vec3 transmittance = ComputeTransmittanceToTopAtmosphereBoundaryTexture(planetAtmosphereData[0].atmosphereParameters, vec2(gl_GlobalInvocationID.xy) + vec2(0.5));
 	imageStore(resultImage, ivec3(gl_GlobalInvocationID.xy, 0), vec4(transmittance, 0));
 }
