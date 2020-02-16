@@ -1,5 +1,5 @@
 #include "../vulkan/Texture2DArray.h"
-#include "../vulkan/Texture2D.h"
+#include "../vulkan/Image.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/TextureCube.h"
 #include "../vulkan/CommandPool.h"
@@ -84,7 +84,7 @@ void GlobalTextures::InitIBLTextures()
 		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 		1
 	};
-	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateEmptyTexture(GetDevice(), size, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBL2DTextures[RGBA16_512_BRDFLut] = Image::CreateEmptyTexture(GetDevice(), size, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
@@ -111,7 +111,7 @@ void GlobalTextures::InitSSAORandomRotationTexture()
 	gli::texture2d tex = gli::texture2d(gli::FORMAT_RGBA32_SFLOAT_PACK32, { std::sqrt(SSAO_RANDOM_ROTATION_COUNT), std::sqrt(SSAO_RANDOM_ROTATION_COUNT) }, 1);
 	std::memcpy(tex.data(), tangents.data(), tex.size());
 
-	m_pSSAORandomRotations = Texture2D::Create(GetDevice(), { {tex} }, VK_FORMAT_R32G32B32A32_SFLOAT);
+	m_pSSAORandomRotations = Image::Create(GetDevice(), { {tex} }, VK_FORMAT_R32G32B32A32_SFLOAT);
 }
 
 void GlobalTextures::InitIrradianceTexture()

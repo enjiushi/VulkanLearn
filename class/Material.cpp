@@ -33,7 +33,7 @@
 #include "../vulkan/Image.h"
 #include "../vulkan/Texture2DArray.h"
 #include "../vulkan/TextureCube.h"
-#include "../vulkan/Texture2D.h"
+#include "../vulkan/Image.h"
 #include "../class/PerMaterialUniforms.h"
 #include "RenderPassBase.h"
 #include "../vulkan/ComputePipeline.h"

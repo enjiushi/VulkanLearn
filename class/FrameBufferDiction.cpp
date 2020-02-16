@@ -2,7 +2,7 @@
 #include "../vulkan/RenderPass.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/SwapChain.h"
-#include "../vulkan/Texture2D.h"
+#include "../vulkan/Image.h"
 #include "../vulkan/DepthStencilBuffer.h"
 #include "../vulkan/Framebuffer.h"
 #include "../Maths/Vector.h"
@@ -278,8 +278,8 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffe
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pShadingResult = Texture2D::CreateOffscreenTexture(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
-		std::shared_ptr<Image> pSSResult = Texture2D::CreateOffscreenTexture(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pShadingResult = Image::CreateOffscreenTexture(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pSSResult = Image::CreateOffscreenTexture(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
 		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = m_frameBuffers[FrameBufferType_GBuffer][0][i]->GetDepthStencilTarget();
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pShadingResult, pSSResult }, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()));
 	}
@@ -443,7 +443,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardEnvGenOffS
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Texture2D::CreateOffscreenTexture(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pColorTarget = Image::CreateOffscreenTexture(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
 
 		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height);
 

@@ -4,7 +4,7 @@
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/SwapChain.h"
-#include "../vulkan/Texture2D.h"
+#include "../vulkan/Image.h"
 
 bool SSAOPass::Init(const std::shared_ptr<SSAOPass>& pSelf, VkFormat format, VkImageLayout layout)
 {

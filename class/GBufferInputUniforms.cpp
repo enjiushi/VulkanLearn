@@ -4,7 +4,6 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/DescriptorSet.h"
 #include "../vulkan/Image.h"
-#include "../vulkan/Texture2D.h"
 #include "../vulkan/DepthStencilBuffer.h"
 #include "RenderWorkManager.h"
 

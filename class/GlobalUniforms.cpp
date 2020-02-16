@@ -4,7 +4,7 @@
 #include "../vulkan/DescriptorSet.h"
 #include "../vulkan/UniformBuffer.h"
 #include "../vulkan/Image.h"
-#include "../vulkan/Texture2D.h"
+#include "../vulkan/Image.h"
 #include "../vulkan/Texture2DArray.h"
 #include "../vulkan/TextureCube.h"
 #include "../vulkan/ShaderStorageBuffer.h"

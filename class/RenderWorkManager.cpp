@@ -4,7 +4,7 @@
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/DepthStencilBuffer.h"
-#include "../vulkan/Texture2D.h"
+#include "../vulkan/Image.h"
 #include "../vulkan/GlobalVulkanStates.h"
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"

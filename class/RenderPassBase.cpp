@@ -3,7 +3,7 @@
 #include "../vulkan/FrameManager.h"
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/Framebuffer.h"
-#include "../vulkan/Texture2D.h"
+#include "../vulkan/Image.h"
 #include "../vulkan/DepthStencilBuffer.h"
 #include "RenderPassBase.h"
 

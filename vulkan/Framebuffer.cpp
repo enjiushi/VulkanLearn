@@ -2,7 +2,7 @@
 #include "Image.h"
 #include "DepthStencilBuffer.h"
 #include "RenderPass.h"
-#include "Texture2D.h"
+#include "Image.h"
 #include "GlobalDeviceObjects.h"
 #include "CommandPool.h"
 #include "CommandBuffer.h"
