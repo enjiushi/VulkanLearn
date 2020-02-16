@@ -172,12 +172,19 @@ void PerPlanetUniforms::PreComputeAtmosphereData(uint32_t chunkIndex)
 	pCommandBuffer->EndPrimaryRecording();
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCommandBuffer, nullptr, true);
 
+	std::vector<uint8_t> data;
+	data.push_back(*((uint8_t*)&chunkIndex + 0));
+	data.push_back(*((uint8_t*)&chunkIndex + 1));
+	data.push_back(*((uint8_t*)&chunkIndex + 2));
+	data.push_back(*((uint8_t*)&chunkIndex + 3));
+
 	CustomizedComputeMaterial::Variables vars =
 	{
 		L"../data/shaders/transmittance_gen.comp.spv",
 		{ 16, 4, 1 },
 		{ pTransmittanceTexture },
-		{ { 0, 1, chunkIndex, 1 } }
+		{ { 0, 1, chunkIndex, 1 } },
+		data
 	};
 	std::shared_ptr<Material> pTransmittanceGenMaterial = CustomizedComputeMaterial::CreateMaterial(vars);
 

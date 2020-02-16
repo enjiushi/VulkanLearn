@@ -15,6 +15,9 @@ public:
 
 		std::vector<std::shared_ptr<Image>>	textures;
 		std::vector<Vector4ui>				textureSubresRanges;
+
+		// Push constants
+		std::vector<uint8_t>	pushConstantData;
 	}Variables;
 
 public:
@@ -28,6 +31,7 @@ protected:
 
 	void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) override;
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;
+	void CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) override;
 
 private:
 	Variables	m_variables;

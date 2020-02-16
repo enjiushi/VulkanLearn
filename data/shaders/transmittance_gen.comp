@@ -8,8 +8,13 @@
 layout (local_size_x = 16, local_size_y = 16) in;
 layout (set = 3, binding = 0, rgba8) uniform image2DArray resultImage;
 
+layout(push_constant) uniform PushConsts {
+	layout (offset = 0) uint planetChunkIndex;
+} pushConsts;
+
 void main()
 {	
-	vec3 transmittance = ComputeTransmittanceToTopAtmosphereBoundaryTexture(planetAtmosphereData[0].atmosphereParameters, vec2(gl_GlobalInvocationID.xy) + vec2(0.5));
+	AtmosphereParameters parameters = planetAtmosphereData[pushConsts.planetChunkIndex].atmosphereParameters;
+	vec3 transmittance = ComputeTransmittanceToTopAtmosphereBoundaryTexture(parameters, vec2(gl_GlobalInvocationID.xy) + vec2(0.5));
 	imageStore(resultImage, ivec3(gl_GlobalInvocationID.xy, 0), vec4(transmittance, 0));
 }
