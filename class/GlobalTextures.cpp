@@ -1,4 +1,4 @@
-#include "../vulkan/Texture2DArray.h"
+#include "../vulkan/Image.h"
 #include "../vulkan/Image.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/TextureCube.h"
@@ -339,7 +339,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 void GlobalTextures::InitTransmittanceTextureDiction()
 {
-	m_transmittanceTextureDiction = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), { 256, 64, 1 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
+	m_transmittanceTextureDiction = Image::CreateEmptyTexture2DArray(GetDevice(), { 256, 64, 1 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()

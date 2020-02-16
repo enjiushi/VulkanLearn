@@ -31,7 +31,7 @@
 #include "../vulkan/Image.h"
 #include "GlobalTextures.h"
 #include "../vulkan/Image.h"
-#include "../vulkan/Texture2DArray.h"
+#include "../vulkan/Image.h"
 #include "../vulkan/TextureCube.h"
 #include "../vulkan/Image.h"
 #include "../class/PerMaterialUniforms.h"

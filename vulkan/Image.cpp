@@ -648,3 +648,38 @@ std::shared_ptr<Image> Image::CreateMipmapOffscreenTexture(const std::shared_ptr
 		return pTexture;
 	return nullptr;
 }
+
+std::shared_ptr<Image> Image::CreateTexture2DArray(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
+{
+	gli::texture2d_array gliTextureArray(gli::load(path.c_str()));
+	return CreateTexture2DArray(pDevice, { { gliTextureArray } }, format);
+}
+
+std::shared_ptr<Image> Image::CreateTexture2DArray(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTextureArray, VkFormat format)
+{
+	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
+
+	uint32_t width = gliTextureArray.textures[0].extent().x;
+	uint32_t height = gliTextureArray.textures[0].extent().y;
+	uint32_t mipLevels = (uint32_t)gliTextureArray.textures[0].levels();
+	uint32_t layers = (uint32_t)gliTextureArray.textures.size();
+
+	VkImageCreateInfo textureCreateInfo = {};
+	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	textureCreateInfo.format = format;
+	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+	textureCreateInfo.extent.depth = 1;
+	textureCreateInfo.extent.width = width;
+	textureCreateInfo.extent.height = height;
+	textureCreateInfo.arrayLayers = layers;
+	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	textureCreateInfo.mipLevels = mipLevels;
+	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+		return pTexture;
+	return nullptr;
+}

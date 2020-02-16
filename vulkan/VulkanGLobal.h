@@ -37,7 +37,7 @@
 #include "../class/Material.h"
 #include "../class/MaterialInstance.h"
 #include "ShaderStorageBuffer.h"
-#include "Texture2DArray.h"
+#include "Image.h"
 #include "../class/ForwardMaterial.h"
 #include "../class/DeferredMaterial.h"
 #include "../component/DirectionLight.h"
