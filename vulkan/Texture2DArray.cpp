@@ -106,23 +106,6 @@ std::shared_ptr<Texture2DArray> Texture2DArray::Create(const std::shared_ptr<Dev
 	return nullptr;
 }
 
-std::shared_ptr<Texture2DArray> Texture2DArray::CreateMipmapOffscreenTexture(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, uint32_t layers, VkFormat format)
-{
-	std::shared_ptr<Texture2DArray> pTexture = std::make_shared<Texture2DArray>();
-
-	if (pTexture.get())
-	{
-		pTexture->m_accessStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
-		pTexture->m_accessFlags = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
-	}
-
-	uint32_t smaller = height < width ? height : width;
-
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, (uint32_t)std::log2(smaller) + 1, layers, format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
-		return pTexture;
-	return nullptr;
-}
-
 void Texture2DArray::InsertTexture(const gli::texture2d& texture, uint32_t layer)
 {
 	UpdateByteStream({ {texture} }, layer);

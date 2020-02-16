@@ -68,6 +68,7 @@ public:
 	static std::shared_ptr<Image> CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, uint32_t layers, VkFormat format, VkImageLayout defaultLayout);
 	static std::shared_ptr<Image> CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, uint32_t mipLevels, uint32_t layers, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, uint32_t mipLevels, uint32_t layers, VkFormat format, VkImageLayout defaultLayout);
+	static std::shared_ptr<Image> CreateMipmapOffscreenTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, uint32_t layers, VkFormat format);
 
 protected:
 	VkImage						m_image;

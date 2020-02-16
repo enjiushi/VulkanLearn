@@ -612,20 +612,37 @@ std::shared_ptr<Image> Image::CreateEmptyTexture2DArray(const std::shared_ptr<De
 	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	/*VkImageCreateInfo textureCreateInfo = {};
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+		return pTexture;
+	return nullptr;
+}
+
+std::shared_ptr<Image> Image::CreateMipmapOffscreenTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, uint32_t layers, VkFormat format)
+{
+	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
+
+	if (pTexture.get())
+	{
+		pTexture->m_accessStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
+		pTexture->m_accessFlags = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
+	}
+
+	uint32_t smaller = size.y < size.x ? size.y : size.x;
+
+	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	textureCreateInfo.format = format;
-	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
-	textureCreateInfo.extent.depth = 1;
-	textureCreateInfo.extent.width = width;
-	textureCreateInfo.extent.height = height;
+	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+	textureCreateInfo.extent.depth = size.z;
+	textureCreateInfo.extent.width = size.x;
+	textureCreateInfo.extent.height = size.y;
 	textureCreateInfo.arrayLayers = layers;
 	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	textureCreateInfo.initialLayout = defaultLayout;
-	textureCreateInfo.mipLevels = mipLevels;
+	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	textureCreateInfo.mipLevels = (uint32_t)std::log2(smaller) + 1;
 	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;*/
+	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 	if (pTexture.get() && pTexture->Init(pDevice, pTexture, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return pTexture;

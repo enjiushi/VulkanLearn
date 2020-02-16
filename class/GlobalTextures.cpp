@@ -64,7 +64,7 @@ void GlobalTextures::InitScreenSizeTextureDiction()
 	m_screenSizeTextureDiction.textureArrayDescription = "Mostly used to store intermedia data of current frames";
 
 	Vector2d size = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
-	m_screenSizeTextureDiction.pTextureArray = Texture2DArray::CreateMipmapOffscreenTexture(GetDevice(), (uint32_t)size.x, (uint32_t)size.y, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
+	m_screenSizeTextureDiction.pTextureArray = Image::CreateMipmapOffscreenTexture(GetDevice(), { (uint32_t)size.x, (uint32_t)size.y, 1 }, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
 	m_screenSizeTextureDiction.maxSlotIndex = 0;
 	m_screenSizeTextureDiction.currentEmptySlot = 0;
 }
