@@ -106,30 +106,6 @@ std::shared_ptr<Texture2DArray> Texture2DArray::Create(const std::shared_ptr<Dev
 	return nullptr;
 }
 
-std::shared_ptr<Texture2DArray> Texture2DArray::CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, uint32_t layers, VkFormat format)
-{
-	std::shared_ptr<Texture2DArray> pTexture = std::make_shared<Texture2DArray>();
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, 1, layers, format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
-		return pTexture;
-	return nullptr;
-}
-
-std::shared_ptr<Texture2DArray> Texture2DArray::CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, uint32_t layers, VkFormat format, VkImageLayout defaultLayout)
-{
-	std::shared_ptr<Texture2DArray> pTexture = std::make_shared<Texture2DArray>();
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, 1, layers, format, defaultLayout))
-		return pTexture;
-	return nullptr;
-}
-
-std::shared_ptr<Texture2DArray> Texture2DArray::CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, uint32_t mipLevels, uint32_t layers, VkFormat format)
-{
-	std::shared_ptr<Texture2DArray> pTexture = std::make_shared<Texture2DArray>();
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, mipLevels, layers, format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
-		return pTexture;
-	return nullptr;
-}
-
 std::shared_ptr<Texture2DArray> Texture2DArray::CreateMipmapOffscreenTexture(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, uint32_t layers, VkFormat format)
 {
 	std::shared_ptr<Texture2DArray> pTexture = std::make_shared<Texture2DArray>();

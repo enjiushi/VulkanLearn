@@ -41,7 +41,7 @@ public:
 	virtual std::shared_ptr<Sampler> CreateLinearClampToBorderSampler(VkBorderColor borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE) const;
 	virtual std::shared_ptr<Sampler> CreateLinearClampToEdgeSampler() const;
 
-	virtual void InsertTexture(const gli::texture2d& texture, uint32_t layer) {}
+	virtual void InsertTexture(const gli::texture2d& texture, uint32_t layer);
 
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;
@@ -63,6 +63,11 @@ public:
 	static std::shared_ptr<Image> CreateOffscreenTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format);
 	static std::shared_ptr<Image> CreateOffscreenTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format, VkImageLayout layout);
 	static std::shared_ptr<Image> CreateMipmapOffscreenTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format, VkImageLayout layout);
+
+	static std::shared_ptr<Image> CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, uint32_t layers, VkFormat format);
+	static std::shared_ptr<Image> CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, uint32_t layers, VkFormat format, VkImageLayout defaultLayout);
+	static std::shared_ptr<Image> CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, uint32_t mipLevels, uint32_t layers, VkFormat format);
+	static std::shared_ptr<Image> CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, uint32_t mipLevels, uint32_t layers, VkFormat format, VkImageLayout defaultLayout);
 
 protected:
 	VkImage						m_image;
