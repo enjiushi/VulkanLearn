@@ -18,9 +18,6 @@ protected:
 public:
 	static std::shared_ptr<Texture2D> Create(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format);
 	static std::shared_ptr<Texture2D> Create(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTex2d, VkFormat format);
-	static std::shared_ptr<Texture2D> CreateEmptyTextureForCompute(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format);
-	static std::shared_ptr<Texture2D> CreateOffscreenTexture(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format);
-	static std::shared_ptr<Texture2D> CreateOffscreenTexture(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format, VkImageLayout layout);
 	static std::shared_ptr<Texture2D> CreateMipmapOffscreenTexture(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format, VkImageLayout layout);
 
 protected:

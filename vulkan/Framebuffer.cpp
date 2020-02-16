@@ -94,7 +94,7 @@ std::shared_ptr<FrameBuffer> FrameBuffer::CreateOffScreenFrameBuffer(
 	uint32_t width, uint32_t height,
 	const std::shared_ptr<RenderPass>& pRenderPass)
 {
-	std::shared_ptr<Texture2D> pOffScreenTex = Texture2D::CreateOffscreenTexture(pDevice, width, height, VK_FORMAT_R16G16B16A16_SFLOAT);
+	std::shared_ptr<Image> pOffScreenTex = Image::CreateOffscreenTexture(pDevice, { width, height, 1 }, VK_FORMAT_R16G16B16A16_SFLOAT);
 	std::shared_ptr<DepthStencilBuffer> pDSBuffer = DepthStencilBuffer::Create(pDevice, VK_FORMAT_D32_SFLOAT_S8_UINT, width, height);
 
 	std::shared_ptr<FrameBuffer> pFramebuffer = std::make_shared<FrameBuffer>();
