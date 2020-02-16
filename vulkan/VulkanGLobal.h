@@ -138,11 +138,6 @@ public:
 	std::shared_ptr<Texture2D>			m_pAlbedoRoughness;
 	std::shared_ptr<Texture2D>			m_pNormalAO;
 	std::shared_ptr<Texture2D>			m_pMetalic;
-	std::shared_ptr<TextureCube>		m_pSkyBoxTex;
-	std::shared_ptr<Texture2D>			m_pSimpleTex;
-	std::shared_ptr<TextureCube>		m_pIrradianceTex;
-	std::shared_ptr<TextureCube>		m_pPrefilterEnvTex;
-	std::shared_ptr<Texture2D>			m_pBRDFLut;
 
 	std::shared_ptr<BaseObject>			m_pGunObject;
 	std::shared_ptr<BaseObject>			m_pSphere0;
