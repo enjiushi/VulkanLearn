@@ -151,7 +151,7 @@ void Image::UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer)
 
 	std::shared_ptr<StagingBuffer> pStagingBuffer = PrepareStagingBuffer(gliTex, pCmdBuffer);
 
-	ExecuteCopy(gliTex, layer, pStagingBuffer, pCmdBuffer);
+	ExecuteCopy(gliTex, layer, pStagingBuffer, 0, pCmdBuffer);
 
 	pCmdBuffer->EndPrimaryRecording();
 
@@ -319,40 +319,26 @@ void Image::ExecuteCopy(const GliImageWrapper& gliTex, const std::shared_ptr<Sta
 {
 	std::vector<VkBufferImageCopy> bufferCopyRegions;
 
-	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
+	uint32_t numLayers = (uint32_t)gliTex.textures.size();
+	// Don't support cube map array
+	if (m_info.flags == VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
 	{
-		uint32_t offset = 0;
-
-		for (uint32_t level = 0; level < gliTex.textures[i].levels(); level++)
-		{
-			gli::texture2d tex2d = (gli::texture2d)gliTex.textures[i];
-			VkBufferImageCopy bufferCopyRegion = {};
-			bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			bufferCopyRegion.imageSubresource.mipLevel = level;
-			bufferCopyRegion.imageSubresource.baseArrayLayer = i;
-			bufferCopyRegion.imageSubresource.layerCount = 1;
-			bufferCopyRegion.imageExtent.width = tex2d[level].extent().x;
-			bufferCopyRegion.imageExtent.height = tex2d[level].extent().y;
-			bufferCopyRegion.imageExtent.depth = 1;
-			bufferCopyRegion.bufferOffset = offset;
-
-			bufferCopyRegions.push_back(bufferCopyRegion);
-
-			offset += static_cast<uint32_t>(tex2d[level].size());
-		}
-		pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
+		ASSERTION(numLayers == 1);
+		numLayers = 6;
 	}
 
-	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
+	uint32_t offset = 0;
+	for (uint32_t i = 0; i < numLayers; i++)
+	{
+		offset = ExecuteCopy(gliTex, i, pStagingBuffer, offset, pCmdBuffer);
+	}
 }
 
-void Image::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+uint32_t Image::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const std::shared_ptr<StagingBuffer>& pStagingBuffer, uint32_t offset, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	ASSERTION(gliTex.textures.size() == 1);
 
 	std::vector<VkBufferImageCopy> bufferCopyRegions;
-
-	uint32_t offset = 0;
 
 	for (uint32_t level = 0; level < gliTex.textures[0].levels(); level++)
 	{
@@ -374,6 +360,7 @@ void Image::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const std
 	}
 
 	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
+	return offset;
 }
 
 std::shared_ptr<Image> Image::Create(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
