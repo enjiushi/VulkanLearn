@@ -36,6 +36,7 @@ public:
 	void UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer);
 
 	virtual std::shared_ptr<ImageView> CreateDefaultImageView() const;
+	virtual std::shared_ptr<ImageView> CreateDepthSampleImageView() const;
 	virtual std::shared_ptr<Sampler> CreateLinearRepeatSampler() const;
 	virtual std::shared_ptr<Sampler> CreateNearestRepeatSampler() const;
 	virtual std::shared_ptr<Sampler> CreateLinearClampToBorderSampler(VkBorderColor borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE) const;
@@ -79,6 +80,12 @@ public:
 	static std::shared_ptr<Image> CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, VkFormat format);
 
+	// DepthStencilBuffer:
+	static std::shared_ptr<Image> CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height);
+	static std::shared_ptr<Image> CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usage);
+	static std::shared_ptr<Image> CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format);
+	static std::shared_ptr<Image> CreateDepthStencilInputAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format);
+	static std::shared_ptr<Image> CreateDepthStencilSampledAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height);
 protected:
 	VkImage						m_image;
 	VkImageCreateInfo			m_info;

@@ -20,7 +20,7 @@ bool FrameBuffer::Init(
 	const std::shared_ptr<Device>& pDevice,
 	const std::shared_ptr<FrameBuffer>& pSelf,
 	const std::vector<std::shared_ptr<Image>>& images,
-	const std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer,
+	const std::shared_ptr<Image> pDepthStencilBuffer,
 	const std::shared_ptr<RenderPass>& pRenderPass)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
@@ -68,7 +68,7 @@ bool FrameBuffer::Init(
 std::shared_ptr<FrameBuffer> FrameBuffer::Create(
 	const std::shared_ptr<Device>& pDevice,
 	const std::shared_ptr<Image>& pImage,
-	const std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer,
+	const std::shared_ptr<Image> pDepthStencilBuffer,
 	const std::shared_ptr<RenderPass>& pRenderPass)
 {
 	std::shared_ptr<FrameBuffer> pFramebuffer = std::make_shared<FrameBuffer>();
@@ -80,7 +80,7 @@ std::shared_ptr<FrameBuffer> FrameBuffer::Create(
 std::shared_ptr<FrameBuffer> FrameBuffer::Create(
 	const std::shared_ptr<Device>& pDevice,
 	const std::vector<std::shared_ptr<Image>>& images,
-	const std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer,
+	const std::shared_ptr<Image> pDepthStencilBuffer,
 	const std::shared_ptr<RenderPass>& pRenderPass)
 {
 	std::shared_ptr<FrameBuffer> pFramebuffer = std::make_shared<FrameBuffer>();
@@ -95,7 +95,7 @@ std::shared_ptr<FrameBuffer> FrameBuffer::CreateOffScreenFrameBuffer(
 	const std::shared_ptr<RenderPass>& pRenderPass)
 {
 	std::shared_ptr<Image> pOffScreenTex = Image::CreateOffscreenTexture(pDevice, { width, height, 1 }, VK_FORMAT_R16G16B16A16_SFLOAT);
-	std::shared_ptr<DepthStencilBuffer> pDSBuffer = DepthStencilBuffer::Create(pDevice, VK_FORMAT_D32_SFLOAT_S8_UINT, width, height);
+	std::shared_ptr<Image> pDSBuffer = Image::CreateDepthStencilBuffer(pDevice, VK_FORMAT_D32_SFLOAT_S8_UINT, width, height);
 
 	std::shared_ptr<FrameBuffer> pFramebuffer = std::make_shared<FrameBuffer>();
 	if (pFramebuffer.get() && pFramebuffer->Init(pDevice, pFramebuffer, { pOffScreenTex }, pDSBuffer, pRenderPass))

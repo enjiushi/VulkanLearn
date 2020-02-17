@@ -137,7 +137,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateGBufferFrameBuffe
 		gbuffer_vec[GBuffer2] = Image::CreateOffscreenTexture(GetDevice(), size, m_GBufferFormatTable[GBuffer2]);
 		gbuffer_vec[MotionVector] = Image::CreateOffscreenTexture(GetDevice(), size, m_GBufferFormatTable[MotionVector]);
 
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, (uint32_t)windowSize.x, (uint32_t)windowSize.y);
+		std::shared_ptr<Image> pDepthStencilBuffer = Image::CreateDepthStencilSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, (uint32_t)windowSize.x, (uint32_t)windowSize.y);
 
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), gbuffer_vec, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->GetRenderPass()));
 	}
@@ -193,7 +193,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadowMapFrameBuf
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_FORMAT, (uint32_t)windowSize.x, (uint32_t)windowSize.y);
+		std::shared_ptr<Image> pDepthStencilBuffer = Image::CreateDepthStencilSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_FORMAT, (uint32_t)windowSize.x, (uint32_t)windowSize.y);
 
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), std::vector<std::shared_ptr<Image>>(), pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap)->GetRenderPass()));
 	}
@@ -280,7 +280,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateShadingFrameBuffe
 	{
 		std::shared_ptr<Image> pShadingResult = Image::CreateOffscreenTexture(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
 		std::shared_ptr<Image> pSSResult = Image::CreateOffscreenTexture(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = m_frameBuffers[FrameBufferType_GBuffer][0][i]->GetDepthStencilTarget();
+		std::shared_ptr<Image> pDepthStencilBuffer = m_frameBuffers[FrameBufferType_GBuffer][0][i]->GetDepthStencilTarget();
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pShadingResult, pSSResult }, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->GetRenderPass()));
 	}
 
@@ -445,7 +445,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardEnvGenOffS
 	{
 		std::shared_ptr<Image> pColorTarget = Image::CreateOffscreenTexture(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
 
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height);
+		std::shared_ptr<Image> pDepthStencilBuffer = Image::CreateDepthStencilSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height);
 
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), pColorTarget, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->GetRenderPass()));
 	}
@@ -461,7 +461,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateForwardScreenFram
 	{
 		std::shared_ptr<Image> pColorTarget = GetSwapChain()->GetSwapChainImage(i);
 
-		std::shared_ptr<DepthStencilBuffer> pDepthStencilBuffer = DepthStencilBuffer::CreateSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height);
+		std::shared_ptr<Image> pDepthStencilBuffer = Image::CreateDepthStencilSampledAttachment(GetDevice(), OFFSCREEN_DEPTH_STENCIL_FORMAT, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.width, GetSwapChain()->GetSwapChainImage(0)->GetImageInfo().extent.height);
 
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), pColorTarget, pDepthStencilBuffer, RenderPassDiction::GetInstance()->GetForwardRenderPass()->GetRenderPass()));
 	}

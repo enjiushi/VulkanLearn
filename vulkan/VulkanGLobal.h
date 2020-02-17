@@ -99,8 +99,6 @@ public:
 	std::shared_ptr<CommandBuffer>		m_pPrePresentCmdBuffer;
 	std::shared_ptr<CommandBuffer>		m_pPostPresentCmdBuffer;
 
-	std::shared_ptr<DepthStencilBuffer>	m_pDSBuffer;
-
 
 	std::shared_ptr<Mesh>				m_pGunMesh;
 	std::shared_ptr<Mesh>				m_pSophiaMesh;
