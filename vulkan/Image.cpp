@@ -302,19 +302,15 @@ std::shared_ptr<StagingBuffer> Image::PrepareStagingBuffer(const GliImageWrapper
 	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
 		total_bytes += (uint32_t)gliTex.textures[i].size();
 
-	// Copy all bytes of texture vector into a buffer
-	uint32_t offset = 0;
-	uint8_t* buf = new uint8_t[total_bytes];
-	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
-	{
-		memcpy_s(buf + offset, total_bytes - offset, gliTex.textures[i].data(), gliTex.textures[i].size());
-		offset += (uint32_t)gliTex.textures[i].size();
-	}
-
 	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, total_bytes);
-	pStagingBuffer->UpdateByteStream(buf, 0, total_bytes);
 
-	delete[] buf;
+	uint32_t offset = 0;
+	for (uint32_t i = 0; i < (uint32_t)gliTex.textures.size(); i++)
+	{
+		uint32_t bytes = (uint32_t)gliTex.textures[i].size();
+		pStagingBuffer->UpdateByteStream(gliTex.textures[i].data(), offset, bytes);
+		offset += bytes;
+	}
 
 	return pStagingBuffer;
 }
