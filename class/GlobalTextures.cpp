@@ -72,9 +72,9 @@ void GlobalTextures::InitScreenSizeTextureDiction()
 void GlobalTextures::InitIBLTextures()
 {
 	m_IBLCubeTextures.resize(IBLCubeTextureTypeCount);
-	m_IBLCubeTextures[RGBA16_1024_SkyBox] = TextureCube::CreateEmptyTextureCube(GetDevice(), 1024, 1024, (uint32_t)std::log2(1024) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance] = TextureCube::CreateEmptyTextureCube(GetDevice(), (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = TextureCube::CreateEmptyTextureCube(GetDevice(), (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, (uint32_t)std::log2(512) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBLCubeTextures[RGBA16_1024_SkyBox] = Image::CreateEmptyCubeTexture(GetDevice(), { 1024, 1024 }, (uint32_t)std::log2(1024) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance] = Image::CreateEmptyCubeTexture(GetDevice(), { (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y }, 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = Image::CreateEmptyCubeTexture(GetDevice(), { (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y }, (uint32_t)std::log2(512) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
 
 	m_IBL2DTextures.resize(IBL2DTextureTypeCount);
 

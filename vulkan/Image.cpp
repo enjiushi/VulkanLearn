@@ -280,12 +280,24 @@ std::shared_ptr<ImageView> Image::CreateDefaultImageView() const
 	imgViewCreateInfo.image = m_image;
 	imgViewCreateInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
 	imgViewCreateInfo.format = m_info.format;
-	imgViewCreateInfo.viewType = m_info.arrayLayers == 1? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 	imgViewCreateInfo.subresourceRange.layerCount = m_info.arrayLayers;
 	imgViewCreateInfo.subresourceRange.baseMipLevel = 0;
 	imgViewCreateInfo.subresourceRange.levelCount = m_info.mipLevels;
+
+	if (m_info.flags == VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
+	{
+		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+	}
+	else if (m_info.arrayLayers > 1)
+	{
+		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+	}
+	else
+	{
+		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	}
 
 	return ImageView::Create(GetDevice(), imgViewCreateInfo);
 }
@@ -342,21 +354,45 @@ uint32_t Image::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const
 
 	for (uint32_t level = 0; level < gliTex.textures[0].levels(); level++)
 	{
-		gli::texture2d tex2d = (gli::texture2d)gliTex.textures[0];
 		VkBufferImageCopy bufferCopyRegion = {};
 		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		bufferCopyRegion.imageSubresource.mipLevel = level;
 		bufferCopyRegion.imageSubresource.baseArrayLayer = layer;
 		bufferCopyRegion.imageSubresource.layerCount = 1;
-		bufferCopyRegion.imageExtent.width = tex2d[level].extent().x;
-		bufferCopyRegion.imageExtent.height = tex2d[level].extent().y;
 		bufferCopyRegion.imageExtent.depth = 1;
 		bufferCopyRegion.bufferOffset = offset;
 
-		bufferCopyRegions.push_back(bufferCopyRegion);
+		gli::texture GliTex = gliTex.textures[0];
+		if (GliTex.faces() > 1)
+		{
+			uint32_t face = layer;
+			gli::texture_cube tex = (gli::texture_cube)GliTex;
+			bufferCopyRegion.imageExtent.width = tex[face][level].extent().x;
+			bufferCopyRegion.imageExtent.height = tex[face][level].extent().y;
 
-		uint32_t size = (uint32_t)tex2d[level].size();
-		offset += static_cast<uint32_t>(tex2d[level].size());
+			offset += static_cast<uint32_t>(tex[face][level].size());
+		}
+		else
+		{
+			if (GliTex.layers() > 1)
+			{
+				gli::texture2d_array tex = (gli::texture2d_array)GliTex;
+				bufferCopyRegion.imageExtent.width = tex[layer][level].extent().x;
+				bufferCopyRegion.imageExtent.height = tex[layer][level].extent().y;
+
+				offset += static_cast<uint32_t>(tex[layer][level].size());
+			}
+			else
+			{
+				gli::texture2d tex = (gli::texture2d)GliTex;
+				bufferCopyRegion.imageExtent.width = tex[level].extent().x;
+				bufferCopyRegion.imageExtent.height = tex[level].extent().y;
+
+				offset += static_cast<uint32_t>(tex[level].size());
+			}
+		}
+
+		bufferCopyRegions.push_back(bufferCopyRegion);
 	}
 
 	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
@@ -398,7 +434,7 @@ std::shared_ptr<Image> Image::Create(const std::shared_ptr<Device>& pDevice, con
 	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, gliTex2d, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return pTexture;
 	return nullptr;
 }
@@ -662,7 +698,81 @@ std::shared_ptr<Image> Image::CreateTexture2DArray(const std::shared_ptr<Device>
 	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, gliTextureArray, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+		return pTexture;
+	return nullptr;
+}
+
+std::shared_ptr<Image> Image::CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format)
+{
+	return CreateEmptyCubeTexture(pDevice, size, 1, format);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, VkFormat format)
+{
+	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
+
+	if (pTexture != nullptr)
+	{
+		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+	}
+
+	VkImageCreateInfo textureCreateInfo = {};
+	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	textureCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+	textureCreateInfo.format = format;
+	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	textureCreateInfo.extent.depth = 1;
+	textureCreateInfo.extent.width = size.x;
+	textureCreateInfo.extent.height = size.y;
+	textureCreateInfo.arrayLayers = 6;
+	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	textureCreateInfo.mipLevels = mipLevels;
+	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
 	if (pTexture.get() && pTexture->Init(pDevice, pTexture, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+		return pTexture;
+	return nullptr;
+}
+
+std::shared_ptr<Image> Image::CreateCubeTexture(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
+{
+	gli::texture_cube gliTexCube(gli::load(path.c_str()));
+
+	uint32_t width = gliTexCube.extent().x;
+	uint32_t height = gliTexCube.extent().y;
+	uint32_t mipLevels = (uint32_t)gliTexCube.levels();
+
+	GliImageWrapper wrapper = { { gliTexCube } };
+	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
+
+	if (pTexture != nullptr)
+	{
+		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
+	}
+
+	VkImageCreateInfo textureCreateInfo = {};
+	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	textureCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+	textureCreateInfo.format = format;
+	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	textureCreateInfo.extent.depth = 1;
+	textureCreateInfo.extent.width = width;
+	textureCreateInfo.extent.height = height;
+	textureCreateInfo.arrayLayers = 6;
+	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	textureCreateInfo.mipLevels = mipLevels;
+	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, wrapper, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return pTexture;
 	return nullptr;
 }

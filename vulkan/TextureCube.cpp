@@ -64,28 +64,12 @@ bool TextureCube::Init(const std::shared_ptr<Device>& pDevice, const std::shared
 	return true;
 }
 
-std::shared_ptr<TextureCube> TextureCube::Create(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
+std::shared_ptr<TextureCube> TextureCube::CreateCubeTexture(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
 {
 	gli::texture_cube gliTexCube(gli::load(path.c_str()));
 	GliImageWrapper wrapper = { {gliTexCube} };
 	std::shared_ptr<TextureCube> pTexture = std::make_shared<TextureCube>();
 	if (pTexture.get() && pTexture->Init(pDevice, pTexture, wrapper, format))
-		return pTexture;
-	return nullptr;
-}
-
-std::shared_ptr<TextureCube> TextureCube::CreateEmptyTextureCube(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, VkFormat format)
-{
-	std::shared_ptr<TextureCube> pTexture = std::make_shared<TextureCube>();
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, 1, format))
-		return pTexture;
-	return nullptr;
-}
-
-std::shared_ptr<TextureCube> TextureCube::CreateEmptyTextureCube(const std::shared_ptr<Device>& pDevice, uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format)
-{
-	std::shared_ptr<TextureCube> pTexture = std::make_shared<TextureCube>();
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, width, height, mipLevels, format))
 		return pTexture;
 	return nullptr;
 }
