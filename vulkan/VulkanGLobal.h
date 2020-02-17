@@ -30,8 +30,6 @@
 #include "../thread/ThreadTaskQueue.hpp"
 #include "../Base/BaseObject.h"
 #include "../component/Character.h"
-#include "Image.h"
-#include "TextureCube.h"
 #include "../class/Mesh.h"
 #include "../component/MeshRenderer.h"
 #include "../class/Material.h"

@@ -1,7 +1,7 @@
 #include "../vulkan/Image.h"
 #include "../vulkan/Image.h"
 #include "../vulkan/GlobalDeviceObjects.h"
-#include "../vulkan/TextureCube.h"
+#include "../vulkan/Image.h"
 #include "../vulkan/CommandPool.h"
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/GlobalVulkanStates.h"
