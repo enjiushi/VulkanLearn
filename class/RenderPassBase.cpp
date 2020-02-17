@@ -4,7 +4,6 @@
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/Image.h"
-#include "../vulkan/DepthStencilBuffer.h"
 #include "RenderPassBase.h"
 
 bool RenderPassBase::Init(const std::shared_ptr<RenderPassBase>& pSelf, const VkRenderPassCreateInfo& info)

@@ -3,7 +3,6 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/SwapChain.h"
-#include "../vulkan/DepthStencilBuffer.h"
 #include "../vulkan/Image.h"
 #include "../vulkan/GlobalVulkanStates.h"
 #include "RenderPassDiction.h"

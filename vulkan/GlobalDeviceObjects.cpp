@@ -7,7 +7,6 @@
 #include "../thread/ThreadWorker.hpp"
 #include "SharedBufferManager.h"
 #include "Framebuffer.h"
-#include "DepthStencilBuffer.h"
 #include "RenderPass.h"
 #include "../thread/ThreadTaskQueue.hpp"
 #include "GlobalVulkanStates.h"

@@ -13,7 +13,6 @@
 #include "IndexBuffer.h"
 #include "UniformBuffer.h"
 #include "GlobalDeviceObjects.h"
-#include "DepthStencilBuffer.h"
 #include "SwapChainImage.h"
 #include "RenderPass.h"
 #include "DescriptorSetLayout.h"

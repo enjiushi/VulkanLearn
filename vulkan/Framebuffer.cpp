@@ -1,6 +1,5 @@
 #include "Framebuffer.h"
 #include "Image.h"
-#include "DepthStencilBuffer.h"
 #include "RenderPass.h"
 #include "Image.h"
 #include "GlobalDeviceObjects.h"
