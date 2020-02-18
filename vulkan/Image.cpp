@@ -466,44 +466,70 @@ std::shared_ptr<Image> Image::CreateEmptyTexture
 	return nullptr;
 }
 
-std::shared_ptr<Image> Image::Create(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
+std::shared_ptr<Image> Image::CreateTextureWithGLIImage
+(
+	const std::shared_ptr<Device>& pDevice,
+	const GliImageWrapper& GLIImage,
+	VkFormat format,
+	VkImageLayout defaultLayout,
+	VkImageUsageFlags usage,
+	VkPipelineStageFlags stageFlag,
+	VkAccessFlags accessFlag,
+	VkImageViewCreateFlags createFlag
+)
 {
-	gli::texture2d gliTex2d(gli::load(path.c_str()));
-	return Create(pDevice, { {gliTex2d} }, format);
-}
-
-std::shared_ptr<Image> Image::Create(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTex2d, VkFormat format)
-{
-	uint32_t width = static_cast<uint32_t>(gliTex2d.textures[0].extent().x);
-	uint32_t height = static_cast<uint32_t>(gliTex2d.textures[0].extent().y);
-	uint32_t mipLevels = static_cast<uint32_t>(gliTex2d.textures[0].levels());
+	uint32_t width = static_cast<uint32_t>(GLIImage.textures[0].extent().x);
+	uint32_t height = static_cast<uint32_t>(GLIImage.textures[0].extent().y);
+	uint32_t mipLevels = static_cast<uint32_t>(GLIImage.textures[0].levels());
+	uint32_t layers = (uint32_t)GLIImage.textures.size();
 
 	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
 
 	if (pTexture.get())
 	{
-		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
-		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
+		pTexture->m_accessStages = stageFlag;
+		pTexture->m_accessFlags = accessFlag;
 	}
 
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	textureCreateInfo.flags = createFlag;
 	textureCreateInfo.format = format;
-	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	textureCreateInfo.arrayLayers = 1;
+	textureCreateInfo.usage = usage;
+	textureCreateInfo.arrayLayers = layers;
 	textureCreateInfo.extent.depth = 1;
 	textureCreateInfo.extent.width = width;
 	textureCreateInfo.extent.height = height;
 	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	textureCreateInfo.mipLevels = 1;
+	textureCreateInfo.initialLayout = defaultLayout;
+	textureCreateInfo.mipLevels = mipLevels;
 	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, gliTex2d, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, GLIImage, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 		return pTexture;
 	return nullptr;
+}
+
+std::shared_ptr<Image> Image::CreateTexture2D(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
+{
+	gli::texture2d gliTex2d(gli::load(path.c_str()));
+	return CreateTexture2D(pDevice, { {gliTex2d} }, format);
+}
+
+std::shared_ptr<Image> Image::CreateTexture2D(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTex2d, VkFormat format)
+{
+	return CreateTextureWithGLIImage
+	(
+		pDevice,
+		gliTex2d,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT
+	);
 }
 
 std::shared_ptr<Image> Image::CreateEmptyTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format)
@@ -631,7 +657,7 @@ std::shared_ptr<Image> Image::CreateMipmapOffscreenTexture2DArray(const std::sha
 		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
-		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT
+		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
 	);
 }
 
@@ -643,31 +669,16 @@ std::shared_ptr<Image> Image::CreateTexture2DArray(const std::shared_ptr<Device>
 
 std::shared_ptr<Image> Image::CreateTexture2DArray(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTextureArray, VkFormat format)
 {
-	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
-
-	uint32_t width = gliTextureArray.textures[0].extent().x;
-	uint32_t height = gliTextureArray.textures[0].extent().y;
-	uint32_t mipLevels = (uint32_t)gliTextureArray.textures[0].levels();
-	uint32_t layers = (uint32_t)gliTextureArray.textures.size();
-
-	VkImageCreateInfo textureCreateInfo = {};
-	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	textureCreateInfo.format = format;
-	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
-	textureCreateInfo.extent.depth = 1;
-	textureCreateInfo.extent.width = width;
-	textureCreateInfo.extent.height = height;
-	textureCreateInfo.arrayLayers = layers;
-	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	textureCreateInfo.mipLevels = mipLevels;
-	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, gliTextureArray, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
-		return pTexture;
-	return nullptr;
+	return CreateTextureWithGLIImage
+	(
+		pDevice,
+		gliTextureArray,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
+	);
 }
 
 std::shared_ptr<Image> Image::CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format)
@@ -696,38 +707,17 @@ std::shared_ptr<Image> Image::CreateCubeTexture(const std::shared_ptr<Device>& p
 {
 	gli::texture_cube gliTexCube(gli::load(path.c_str()));
 
-	uint32_t width = gliTexCube.extent().x;
-	uint32_t height = gliTexCube.extent().y;
-	uint32_t mipLevels = (uint32_t)gliTexCube.levels();
-
-	GliImageWrapper wrapper = { { gliTexCube } };
-	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
-
-	if (pTexture != nullptr)
-	{
-		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
-	}
-
-	VkImageCreateInfo textureCreateInfo = {};
-	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	textureCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-	textureCreateInfo.format = format;
-	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	textureCreateInfo.extent.depth = 1;
-	textureCreateInfo.extent.width = width;
-	textureCreateInfo.extent.height = height;
-	textureCreateInfo.arrayLayers = 6;
-	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	textureCreateInfo.mipLevels = mipLevels;
-	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, wrapper, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
-		return pTexture;
-	return nullptr;
+	return CreateTextureWithGLIImage
+	(
+		pDevice,
+		{ { gliTexCube } },
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		VK_ACCESS_SHADER_READ_BIT,
+		VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT
+	);
 }
 
 std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size)

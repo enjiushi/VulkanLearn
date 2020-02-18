@@ -70,10 +70,22 @@ public:
 		VkImageViewCreateFlags createFlag = 0
 	);
 
+	static std::shared_ptr<Image> CreateTextureWithGLIImage
+	(
+		const std::shared_ptr<Device>& pDevice,
+		const GliImageWrapper& GLIImage,
+		VkFormat format,
+		VkImageLayout defaultLayout,
+		VkImageUsageFlags usage,
+		VkPipelineStageFlags stageFlag,
+		VkAccessFlags accessFlag,
+		VkImageViewCreateFlags createFlag = 0
+	);
+
 	// Factory methods:
 	// Texture2D:
-	static std::shared_ptr<Image> Create(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format);
-	static std::shared_ptr<Image> Create(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTex2d, VkFormat format);
+	static std::shared_ptr<Image> CreateTexture2D(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format);
+	static std::shared_ptr<Image> CreateTexture2D(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTex2d, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyTexture2DForCompute(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);
 	static std::shared_ptr<Image> CreateOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);

@@ -110,7 +110,7 @@ void GlobalTextures::InitSSAORandomRotationTexture()
 	gli::texture2d tex = gli::texture2d(gli::FORMAT_RGBA32_SFLOAT_PACK32, { std::sqrt(SSAO_RANDOM_ROTATION_COUNT), std::sqrt(SSAO_RANDOM_ROTATION_COUNT) }, 1);
 	std::memcpy(tex.data(), tangents.data(), tex.size());
 
-	m_pSSAORandomRotations = Image::Create(GetDevice(), { {tex} }, VK_FORMAT_R32G32B32A32_SFLOAT);
+	m_pSSAORandomRotations = Image::CreateTexture2D(GetDevice(), { {tex} }, VK_FORMAT_R32G32B32A32_SFLOAT);
 }
 
 void GlobalTextures::InitIrradianceTexture()
@@ -339,7 +339,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 void GlobalTextures::InitTransmittanceTextureDiction()
 {
 	m_transmittanceTextureDiction = Image::CreateEmptyTexture2DArray(GetDevice(), { 256, 64 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
-	//m_singleScatterTextureDiction = Image::CreateEmptyTexture2DArray(GetDevice(), { 256, 128, 32 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
+	//m_singleScatterTextureDiction = Image::CreateEmptyTexture3DArray(GetDevice(), { 256, 128, 32 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()
