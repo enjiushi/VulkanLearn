@@ -45,13 +45,13 @@ void GlobalTextures::InitTextureDiction()
 
 	m_textureDiction[RGBA8_1024].textureArrayName = "RGBA8TextureArray";
 	m_textureDiction[RGBA8_1024].textureArrayDescription = "RGBA8, size16, mipLevel11";
-	m_textureDiction[RGBA8_1024].pTextureArray = Image::CreateEmptyTexture2DArray(GetDevice(), { 1024, 1024, 1 }, (uint32_t)std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
+	m_textureDiction[RGBA8_1024].pTextureArray = Image::CreateEmptyTexture2DArray(GetDevice(), { 1024, 1024 }, (uint32_t)std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
 	m_textureDiction[RGBA8_1024].maxSlotIndex = 0;
 	m_textureDiction[RGBA8_1024].currentEmptySlot = 0;
 
 	m_textureDiction[R8_1024].textureArrayName = "R8TextureArray";
 	m_textureDiction[R8_1024].textureArrayDescription = "R8, size16, mipLevel11";
-	m_textureDiction[R8_1024].pTextureArray = Image::CreateEmptyTexture2DArray(GetDevice(), { 1024, 1024, 1 }, (uint32_t)std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_SINGLE_COLOR_FORMAT);
+	m_textureDiction[R8_1024].pTextureArray = Image::CreateEmptyTexture2DArray(GetDevice(), { 1024, 1024 }, (uint32_t)std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_SINGLE_COLOR_FORMAT);
 	m_textureDiction[R8_1024].maxSlotIndex = 0;
 	m_textureDiction[R8_1024].currentEmptySlot = 0;
 }
@@ -64,7 +64,7 @@ void GlobalTextures::InitScreenSizeTextureDiction()
 	m_screenSizeTextureDiction.textureArrayDescription = "Mostly used to store intermedia data of current frames";
 
 	Vector2d size = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
-	m_screenSizeTextureDiction.pTextureArray = Image::CreateMipmapOffscreenTexture(GetDevice(), { (uint32_t)size.x, (uint32_t)size.y, 1 }, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
+	m_screenSizeTextureDiction.pTextureArray = Image::CreateMipmapOffscreenTexture2DArray(GetDevice(), { (uint32_t)size.x, (uint32_t)size.y }, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
 	m_screenSizeTextureDiction.maxSlotIndex = 0;
 	m_screenSizeTextureDiction.currentEmptySlot = 0;
 }
@@ -338,7 +338,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 void GlobalTextures::InitTransmittanceTextureDiction()
 {
-	m_transmittanceTextureDiction = Image::CreateEmptyTexture2DArray(GetDevice(), { 256, 64, 1 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
+	m_transmittanceTextureDiction = Image::CreateEmptyTexture2DArray(GetDevice(), { 256, 64 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 	//m_singleScatterTextureDiction = Image::CreateEmptyTexture2DArray(GetDevice(), { 256, 128, 32 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 }
 
