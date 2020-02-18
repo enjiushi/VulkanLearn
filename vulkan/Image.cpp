@@ -737,41 +737,33 @@ std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Dev
 
 std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size, VkImageUsageFlags usage)
 {
-	VkImageCreateInfo dsCreateInfo = {};
-	dsCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	dsCreateInfo.format = format;
-	dsCreateInfo.usage = usage | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-	dsCreateInfo.arrayLayers = 1;
-	dsCreateInfo.extent.depth = 1;
-	dsCreateInfo.extent.width = size.x;
-	dsCreateInfo.extent.height = size.y;
-	dsCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	dsCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	dsCreateInfo.mipLevels = 1;
-	dsCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	dsCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	VkPipelineStageFlags stageFlag = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	VkAccessFlags accessFlag = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 
-	std::shared_ptr<Image> pDSBuffer = std::make_shared<Image>();
-	if (pDSBuffer.get() && pDSBuffer->Init(pDevice, pDSBuffer, dsCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+	if (usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)
 	{
-		pDSBuffer->m_accessStages = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-		pDSBuffer->m_accessFlags = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-
-		if (usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)
-		{
-			pDSBuffer->m_accessStages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-			pDSBuffer->m_accessFlags |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
-		}
-
-		if (usage & VK_IMAGE_USAGE_SAMPLED_BIT)
-		{
-			pDSBuffer->m_accessStages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-			pDSBuffer->m_accessFlags |= VK_ACCESS_SHADER_READ_BIT;
-		}
-
-		return pDSBuffer;
+		stageFlag |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		accessFlag |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
 	}
-	return nullptr;
+
+	if (usage & VK_IMAGE_USAGE_SAMPLED_BIT)
+	{
+		stageFlag |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		accessFlag |= VK_ACCESS_SHADER_READ_BIT;
+	}
+
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		1,
+		1,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		usage | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+		stageFlag,
+		accessFlag
+	);
 }
 
 std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format)
