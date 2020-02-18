@@ -58,15 +58,16 @@ protected:
 public:
 	static std::shared_ptr<Image> CreateEmptyTexture
 	(
-		const std::shared_ptr<Device>& pDevice, 
-		const Vector3ui& size, 
-		uint32_t mipLevels, 
-		uint32_t layers, 
-		VkFormat format, 
-		VkImageLayout defaultLayout, 
+		const std::shared_ptr<Device>& pDevice,
+		const Vector3ui& size,
+		uint32_t mipLevels,
+		uint32_t layers,
+		VkFormat format,
+		VkImageLayout defaultLayout,
 		VkImageUsageFlags usage,
 		VkPipelineStageFlags stageFlag,
-		VkAccessFlags accessFlag
+		VkAccessFlags accessFlag,
+		VkImageViewCreateFlags createFlag = 0
 	);
 
 	// Factory methods:

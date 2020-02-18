@@ -433,7 +433,8 @@ std::shared_ptr<Image> Image::CreateEmptyTexture
 	VkImageLayout defaultLayout, 
 	VkImageUsageFlags usage,
 	VkPipelineStageFlags stageFlag,
-	VkAccessFlags accessFlag
+	VkAccessFlags accessFlag,
+	VkImageViewCreateFlags createFlag
 )
 {
 	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
@@ -446,6 +447,7 @@ std::shared_ptr<Image> Image::CreateEmptyTexture
 
 	VkImageCreateInfo textureCreateInfo = {};
 	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	textureCreateInfo.flags = createFlag;
 	textureCreateInfo.format = format;
 	textureCreateInfo.usage = usage;
 	textureCreateInfo.extent.depth = size.z;
@@ -675,33 +677,19 @@ std::shared_ptr<Image> Image::CreateEmptyCubeTexture(const std::shared_ptr<Devic
 
 std::shared_ptr<Image> Image::CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, VkFormat format)
 {
-	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
-
-	if (pTexture != nullptr)
-	{
-		pTexture->m_accessStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		pTexture->m_accessFlags = VK_ACCESS_SHADER_READ_BIT;
-	}
-
-	VkImageCreateInfo textureCreateInfo = {};
-	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	textureCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-	textureCreateInfo.format = format;
-	textureCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	textureCreateInfo.extent.depth = 1;
-	textureCreateInfo.extent.width = size.x;
-	textureCreateInfo.extent.height = size.y;
-	textureCreateInfo.arrayLayers = 6;
-	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	textureCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	textureCreateInfo.mipLevels = mipLevels;
-	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-	if (pTexture.get() && pTexture->Init(pDevice, pTexture, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
-		return pTexture;
-	return nullptr;
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		mipLevels,
+		6,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		VK_ACCESS_SHADER_READ_BIT,
+		VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT
+	);
 }
 
 std::shared_ptr<Image> Image::CreateCubeTexture(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
