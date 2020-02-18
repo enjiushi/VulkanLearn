@@ -78,13 +78,12 @@ void GlobalTextures::InitIBLTextures()
 
 	m_IBL2DTextures.resize(IBL2DTextureTypeCount);
 
-	Vector3ui size = 
+	Vector2ui size = 
 	{ 
 		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x,
 		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
-		1
 	};
-	m_IBL2DTextures[RGBA16_512_BRDFLut] = Image::CreateEmptyTexture(GetDevice(), size, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBL2DTextures[RGBA16_512_BRDFLut] = Image::CreateEmptyTexture2D(GetDevice(), size, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
@@ -340,6 +339,7 @@ void GlobalTextures::InitBRDFLUTTexture()
 void GlobalTextures::InitTransmittanceTextureDiction()
 {
 	m_transmittanceTextureDiction = Image::CreateEmptyTexture2DArray(GetDevice(), { 256, 64, 1 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
+	//m_singleScatterTextureDiction = Image::CreateEmptyTexture2DArray(GetDevice(), { 256, 128, 32 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()

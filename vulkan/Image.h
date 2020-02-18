@@ -56,14 +56,27 @@ protected:
 	virtual uint32_t ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const std::shared_ptr<StagingBuffer>& pStagingBuffer, uint32_t offset, const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
 public:
+	static std::shared_ptr<Image> CreateEmptyTexture
+	(
+		const std::shared_ptr<Device>& pDevice, 
+		const Vector3ui& size, 
+		uint32_t mipLevels, 
+		uint32_t layers, 
+		VkFormat format, 
+		VkImageLayout defaultLayout, 
+		VkImageUsageFlags usage,
+		VkPipelineStageFlags stageFlag,
+		VkAccessFlags accessFlag
+	);
+
 	// Factory methods:
 	// Texture2D:
 	static std::shared_ptr<Image> Create(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format);
 	static std::shared_ptr<Image> Create(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTex2d, VkFormat format);
-	static std::shared_ptr<Image> CreateEmptyTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format);
-	static std::shared_ptr<Image> CreateEmptyTextureForCompute(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format);
-	static std::shared_ptr<Image> CreateOffscreenTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format);
-	static std::shared_ptr<Image> CreateOffscreenTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format, VkImageLayout layout);
+	static std::shared_ptr<Image> CreateEmptyTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);
+	static std::shared_ptr<Image> CreateEmptyTexture2DForCompute(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);
+	static std::shared_ptr<Image> CreateOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);
+	static std::shared_ptr<Image> CreateOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format, VkImageLayout layout);
 	static std::shared_ptr<Image> CreateMipmapOffscreenTexture(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format, VkImageLayout layout);
 
 	// Texture2D Array:

@@ -90,4 +90,5 @@ protected:
 	std::shared_ptr<Image>						m_pSSAORandomRotations;
 
 	std::shared_ptr<Image>						m_transmittanceTextureDiction;
+	std::shared_ptr<Image>						m_singleScatterTextureDiction;
 };
