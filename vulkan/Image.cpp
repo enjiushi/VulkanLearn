@@ -730,12 +730,12 @@ std::shared_ptr<Image> Image::CreateCubeTexture(const std::shared_ptr<Device>& p
 	return nullptr;
 }
 
-std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height)
+std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size)
 {
-	return CreateDepthStencilBuffer(pDevice, format, width, height, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	return CreateDepthStencilBuffer(pDevice, format, size, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usage)
+std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size, VkImageUsageFlags usage)
 {
 	VkImageCreateInfo dsCreateInfo = {};
 	dsCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -743,8 +743,8 @@ std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Dev
 	dsCreateInfo.usage = usage | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	dsCreateInfo.arrayLayers = 1;
 	dsCreateInfo.extent.depth = 1;
-	dsCreateInfo.extent.width = width;
-	dsCreateInfo.extent.height = height;
+	dsCreateInfo.extent.width = size.x;
+	dsCreateInfo.extent.height = size.y;
 	dsCreateInfo.imageType = VK_IMAGE_TYPE_2D;
 	dsCreateInfo.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	dsCreateInfo.mipLevels = 1;
@@ -776,15 +776,15 @@ std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Dev
 
 std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format)
 {
-	return CreateDepthStencilBuffer(pDevice, format, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height);
+	return CreateDepthStencilBuffer(pDevice, format, { pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height });
 }
 
 std::shared_ptr<Image> Image::CreateDepthStencilInputAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format)
 {
-	return CreateDepthStencilBuffer(pDevice, format, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+	return CreateDepthStencilBuffer(pDevice, format, { pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height }, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
 }
 
-std::shared_ptr<Image> Image::CreateDepthStencilSampledAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height)
+std::shared_ptr<Image> Image::CreateDepthStencilSampledAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size)
 {
-	return CreateDepthStencilBuffer(pDevice, format, width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
+	return CreateDepthStencilBuffer(pDevice, format, size, VK_IMAGE_USAGE_SAMPLED_BIT);
 }

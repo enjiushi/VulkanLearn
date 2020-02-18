@@ -95,11 +95,12 @@ public:
 	static std::shared_ptr<Image> CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, VkFormat format);
 
 	// DepthStencilBuffer:
-	static std::shared_ptr<Image> CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height);
-	static std::shared_ptr<Image> CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height, VkImageUsageFlags usage);
+	static std::shared_ptr<Image> CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size);
+	static std::shared_ptr<Image> CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size, VkImageUsageFlags usage);
 	static std::shared_ptr<Image> CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format);
 	static std::shared_ptr<Image> CreateDepthStencilInputAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format);
-	static std::shared_ptr<Image> CreateDepthStencilSampledAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format, uint32_t width, uint32_t height);
+	static std::shared_ptr<Image> CreateDepthStencilSampledAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size);
+
 protected:
 	VkImage						m_image;
 	VkImageCreateInfo			m_info;
