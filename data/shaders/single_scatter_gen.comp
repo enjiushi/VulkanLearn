@@ -5,14 +5,14 @@
 
 #include "atmosphere/functions.sh"
 
-layout (local_size_x = 16, local_size_y = 16, local_size_z = 16) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
 //layout(location = 0) out vec3 delta_rayleigh;
 //layout(location = 1) out vec3 delta_mie;
 //layout(location = 2) out vec4 scattering;
 //layout(location = 3) out vec3 single_mie_scattering;
 
-layout (set = 3, binding = 0, rgba8) uniform image2DArray resultImage;
+layout (set = 3, binding = 0, rgba8) uniform image3D resultImage;
 
 layout(push_constant) uniform PushConsts {
 	layout (offset = 0) uint planetChunkIndex;
@@ -29,7 +29,7 @@ void main()
 	vec3 single_mie_scattering;
 	AtmosphereParameters parameters = planetAtmosphereData[pushConsts.planetChunkIndex].atmosphereParameters;
     ComputeSingleScatteringTexture(
-        parameters, TRANSMITTANCE_DICTION, vec3(gl_GlobalInvocationID.xyz) + vec3(0.5),
+        parameters, TRANSMITTANCE_DICTION[pushConsts.planetChunkIndex], vec3(gl_GlobalInvocationID.xyz) + vec3(0.5),
         delta_rayleigh, delta_mie);
     scattering = vec4(delta_rayleigh.rgb, delta_mie.r);
     single_mie_scattering = delta_mie;

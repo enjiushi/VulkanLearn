@@ -62,6 +62,7 @@ public:
 	std::shared_ptr<Image> GetIBLTextureCube(IBLTextureType type) const { return m_IBLCubeTextures[type]; }
 	std::shared_ptr<Image> GetIBLTexture2D(IBLTextureType type) const { return m_IBL2DTextures[type]; }
 	std::shared_ptr<Image> GetTransmittanceTextureDiction(uint32_t planetIndex) const { return m_transmittanceTextureDiction[planetIndex]; }
+	std::shared_ptr<Image> GetSingleScatterTextureDiction(uint32_t planetIndex) const { return m_singleScatterTextureDiction[planetIndex]; }
 	void InitIBLTextures(const gli::texture_cube& skyBoxTex);
 	bool GetTextureIndex(InGameTextureType type, const std::string& textureName, uint32_t& textureIndex);
 	bool GetScreenSizeTextureIndex(const std::string& textureName, uint32_t& textureIndex);

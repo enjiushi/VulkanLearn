@@ -130,7 +130,7 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 	// 1. Transmittance
 	PreComputeAtmosphereData(L"../data/shaders/transmittance_gen.comp.spv", {16, 4, 1}, UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex), chunkIndex);
 	// 2. Single scattering
-	//PreComputeAtmosphereData(L"../data/shaders/single_scatter_gen.comp.spv", {16, 8, 2}, UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex), chunkIndex);
+	PreComputeAtmosphereData(L"../data/shaders/single_scatter_gen.comp.spv", {16, 8, 8}, UniformData::GetInstance()->GetGlobalTextures()->GetSingleScatterTextureDiction(chunkIndex), chunkIndex);
 
 	return chunkIndex;
 }

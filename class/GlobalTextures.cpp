@@ -24,7 +24,8 @@
 #include <random>
 #include <gli\gli.hpp>
 
-static uint32_t PLANET_COUNT = 2;
+// FIXME: Refactor
+static uint32_t PLANET_COUNT = 4;
 
 bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 {
@@ -397,6 +398,12 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 			"RGBA32 w:256, h:64, transmittance texture diction",
 			{},
 			PLANET_COUNT
+		},
+		{
+			CombinedSampler,
+			"RGBA32 w:256, h:128, d:32, single scatter texture diction",
+			{},
+			PLANET_COUNT
 		}
 	};
 }
@@ -500,12 +507,12 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	pDescriptorSet->UpdateImages(bindingIndex++, imgs);
 
 	// 2. Single Scatter
-	//imgs.clear();
-	//for (uint32_t i = 0; i < 4; i++)
-	//{
-	//	imgs.push_back({ m_singleScatterTextureDiction[i], m_singleScatterTextureDiction[i]->CreateLinearClampToEdgeSampler(), m_singleScatterTextureDiction[i]->CreateDefaultImageView() });
-	//}
-	//pDescriptorSet->UpdateImages(bindingIndex++, imgs);
+	imgs.clear();
+	for (uint32_t i = 0; i < PLANET_COUNT; i++)
+	{
+		imgs.push_back({ m_singleScatterTextureDiction[i], m_singleScatterTextureDiction[i]->CreateLinearClampToEdgeSampler(), m_singleScatterTextureDiction[i]->CreateDefaultImageView() });
+	}
+	pDescriptorSet->UpdateImages(bindingIndex++, imgs);
 	return bindingIndex;
 }
 
