@@ -1,7 +1,7 @@
-#include "../vulkan/Texture2DArray.h"
-#include "../vulkan/Texture2D.h"
+#include "../vulkan/Image.h"
+#include "../vulkan/Image.h"
 #include "../vulkan/GlobalDeviceObjects.h"
-#include "../vulkan/TextureCube.h"
+#include "../vulkan/Image.h"
 #include "../vulkan/CommandPool.h"
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/GlobalVulkanStates.h"
@@ -24,6 +24,9 @@
 #include <random>
 #include <gli\gli.hpp>
 
+// FIXME: Refactor
+static uint32_t PLANET_COUNT = 4;
+
 bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 {
 	if (!SelfRefBase<GlobalTextures>::Init(pSelf))
@@ -45,13 +48,13 @@ void GlobalTextures::InitTextureDiction()
 
 	m_textureDiction[RGBA8_1024].textureArrayName = "RGBA8TextureArray";
 	m_textureDiction[RGBA8_1024].textureArrayDescription = "RGBA8, size16, mipLevel11";
-	m_textureDiction[RGBA8_1024].pTextureArray = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 1024, 1024, (uint32_t)std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
+	m_textureDiction[RGBA8_1024].pTextureArray = Image::CreateEmptyTexture2DArray(GetDevice(), { 1024, 1024 }, (uint32_t)std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
 	m_textureDiction[RGBA8_1024].maxSlotIndex = 0;
 	m_textureDiction[RGBA8_1024].currentEmptySlot = 0;
 
 	m_textureDiction[R8_1024].textureArrayName = "R8TextureArray";
 	m_textureDiction[R8_1024].textureArrayDescription = "R8, size16, mipLevel11";
-	m_textureDiction[R8_1024].pTextureArray = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 1024, 1024, (uint32_t)std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_SINGLE_COLOR_FORMAT);
+	m_textureDiction[R8_1024].pTextureArray = Image::CreateEmptyTexture2DArray(GetDevice(), { 1024, 1024 }, (uint32_t)std::log2(1024) + 1, 16, FrameBufferDiction::OFFSCREEN_SINGLE_COLOR_FORMAT);
 	m_textureDiction[R8_1024].maxSlotIndex = 0;
 	m_textureDiction[R8_1024].currentEmptySlot = 0;
 }
@@ -64,7 +67,7 @@ void GlobalTextures::InitScreenSizeTextureDiction()
 	m_screenSizeTextureDiction.textureArrayDescription = "Mostly used to store intermedia data of current frames";
 
 	Vector2d size = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
-	m_screenSizeTextureDiction.pTextureArray = Texture2DArray::CreateMipmapOffscreenTexture(GetDevice(), (uint32_t)size.x, (uint32_t)size.y, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
+	m_screenSizeTextureDiction.pTextureArray = Image::CreateMipmapOffscreenTexture2DArray(GetDevice(), { (uint32_t)size.x, (uint32_t)size.y }, 16, FrameBufferDiction::OFFSCREEN_COLOR_FORMAT);
 	m_screenSizeTextureDiction.maxSlotIndex = 0;
 	m_screenSizeTextureDiction.currentEmptySlot = 0;
 }
@@ -72,12 +75,18 @@ void GlobalTextures::InitScreenSizeTextureDiction()
 void GlobalTextures::InitIBLTextures()
 {
 	m_IBLCubeTextures.resize(IBLCubeTextureTypeCount);
-	m_IBLCubeTextures[RGBA16_1024_SkyBox] = TextureCube::CreateEmptyTextureCube(GetDevice(), 1024, 1024, (uint32_t)std::log2(1024) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance] = TextureCube::CreateEmptyTextureCube(GetDevice(), (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = TextureCube::CreateEmptyTextureCube(GetDevice(), (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, (uint32_t)std::log2(512) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBLCubeTextures[RGBA16_1024_SkyBox] = Image::CreateEmptyCubeTexture(GetDevice(), { 1024, 1024 }, (uint32_t)std::log2(1024) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance] = Image::CreateEmptyCubeTexture(GetDevice(), { (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y }, 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = Image::CreateEmptyCubeTexture(GetDevice(), { (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y }, (uint32_t)std::log2(512) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
 
 	m_IBL2DTextures.resize(IBL2DTextureTypeCount);
-	m_IBL2DTextures[RGBA16_512_BRDFLut] = Texture2D::CreateEmptyTexture(GetDevice(), (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+
+	Vector2ui size = 
+	{ 
+		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x,
+		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
+	};
+	m_IBL2DTextures[RGBA16_512_BRDFLut] = Image::CreateEmptyTexture2D(GetDevice(), size, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
@@ -104,7 +113,7 @@ void GlobalTextures::InitSSAORandomRotationTexture()
 	gli::texture2d tex = gli::texture2d(gli::FORMAT_RGBA32_SFLOAT_PACK32, { std::sqrt(SSAO_RANDOM_ROTATION_COUNT), std::sqrt(SSAO_RANDOM_ROTATION_COUNT) }, 1);
 	std::memcpy(tex.data(), tangents.data(), tex.size());
 
-	m_pSSAORandomRotations = Texture2D::Create(GetDevice(), { {tex} }, VK_FORMAT_R32G32B32A32_SFLOAT);
+	m_pSSAORandomRotations = Image::CreateTexture2D(GetDevice(), { {tex} }, VK_FORMAT_R32G32B32A32_SFLOAT);
 }
 
 void GlobalTextures::InitIrradianceTexture()
@@ -332,7 +341,12 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 void GlobalTextures::InitTransmittanceTextureDiction()
 {
-	m_transmittanceTextureDiction = Texture2DArray::CreateEmptyTexture2DArray(GetDevice(), 256, 64, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
+	// FIXME: Size of these textures are hard-coded for now
+	for (uint32_t i = 0; i < PLANET_COUNT; i++)
+	{
+		m_transmittanceTextureDiction.push_back(Image::CreateEmptyTexture2DForCompute(GetDevice(), { 256, 64 }, VK_FORMAT_R32G32B32A32_SFLOAT));
+		m_singleScatterTextureDiction.push_back(Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL));
+	}
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()
@@ -381,7 +395,15 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 		},
 		{
 			CombinedSampler,
-			"RGBA32 w:256, h:64, layer:16, transmittance texture diction"
+			"RGBA32 w:256, h:64, transmittance texture diction",
+			{},
+			PLANET_COUNT
+		},
+		{
+			CombinedSampler,
+			"RGBA32 w:256, h:128, d:32, single scatter texture diction",
+			{},
+			PLANET_COUNT
 		}
 	};
 }
@@ -476,8 +498,21 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	pDescriptorSet->UpdateImage(bindingIndex++, m_pSSAORandomRotations, m_pSSAORandomRotations->CreateNearestRepeatSampler(), m_pSSAORandomRotations->CreateDefaultImageView());
 
 	// Binding atmosphere precomputed textures
-	pDescriptorSet->UpdateImage(bindingIndex++, m_transmittanceTextureDiction, m_transmittanceTextureDiction->CreateLinearClampToEdgeSampler(), m_transmittanceTextureDiction->CreateDefaultImageView());
+	// 1. Transmittance
+	std::vector<CombinedImage> imgs;
+	for (uint32_t i = 0; i < PLANET_COUNT; i++)
+	{
+		imgs.push_back({ m_transmittanceTextureDiction[i], m_transmittanceTextureDiction[i]->CreateLinearClampToEdgeSampler(), m_transmittanceTextureDiction[i]->CreateDefaultImageView() });
+	}
+	pDescriptorSet->UpdateImages(bindingIndex++, imgs);
 
+	// 2. Single Scatter
+	imgs.clear();
+	for (uint32_t i = 0; i < PLANET_COUNT; i++)
+	{
+		imgs.push_back({ m_singleScatterTextureDiction[i], m_singleScatterTextureDiction[i]->CreateLinearClampToEdgeSampler(), m_singleScatterTextureDiction[i]->CreateDefaultImageView() });
+	}
+	pDescriptorSet->UpdateImages(bindingIndex++, imgs);
 	return bindingIndex;
 }
 

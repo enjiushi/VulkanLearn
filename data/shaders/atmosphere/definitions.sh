@@ -179,17 +179,6 @@ const LuminousIntensity kcd = 1000.0 * cd;
 const Luminance cd_per_square_meter = cd / m2;
 const Luminance kcd_per_square_meter = kcd / m2;
 
-const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(
-vec4(1.474000,1.850400,1.911980, 0.004675),
-vec4(6360.000000, 6420.000000, 0.800000, -0.207912),
-vec4(0.005802,0.013558,0.033100, 0),
-vec4(0.003996,0.003996,0.003996, 0),
-vec4(0.004440,0.004440,0.004440, 0),
-vec4(0.000650,0.001881,0.000085, 0),
-vec4(0.100000,0.100000,0.100000, 0),
-DensityProfile(DensityProfileLayer[2](DensityProfileLayer(0.000000,0.000000,0.000000,0.000000,0.000000, 0, 0, 0),DensityProfileLayer(0.000000,1.000000,-0.125000,0.000000,0.000000, 0, 0, 0))),
-DensityProfile(DensityProfileLayer[2](DensityProfileLayer(0.000000,0.000000,0.000000,0.000000,0.000000, 0, 0, 0),DensityProfileLayer(0.000000,1.000000,-0.833333,0.000000,0.000000, 0, 0, 0))),
-DensityProfile(DensityProfileLayer[2](DensityProfileLayer(25.000000,0.000000,0.000000,0.066667,-0.666667, 0, 0, 0),DensityProfileLayer(0.000000,0.000000,0.000000,-0.066667,2.666667, 0, 0, 0))));
 const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(114974.916437,71305.954816,65310.548555);
 const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(98242.786222,69954.398112,66475.012354);
 

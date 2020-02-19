@@ -1,10 +1,9 @@
 #include "ForwardRenderPass.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/RenderPass.h"
-#include "../vulkan/Texture2D.h"
+#include "../vulkan/Image.h"
 #include "../vulkan/SwapChainImage.h"
 #include "../vulkan/SwapChain.h"
-#include "../vulkan/DepthStencilBuffer.h"
 #include "../vulkan/Framebuffer.h"
 #include "FrameBufferDiction.h"
 

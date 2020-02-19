@@ -22,7 +22,14 @@ bool CustomizedComputeMaterial::Init(const std::shared_ptr<CustomizedComputeMate
 
 	m_variables = variables;
 
-	if (!Material::Init(pSelf, variables.shaderPath, createInfo, {}, {}, variables.groupSize))
+	VkPushConstantRange pushConstant =
+	{
+		VK_SHADER_STAGE_COMPUTE_BIT,
+		0,
+		(uint32_t)variables.pushConstantData.size()
+	};
+
+	if (!Material::Init(pSelf, variables.shaderPath, createInfo, { pushConstant }, {}, variables.groupSize))
 		return false;
 
 	for (uint32_t i = 0; i < (uint32_t)variables.textures.size(); i++)
@@ -59,4 +66,9 @@ void CustomizedComputeMaterial::CustomizeMaterialLayout(std::vector<UniformVarLi
 void CustomizedComputeMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 {
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (uint32_t)m_variables.textures.size();
+}
+
+void CustomizedComputeMaterial::CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
+{
+	pCmdBuf->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, (uint32_t)m_variables.pushConstantData.size(), m_variables.pushConstantData.data());
 }

@@ -3,8 +3,7 @@
 #include "../vulkan/FrameManager.h"
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/Framebuffer.h"
-#include "../vulkan/Texture2D.h"
-#include "../vulkan/DepthStencilBuffer.h"
+#include "../vulkan/Image.h"
 #include "RenderPassBase.h"
 
 bool RenderPassBase::Init(const std::shared_ptr<RenderPassBase>& pSelf, const VkRenderPassCreateInfo& info)

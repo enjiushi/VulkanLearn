@@ -13,7 +13,6 @@
 #include "IndexBuffer.h"
 #include "UniformBuffer.h"
 #include "GlobalDeviceObjects.h"
-#include "DepthStencilBuffer.h"
 #include "SwapChainImage.h"
 #include "RenderPass.h"
 #include "DescriptorSetLayout.h"
@@ -30,14 +29,12 @@
 #include "../thread/ThreadTaskQueue.hpp"
 #include "../Base/BaseObject.h"
 #include "../component/Character.h"
-#include "Texture2D.h"
-#include "TextureCube.h"
 #include "../class/Mesh.h"
 #include "../component/MeshRenderer.h"
 #include "../class/Material.h"
 #include "../class/MaterialInstance.h"
 #include "ShaderStorageBuffer.h"
-#include "Texture2DArray.h"
+#include "Image.h"
 #include "../class/ForwardMaterial.h"
 #include "../class/DeferredMaterial.h"
 #include "../component/DirectionLight.h"
@@ -101,8 +98,6 @@ public:
 	std::shared_ptr<CommandBuffer>		m_pPrePresentCmdBuffer;
 	std::shared_ptr<CommandBuffer>		m_pPostPresentCmdBuffer;
 
-	std::shared_ptr<DepthStencilBuffer>	m_pDSBuffer;
-
 
 	std::shared_ptr<Mesh>				m_pGunMesh;
 	std::shared_ptr<Mesh>				m_pSophiaMesh;
@@ -138,11 +133,6 @@ public:
 	std::shared_ptr<Texture2D>			m_pAlbedoRoughness;
 	std::shared_ptr<Texture2D>			m_pNormalAO;
 	std::shared_ptr<Texture2D>			m_pMetalic;
-	std::shared_ptr<TextureCube>		m_pSkyBoxTex;
-	std::shared_ptr<Texture2D>			m_pSimpleTex;
-	std::shared_ptr<TextureCube>		m_pIrradianceTex;
-	std::shared_ptr<TextureCube>		m_pPrefilterEnvTex;
-	std::shared_ptr<Texture2D>			m_pBRDFLut;
 
 	std::shared_ptr<BaseObject>			m_pGunObject;
 	std::shared_ptr<BaseObject>			m_pSphere0;

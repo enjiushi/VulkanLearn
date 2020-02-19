@@ -4,8 +4,6 @@
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/DescriptorSet.h"
 #include "../vulkan/Image.h"
-#include "../vulkan/Texture2D.h"
-#include "../vulkan/DepthStencilBuffer.h"
 #include "RenderWorkManager.h"
 
 bool GBufferInputUniforms::Init(const std::shared_ptr<GBufferInputUniforms>& pSelf)

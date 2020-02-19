@@ -2,6 +2,9 @@
 
 #include "ChunkBasedUniforms.h"
 
+class CommandBuffer;
+class Image;
+
 const static uint32_t PLANET_LOD_MAX_LEVEL = 32;
 
 template <typename T>
@@ -92,12 +95,14 @@ public:
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
 protected:
-	void UpdateDirtyChunkInternal(uint32_t index) override {}
+	void UpdateDirtyChunkInternal(uint32_t index) override;
 	const void* AcquireDataPtr() const override { return &m_singlePrecisionPerPlanetVariables[0]; }
 	uint32_t AcquireDataSize() const override { return sizeof(m_singlePrecisionPerPlanetVariables); }
 
 protected:
-	void PreComputeAtmosphereData(uint32_t chunkIndex);
+	static void PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::shared_ptr<Image>& pTexture, uint32_t chunkIndex);
+	static void AttachBarriersBeforePrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<Image>& pTexture, uint32_t chunkIndex);
+	static void AttachBarriersAfterPrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<Image>& pTexture, uint32_t chunkIndex);
 
 protected:
 	PerPlanetVariablesd		m_perPlanetVariables[MAXIMUM_OBJECTS];

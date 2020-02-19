@@ -151,7 +151,7 @@ void Image::UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer)
 
 	std::shared_ptr<StagingBuffer> pStagingBuffer = PrepareStagingBuffer(gliTex, pCmdBuffer);
 
-	ExecuteCopy(gliTex, layer, pStagingBuffer, pCmdBuffer);
+	ExecuteCopy(gliTex, layer, pStagingBuffer, 0, pCmdBuffer);
 
 	pCmdBuffer->EndPrimaryRecording();
 
@@ -280,12 +280,513 @@ std::shared_ptr<ImageView> Image::CreateDefaultImageView() const
 	imgViewCreateInfo.image = m_image;
 	imgViewCreateInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
 	imgViewCreateInfo.format = m_info.format;
-	imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 	imgViewCreateInfo.subresourceRange.layerCount = m_info.arrayLayers;
 	imgViewCreateInfo.subresourceRange.baseMipLevel = 0;
 	imgViewCreateInfo.subresourceRange.levelCount = m_info.mipLevels;
 
+	if (m_info.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+	{
+		imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+		if (m_info.format == VK_FORMAT_D16_UNORM_S8_UINT || m_info.format == VK_FORMAT_D24_UNORM_S8_UINT || m_info.format == VK_FORMAT_D32_SFLOAT_S8_UINT)
+			imgViewCreateInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+	}
+
+	if (m_info.flags == VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
+	{
+		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+	}
+	else if (m_info.arrayLayers > 1)
+	{
+		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+	}
+	else if (m_info.extent.depth > 1)
+	{
+		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_3D;
+	}
+	else
+	{
+		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	}
+
 	return ImageView::Create(GetDevice(), imgViewCreateInfo);
+}
+
+std::shared_ptr<ImageView> Image::CreateDepthSampleImageView() const
+{
+	VkImageViewCreateInfo imgViewCreateInfo = {};
+	imgViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	imgViewCreateInfo.image = m_image;
+	imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	imgViewCreateInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+	imgViewCreateInfo.format = m_info.format;
+	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+	imgViewCreateInfo.subresourceRange.layerCount = m_info.arrayLayers;
+	imgViewCreateInfo.subresourceRange.baseMipLevel = 0;
+	imgViewCreateInfo.subresourceRange.levelCount = m_info.mipLevels;
+
+	return ImageView::Create(GetDevice(), imgViewCreateInfo);
+}
+
+void Image::InsertTexture(const gli::texture2d& texture, uint32_t layer)
+{
+	UpdateByteStream({ { texture } }, layer);
+}
+
+std::shared_ptr<StagingBuffer> Image::PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	// Get total bytes of texture vector
+	uint32_t total_bytes = 0;
+	for (uint32_t i = 0; i < gliTex.textures.size(); i++)
+		total_bytes += (uint32_t)gliTex.textures[i].size();
+
+	std::shared_ptr<StagingBuffer> pStagingBuffer = StagingBuffer::Create(m_pDevice, total_bytes);
+
+	uint32_t offset = 0;
+	for (uint32_t i = 0; i < (uint32_t)gliTex.textures.size(); i++)
+	{
+		uint32_t bytes = (uint32_t)gliTex.textures[i].size();
+		pStagingBuffer->UpdateByteStream(gliTex.textures[i].data(), offset, bytes);
+		offset += bytes;
+	}
+
+	return pStagingBuffer;
+}
+
+void Image::ExecuteCopy(const GliImageWrapper& gliTex, const std::shared_ptr<StagingBuffer>& pStagingBuffer, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	std::vector<VkBufferImageCopy> bufferCopyRegions;
+
+	uint32_t numLayers = (uint32_t)gliTex.textures.size();
+	// Don't support cube map array
+	if (m_info.flags == VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
+	{
+		ASSERTION(numLayers == 1);
+		numLayers = 6;
+	}
+
+	uint32_t offset = 0;
+	for (uint32_t i = 0; i < numLayers; i++)
+	{
+		offset = ExecuteCopy(gliTex, i, pStagingBuffer, offset, pCmdBuffer);
+	}
+}
+
+uint32_t Image::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const std::shared_ptr<StagingBuffer>& pStagingBuffer, uint32_t offset, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
+{
+	ASSERTION(gliTex.textures.size() == 1);
+
+	std::vector<VkBufferImageCopy> bufferCopyRegions;
+
+	for (uint32_t level = 0; level < gliTex.textures[0].levels(); level++)
+	{
+		VkBufferImageCopy bufferCopyRegion = {};
+		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		bufferCopyRegion.imageSubresource.mipLevel = level;
+		bufferCopyRegion.imageSubresource.baseArrayLayer = layer;
+		bufferCopyRegion.imageSubresource.layerCount = 1;
+		bufferCopyRegion.imageExtent.depth = 1;
+		bufferCopyRegion.bufferOffset = offset;
+
+		gli::texture GliTex = gliTex.textures[0];
+		if (GliTex.faces() > 1)
+		{
+			uint32_t face = layer;
+			gli::texture_cube tex = (gli::texture_cube)GliTex;
+			bufferCopyRegion.imageExtent.width = tex[face][level].extent().x;
+			bufferCopyRegion.imageExtent.height = tex[face][level].extent().y;
+
+			offset += static_cast<uint32_t>(tex[face][level].size());
+		}
+		else
+		{
+			if (GliTex.layers() > 1)
+			{
+				gli::texture2d_array tex = (gli::texture2d_array)GliTex;
+				bufferCopyRegion.imageExtent.width = tex[layer][level].extent().x;
+				bufferCopyRegion.imageExtent.height = tex[layer][level].extent().y;
+
+				offset += static_cast<uint32_t>(tex[layer][level].size());
+			}
+			else
+			{
+				gli::texture2d tex = (gli::texture2d)GliTex;
+				bufferCopyRegion.imageExtent.width = tex[level].extent().x;
+				bufferCopyRegion.imageExtent.height = tex[level].extent().y;
+
+				offset += static_cast<uint32_t>(tex[level].size());
+			}
+		}
+
+		bufferCopyRegions.push_back(bufferCopyRegion);
+	}
+
+	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
+	return offset;
+}
+
+std::shared_ptr<Image> Image::CreateEmptyTexture
+(
+	const std::shared_ptr<Device>& pDevice, 
+	const Vector3ui& size, 
+	uint32_t mipLevels, 
+	uint32_t layers, 
+	VkFormat format, 
+	VkImageLayout defaultLayout, 
+	VkImageUsageFlags usage,
+	VkPipelineStageFlags stageFlag,
+	VkAccessFlags accessFlag,
+	VkImageViewCreateFlags createFlag
+)
+{
+	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
+
+	if (pTexture.get())
+	{
+		pTexture->m_accessStages = stageFlag;
+		pTexture->m_accessFlags = accessFlag;
+	}
+
+	VkImageCreateInfo textureCreateInfo = {};
+	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	textureCreateInfo.flags = createFlag;
+	textureCreateInfo.format = format;
+	textureCreateInfo.usage = usage;
+	textureCreateInfo.extent.depth = size.z;
+	textureCreateInfo.extent.width = size.x;
+	textureCreateInfo.extent.height = size.y;
+	textureCreateInfo.arrayLayers = layers;
+	textureCreateInfo.imageType = size.z == 1 ? VK_IMAGE_TYPE_2D : VK_IMAGE_TYPE_3D;
+	textureCreateInfo.initialLayout = defaultLayout;
+	textureCreateInfo.mipLevels = mipLevels;
+	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+		return pTexture;
+	return nullptr;
+}
+
+std::shared_ptr<Image> Image::CreateTextureWithGLIImage
+(
+	const std::shared_ptr<Device>& pDevice,
+	const GliImageWrapper& GLIImage,
+	VkFormat format,
+	VkImageLayout defaultLayout,
+	VkImageUsageFlags usage,
+	VkPipelineStageFlags stageFlag,
+	VkAccessFlags accessFlag,
+	VkImageViewCreateFlags createFlag
+)
+{
+	uint32_t width = static_cast<uint32_t>(GLIImage.textures[0].extent().x);
+	uint32_t height = static_cast<uint32_t>(GLIImage.textures[0].extent().y);
+	uint32_t mipLevels = static_cast<uint32_t>(GLIImage.textures[0].levels());
+	uint32_t layers = (uint32_t)GLIImage.textures.size();
+
+	std::shared_ptr<Image> pTexture = std::make_shared<Image>();
+
+	if (pTexture.get())
+	{
+		pTexture->m_accessStages = stageFlag;
+		pTexture->m_accessFlags = accessFlag;
+	}
+
+	VkImageCreateInfo textureCreateInfo = {};
+	textureCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	textureCreateInfo.flags = createFlag;
+	textureCreateInfo.format = format;
+	textureCreateInfo.usage = usage;
+	textureCreateInfo.arrayLayers = layers;
+	textureCreateInfo.extent.depth = 1;
+	textureCreateInfo.extent.width = width;
+	textureCreateInfo.extent.height = height;
+	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	textureCreateInfo.initialLayout = defaultLayout;
+	textureCreateInfo.mipLevels = mipLevels;
+	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	textureCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	textureCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (pTexture.get() && pTexture->Init(pDevice, pTexture, GLIImage, textureCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+		return pTexture;
+	return nullptr;
+}
+
+std::shared_ptr<Image> Image::CreateTexture2D(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
+{
+	gli::texture2d gliTex2d(gli::load(path.c_str()));
+	return CreateTexture2D(pDevice, { {gliTex2d} }, format);
+}
+
+std::shared_ptr<Image> Image::CreateTexture2D(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTex2d, VkFormat format)
+{
+	return CreateTextureWithGLIImage
+	(
+		pDevice,
+		gliTex2d,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format)
+{
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		1,
+		1,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyTexture2DForCompute(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format)
+{
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		1,
+		1,
+		format,
+		VK_IMAGE_LAYOUT_GENERAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format)
+{
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		1,
+		1,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format, VkImageLayout layout)
+{
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		1,
+		1,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateMipmapOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format, VkImageLayout layout)
+{
+	uint32_t smaller = size.y < size.x ? size.y : size.x;
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		(uint32_t)std::log2(smaller) + 1,
+		1,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t layers, VkFormat format)
+{
+	return CreateEmptyTexture2DArray(pDevice, size, 1, layers, format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t layers, VkFormat format, VkImageLayout defaultLayout)
+{
+	return CreateEmptyTexture2DArray(pDevice, size, 1, layers, format, defaultLayout);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, uint32_t layers, VkFormat format)
+{
+	return CreateEmptyTexture2DArray(pDevice, size, mipLevels, layers, format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, uint32_t layers, VkFormat format, VkImageLayout defaultLayout)
+{
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		mipLevels,
+		layers,
+		format,
+		defaultLayout,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateMipmapOffscreenTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t layers, VkFormat format)
+{
+	uint32_t smaller = size.y < size.x ? size.y : size.x;
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		(uint32_t)std::log2(smaller) + 1,
+		layers,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateTexture2DArray(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
+{
+	gli::texture2d_array gliTextureArray(gli::load(path.c_str()));
+	return CreateTexture2DArray(pDevice, { { gliTextureArray } }, format);
+}
+
+std::shared_ptr<Image> Image::CreateTexture2DArray(const std::shared_ptr<Device>& pDevice, const GliImageWrapper& gliTextureArray, VkFormat format)
+{
+	return CreateTextureWithGLIImage
+	(
+		pDevice,
+		gliTextureArray,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyTexture3D(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format, VkImageLayout defaultLayout)
+{
+	return CreateEmptyTexture
+	(
+		pDevice,
+		size,
+		1,
+		1,
+		format,
+		defaultLayout,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format)
+{
+	return CreateEmptyCubeTexture(pDevice, size, 1, format);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, VkFormat format)
+{
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		mipLevels,
+		6,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		VK_ACCESS_SHADER_READ_BIT,
+		VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateCubeTexture(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
+{
+	gli::texture_cube gliTexCube(gli::load(path.c_str()));
+
+	return CreateTextureWithGLIImage
+	(
+		pDevice,
+		{ { gliTexCube } },
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		VK_ACCESS_SHADER_READ_BIT,
+		VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size)
+{
+	return CreateDepthStencilBuffer(pDevice, format, size, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+}
+
+std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size, VkImageUsageFlags usage)
+{
+	VkPipelineStageFlags stageFlag = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	VkAccessFlags accessFlag = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+
+	if (usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)
+	{
+		stageFlag |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		accessFlag |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+	}
+
+	if (usage & VK_IMAGE_USAGE_SAMPLED_BIT)
+	{
+		stageFlag |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		accessFlag |= VK_ACCESS_SHADER_READ_BIT;
+	}
+
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		1,
+		1,
+		format,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		usage | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+		stageFlag,
+		accessFlag
+	);
+}
+
+std::shared_ptr<Image> Image::CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format)
+{
+	return CreateDepthStencilBuffer(pDevice, format, { pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height });
+}
+
+std::shared_ptr<Image> Image::CreateDepthStencilInputAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format)
+{
+	return CreateDepthStencilBuffer(pDevice, format, { pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, pDevice->GetPhysicalDevice()->GetSurfaceCap().currentExtent.height }, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+}
+
+std::shared_ptr<Image> Image::CreateDepthStencilSampledAttachment(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size)
+{
+	return CreateDepthStencilBuffer(pDevice, format, size, VK_IMAGE_USAGE_SAMPLED_BIT);
 }
