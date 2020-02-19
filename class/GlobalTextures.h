@@ -61,7 +61,7 @@ public:
 	std::shared_ptr<Image>	GetScreenSizeTextureArray() const { return m_screenSizeTextureDiction.pTextureArray; }
 	std::shared_ptr<Image> GetIBLTextureCube(IBLTextureType type) const { return m_IBLCubeTextures[type]; }
 	std::shared_ptr<Image> GetIBLTexture2D(IBLTextureType type) const { return m_IBL2DTextures[type]; }
-	std::shared_ptr<Image> GetTransmittanceTextureDiction() const { return m_transmittanceTextureDiction; }
+	std::shared_ptr<Image> GetTransmittanceTextureDiction(uint32_t planetIndex) const { return m_transmittanceTextureDiction[planetIndex]; }
 	void InitIBLTextures(const gli::texture_cube& skyBoxTex);
 	bool GetTextureIndex(InGameTextureType type, const std::string& textureName, uint32_t& textureIndex);
 	bool GetScreenSizeTextureIndex(const std::string& textureName, uint32_t& textureIndex);
@@ -89,6 +89,6 @@ protected:
 	std::vector<std::shared_ptr<Image>>			m_IBL2DTextures;
 	std::shared_ptr<Image>						m_pSSAORandomRotations;
 
-	std::shared_ptr<Image>						m_transmittanceTextureDiction;
-	std::shared_ptr<Image>						m_singleScatterTextureDiction;
+	std::vector<std::shared_ptr<Image>>			m_transmittanceTextureDiction;
+	std::vector<std::shared_ptr<Image>>			m_singleScatterTextureDiction;
 };

@@ -20,12 +20,18 @@ layout(push_constant) uniform PushConsts {
 
 //uniform mat3 luminance_from_radiance;
 //uniform sampler2D transmittance_texture;
-uniform int layer = 0;
-void main() {
+//uniform int layer = 0;
+void main() 
+{
+	vec3 delta_rayleigh;
+	vec3 delta_mie;
+	vec4 scattering;
+	vec3 single_mie_scattering;
+	AtmosphereParameters parameters = planetAtmosphereData[pushConsts.planetChunkIndex].atmosphereParameters;
     ComputeSingleScatteringTexture(
-        ATMOSPHERE, transmittance_texture, vec3(gl_FragCoord.xy, layer + 0.5),
+        parameters, TRANSMITTANCE_DICTION, vec3(gl_GlobalInvocationID.xyz) + vec3(0.5),
         delta_rayleigh, delta_mie);
-    scattering = vec4(delta_rayleigh.rgb,
-        (delta_mie).r);
-    single_mie_scattering = luminance_from_radiance * delta_mie;
-})";
+    scattering = vec4(delta_rayleigh.rgb, delta_mie.r);
+    single_mie_scattering = delta_mie;
+	imageStore(resultImage, ivec3(gl_GlobalInvocationID.xyz), vec4(scattering));
+}

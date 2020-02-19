@@ -101,6 +101,8 @@ public:
 	static std::shared_ptr<Image> CreateEmptyTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, uint32_t layers, VkFormat format, VkImageLayout defaultLayout);
 	static std::shared_ptr<Image> CreateMipmapOffscreenTexture2DArray(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t layers, VkFormat format);
 
+	static std::shared_ptr<Image> CreateEmptyTexture3D(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format, VkImageLayout defaultLayout);
+
 	// TextureCube:
 	static std::shared_ptr<Image> CreateCubeTexture(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);

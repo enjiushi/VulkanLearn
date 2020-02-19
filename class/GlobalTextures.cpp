@@ -24,6 +24,8 @@
 #include <random>
 #include <gli\gli.hpp>
 
+static uint32_t PLANET_COUNT = 2;
+
 bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 {
 	if (!SelfRefBase<GlobalTextures>::Init(pSelf))
@@ -338,8 +340,12 @@ void GlobalTextures::InitBRDFLUTTexture()
 
 void GlobalTextures::InitTransmittanceTextureDiction()
 {
-	m_transmittanceTextureDiction = Image::CreateEmptyTexture2DArray(GetDevice(), { 256, 64 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
-	//m_singleScatterTextureDiction = Image::CreateEmptyTexture3DArray(GetDevice(), { 256, 128, 32 }, 16, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
+	// FIXME: Size of these textures are hard-coded for now
+	for (uint32_t i = 0; i < PLANET_COUNT; i++)
+	{
+		m_transmittanceTextureDiction.push_back(Image::CreateEmptyTexture2DForCompute(GetDevice(), { 256, 64 }, VK_FORMAT_R32G32B32A32_SFLOAT));
+		m_singleScatterTextureDiction.push_back(Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL));
+	}
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()
@@ -388,7 +394,9 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 		},
 		{
 			CombinedSampler,
-			"RGBA32 w:256, h:64, layer:16, transmittance texture diction"
+			"RGBA32 w:256, h:64, transmittance texture diction",
+			{},
+			PLANET_COUNT
 		}
 	};
 }
@@ -483,8 +491,21 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	pDescriptorSet->UpdateImage(bindingIndex++, m_pSSAORandomRotations, m_pSSAORandomRotations->CreateNearestRepeatSampler(), m_pSSAORandomRotations->CreateDefaultImageView());
 
 	// Binding atmosphere precomputed textures
-	pDescriptorSet->UpdateImage(bindingIndex++, m_transmittanceTextureDiction, m_transmittanceTextureDiction->CreateLinearClampToEdgeSampler(), m_transmittanceTextureDiction->CreateDefaultImageView());
+	// 1. Transmittance
+	std::vector<CombinedImage> imgs;
+	for (uint32_t i = 0; i < PLANET_COUNT; i++)
+	{
+		imgs.push_back({ m_transmittanceTextureDiction[i], m_transmittanceTextureDiction[i]->CreateLinearClampToEdgeSampler(), m_transmittanceTextureDiction[i]->CreateDefaultImageView() });
+	}
+	pDescriptorSet->UpdateImages(bindingIndex++, imgs);
 
+	// 2. Single Scatter
+	//imgs.clear();
+	//for (uint32_t i = 0; i < 4; i++)
+	//{
+	//	imgs.push_back({ m_singleScatterTextureDiction[i], m_singleScatterTextureDiction[i]->CreateLinearClampToEdgeSampler(), m_singleScatterTextureDiction[i]->CreateDefaultImageView() });
+	//}
+	//pDescriptorSet->UpdateImages(bindingIndex++, imgs);
 	return bindingIndex;
 }
 

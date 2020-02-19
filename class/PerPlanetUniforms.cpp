@@ -128,9 +128,9 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 
 	// Precompute required data for atmosphere rendering
 	// 1. Transmittance
-	PreComputeAtmosphereData(L"../data/shaders/transmittance_gen.comp.spv", {16, 4, 1}, UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(), chunkIndex);
+	PreComputeAtmosphereData(L"../data/shaders/transmittance_gen.comp.spv", {16, 4, 1}, UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex), chunkIndex);
 	// 2. Single scattering
-	//PreComputeAtmosphereData(L"../data/shaders/single_scatter_gen.comp.spv", {16, 4, 1}, UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(), chunkIndex);
+	//PreComputeAtmosphereData(L"../data/shaders/single_scatter_gen.comp.spv", {16, 8, 2}, UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex), chunkIndex);
 
 	return chunkIndex;
 }
@@ -161,20 +161,20 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 
 	CustomizedComputeMaterial::Variables vars =
 	{
-		L"../data/shaders/transmittance_gen.comp.spv",
+		shaderPath,
 		groupSize,
 		{ pTexture },
 		{ { 0, 1, chunkIndex, 1 } },
 		data
 	};
-	std::shared_ptr<Material> pTransmittanceGenMaterial = CustomizedComputeMaterial::CreateMaterial(vars);
+	std::shared_ptr<Material> pMaterial = CustomizedComputeMaterial::CreateMaterial(vars);
 
 	// Recording
 	pCommandBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();;
 	pCommandBuffer->StartPrimaryRecording();
-	pTransmittanceGenMaterial->BeforeRenderPass(pCommandBuffer);
-	pTransmittanceGenMaterial->Dispatch(pCommandBuffer);
-	pTransmittanceGenMaterial->AfterRenderPass(pCommandBuffer);
+	pMaterial->BeforeRenderPass(pCommandBuffer);
+	pMaterial->Dispatch(pCommandBuffer);
+	pMaterial->AfterRenderPass(pCommandBuffer);
 
 	AttachBarriersBeforePrecompute(pCommandBuffer, pTexture, chunkIndex);
 

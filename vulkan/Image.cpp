@@ -301,6 +301,10 @@ std::shared_ptr<ImageView> Image::CreateDefaultImageView() const
 	{
 		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 	}
+	else if (m_info.extent.depth > 1)
+	{
+		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_3D;
+	}
 	else
 	{
 		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -454,7 +458,7 @@ std::shared_ptr<Image> Image::CreateEmptyTexture
 	textureCreateInfo.extent.width = size.x;
 	textureCreateInfo.extent.height = size.y;
 	textureCreateInfo.arrayLayers = layers;
-	textureCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	textureCreateInfo.imageType = size.z == 1 ? VK_IMAGE_TYPE_2D : VK_IMAGE_TYPE_3D;
 	textureCreateInfo.initialLayout = defaultLayout;
 	textureCreateInfo.mipLevels = mipLevels;
 	textureCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -557,7 +561,7 @@ std::shared_ptr<Image> Image::CreateEmptyTexture2DForCompute(const std::shared_p
 		1,
 		1,
 		format,
-		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_IMAGE_LAYOUT_GENERAL,
 		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
@@ -639,7 +643,7 @@ std::shared_ptr<Image> Image::CreateEmptyTexture2DArray(const std::shared_ptr<De
 		format,
 		defaultLayout,
 		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
-		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
 	);
 }
@@ -678,6 +682,22 @@ std::shared_ptr<Image> Image::CreateTexture2DArray(const std::shared_ptr<Device>
 		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
 		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyTexture3D(const std::shared_ptr<Device>& pDevice, const Vector3ui& size, VkFormat format, VkImageLayout defaultLayout)
+{
+	return CreateEmptyTexture
+	(
+		pDevice,
+		size,
+		1,
+		1,
+		format,
+		defaultLayout,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
 	);
 }
 
