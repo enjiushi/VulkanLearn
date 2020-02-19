@@ -141,10 +141,6 @@ void PerPlanetUniforms::UpdateDirtyChunkInternal(uint32_t index)
 
 void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::shared_ptr<Image>& pTexture, uint32_t chunkIndex)
 {
-	// DO REMEMBER TO SYNC DATA TO GPU BUFFER BEFORE DOING ANYTHING
-	// THIS IS NOT NORMAL FRAME RENDERING, I NEED TO DO IT HERE MANUALLY
-	UniformData::GetInstance()->SyncDataBuffer();
-
 	std::shared_ptr<CommandBuffer> pCommandBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
 	pCommandBuffer->StartPrimaryRecording();
 
