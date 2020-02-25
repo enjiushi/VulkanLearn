@@ -30,3 +30,4 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 	
 compile_shader(cur_path, 'vert')
 compile_shader(cur_path, 'frag')
+compile_shader(cur_path, 'comp')

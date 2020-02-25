@@ -197,6 +197,8 @@ layout(set = 0, binding = 13) uniform sampler2D RGBA16_512_2D_BRDFLUT;
 layout(set = 0, binding = 14) uniform sampler2D SSAO_RANDOM_ROTATIONS;
 layout(set = 0, binding = 15) uniform sampler2D TRANSMITTANCE_DICTION[4];
 layout(set = 0, binding = 16) uniform sampler2D DELTA_IRRADIANCE;
+layout(set = 0, binding = 16) uniform sampler2D DELTA_RAYLEIGH;
+layout(set = 0, binding = 16) uniform sampler2D DELTA_MIE;
 
 layout(std430, set = 1, binding = 0) uniform PerFrameUniforms
 {
