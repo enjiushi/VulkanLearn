@@ -146,7 +146,7 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		{
 			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaRayleigh(),
 			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaMie(),
-			UniformData::GetInstance()->GetGlobalTextures()->GetSingleScatterTextureDiction(chunkIndex)
+			UniformData::GetInstance()->GetGlobalTextures()->GetScatterTextureDiction(chunkIndex)
 		},
 		chunkIndex
 	);
@@ -163,10 +163,10 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 	);
 
 	// FIXME: Hard-code
-	//for (uint32_t scatterOrder = 2; scatterOrder <= 4; scatterOrder++)
-	//{
+	for (uint32_t scatterOrder = 2; scatterOrder <= 4; scatterOrder++)
+	{
 
-	//}
+	}
 
 	return chunkIndex;
 }

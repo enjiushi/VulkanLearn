@@ -1,0 +1,27 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+#include "atmosphere/functions.sh"
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
+
+layout (set = 3, binding = 2, rgba8) uniform image3D deltaScatterDensity;
+
+layout(push_constant) uniform PushConsts {
+	layout (offset = 0) uint planetChunkIndex;
+	layout (offset = 32) uint scatteringOrder;
+} pushConsts;
+
+void main() 
+{
+	AtmosphereParameters parameters = planetAtmosphereData[pushConsts.planetChunkIndex].atmosphereParameters;
+    vec3 density = ComputeScatteringDensityTexture(
+        parameters, TRANSMITTANCE_DICTION[pushConsts.planetChunkIndex], DELTA_RAYLEIGH,
+        DELTA_MIE, SCATTER_DICTION[pushConsts.planetChunkIndex],
+        DELTA_IRRADIANCE, vec3(gl_GlobalInvocationID.xyz) + vec3(0.5),
+        int(pushConsts.scatteringOrder));
+
+	imageStore(deltaScatterDensity,	ivec3(gl_GlobalInvocationID.xyz), vec4(density, 0));
+}
