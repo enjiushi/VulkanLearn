@@ -1,0 +1,28 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+#include "atmosphere/functions.sh"
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout (set = 3, binding = 0, rgba32f) uniform image2D deltaIrradiance;
+layout (set = 3, binding = 1, rgba32f) uniform image2D indirectIrradiance;
+
+layout(push_constant) uniform PushConsts {
+	layout (offset = 0) uvec2 data;
+} pushConsts;
+
+void main() 
+{
+	AtmosphereParameters parameters = planetAtmosphereData[pushConsts.data.x].atmosphereParameters;
+
+	vec3 _deltaIrradiance = ComputeIndirectIrradianceTexture(
+		parameters, DELTA_RAYLEIGH,
+		DELTA_MIE, DELTA_MULTI_SCATTER,
+		vec2(gl_GlobalInvocationID.xy) + vec2(0.5), int(pushConsts.data.y));
+
+	imageStore(deltaIrradiance,	ivec2(gl_GlobalInvocationID.xy), vec4(_deltaIrradiance, 0));
+	imageStore(indirectIrradiance,	ivec2(gl_GlobalInvocationID.xy), vec4(_deltaIrradiance, 0));
+}

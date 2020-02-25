@@ -171,6 +171,7 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		chunkIndex
 	);
 
+	// 4. Multi scatter
 	// FIXME: Hard-code 2nd order multi scatter, for test
 	for (uint32_t scatterOrder = 2; scatterOrder <= 2; scatterOrder++)
 	{
@@ -179,6 +180,7 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		data.push_back(*((uint8_t*)&scatterOrder + 2));
 		data.push_back(*((uint8_t*)&scatterOrder + 3));
 
+		// 4.1 Delta scatter density
 		PreComputeAtmosphereData
 		(
 			L"../data/shaders/delta_rayleigh_mie_gen.comp.spv",
@@ -189,6 +191,32 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 			data,
 			chunkIndex
 		);
+
+		// 4.2 Indirect irradiance
+		uint32_t irradianceOrder = scatterOrder - 1;
+		data.erase(data.begin() + 4, data.end());
+		data.push_back(*((uint8_t*)&irradianceOrder + 0));
+		data.push_back(*((uint8_t*)&irradianceOrder + 1));
+		data.push_back(*((uint8_t*)&irradianceOrder + 2));
+		data.push_back(*((uint8_t*)&irradianceOrder + 3));
+		PreComputeAtmosphereData
+		(
+			L"../data/shaders/indirect_irradiance_gen.comp.spv",
+			{ 4, 1, 1 },
+			{
+				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaIrradiance(),
+				UniformData::GetInstance()->GetGlobalTextures()->GetIrradianceTextureDiction(chunkIndex)
+			},
+			data,
+			chunkIndex
+		);
+
+		// 4.3 Multi scatter
+		data.erase(data.begin() + 4, data.end());
+		data.push_back(*((uint8_t*)&scatterOrder + 0));
+		data.push_back(*((uint8_t*)&scatterOrder + 1));
+		data.push_back(*((uint8_t*)&scatterOrder + 2));
+		data.push_back(*((uint8_t*)&scatterOrder + 3));
 	}
 
 	return chunkIndex;

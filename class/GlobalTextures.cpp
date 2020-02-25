@@ -346,10 +346,12 @@ void GlobalTextures::InitTransmittanceTextureDiction()
 	{
 		m_transmittanceTextureDiction.push_back(Image::CreateEmptyTexture2DForCompute(GetDevice(), { 256, 64 }, VK_FORMAT_R32G32B32A32_SFLOAT));
 		m_scatterTextureDiction.push_back(Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL));
+		m_irradianceTextureDiction.push_back(Image::CreateEmptyTexture2DForCompute(GetDevice(), { 64, 16 }, VK_FORMAT_R32G32B32A32_SFLOAT));
 		m_pDeltaIrradiance = Image::CreateEmptyTexture2DForCompute(GetDevice(), { 64, 16 }, VK_FORMAT_R32G32B32A32_SFLOAT);
 		m_pDeltaRayleigh = Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 		m_pDeltaMie = Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 		m_pDeltaScatterDensity = Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
+		m_pDeltaMultiScatter = Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 	}
 }
 
@@ -409,6 +411,12 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 			{},
 			PLANET_COUNT
 		},
+		{
+			CombinedSampler,
+			"RGBA32 w:64, h:16, indirect irradiance texture diction",
+			{},
+			PLANET_COUNT
+		},
 		// FIXME: Temporary binding here, just for debugging in profile tool
 		{
 			CombinedSampler,
@@ -428,7 +436,12 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 		{
 			CombinedSampler,
 			"RGBA32 w:256, h:128, d:32, delta scatter density",
-		{},
+			{},
+		},
+		{
+			CombinedSampler,
+			"RGBA32 w:256, h:128, d:32, delta multi scatter",
+			{},
 		}
 	};
 }
@@ -531,11 +544,19 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	}
 	pDescriptorSet->UpdateImages(bindingIndex++, imgs);
 
-	// 2. Single Scatter
+	// 2. Scatter
 	imgs.clear();
 	for (uint32_t i = 0; i < PLANET_COUNT; i++)
 	{
 		imgs.push_back({ m_scatterTextureDiction[i], m_scatterTextureDiction[i]->CreateLinearClampToEdgeSampler(), m_scatterTextureDiction[i]->CreateDefaultImageView() });
+	}
+	pDescriptorSet->UpdateImages(bindingIndex++, imgs);
+
+	// 3. Irradiance
+	imgs.clear();
+	for (uint32_t i = 0; i < PLANET_COUNT; i++)
+	{
+		imgs.push_back({ m_irradianceTextureDiction[i], m_irradianceTextureDiction[i]->CreateLinearClampToEdgeSampler(), m_irradianceTextureDiction[i]->CreateDefaultImageView() });
 	}
 	pDescriptorSet->UpdateImages(bindingIndex++, imgs);
 
@@ -544,6 +565,7 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaRayleigh, m_pDeltaRayleigh->CreateLinearClampToEdgeSampler(), m_pDeltaRayleigh->CreateDefaultImageView() });
 	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaMie, m_pDeltaMie->CreateLinearClampToEdgeSampler(), m_pDeltaMie->CreateDefaultImageView() });
 	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaScatterDensity, m_pDeltaScatterDensity->CreateLinearClampToEdgeSampler(), m_pDeltaScatterDensity->CreateDefaultImageView() });
+	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaMultiScatter, m_pDeltaMultiScatter->CreateLinearClampToEdgeSampler(), m_pDeltaMultiScatter->CreateDefaultImageView() });
 	return bindingIndex;
 }
 
