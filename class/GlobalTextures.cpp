@@ -347,6 +347,8 @@ void GlobalTextures::InitTransmittanceTextureDiction()
 		m_transmittanceTextureDiction.push_back(Image::CreateEmptyTexture2DForCompute(GetDevice(), { 256, 64 }, VK_FORMAT_R32G32B32A32_SFLOAT));
 		m_singleScatterTextureDiction.push_back(Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL));
 		m_pDeltaIrradiance = Image::CreateEmptyTexture2DForCompute(GetDevice(), { 64, 16 }, VK_FORMAT_R32G32B32A32_SFLOAT);
+		m_pDeltaRayleigh = Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
+		m_pDeltaMie = Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 	}
 }
 
@@ -409,7 +411,17 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 		// FIXME: Temporary binding here, just for debugging in profile tool
 		{
 			CombinedSampler,
-			"RGBA32 w:256, h:128, d:32, single scatter texture diction",
+			"RGBA32 w:64, h:16, delta irradiance",
+			{},
+		},
+		{
+			CombinedSampler,
+			"RGBA32 w:256, h:128, d:32, delta rayleigh",
+			{},
+		},
+		{
+			CombinedSampler,
+			"RGBA32 w:256, h:128, d:32, delta mie",
 			{},
 		}
 	};
@@ -523,6 +535,8 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 
 	// FIXME: Temporary binding here, just for debugging in profile tool
 	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaIrradiance, m_pDeltaIrradiance->CreateLinearClampToEdgeSampler(), m_pDeltaIrradiance->CreateDefaultImageView() });
+	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaRayleigh, m_pDeltaRayleigh->CreateLinearClampToEdgeSampler(), m_pDeltaRayleigh->CreateDefaultImageView() });
+	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaMie, m_pDeltaMie->CreateLinearClampToEdgeSampler(), m_pDeltaMie->CreateDefaultImageView() });
 	return bindingIndex;
 }
 

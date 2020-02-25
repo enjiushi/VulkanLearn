@@ -42,7 +42,7 @@ bool CustomizedComputeMaterial::Init(const std::shared_ptr<CustomizedComputeMate
 			variables.textures[i]->CreateDefaultImageView()
 		});
 
-		m_pUniformStorageDescriptorSet->UpdateImages(0, combinedImages, true);
+		m_pUniformStorageDescriptorSet->UpdateImages(i, combinedImages, true);
 	}
 
 	m_variables = variables;

@@ -100,9 +100,9 @@ protected:
 	uint32_t AcquireDataSize() const override { return sizeof(m_singlePrecisionPerPlanetVariables); }
 
 protected:
-	static void PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::shared_ptr<Image>& pTexture, uint32_t chunkIndex);
-	static void AttachBarriersBeforePrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<Image>& pTexture, uint32_t chunkIndex);
-	static void AttachBarriersAfterPrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<Image>& pTexture, uint32_t chunkIndex);
+	static void PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::vector<std::shared_ptr<Image>>& textures, uint32_t chunkIndex);
+	static void AttachBarriersBeforePrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::vector<std::shared_ptr<Image>>& textures, uint32_t chunkIndex);
+	static void AttachBarriersAfterPrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::vector<std::shared_ptr<Image>>& textures, uint32_t chunkIndex);
 
 protected:
 	PerPlanetVariablesd		m_perPlanetVariables[MAXIMUM_OBJECTS];

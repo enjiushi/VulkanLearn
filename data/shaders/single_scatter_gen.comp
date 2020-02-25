@@ -7,31 +7,27 @@
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
-//layout(location = 0) out vec3 delta_rayleigh;
-//layout(location = 1) out vec3 delta_mie;
-//layout(location = 2) out vec4 scattering;
-//layout(location = 3) out vec3 single_mie_scattering;
-
-layout (set = 3, binding = 0, rgba8) uniform image3D resultImage;
+layout (set = 3, binding = 0, rgba8) uniform image3D deltaRayleigh;
+layout (set = 3, binding = 1, rgba8) uniform image3D deltaMie;
+layout (set = 3, binding = 2, rgba8) uniform image3D singleScatter;
 
 layout(push_constant) uniform PushConsts {
 	layout (offset = 0) uint planetChunkIndex;
 } pushConsts;
 
-//uniform mat3 luminance_from_radiance;
-//uniform sampler2D transmittance_texture;
-//uniform int layer = 0;
 void main() 
 {
-	vec3 delta_rayleigh;
-	vec3 delta_mie;
-	vec4 scattering;
-	vec3 single_mie_scattering;
+	vec3 _deltaRayleigh;
+	vec3 _deltaMie;
+	vec4 _singleScatter;
+
 	AtmosphereParameters parameters = planetAtmosphereData[pushConsts.planetChunkIndex].atmosphereParameters;
     ComputeSingleScatteringTexture(
         parameters, TRANSMITTANCE_DICTION[pushConsts.planetChunkIndex], vec3(gl_GlobalInvocationID.xyz) + vec3(0.5),
-        delta_rayleigh, delta_mie);
-    scattering = vec4(delta_rayleigh.rgb, delta_mie.r);
-    single_mie_scattering = delta_mie;
-	imageStore(resultImage, ivec3(gl_GlobalInvocationID.xyz), vec4(scattering));
+        _deltaRayleigh, _deltaMie);
+    _singleScatter = vec4(_deltaRayleigh.rgb, _deltaMie.r);
+
+	imageStore(deltaRayleigh,	ivec3(gl_GlobalInvocationID.xyz), vec4(_deltaRayleigh, 0));
+	imageStore(deltaMie,		ivec3(gl_GlobalInvocationID.xyz), vec4(_deltaMie, 0));
+	imageStore(singleScatter,	ivec3(gl_GlobalInvocationID.xyz), vec4(_singleScatter));
 }

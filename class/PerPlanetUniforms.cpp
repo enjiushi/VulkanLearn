@@ -128,11 +128,46 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 
 	// Precompute required data for atmosphere rendering
 	// 1. Transmittance
-	PreComputeAtmosphereData(L"../data/shaders/transmittance_gen.comp.spv", {16, 4, 1}, UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex), chunkIndex);
+	PreComputeAtmosphereData
+	(
+		L"../data/shaders/transmittance_gen.comp.spv", 
+		{ 16, 4, 1 }, 
+		{
+			UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex)
+		},
+		chunkIndex
+	);
+
 	// 2. Single scattering
-	PreComputeAtmosphereData(L"../data/shaders/single_scatter_gen.comp.spv", {16, 8, 8}, UniformData::GetInstance()->GetGlobalTextures()->GetSingleScatterTextureDiction(chunkIndex), chunkIndex);
+	PreComputeAtmosphereData
+	(
+		L"../data/shaders/single_scatter_gen.comp.spv",
+		{ 16, 8, 8 },
+		{
+			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaRayleigh(),
+			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaMie(),
+			UniformData::GetInstance()->GetGlobalTextures()->GetSingleScatterTextureDiction(chunkIndex)
+		},
+		chunkIndex
+	);
+
 	// 3. Direct irradiance
-	PreComputeAtmosphereData(L"../data/shaders/direct_irradiance.comp.spv", { 4, 1, 1 }, UniformData::GetInstance()->GetGlobalTextures()->GetDeltaIrradiance(), chunkIndex);
+	PreComputeAtmosphereData
+	(
+		L"../data/shaders/direct_irradiance.comp.spv", 
+		{ 4, 1, 1 },
+		{
+			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaIrradiance()
+		},
+		chunkIndex
+	);
+
+	// FIXME: Hard-code
+	//for (uint32_t scatterOrder = 2; scatterOrder <= 4; scatterOrder++)
+	//{
+
+	//}
+
 	return chunkIndex;
 }
 
@@ -140,7 +175,7 @@ void PerPlanetUniforms::UpdateDirtyChunkInternal(uint32_t index)
 {
 }
 
-void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::shared_ptr<Image>& pTexture, uint32_t chunkIndex)
+void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::vector<std::shared_ptr<Image>>& textures, uint32_t chunkIndex)
 {
 	std::vector<uint8_t> data;
 	data.push_back(*((uint8_t*)&chunkIndex + 0));
@@ -152,7 +187,7 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 	{
 		shaderPath,
 		groupSize,
-		{ pTexture },
+		textures,
 		{ { 0, 1, chunkIndex, 1 } },
 		data
 	};
@@ -162,13 +197,13 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 	std::shared_ptr<CommandBuffer> pCommandBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();;
 	pCommandBuffer->StartPrimaryRecording();
 
-	AttachBarriersBeforePrecompute(pCommandBuffer, pTexture, chunkIndex);
+	AttachBarriersBeforePrecompute(pCommandBuffer, textures, chunkIndex);
 
 	pMaterial->BeforeRenderPass(pCommandBuffer);
 	pMaterial->Dispatch(pCommandBuffer);
 	pMaterial->AfterRenderPass(pCommandBuffer);
 
-	AttachBarriersAfterPrecompute(pCommandBuffer, pTexture, chunkIndex);
+	AttachBarriersAfterPrecompute(pCommandBuffer, textures, chunkIndex);
 
 	pCommandBuffer->EndPrimaryRecording();
 
@@ -176,24 +211,31 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 	GlobalGraphicQueue()->SubmitCommandBuffer(pCommandBuffer, nullptr, true);
 }
 
-void PerPlanetUniforms::AttachBarriersBeforePrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<Image>& pTexture, uint32_t chunkIndex)
+void PerPlanetUniforms::AttachBarriersBeforePrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::vector<std::shared_ptr<Image>>& textures, uint32_t chunkIndex)
 {
 	// Convert texture layout from original to general for compute write
-	VkImageSubresourceRange subresourceRanges = {};
-	subresourceRanges.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRanges.baseMipLevel = 0;
-	subresourceRanges.levelCount = 1;
-	subresourceRanges.baseArrayLayer = chunkIndex;
-	subresourceRanges.layerCount = 1;
+	std::vector<VkImageMemoryBarrier> barriers;
 
-	VkImageMemoryBarrier imgBarrier = {};
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pTexture->GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRanges;
-	imgBarrier.oldLayout = pTexture->GetImageInfo().initialLayout;
-	imgBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+	for (auto pTexture : textures)
+	{
+		VkImageSubresourceRange subresourceRanges = {};
+		subresourceRanges.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRanges.baseMipLevel = 0;
+		subresourceRanges.levelCount = 1;
+		subresourceRanges.baseArrayLayer = chunkIndex;
+		subresourceRanges.layerCount = 1;
+
+		VkImageMemoryBarrier imgBarrier = {};
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = pTexture->GetDeviceHandle();
+		imgBarrier.subresourceRange = subresourceRanges;
+		imgBarrier.oldLayout = pTexture->GetImageInfo().initialLayout;
+		imgBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		imgBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+		imgBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+
+		barriers.push_back(imgBarrier);
+	}
 
 	pCmdBuffer->AttachBarriers
 	(
@@ -201,28 +243,35 @@ void PerPlanetUniforms::AttachBarriersBeforePrecompute(const std::shared_ptr<Com
 		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 		{},
 		{},
-		{ imgBarrier }
+		barriers
 	);
 }
 
-void PerPlanetUniforms::AttachBarriersAfterPrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<Image>& pTexture, uint32_t chunkIndex)
+void PerPlanetUniforms::AttachBarriersAfterPrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::vector<std::shared_ptr<Image>>& textures, uint32_t chunkIndex)
 {
 	// Convert texture layout from original to general for compute write
-	VkImageSubresourceRange subresourceRanges = {};
-	subresourceRanges.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRanges.baseMipLevel = 0;
-	subresourceRanges.levelCount = 1;
-	subresourceRanges.baseArrayLayer = chunkIndex;
-	subresourceRanges.layerCount = 1;
+	std::vector<VkImageMemoryBarrier> barriers;
 
-	VkImageMemoryBarrier imgBarrier = {};
-	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imgBarrier.image = pTexture->GetDeviceHandle();
-	imgBarrier.subresourceRange = subresourceRanges;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-	imgBarrier.newLayout = pTexture->GetImageInfo().initialLayout;;
-	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	for (auto pTexture : textures)
+	{
+		VkImageSubresourceRange subresourceRanges = {};
+		subresourceRanges.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRanges.baseMipLevel = 0;
+		subresourceRanges.levelCount = 1;
+		subresourceRanges.baseArrayLayer = chunkIndex;
+		subresourceRanges.layerCount = 1;
+
+		VkImageMemoryBarrier imgBarrier = {};
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = pTexture->GetDeviceHandle();
+		imgBarrier.subresourceRange = subresourceRanges;
+		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+		imgBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		imgBarrier.newLayout = pTexture->GetImageInfo().initialLayout;;
+		imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		barriers.push_back(imgBarrier);
+	}
 
 	pCmdBuffer->AttachBarriers
 	(
@@ -230,7 +279,7 @@ void PerPlanetUniforms::AttachBarriersAfterPrecompute(const std::shared_ptr<Comm
 		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 		{},
 		{},
-		{ imgBarrier }
+		barriers
 	);
 }
 
