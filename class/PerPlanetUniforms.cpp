@@ -126,6 +126,12 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 	// THIS IS NOT NORMAL FRAME RENDERING, I NEED TO DO IT HERE MANUALLY
 	UniformData::GetInstance()->SyncDataBuffer();
 
+	std::vector<uint8_t> data;
+	data.push_back(*((uint8_t*)&chunkIndex + 0));
+	data.push_back(*((uint8_t*)&chunkIndex + 1));
+	data.push_back(*((uint8_t*)&chunkIndex + 2));
+	data.push_back(*((uint8_t*)&chunkIndex + 3));
+
 	// Precompute required data for atmosphere rendering
 	// 1. Transmittance
 	PreComputeAtmosphereData
@@ -135,6 +141,7 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		{
 			UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex)
 		},
+		data,
 		chunkIndex
 	);
 
@@ -148,6 +155,7 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaMie(),
 			UniformData::GetInstance()->GetGlobalTextures()->GetScatterTextureDiction(chunkIndex)
 		},
+		data,
 		chunkIndex
 	);
 
@@ -159,13 +167,28 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		{
 			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaIrradiance()
 		},
+		data,
 		chunkIndex
 	);
 
-	// FIXME: Hard-code
-	for (uint32_t scatterOrder = 2; scatterOrder <= 4; scatterOrder++)
+	// FIXME: Hard-code 2nd order multi scatter, for test
+	for (uint32_t scatterOrder = 2; scatterOrder <= 2; scatterOrder++)
 	{
+		data.push_back(*((uint8_t*)&scatterOrder + 0));
+		data.push_back(*((uint8_t*)&scatterOrder + 1));
+		data.push_back(*((uint8_t*)&scatterOrder + 2));
+		data.push_back(*((uint8_t*)&scatterOrder + 3));
 
+		PreComputeAtmosphereData
+		(
+			L"../data/shaders/delta_rayleigh_mie_gen.comp.spv",
+			{ 16, 8, 8 },
+			{
+				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaScatterDensity()
+			},
+			data,
+			chunkIndex
+		);
 	}
 
 	return chunkIndex;
@@ -175,14 +198,8 @@ void PerPlanetUniforms::UpdateDirtyChunkInternal(uint32_t index)
 {
 }
 
-void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::vector<std::shared_ptr<Image>>& textures, uint32_t chunkIndex)
+void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::vector<std::shared_ptr<Image>>& textures, const std::vector<uint8_t>& data, uint32_t chunkIndex)
 {
-	std::vector<uint8_t> data;
-	data.push_back(*((uint8_t*)&chunkIndex + 0));
-	data.push_back(*((uint8_t*)&chunkIndex + 1));
-	data.push_back(*((uint8_t*)&chunkIndex + 2));
-	data.push_back(*((uint8_t*)&chunkIndex + 3));
-
 	CustomizedComputeMaterial::Variables vars =
 	{
 		shaderPath,

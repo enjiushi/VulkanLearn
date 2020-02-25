@@ -7,21 +7,20 @@
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
-layout (set = 3, binding = 2, rgba8) uniform image3D deltaScatterDensity;
+layout (set = 3, binding = 0, rgba8) uniform image3D deltaScatterDensity;
 
 layout(push_constant) uniform PushConsts {
-	layout (offset = 0) uint planetChunkIndex;
-	layout (offset = 32) uint scatteringOrder;
+	layout (offset = 0) uvec2 data;
 } pushConsts;
 
 void main() 
 {
-	AtmosphereParameters parameters = planetAtmosphereData[pushConsts.planetChunkIndex].atmosphereParameters;
+	AtmosphereParameters parameters = planetAtmosphereData[pushConsts.data.x].atmosphereParameters;
     vec3 density = ComputeScatteringDensityTexture(
-        parameters, TRANSMITTANCE_DICTION[pushConsts.planetChunkIndex], DELTA_RAYLEIGH,
-        DELTA_MIE, SCATTER_DICTION[pushConsts.planetChunkIndex],
+        parameters, TRANSMITTANCE_DICTION[pushConsts.data.x], DELTA_RAYLEIGH,
+        DELTA_MIE, SCATTER_DICTION[pushConsts.data.x],
         DELTA_IRRADIANCE, vec3(gl_GlobalInvocationID.xyz) + vec3(0.5),
-        int(pushConsts.scatteringOrder));
+        int(pushConsts.data.y));
 
 	imageStore(deltaScatterDensity,	ivec3(gl_GlobalInvocationID.xyz), vec4(density, 0));
 }
