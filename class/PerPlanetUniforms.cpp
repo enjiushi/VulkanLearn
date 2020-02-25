@@ -142,14 +142,6 @@ void PerPlanetUniforms::UpdateDirtyChunkInternal(uint32_t index)
 
 void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::shared_ptr<Image>& pTexture, uint32_t chunkIndex)
 {
-	std::shared_ptr<CommandBuffer> pCommandBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
-	pCommandBuffer->StartPrimaryRecording();
-
-	AttachBarriersBeforePrecompute(pCommandBuffer, pTexture, chunkIndex);
-
-	pCommandBuffer->EndPrimaryRecording();
-	GlobalGraphicQueue()->SubmitCommandBuffer(pCommandBuffer, nullptr, true);
-
 	std::vector<uint8_t> data;
 	data.push_back(*((uint8_t*)&chunkIndex + 0));
 	data.push_back(*((uint8_t*)&chunkIndex + 1));
@@ -167,13 +159,16 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 	std::shared_ptr<Material> pMaterial = CustomizedComputeMaterial::CreateMaterial(vars);
 
 	// Recording
-	pCommandBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();;
+	std::shared_ptr<CommandBuffer> pCommandBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();;
 	pCommandBuffer->StartPrimaryRecording();
+
+	AttachBarriersBeforePrecompute(pCommandBuffer, pTexture, chunkIndex);
+
 	pMaterial->BeforeRenderPass(pCommandBuffer);
 	pMaterial->Dispatch(pCommandBuffer);
 	pMaterial->AfterRenderPass(pCommandBuffer);
 
-	AttachBarriersBeforePrecompute(pCommandBuffer, pTexture, chunkIndex);
+	AttachBarriersAfterPrecompute(pCommandBuffer, pTexture, chunkIndex);
 
 	pCommandBuffer->EndPrimaryRecording();
 
