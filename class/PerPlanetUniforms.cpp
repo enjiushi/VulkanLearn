@@ -173,7 +173,7 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 
 	// 4. Multi scatter
 	// FIXME: Hard-code 2nd order multi scatter, for test
-	for (uint32_t scatterOrder = 2; scatterOrder <= 2; scatterOrder++)
+	for (uint32_t scatterOrder = 2; scatterOrder <= 4; scatterOrder++)
 	{
 		data.push_back(*((uint8_t*)&scatterOrder + 0));
 		data.push_back(*((uint8_t*)&scatterOrder + 1));
@@ -212,11 +212,6 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		);
 
 		// 4.3 Multi scatter
-		data.erase(data.begin() + 4, data.end());
-		data.push_back(*((uint8_t*)&scatterOrder + 0));
-		data.push_back(*((uint8_t*)&scatterOrder + 1));
-		data.push_back(*((uint8_t*)&scatterOrder + 2));
-		data.push_back(*((uint8_t*)&scatterOrder + 3));
 		PreComputeAtmosphereData
 		(
 			L"../data/shaders/multi_scatter_gen.comp.spv",
