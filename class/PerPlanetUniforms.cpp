@@ -215,7 +215,7 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		PreComputeAtmosphereData
 		(
 			L"../data/shaders/multi_scatter_gen.comp.spv",
-			{ 4, 1, 1 },
+			{ 16, 8, 8 },
 			{
 				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaMultiScatter(),
 				UniformData::GetInstance()->GetGlobalTextures()->GetScatterTextureDiction(chunkIndex)
@@ -223,6 +223,8 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 			data,
 			chunkIndex
 		);
+
+		data.erase(data.begin() + 4, data.end());
 	}
 
 	return chunkIndex;
