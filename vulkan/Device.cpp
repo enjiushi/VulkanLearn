@@ -2,6 +2,7 @@
 #include "Queue.h"
 #include "../common/Macros.h"
 #include <array>
+#include <set>
 
 Device::~Device()
 {
@@ -21,22 +22,24 @@ bool Device::Init(const std::shared_ptr<Instance>& pInst, const std::shared_ptr<
 	m_pVulkanInst = pInst;
 	m_pPhysicalDevice = pPhyisicalDevice;
 
+	// One queue could be of multiple usages
+	// Using set to get rid of redundent queue indices
+	std::set<uint32_t> queueIndexSet;
+	queueIndexSet.insert(m_pPhysicalDevice->GetGraphicQueueIndex());
+	queueIndexSet.insert(m_pPhysicalDevice->GetComputeQueueIndex());
+	queueIndexSet.insert(m_pPhysicalDevice->GetTransferQueueIndex());
+
 	std::array<float, 1> queueProperties = { 0.0f };
-	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos(3);
-	queueCreateInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	queueCreateInfos[0].queueFamilyIndex = m_pPhysicalDevice->GetGraphicQueueIndex();
-	queueCreateInfos[0].queueCount = (uint32_t)queueProperties.size();
-	queueCreateInfos[0].pQueuePriorities = queueProperties.data();
-
-	queueCreateInfos[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	queueCreateInfos[1].queueFamilyIndex = m_pPhysicalDevice->GetComputeQueueIndex();
-	queueCreateInfos[1].queueCount = (uint32_t)queueProperties.size();
-	queueCreateInfos[1].pQueuePriorities = queueProperties.data();
-
-	queueCreateInfos[2].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	queueCreateInfos[2].queueFamilyIndex = m_pPhysicalDevice->GetTransferQueueIndex();
-	queueCreateInfos[2].queueCount = (uint32_t)queueProperties.size();
-	queueCreateInfos[2].pQueuePriorities = queueProperties.data();
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+	for (auto queueIndex : queueIndexSet)
+	{
+		VkDeviceQueueCreateInfo info = {};
+		info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		info.queueFamilyIndex = queueIndex;
+		info.queueCount = (uint32_t)queueProperties.size();
+		info.pQueuePriorities = queueProperties.data();
+		queueCreateInfos.push_back(info);
+	}
 
 	VkDeviceCreateInfo deviceCreateInfo = {};
 	deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
