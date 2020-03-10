@@ -8,7 +8,7 @@
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
 layout (set = 3, binding = 0, rgba32f) uniform image3D deltaMultiScatter;
-layout (set = 3, binding = 0, rgba32f) uniform image3D multiScatter;
+layout (set = 3, binding = 1, rgba32f) uniform image3D multiScatter;
 
 layout(push_constant) uniform PushConsts {
 	layout (offset = 0) uvec2 data;
@@ -25,5 +25,7 @@ void main()
     vec4 scattering = vec4(_deltaMultiScatter.rgb / RayleighPhaseFunction(nu), 0.0);
 
 	imageStore(deltaMultiScatter,	ivec3(gl_GlobalInvocationID.xyz), vec4(_deltaMultiScatter, 0));
-	imageStore(multiScatter,	ivec3(gl_GlobalInvocationID.xyz), scattering);
+
+	vec4 accumlatedMultiScattering = imageLoad(multiScatter, ivec3(gl_GlobalInvocationID.xyz));
+	imageStore(multiScatter,	ivec3(gl_GlobalInvocationID.xyz), scattering + accumlatedMultiScattering);
 }

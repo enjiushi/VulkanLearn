@@ -24,5 +24,7 @@ void main()
 		vec2(gl_GlobalInvocationID.xy) + vec2(0.5), int(pushConsts.data.y));
 
 	imageStore(deltaIrradiance,	ivec2(gl_GlobalInvocationID.xy), vec4(_deltaIrradiance, 0));
-	imageStore(indirectIrradiance,	ivec2(gl_GlobalInvocationID.xy), vec4(_deltaIrradiance, 0));
+
+	vec4 accumulatedIndirectIrradiance = imageLoad(indirectIrradiance, ivec2(gl_GlobalInvocationID.xy));
+	imageStore(indirectIrradiance,	ivec2(gl_GlobalInvocationID.xy), vec4(_deltaIrradiance, 0) + accumulatedIndirectIrradiance);
 }

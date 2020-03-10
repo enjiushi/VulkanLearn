@@ -18,7 +18,7 @@ void main()
 	AtmosphereParameters parameters = planetAtmosphereData[pushConsts.data.x].atmosphereParameters;
     vec3 density = ComputeScatteringDensityTexture(
         parameters, TRANSMITTANCE_DICTION[pushConsts.data.x], DELTA_RAYLEIGH,
-        DELTA_MIE, SCATTER_DICTION[pushConsts.data.x],
+        DELTA_MIE, DELTA_MULTI_SCATTER,
         DELTA_IRRADIANCE, vec3(gl_GlobalInvocationID.xyz) + vec3(0.5),
         int(pushConsts.data.y));
 
