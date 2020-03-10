@@ -7,7 +7,8 @@
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
-layout (set = 3, binding = 0, rgba32f) uniform image2D resultImage;
+layout (set = 3, binding = 0, rgba32f) uniform image2D deltaIrradiance;
+layout (set = 3, binding = 1, rgba32f) uniform image2D irradiance;
 
 layout(push_constant) uniform PushConsts {
 	layout (offset = 0) uint planetChunkIndex;
@@ -16,9 +17,10 @@ layout(push_constant) uniform PushConsts {
 void main() 
 {
 	AtmosphereParameters parameters = planetAtmosphereData[pushConsts.planetChunkIndex].atmosphereParameters;
-	vec3 deltaIrradiance = ComputeDirectIrradianceTexture(
+	vec3 _deltaIrradiance = ComputeDirectIrradianceTexture(
           parameters, 
 		  TRANSMITTANCE_DICTION[pushConsts.planetChunkIndex], 
 		  vec2(gl_GlobalInvocationID.xy) + vec2(0.5));
-	imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(deltaIrradiance, 0));
+	imageStore(deltaIrradiance, ivec2(gl_GlobalInvocationID.xy), vec4(_deltaIrradiance, 0));
+	imageStore(irradiance, ivec2(gl_GlobalInvocationID.xy), vec4(0));
 }

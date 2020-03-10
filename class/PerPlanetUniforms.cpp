@@ -165,7 +165,8 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		L"../data/shaders/direct_irradiance.comp.spv", 
 		{ 4, 1, 1 },
 		{
-			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaIrradiance()
+			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaIrradiance(),
+			UniformData::GetInstance()->GetGlobalTextures()->GetIrradianceTextureDiction(chunkIndex)
 		},
 		data,
 		chunkIndex
@@ -212,6 +213,11 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		);
 
 		// 4.3 Multi scatter
+		data.erase(data.begin() + 4, data.end());
+		data.push_back(*((uint8_t*)&scatterOrder + 0));
+		data.push_back(*((uint8_t*)&scatterOrder + 1));
+		data.push_back(*((uint8_t*)&scatterOrder + 2));
+		data.push_back(*((uint8_t*)&scatterOrder + 3));
 		PreComputeAtmosphereData
 		(
 			L"../data/shaders/multi_scatter_gen.comp.spv",
