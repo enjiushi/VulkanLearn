@@ -8,13 +8,19 @@ class Image;
 class CustomizedComputeMaterial : public Material
 {
 public:
+	typedef struct _TextureUnit
+	{
+		uint32_t							bindingIndex;
+		std::vector<std::shared_ptr<Image>>	textures;
+		Vector4ui							textureSubresRange;
+	}TextureUnit;
+
 	typedef struct _Variables
 	{
 		std::wstring	shaderPath;
 		Vector3ui		groupSize;
 
-		std::vector<std::shared_ptr<Image>>	textures;
-		std::vector<Vector4ui>				textureSubresRanges;
+		std::vector<TextureUnit>	textureUnits;
 
 		// Push constants
 		std::vector<uint8_t>	pushConstantData;

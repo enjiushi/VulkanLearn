@@ -32,17 +32,20 @@ bool CustomizedComputeMaterial::Init(const std::shared_ptr<CustomizedComputeMate
 	if (!Material::Init(pSelf, variables.shaderPath, createInfo, { pushConstant }, {}, variables.groupSize))
 		return false;
 
-	for (uint32_t i = 0; i < (uint32_t)variables.textures.size(); i++)
+	for (uint32_t i = 0; i < (uint32_t)variables.textureUnits.size(); i++)
 	{
 		std::vector<CombinedImage> combinedImages;
-		combinedImages.push_back
-		({
-			variables.textures[i],
-			variables.textures[i]->CreateLinearClampToEdgeSampler(),
-			variables.textures[i]->CreateDefaultImageView()
-		});
+		for (uint32_t j = 0; j < (uint32_t)variables.textureUnits[i].textures.size(); j++)
+		{
+			combinedImages.push_back
+			({
+				variables.textureUnits[i].textures[j],
+				variables.textureUnits[i].textures[j]->CreateLinearClampToEdgeSampler(),
+				variables.textureUnits[i].textures[j]->CreateDefaultImageView()
+			});
+		}
 
-		m_pUniformStorageDescriptorSet->UpdateImages(i, combinedImages, true);
+		m_pUniformStorageDescriptorSet->UpdateImages(variables.textureUnits[i].bindingIndex, combinedImages, true);
 	}
 
 	m_variables = variables;
@@ -52,20 +55,24 @@ bool CustomizedComputeMaterial::Init(const std::shared_ptr<CustomizedComputeMate
 
 void CustomizedComputeMaterial::CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout)
 {
-	for (uint32_t i = 0; i < (uint32_t)m_variables.textures.size(); i++)
+	for (uint32_t i = 0; i < (uint32_t)m_variables.textureUnits.size(); i++)
 	{
 		materialLayout.push_back(
 		{
 			StorageImage,
 			"Input Texture",
-			{}
+			{},
+			(uint32_t)m_variables.textureUnits[i].textures.size()
 		});
 	}
 }
 
 void CustomizedComputeMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 {
-	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (uint32_t)m_variables.textures.size();
+	for (uint32_t i = 0; i < (uint32_t)m_variables.textureUnits.size(); i++)
+	{
+		counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (uint32_t)m_variables.textureUnits[i].textures.size();
+	}
 }
 
 void CustomizedComputeMaterial::CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)

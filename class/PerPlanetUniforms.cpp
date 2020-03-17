@@ -242,12 +242,24 @@ void PerPlanetUniforms::UpdateDirtyChunkInternal(uint32_t index)
 
 void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::vector<std::shared_ptr<Image>>& textures, const std::vector<uint8_t>& data, uint32_t chunkIndex)
 {
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	for (uint32_t i = 0; i < (uint32_t)textures.size(); i++)
+	{
+		textureUnits.push_back
+		(
+			{
+				i,
+				{ textures[i] },
+				{ 0, 1, chunkIndex, 1 }
+			}
+		);
+	}
+
 	CustomizedComputeMaterial::Variables vars =
 	{
 		shaderPath,
 		groupSize,
-		textures,
-		{ { 0, 1, chunkIndex, 1 } },
+		textureUnits,
 		data
 	};
 	std::shared_ptr<Material> pMaterial = CustomizedComputeMaterial::CreateMaterial(vars);
