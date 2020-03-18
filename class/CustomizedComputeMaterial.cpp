@@ -79,3 +79,63 @@ void CustomizedComputeMaterial::CustomizeCommandBuffer(const std::shared_ptr<Com
 {
 	pCmdBuf->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, (uint32_t)m_variables.pushConstantData.size(), m_variables.pushConstantData.data());
 }
+
+void CustomizedComputeMaterial::AssembleBarrier(const TextureUnit& textureUnit, uint32_t textureIndex, BarrierInsertPoint barrierInsertPoint, VkImageMemoryBarrier& barrier, VkImageSubresourceRange& subresRange)
+{
+	subresRange = {};
+	subresRange.aspectMask		= textureUnit.aspectMask;
+	subresRange.baseMipLevel	= textureUnit.textureSubresRange.x;
+	subresRange.levelCount		= textureUnit.textureSubresRange.y;
+	subresRange.baseArrayLayer	= textureUnit.textureSubresRange.z;
+	subresRange.layerCount		= textureUnit.textureSubresRange.w;
+
+	barrier = {};
+	barrier.sType				= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.image				= textureUnit.textures[textureIndex]->GetDeviceHandle();
+	barrier.subresourceRange	= subresRange;
+	barrier.oldLayout			= textureUnit.textureBarrier[barrierInsertPoint].oldImageLayout;
+	barrier.srcAccessMask		= textureUnit.textureBarrier[barrierInsertPoint].srcAccessFlags;
+	barrier.newLayout			= textureUnit.textureBarrier[barrierInsertPoint].newImageLayout;
+	barrier.dstAccessMask		= textureUnit.textureBarrier[barrierInsertPoint].dstAccessFlags;
+}
+
+void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
+{
+	std::vector<VkImageMemoryBarrier> barriers;
+	VkPipelineStageFlags srcStages = 0;
+	VkPipelineStageFlags dstStages = 0;
+	VkImageMemoryBarrier imgBarrier;
+	VkImageSubresourceRange subresourceRange;
+
+	for (auto textureUnit : m_variables.textureUnits)
+	{
+		if (textureUnit.textureSelector == TextureUnit::BY_FRAME)
+		{ 
+			AssembleBarrier(textureUnit, FrameMgr()->FrameIndex(), BEFORE_DISPATCH, imgBarrier, subresourceRange);
+			barriers.push_back(imgBarrier);
+		}
+		else if (textureUnit.textureSelector == TextureUnit::ALL)
+		{
+			for (uint32_t i = 0; i < (uint32_t)textureUnit.textures.size(); i++)
+			{
+				AssembleBarrier(textureUnit, i, BEFORE_DISPATCH, imgBarrier, subresourceRange);
+				barriers.push_back(imgBarrier);
+			}
+		}
+
+		srcStages |= textureUnit.textureBarrier[BEFORE_DISPATCH].srcPipelineStages;
+		dstStages |= textureUnit.textureBarrier[BEFORE_DISPATCH].dstPipelineStages;
+	}
+
+	if (barriers.size() == 0)
+		return;
+
+	pCmdBuffer->AttachBarriers
+	(
+		srcStages,
+		dstStages,
+		{},
+		{},
+		barriers
+	);
+}

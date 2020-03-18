@@ -249,8 +249,25 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 		(
 			{
 				i,
+
 				{ textures[i] },
-				{ 0, 1, chunkIndex, 1 }
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, chunkIndex, 1 },
+
+				CustomizedComputeMaterial::TextureUnit::ALL,
+
+				{
+					{
+						VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+						textures[i]->GetImageInfo().initialLayout,
+						VK_ACCESS_SHADER_READ_BIT,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_GENERAL,
+						VK_ACCESS_SHADER_WRITE_BIT
+					},
+					{}
+				}
 			}
 		);
 	}
@@ -285,7 +302,7 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 void PerPlanetUniforms::AttachBarriersBeforePrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::vector<std::shared_ptr<Image>>& textures, uint32_t chunkIndex)
 {
 	// Convert texture layout from original to general for compute write
-	std::vector<VkImageMemoryBarrier> barriers;
+	/*std::vector<VkImageMemoryBarrier> barriers;
 
 	for (auto pTexture : textures)
 	{
@@ -310,12 +327,12 @@ void PerPlanetUniforms::AttachBarriersBeforePrecompute(const std::shared_ptr<Com
 
 	pCmdBuffer->AttachBarriers
 	(
-		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 		{},
 		{},
 		barriers
-	);
+	);*/
 }
 
 void PerPlanetUniforms::AttachBarriersAfterPrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::vector<std::shared_ptr<Image>>& textures, uint32_t chunkIndex)
@@ -346,8 +363,8 @@ void PerPlanetUniforms::AttachBarriersAfterPrecompute(const std::shared_ptr<Comm
 
 	pCmdBuffer->AttachBarriers
 	(
-		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 		{},
 		{},
 		barriers
