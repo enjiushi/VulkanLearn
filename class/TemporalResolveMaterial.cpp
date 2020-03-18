@@ -357,8 +357,11 @@ void TemporalResolveMaterial::AfterRenderPass(const std::shared_ptr<CommandBuffe
 	pCmdBuf->GenerateMipmaps(pTextureArray, index);
 }
 
-void TemporalResolveMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
+void TemporalResolveMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong)
 {
+	if (barrierInsertionPoint == Material::BarrierInsertionPoint::AFTER_DISPATCH)
+		return;
+
 	std::vector<VkImageMemoryBarrier> barriers;
 
 	std::shared_ptr<Image> pMotionVector = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[FrameMgr()->FrameIndex()]->GetColorTarget(FrameBufferDiction::MotionVector);

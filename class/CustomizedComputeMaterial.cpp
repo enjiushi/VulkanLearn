@@ -99,8 +99,11 @@ void CustomizedComputeMaterial::AssembleBarrier(const TextureUnit& textureUnit, 
 	barrier.dstAccessMask		= textureUnit.textureBarrier[barrierInsertPoint].dstAccessFlags;
 }
 
-void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
+void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong)
 {
+	if (barrierInsertionPoint == Material::BarrierInsertionPoint::AFTER_DISPATCH)
+		return;
+
 	std::vector<VkImageMemoryBarrier> barriers;
 	VkPipelineStageFlags srcStages = 0;
 	VkPipelineStageFlags dstStages = 0;

@@ -325,8 +325,11 @@ void DOFMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount());
 }
 
-void DOFMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
+void DOFMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong)
 {
+	if (barrierInsertionPoint == Material::BarrierInsertionPoint::AFTER_DISPATCH)
+		return;
+
 	std::shared_ptr<Image> pBarrierImg;
 
 	switch (m_DOFPass)

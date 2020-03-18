@@ -422,8 +422,11 @@ void DeferredShadingMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * (FrameBufferDiction::GBufferCount + 4));
 }
 
-void DeferredShadingMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
+void DeferredShadingMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong)
 {
+	if (barrierInsertionPoint == Material::BarrierInsertionPoint::AFTER_DISPATCH)
+		return;
+
 	std::vector<VkImageMemoryBarrier> barriers;
 	for (uint32_t i = 0; i < FrameBufferDiction::GBufferCount; i++)
 	{

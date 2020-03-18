@@ -204,8 +204,11 @@ void CombineMaterial::CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer
 	pCmdBuf->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(float), &index);
 }
 
-void CombineMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
+void CombineMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong)
 {
+	if (barrierInsertionPoint == Material::BarrierInsertionPoint::AFTER_DISPATCH)
+		return;
+
 	std::vector<VkImageMemoryBarrier> barriers;
 
 	std::shared_ptr<Image> pDOFResult = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, FrameBufferDiction::CombineLayer)->GetColorTarget(0);

@@ -516,11 +516,12 @@ void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_
 
 void Material::BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
 {
-	AttachResourceBarriers(pCmdBuf, pingpong);
+	AttachResourceBarriers(pCmdBuf, BEFORE_DISPATCH, pingpong);
 }
 
 void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
 {
+	AttachResourceBarriers(pCmdBuf, AFTER_DISPATCH, pingpong);
 }
 
 void Material::PrepareCommandBuffer(const std::shared_ptr<CommandBuffer>& pCommandBuffer, const std::shared_ptr<FrameBuffer>& pFrameBuffer, bool isCompute, uint32_t pingpong, bool overrideVP)

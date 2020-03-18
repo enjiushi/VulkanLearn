@@ -188,8 +188,11 @@ void GaussianBlurMaterial::CustomizeCommandBuffer(const std::shared_ptr<CommandB
 	pCmdBuf->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GaussianBlurParams), &m_params);
 }
 
-void GaussianBlurMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
+void GaussianBlurMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong)
 {
+	if (barrierInsertionPoint == Material::BarrierInsertionPoint::AFTER_DISPATCH)
+		return;
+
 	std::shared_ptr<Image> pImg = FrameBufferDiction::GetInstance()->GetFrameBuffers(m_inputFrameBufferType)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 	VkImageSubresourceRange subresourceRange = {};
 	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
