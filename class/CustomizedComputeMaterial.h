@@ -19,13 +19,6 @@ public:
 		VkAccessFlagBits					dstAccessFlags;
 	}TextureBarrier;
 
-	enum BarrierInsertPoint
-	{
-		BEFORE_DISPATCH,
-		AFTER_DISPATH,
-		COUNT
-	};
-
 	typedef struct _TextureUnit
 	{
 		uint32_t							bindingIndex;
@@ -43,7 +36,7 @@ public:
 			COUNT
 		}textureSelector;
 
-		TextureBarrier						textureBarrier[BarrierInsertPoint::COUNT];
+		TextureBarrier						textureBarrier[Material::BarrierInsertionPoint::COUNT];
 
 	}TextureUnit;
 
@@ -73,7 +66,7 @@ protected:
 
 	void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong = 0) override;
 
-	static void AssembleBarrier(const TextureUnit& textureUnit, uint32_t textureIndex, BarrierInsertPoint barrierInsertPoint, VkImageMemoryBarrier& barrier, VkImageSubresourceRange& subresRange);
+	static void AssembleBarrier(const TextureUnit& textureUnit, uint32_t textureIndex, BarrierInsertionPoint barrierInsertPoint, VkImageMemoryBarrier& barrier, VkImageSubresourceRange& subresRange);
 
 private:
 	Variables	m_variables;

@@ -80,7 +80,7 @@ void CustomizedComputeMaterial::CustomizeCommandBuffer(const std::shared_ptr<Com
 	pCmdBuf->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, (uint32_t)m_variables.pushConstantData.size(), m_variables.pushConstantData.data());
 }
 
-void CustomizedComputeMaterial::AssembleBarrier(const TextureUnit& textureUnit, uint32_t textureIndex, BarrierInsertPoint barrierInsertPoint, VkImageMemoryBarrier& barrier, VkImageSubresourceRange& subresRange)
+void CustomizedComputeMaterial::AssembleBarrier(const TextureUnit& textureUnit, uint32_t textureIndex, BarrierInsertionPoint barrierInsertPoint, VkImageMemoryBarrier& barrier, VkImageSubresourceRange& subresRange)
 {
 	subresRange = {};
 	subresRange.aspectMask		= textureUnit.aspectMask;
@@ -114,20 +114,20 @@ void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<Com
 	{
 		if (textureUnit.textureSelector == TextureUnit::BY_FRAME)
 		{ 
-			AssembleBarrier(textureUnit, FrameMgr()->FrameIndex(), BEFORE_DISPATCH, imgBarrier, subresourceRange);
+			AssembleBarrier(textureUnit, FrameMgr()->FrameIndex(), barrierInsertionPoint, imgBarrier, subresourceRange);
 			barriers.push_back(imgBarrier);
 		}
 		else if (textureUnit.textureSelector == TextureUnit::ALL)
 		{
 			for (uint32_t i = 0; i < (uint32_t)textureUnit.textures.size(); i++)
 			{
-				AssembleBarrier(textureUnit, i, BEFORE_DISPATCH, imgBarrier, subresourceRange);
+				AssembleBarrier(textureUnit, i, barrierInsertionPoint, imgBarrier, subresourceRange);
 				barriers.push_back(imgBarrier);
 			}
 		}
 
-		srcStages |= textureUnit.textureBarrier[BEFORE_DISPATCH].srcPipelineStages;
-		dstStages |= textureUnit.textureBarrier[BEFORE_DISPATCH].dstPipelineStages;
+		srcStages |= textureUnit.textureBarrier[barrierInsertionPoint].srcPipelineStages;
+		dstStages |= textureUnit.textureBarrier[barrierInsertionPoint].dstPipelineStages;
 	}
 
 	if (barriers.size() == 0)
