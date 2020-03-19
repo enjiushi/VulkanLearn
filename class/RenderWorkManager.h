@@ -2,6 +2,7 @@
 
 #include "../common/Singleton.h"
 #include "../vulkan/RenderPass.h"
+#include "CustomizedComputeMaterial.h"
 #include "RenderPassDiction.h"
 
 class FrameBuffer;
@@ -89,6 +90,8 @@ public:
 	void OnFrameEnd();
 
 protected:
+	void InitComputeMaterialVariables();
+
 	// Since there could be some mutants of the same material class
 	// We encapsulate these one or more materials into "MaterialSet"
 	typedef struct _MaterialSet
@@ -101,4 +104,6 @@ protected:
 
 	std::vector<MaterialSet>	m_materials;
 	uint32_t					m_renderStateMask;
+
+	CustomizedComputeMaterial::Variables	m_computeMaterialVariables[MaterialEnumCount];
 };

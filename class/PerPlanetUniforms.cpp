@@ -253,11 +253,13 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 				{ textures[i] },
 				VK_IMAGE_ASPECT_COLOR_BIT,
 				{ 0, 1, chunkIndex, 1 },
+				true,
 
 				CustomizedComputeMaterial::TextureUnit::ALL,
 
 				{
 					{
+						true,
 						VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 						textures[i]->GetImageInfo().initialLayout,
 						VK_ACCESS_SHADER_READ_BIT,
@@ -267,6 +269,7 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 						VK_ACCESS_SHADER_WRITE_BIT
 					},
 					{
+						true,
 						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 						VK_IMAGE_LAYOUT_GENERAL,
 						VK_ACCESS_SHADER_WRITE_BIT,

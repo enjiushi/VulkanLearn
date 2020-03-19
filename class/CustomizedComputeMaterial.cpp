@@ -112,6 +112,10 @@ void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<Com
 
 	for (auto textureUnit : m_variables.textureUnits)
 	{
+		// Skip barrier construction if current texture unit don't want one
+		if (textureUnit.textureBarrier[barrierInsertionPoint].enableBarrier == false)
+			continue;
+
 		if (textureUnit.textureSelector == TextureUnit::BY_FRAME)
 		{ 
 			AssembleBarrier(textureUnit, FrameMgr()->FrameIndex(), barrierInsertionPoint, imgBarrier, subresourceRange);

@@ -10,6 +10,7 @@ class CustomizedComputeMaterial : public Material
 public:
 	typedef struct _TextureBarrier
 	{
+		bool								enableBarrier;
 		VkPipelineStageFlagBits				srcPipelineStages;
 		VkImageLayout						oldImageLayout;
 		VkAccessFlagBits					srcAccessFlags;
@@ -26,6 +27,7 @@ public:
 		std::vector<std::shared_ptr<Image>>	textures;
 		VkImageAspectFlags					aspectMask;
 		Vector4ui							textureSubresRange;	// Base miplevel, mipLevel count, base array layer, array layer count
+		bool								isStorageImage;		// Storage image is for compute
 
 		// Barrier info
 		enum TextureSelector
