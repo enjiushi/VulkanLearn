@@ -5,6 +5,7 @@
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/Image.h"
 #include "../vulkan/GlobalVulkanStates.h"
+#include "../common/Util.h"
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
 #include "DeferredMaterial.h"
@@ -140,12 +141,16 @@ void RenderWorkManager::InitComputeMaterialVariables()
 		}
 	);
 
+	std::vector<uint8_t> pushConstantData;
+	uint32_t dirtTextureIndex = -1;
+	TransferBytesToVector(pushConstantData, &dirtTextureIndex, sizeof(dirtTextureIndex));
+
 	m_computeMaterialVariables[Combine] = 
 	{
 		L"../data/shaders/combine.comp.spv",
 		groupNum,
 		textureUnits,
-		{}
+		pushConstantData
 	};
 }
 
