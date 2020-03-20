@@ -8,9 +8,9 @@
 
 layout (local_size_x = 16, local_size_y = 16) in;
 
-layout (set = 3, binding = 3) uniform sampler2D DOFResults[3];
-layout (set = 3, binding = 4) uniform sampler2D BloomTextures[3];
-layout (set = 3, binding = 5, rgba32f) uniform image2D CombinedResults[3];
+layout (set = 3, binding = 0) uniform sampler2D DOFResults[3];
+layout (set = 3, binding = 1) uniform sampler2D BloomTextures[3];
+layout (set = 3, binding = 2, rgba32f) uniform image2D CombinedResults[3];
 
 layout(push_constant) uniform PushConsts {
 	layout (offset = 0) float camDirtTexIndex;
@@ -22,10 +22,10 @@ void main()
 
 	vec3 camDirt = vec3(1);
 	if (pushConsts.camDirtTexIndex > 0.5f)
-		camDirt = texelFetch(RGBA8_1024_MIP_2DARRAY, ivec3(texCoord.xy, pushConsts.camDirtTexIndex), 0).rgb;
+		camDirt = texelFetch(RGBA8_1024_MIP_2DARRAY, ivec3(gl_GlobalInvocationID.xy, pushConsts.camDirtTexIndex), 0).rgb;
 
 	vec3 bloom = pow(texelFetch(BloomTextures[frameIndex], texCoord, 0).rgb * globalData.BloomSettings1.x * camDirt, vec3(globalData.BloomSettings1.y));
 	vec3 temporal = texelFetch(DOFResults[frameIndex], texCoord, 0).rgb;
 
-	imageStore(CombinedResults[frameIndex], ivec2(0, 0), vec4(bloom + temporal, 1.0f));
+	imageStore(CombinedResults[frameIndex], ivec2(gl_GlobalInvocationID.xy), vec4(bloom + temporal, 1.0f));
 }

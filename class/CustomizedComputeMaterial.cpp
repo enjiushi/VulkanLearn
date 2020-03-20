@@ -22,14 +22,19 @@ bool CustomizedComputeMaterial::Init(const std::shared_ptr<CustomizedComputeMate
 
 	m_variables = variables;
 
-	VkPushConstantRange pushConstant =
-	{
-		VK_SHADER_STAGE_COMPUTE_BIT,
-		0,
-		(uint32_t)variables.pushConstantData.size()
-	};
+	std::vector<VkPushConstantRange> pushConstants;
 
-	if (!Material::Init(pSelf, variables.shaderPath, createInfo, { pushConstant }, {}, variables.groupSize))
+	if (variables.pushConstantData.size() > 0)
+	{
+		pushConstants.push_back
+		({
+			VK_SHADER_STAGE_COMPUTE_BIT,
+			0,
+			(uint32_t)variables.pushConstantData.size()
+		});
+	}
+
+	if (!Material::Init(pSelf, variables.shaderPath, createInfo, pushConstants, {}, variables.groupSize))
 		return false;
 
 	for (uint32_t i = 0; i < (uint32_t)variables.textureUnits.size(); i++)
@@ -45,7 +50,7 @@ bool CustomizedComputeMaterial::Init(const std::shared_ptr<CustomizedComputeMate
 			});
 		}
 
-		m_pUniformStorageDescriptorSet->UpdateImages(variables.textureUnits[i].bindingIndex, combinedImages, true);
+		m_pUniformStorageDescriptorSet->UpdateImages(variables.textureUnits[i].bindingIndex, combinedImages, variables.textureUnits[i].isStorageImage);
 	}
 
 	m_variables = variables;
@@ -57,9 +62,10 @@ void CustomizedComputeMaterial::CustomizeMaterialLayout(std::vector<UniformVarLi
 {
 	for (uint32_t i = 0; i < (uint32_t)m_variables.textureUnits.size(); i++)
 	{
+		MaterialVariableType type = m_variables.textureUnits[i].isStorageImage ? StorageImage : CombinedSampler;
 		materialLayout.push_back(
 		{
-			StorageImage,
+			type,
 			"Input Texture",
 			{},
 			(uint32_t)m_variables.textureUnits[i].textures.size()
@@ -71,12 +77,15 @@ void CustomizedComputeMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 {
 	for (uint32_t i = 0; i < (uint32_t)m_variables.textureUnits.size(); i++)
 	{
-		counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (uint32_t)m_variables.textureUnits[i].textures.size();
+		VkDescriptorType descriptorType = m_variables.textureUnits[i].isStorageImage ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		counts[descriptorType] += (uint32_t)m_variables.textureUnits[i].textures.size();
 	}
 }
 
 void CustomizedComputeMaterial::CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong)
 {
+	if (m_variables.pushConstantData.size() == 0)
+		return;
 	pCmdBuf->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, (uint32_t)m_variables.pushConstantData.size(), m_variables.pushConstantData.data());
 }
 

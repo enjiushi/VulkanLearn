@@ -94,8 +94,6 @@ void Material::GeneralInit
 
 	CustomizeMaterialLayout(m_materialVariableLayout);
 
-	VkDescriptorType imageType = isCompute ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-
 	// Build vulkan layout bindings
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
 	for (auto & var : m_materialVariableLayout)
@@ -128,7 +126,7 @@ void Material::GeneralInit
 			bindings.push_back
 			({
 				(uint32_t)bindings.size(),
-				imageType,
+				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 				var.count,
 				VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
 				nullptr
@@ -138,9 +136,9 @@ void Material::GeneralInit
 			bindings.push_back
 			({
 				(uint32_t)bindings.size(),
-				imageType,
+				VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
 				var.count,
-				VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
+				VK_SHADER_STAGE_COMPUTE_BIT,
 				nullptr
 				});
 			break;

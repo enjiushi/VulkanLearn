@@ -78,7 +78,8 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::GetFrameBuffers(FrameBu
 	// Only bloom is layered, might generalize it through all frame buffers, when needed
 	if (m_frameBuffers[type].size() <= layer)
 	{
-		for (uint32_t i = 0; i < layer - m_frameBuffers[type].size() + 1; i++)
+		uint32_t remain = layer - (uint32_t)m_frameBuffers[type].size() + 1;
+		for (uint32_t i = 0; i < remain; i++)
 			m_frameBuffers[type].push_back(CreateFrameBuffer(type, (uint32_t)m_frameBuffers[type].size()));
 	}
 	return m_frameBuffers[type][layer];
@@ -396,7 +397,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateCombineResultFram
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pColorTarget = Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pColorTarget = Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT);
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassCombine)->GetRenderPass()));
 	}
 

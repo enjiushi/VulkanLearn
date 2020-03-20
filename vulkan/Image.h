@@ -89,6 +89,7 @@ public:
 	static std::shared_ptr<Image> CreateEmptyTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyTexture2DForCompute(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);
 	static std::shared_ptr<Image> CreateOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);
+	static std::shared_ptr<Image> CreateOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format, VkImageLayout layout, VkImageUsageFlagBits extraUsage);
 	static std::shared_ptr<Image> CreateOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format, VkImageLayout layout);
 	static std::shared_ptr<Image> CreateMipmapOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format, VkImageLayout layout);
 

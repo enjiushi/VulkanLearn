@@ -584,6 +584,22 @@ std::shared_ptr<Image> Image::CreateOffscreenTexture2D(const std::shared_ptr<Dev
 	);
 }
 
+std::shared_ptr<Image> Image::CreateOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format, VkImageLayout layout, VkImageUsageFlagBits extraUsage)
+{
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		1,
+		1,
+		format,
+		layout,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | extraUsage,
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT
+	);
+}
+
 std::shared_ptr<Image> Image::CreateOffscreenTexture2D(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format, VkImageLayout layout)
 {
 	return CreateEmptyTexture
@@ -593,7 +609,7 @@ std::shared_ptr<Image> Image::CreateOffscreenTexture2D(const std::shared_ptr<Dev
 		1,
 		1,
 		format,
-		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		layout,
 		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
 		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT

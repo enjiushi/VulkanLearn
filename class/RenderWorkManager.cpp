@@ -44,15 +44,21 @@ void RenderWorkManager::InitComputeMaterialVariables()
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
 		std::shared_ptr<FrameBuffer> pBloomFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Bloom)[j];
-
 		bloomTextures.push_back(pBloomFrameBuffer->GetColorTarget(0));
+	}
+
+	std::vector<std::shared_ptr<Image>> combineTextures;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pCombineResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_CombineResult)[j];
+		combineTextures.push_back(pCombineResult->GetColorTarget(0));
 	}
 
 	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
 	textureUnits.push_back
 	(
 		{
-			3,
+			0,
 
 			DOFResults,
 			VK_IMAGE_ASPECT_COLOR_BIT,
@@ -70,7 +76,7 @@ void RenderWorkManager::InitComputeMaterialVariables()
 					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 					VK_ACCESS_SHADER_READ_BIT
 				},
 				{
@@ -83,7 +89,7 @@ void RenderWorkManager::InitComputeMaterialVariables()
 	textureUnits.push_back
 	(
 		{
-			4,
+			1,
 
 			bloomTextures,
 			VK_IMAGE_ASPECT_COLOR_BIT,
@@ -101,8 +107,31 @@ void RenderWorkManager::InitComputeMaterialVariables()
 					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			2,
+
+			combineTextures,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					false,
 				},
 				{
 					false
@@ -124,6 +153,8 @@ bool RenderWorkManager::Init()
 {
 	if (!Singleton<RenderWorkManager>::Init())
 		return false;
+
+	InitComputeMaterialVariables();
 
 	m_materials.resize(MaterialEnumCount);
 	for (uint32_t i = 0; i < MaterialEnumCount; i++)
@@ -195,7 +226,7 @@ bool RenderWorkManager::Init()
 				m_materials[i].materialSet.push_back(BloomMaterial::CreateDefaultMaterial(BloomMaterial::BloomPass_UpSampleTent, j));
 			}
 		}break;
-		case Combine:			m_materials[i] = { { CombineMaterial::CreateDefaultMaterial() } }; break;
+		case Combine:			m_materials[i] = { { CustomizedComputeMaterial::CreateMaterial(m_computeMaterialVariables[i]) } }; break;
 		case PostProcess:		m_materials[i] = { { PostProcessingMaterial::CreateDefaultMaterial() } }; break;
 						 
 		default:
@@ -380,9 +411,7 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	}
 
 	GetMaterial(Combine)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassCombine)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_CombineResult));
-	GetMaterial(Combine)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_CombineResult), pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassCombine)->EndRenderPass(pDrawCmdBuffer);
+	GetMaterial(Combine)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(Combine)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
