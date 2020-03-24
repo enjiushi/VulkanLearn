@@ -378,7 +378,7 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateBloomFrameBuffer(
 			(uint32_t)layerSize.x,
 			(uint32_t)layerSize.y,
 		};
-		std::shared_ptr<Image> pColorTarget = Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
+		std::shared_ptr<Image> pColorTarget = Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT);
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->GetRenderPass()));
 	}
 

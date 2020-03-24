@@ -87,16 +87,15 @@ bool RenderWorkManager::Init()
 		{
 			for (uint32_t j = 0; j < BLOOM_ITER_COUNT; j++)
 			{
-				BloomMaterial::BloomPass bloomPass = (j == 0) ? BloomMaterial::BloomPass_Prefilter : BloomMaterial::BloomPass_DownSampleBox13;
-				m_materials[i].materialSet.push_back(BloomMaterial::CreateDefaultMaterial(bloomPass, j));
+				BloomPass bloomPass = (j == 0) ? BloomPass::PREFILTER : BloomPass::DOWNSAMPLE;
+				m_materials[i].materialSet.push_back(CreateBloomMaterial(bloomPass, j));
 			}
 		}break;
 		case BloomUpSample:
 		{
 			for (uint32_t j = 0; j < BLOOM_ITER_COUNT; j++)
 			{
-				BloomMaterial::BloomPass bloomPass = (j == 0) ? BloomMaterial::BloomPass_Prefilter : BloomMaterial::BloomPass_DownSampleBox13;
-				m_materials[i].materialSet.push_back(BloomMaterial::CreateDefaultMaterial(BloomMaterial::BloomPass_UpSampleTent, j));
+				m_materials[i].materialSet.push_back(CreateBloomMaterial(BloomPass::UPSAMPLE, j));
 			}
 		}break;
 		case Combine:			m_materials[i] = { { CreateCombineMaterial() } }; break;
@@ -264,22 +263,15 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 		Vector2ui size = { pTargetFrameBuffer->GetFramebufferInfo().width, pTargetFrameBuffer->GetFramebufferInfo().height };
 
 		GetMaterial(BloomDownSample, i)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-		RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->BeginRenderPass(pDrawCmdBuffer, pTargetFrameBuffer);
-		GetMaterial(BloomDownSample, i)->Draw(pDrawCmdBuffer, pTargetFrameBuffer, pingpong);
-		RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->EndRenderPass(pDrawCmdBuffer);
+		GetMaterial(BloomDownSample, i)->Dispatch(pDrawCmdBuffer, pingpong);
 		GetMaterial(BloomDownSample, i)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 	}
 
 	// Upsample then
 	for (int32_t i = BLOOM_ITER_COUNT - 1; i >= 0; i--)
 	{
-		std::shared_ptr<FrameBuffer> pTargetFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Bloom, i);
-		Vector2ui size = { pTargetFrameBuffer->GetFramebufferInfo().width, pTargetFrameBuffer->GetFramebufferInfo().height };
-
 		GetMaterial(BloomUpSample, i)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-		RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->BeginRenderPass(pDrawCmdBuffer, pTargetFrameBuffer);
-		GetMaterial(BloomUpSample, i)->Draw(pDrawCmdBuffer, pTargetFrameBuffer, pingpong);
-		RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassBloom)->EndRenderPass(pDrawCmdBuffer);
+		GetMaterial(BloomUpSample, i)->Dispatch(pDrawCmdBuffer, pingpong);
 		GetMaterial(BloomUpSample, i)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 	}
 
