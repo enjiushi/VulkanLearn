@@ -1,4 +1,5 @@
 #include "RenderWorkManager.h"
+#include "ComputeMaterialFactory.h"
 #include "../vulkan/RenderPass.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/Framebuffer.h"
@@ -23,143 +24,10 @@
 #include "GBufferPlanetMaterial.h"
 #include "MaterialInstance.h"
 
-void RenderWorkManager::InitComputeMaterialVariables()
-{
-	// FIXME: hard-code
-	static uint32_t groupSize = 16;
-	Vector3ui groupNum =
-	{
-		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x / 16,
-		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y / 16,
-		1
-	};
-
-	std::vector<std::shared_ptr<Image>> DOFResults;
-	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
-	{
-		std::shared_ptr<FrameBuffer> pDOFResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, FrameBufferDiction::CombineLayer)[j];
-		DOFResults.push_back(pDOFResult->GetColorTarget(0));
-	}
-
-	std::vector<std::shared_ptr<Image>> bloomTextures;
-	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
-	{
-		std::shared_ptr<FrameBuffer> pBloomFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Bloom)[j];
-		bloomTextures.push_back(pBloomFrameBuffer->GetColorTarget(0));
-	}
-
-	std::vector<std::shared_ptr<Image>> combineTextures;
-	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
-	{
-		std::shared_ptr<FrameBuffer> pCombineResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_CombineResult)[j];
-		combineTextures.push_back(pCombineResult->GetColorTarget(0));
-	}
-
-	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
-	textureUnits.push_back
-	(
-		{
-			0,
-
-			DOFResults,
-			VK_IMAGE_ASPECT_COLOR_BIT,
-			{ 0, 1, 0, 1 },
-			false,
-
-			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
-
-			{
-				// Only a pre-barrier is needed
-				{
-					true,
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
-			}
-		}
-	);
-
-	textureUnits.push_back
-	(
-		{
-			1,
-
-			bloomTextures,
-			VK_IMAGE_ASPECT_COLOR_BIT,
-			{ 0, 1, 0, 1 },
-			false,
-
-			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
-
-			{
-				// Only a pre-barrier is needed
-				{
-					true,
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
-			}
-		}
-	);
-
-	textureUnits.push_back
-	(
-		{
-			2,
-
-			combineTextures,
-			VK_IMAGE_ASPECT_COLOR_BIT,
-			{ 0, 1, 0, 1 },
-			true,
-
-			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
-
-			{
-				{
-					false,
-				},
-				{
-					false
-				}
-			}
-		}
-	);
-
-	std::vector<uint8_t> pushConstantData;
-	uint32_t dirtTextureIndex = -1;
-	TransferBytesToVector(pushConstantData, &dirtTextureIndex, sizeof(dirtTextureIndex));
-
-	m_computeMaterialVariables[Combine] = 
-	{
-		L"../data/shaders/combine.comp.spv",
-		groupNum,
-		textureUnits,
-		pushConstantData
-	};
-}
-
 bool RenderWorkManager::Init()
 {
 	if (!Singleton<RenderWorkManager>::Init())
 		return false;
-
-	InitComputeMaterialVariables();
 
 	m_materials.resize(MaterialEnumCount);
 	for (uint32_t i = 0; i < MaterialEnumCount; i++)
@@ -231,7 +99,7 @@ bool RenderWorkManager::Init()
 				m_materials[i].materialSet.push_back(BloomMaterial::CreateDefaultMaterial(BloomMaterial::BloomPass_UpSampleTent, j));
 			}
 		}break;
-		case Combine:			m_materials[i] = { { CustomizedComputeMaterial::CreateMaterial(m_computeMaterialVariables[i]) } }; break;
+		case Combine:			m_materials[i] = { { CreateCombineMaterial() } }; break;
 		case PostProcess:		m_materials[i] = { { PostProcessingMaterial::CreateDefaultMaterial() } }; break;
 						 
 		default:
