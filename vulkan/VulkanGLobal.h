@@ -41,7 +41,6 @@
 #include "../class/ShadowMapMaterial.h"
 #include "../class/SSAOMaterial.h"
 #include "../class/GaussianBlurMaterial.h"
-#include "../class/BloomMaterial.h"
 #include "../class/PostProcessingMaterial.h"
 #include "../component/PhysicalCamera.h"
 #include "../component/PlanetGenerator.h"

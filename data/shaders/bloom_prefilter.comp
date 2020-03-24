@@ -21,6 +21,9 @@ void main()
 	vec4 color = DownsampleBox13Tap(DOFResults[frameIndex], uv, texelSize);
 	float factor = smoothstep(globalData.BloomSettings0.x, globalData.BloomSettings0.y, Luminance(color.rgb));
 
+	if (any(greaterThanEqual(gl_GlobalInvocationID.xy, size)))
+		return;
+
 	imageStore(OutputImage[frameIndex],	
 		ivec2(gl_GlobalInvocationID.xy), 
 		vec4(color.rgb * factor, 1.0f));

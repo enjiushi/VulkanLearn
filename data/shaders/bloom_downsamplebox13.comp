@@ -18,6 +18,9 @@ void main()
 	vec2 uv = vec2(gl_GlobalInvocationID.xy + 0.5f) / vec2(size);
 	vec2 texelSize = vec2(1) / vec2(size);
 
+	if (any(greaterThanEqual(gl_GlobalInvocationID.xy, size)))
+		return;
+
 	imageStore(OutputImage[frameIndex],	
 		ivec2(gl_GlobalInvocationID.xy), 
 		vec4(DownsampleBox13Tap(PrevBloomDownsample[frameIndex], uv, texelSize).rgb, 1.0f));
