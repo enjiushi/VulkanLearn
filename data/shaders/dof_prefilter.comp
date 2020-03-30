@@ -51,5 +51,5 @@ void main()
 
 	imageStore(OutputImage[frameIndex],	
 		ivec2(gl_GlobalInvocationID.xy), 
-		vec4(coc));
+		vec4(avg, coc));
 }

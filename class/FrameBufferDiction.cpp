@@ -348,10 +348,8 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateDOFFrameBuffer(ui
 				(uint32_t)layerSize.x,
 				(uint32_t)layerSize.y,
 			};
-			if (layer == CombineLayer)
-				pColorTarget = Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT);
-			else
-				pColorTarget = Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT);
+
+			pColorTarget = Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT);
 		}
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pColorTarget }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->GetRenderPass()));
 	}
