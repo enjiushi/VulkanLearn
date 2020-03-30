@@ -33,6 +33,7 @@ public:
 		enum TextureSelector
 		{
 			BY_FRAME,	// A texture will be selected by frame index
+			BY_PINGPONG,// A texture will be selected by pingpoing index
 			ALL,		// All textures will be selected
 			NONE,		// No textures will be selected, no need for barriers
 			COUNT

@@ -4,7 +4,7 @@
 
 class Material;
 
-enum BloomPass
+enum class BloomPass
 {
 	PREFILTER,
 	DOWNSAMPLE,
@@ -12,5 +12,15 @@ enum BloomPass
 	COUNT
 };
 
+enum class DOFPass
+{
+	PREFILTER,
+	BLUR,
+	POSTFILTER,
+	COMBINE,
+	COUNT
+};
+
+std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass);
 std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iterIndex);
 std::shared_ptr<Material> CreateCombineMaterial();

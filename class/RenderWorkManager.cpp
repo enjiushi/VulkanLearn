@@ -78,7 +78,14 @@ bool RenderWorkManager::Init()
 		{
 			for (uint32_t j = 0; j < DOFMaterial::DOFPass_Count; j++)
 			{
-				m_materials[i].materialSet.push_back(DOFMaterial::CreateDefaultMaterial((DOFMaterial::DOFPass)j));
+				if (j == DOFMaterial::DOFPass_Combine)
+				{
+					m_materials[i].materialSet.push_back(CreateDOFMaterial((DOFPass)j));
+				}
+				else
+				{
+					m_materials[i].materialSet.push_back(DOFMaterial::CreateDefaultMaterial((DOFMaterial::DOFPass)j));
+				}
 			}
 		}break;
 		case BloomDownSample:
@@ -247,19 +254,25 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 		std::shared_ptr<FrameBuffer> pTargetFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_DOF, i);
 		Vector2ui size = { pTargetFrameBuffer->GetFramebufferInfo().width, pTargetFrameBuffer->GetFramebufferInfo().height };
 
-		GetMaterial(DepthOfField, i)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-		RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->BeginRenderPass(pDrawCmdBuffer, pTargetFrameBuffer);
-		GetMaterial(DepthOfField, i)->Draw(pDrawCmdBuffer, pTargetFrameBuffer, pingpong);
-		RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->EndRenderPass(pDrawCmdBuffer);
-		GetMaterial(DepthOfField, i)->AfterRenderPass(pDrawCmdBuffer, pingpong);
+		if (i == DOFMaterial::DOFPass_Combine)
+		{ 
+			GetMaterial(DepthOfField, i)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+			GetMaterial(DepthOfField, i)->Dispatch(pDrawCmdBuffer, pingpong);
+			GetMaterial(DepthOfField, i)->AfterRenderPass(pDrawCmdBuffer, pingpong);
+		}
+		else
+		{
+			GetMaterial(DepthOfField, i)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+			RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->BeginRenderPass(pDrawCmdBuffer, pTargetFrameBuffer);
+			GetMaterial(DepthOfField, i)->Draw(pDrawCmdBuffer, pTargetFrameBuffer, pingpong);
+			RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassDOF)->EndRenderPass(pDrawCmdBuffer);
+			GetMaterial(DepthOfField, i)->AfterRenderPass(pDrawCmdBuffer, pingpong);
+		}
 	}
 
 	// Downsample first
 	for (uint32_t i = 0; i < BLOOM_ITER_COUNT; i++)
 	{
-		std::shared_ptr<FrameBuffer> pTargetFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Bloom, i + 1);
-		Vector2ui size = { pTargetFrameBuffer->GetFramebufferInfo().width, pTargetFrameBuffer->GetFramebufferInfo().height };
-
 		GetMaterial(BloomDownSample, i)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
 		GetMaterial(BloomDownSample, i)->Dispatch(pDrawCmdBuffer, pingpong);
 		GetMaterial(BloomDownSample, i)->AfterRenderPass(pDrawCmdBuffer, pingpong);

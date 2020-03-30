@@ -10,6 +10,446 @@
 // FIXME: hard-code
 static uint32_t groupSize = 16;
 
+std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
+{
+	std::wstring shaderPath;
+	switch (dofPass)
+	{
+	case DOFPass::PREFILTER:	shaderPath = L"../data/shaders/dof_prefilter.comp.spv"; break;
+	case DOFPass::BLUR:			shaderPath = L"../data/shaders/dof_blur.comp.spv"; break;
+	case DOFPass::POSTFILTER:	shaderPath = L"../data/shaders/dof_postfilter.comp.spv"; break;
+	case DOFPass::COMBINE:		shaderPath = L"../data/shaders/dof_combine.comp.spv"; break;
+	default:
+		ASSERTION(false);
+		break;
+	}
+
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	Vector3ui groupNum;
+	switch (dofPass)
+	{
+	case DOFPass::PREFILTER:
+	{
+		std::vector<std::shared_ptr<Image>> combinedTemporalResult;
+		std::vector<std::shared_ptr<Image>> temporalCoCResults;
+		for (uint32_t j = 0; j < 2; j++)
+		{
+			std::shared_ptr<FrameBuffer> pTemporalFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
+			combinedTemporalResult.push_back(pTemporalFrameBuffer->GetColorTarget(FrameBufferDiction::CombinedResult));
+			temporalCoCResults.push_back(pTemporalFrameBuffer->GetColorTarget(FrameBufferDiction::CoC));
+		}
+
+		std::vector<std::shared_ptr<Image>> outputImages;
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+		{
+			std::shared_ptr<FrameBuffer> pPostfilterResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::PREFILTER)[j];
+			outputImages.push_back(pPostfilterResult->GetColorTarget(0));
+		}
+
+		groupNum =
+		{
+			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.width / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.height / (double)groupSize),
+			1
+		};
+
+		textureUnits.push_back
+		(
+			{
+				0,
+
+				combinedTemporalResult,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				false,
+
+				CustomizedComputeMaterial::TextureUnit::BY_PINGPONG,
+
+				{
+					{
+						true,
+						VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						VK_ACCESS_SHADER_READ_BIT
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+
+		textureUnits.push_back
+		(
+			{
+				1,
+
+				temporalCoCResults,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				false,
+
+				CustomizedComputeMaterial::TextureUnit::BY_PINGPONG,
+
+				{
+					{
+						true,
+						VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						VK_ACCESS_SHADER_READ_BIT
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+
+		textureUnits.push_back
+		(
+			{
+				2,
+
+				outputImages,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				true,
+
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+				{
+					{
+						false,
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+	}
+	break;
+
+	case DOFPass::BLUR:
+	{
+		std::vector<std::shared_ptr<Image>> prefilterResults;
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+		{
+			std::shared_ptr<FrameBuffer> pPrefilterResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::PREFILTER)[j];
+
+			prefilterResults.push_back(pPrefilterResult->GetColorTarget(0));
+		}
+
+		std::vector<std::shared_ptr<Image>> outputImages;
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+		{
+			std::shared_ptr<FrameBuffer> pBlurResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::BLUR)[j];
+			outputImages.push_back(pBlurResult->GetColorTarget(0));
+		}
+
+		groupNum =
+		{
+			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.width / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.height / (double)groupSize),
+			1
+		};
+
+		textureUnits.push_back
+		(
+			{
+				0,
+
+				prefilterResults,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				false,
+
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+				{
+					{
+						true,
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_GENERAL,
+						VK_ACCESS_SHADER_WRITE_BIT,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_GENERAL,
+						VK_ACCESS_SHADER_READ_BIT
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+
+		textureUnits.push_back
+		(
+			{
+				1,
+
+				outputImages,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				true,
+
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+				{
+					{
+						false,
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+	}
+	break;
+	case DOFPass::POSTFILTER:
+	{
+		std::vector<std::shared_ptr<Image>> blurResults;
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+		{
+			std::shared_ptr<FrameBuffer> pBlurResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::BLUR)[j];
+
+			blurResults.push_back(pBlurResult->GetColorTarget(0));
+		}
+
+		std::vector<std::shared_ptr<Image>> outputImages;
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+		{
+			std::shared_ptr<FrameBuffer> pPostfilterResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::POSTFILTER)[j];
+			outputImages.push_back(pPostfilterResult->GetColorTarget(0));
+		}
+
+		groupNum =
+		{
+			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.width / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.height / (double)groupSize),
+			1
+		};
+
+		textureUnits.push_back
+		(
+			{
+				0,
+
+				blurResults,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				false,
+
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+				{
+					{
+						true,
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_GENERAL,
+						VK_ACCESS_SHADER_WRITE_BIT,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_GENERAL,
+						VK_ACCESS_SHADER_READ_BIT
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+
+		textureUnits.push_back
+		(
+			{
+				1,
+
+				outputImages,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				true,
+
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+				{
+					{
+						false,
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+	}
+	break;
+	case DOFPass::COMBINE:
+	{
+		std::vector<std::shared_ptr<Image>> postfilterResults;
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+		{
+			std::shared_ptr<FrameBuffer> pPostfilterResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::POSTFILTER)[j];
+			postfilterResults.push_back(pPostfilterResult->GetColorTarget(0));
+		}
+
+		std::vector<std::shared_ptr<Image>> combinedTemporalResult;
+		std::vector<std::shared_ptr<Image>> temporalCoCResults;
+		for (uint32_t j = 0; j < 2; j++)
+		{
+			std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
+			combinedTemporalResult.push_back(pTemporalResult->GetColorTarget(FrameBufferDiction::CombinedResult));
+			temporalCoCResults.push_back(pTemporalResult->GetColorTarget(FrameBufferDiction::CoC));
+		}
+
+		std::vector<std::shared_ptr<Image>> outputImages;
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+		{
+			std::shared_ptr<FrameBuffer> pDOFCombinedResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::COMBINE)[j];
+			outputImages.push_back(pDOFCombinedResult->GetColorTarget(0));
+		}
+
+		groupNum =
+		{
+			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.width / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.height / (double)groupSize),
+			1
+		};
+
+		textureUnits.push_back
+		(
+			{
+				0,
+
+				postfilterResults,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				false,
+
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+				{
+					{
+						true,
+						//VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						//VK_IMAGE_LAYOUT_GENERAL,
+						//VK_ACCESS_SHADER_WRITE_BIT,
+
+						//VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						//VK_IMAGE_LAYOUT_GENERAL,
+						//VK_ACCESS_SHADER_READ_BIT
+
+						VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						VK_ACCESS_SHADER_READ_BIT
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+
+		textureUnits.push_back
+		(
+			{
+				1,
+
+				combinedTemporalResult,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				false,
+
+				CustomizedComputeMaterial::TextureUnit::BY_PINGPONG,
+
+				{
+					{
+						false,
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+
+		textureUnits.push_back
+		(
+			{
+				2,
+
+				temporalCoCResults,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				false,
+
+				CustomizedComputeMaterial::TextureUnit::BY_PINGPONG,
+
+				{
+					{
+						false,
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+
+		textureUnits.push_back
+		(
+			{
+				3,
+
+				outputImages,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				true,
+
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+				{
+					{
+						false,
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+	}
+	break;
+	default:
+		ASSERTION(false);
+		break;
+	}
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		shaderPath,
+		groupNum,
+		textureUnits,
+		{}
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
+
 std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iterIndex)
 {
 	std::wstring shaderPath;
@@ -83,12 +523,12 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 	switch (bloomPass)
 	{
 	case BloomPass::PREFILTER:
-		srcStageFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		srcAccessFlags = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		srcStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		srcLayout = VK_IMAGE_LAYOUT_GENERAL;
+		srcAccessFlags = VK_ACCESS_SHADER_WRITE_BIT;
 
 		dstStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-		dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		dstLayout = VK_IMAGE_LAYOUT_GENERAL;
 		dstAccessFlags = VK_ACCESS_SHADER_READ_BIT;
 		break;
 	case BloomPass::DOWNSAMPLE:
@@ -127,7 +567,6 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				// Only a pre-barrier is needed
 				{
 					true,
 					srcStageFlags,
@@ -209,6 +648,22 @@ std::shared_ptr<Material> CreateCombineMaterial()
 		1
 	};
 
+	VkPipelineStageFlagBits srcStageFlags;
+	VkImageLayout srcLayout;
+	VkAccessFlagBits srcAccessFlags;
+
+	VkPipelineStageFlagBits dstStageFlags;
+	VkImageLayout dstLayout;
+	VkAccessFlagBits dstAccessFlags;
+
+	srcStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+	srcLayout = VK_IMAGE_LAYOUT_GENERAL;
+	srcAccessFlags = VK_ACCESS_SHADER_WRITE_BIT;
+
+	dstStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+	dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+	dstAccessFlags = VK_ACCESS_SHADER_READ_BIT;
+
 	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
 	textureUnits.push_back
 	(
@@ -223,16 +678,15 @@ std::shared_ptr<Material> CreateCombineMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				// Only a pre-barrier is needed
 				{
 					true,
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+					srcStageFlags,
+					srcLayout,
+					srcAccessFlags,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_SHADER_READ_BIT
+					dstStageFlags,
+					dstLayout,
+					dstAccessFlags
 				},
 				{
 					false
@@ -254,7 +708,6 @@ std::shared_ptr<Material> CreateCombineMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				// Only a pre-barrier is needed
 				{
 					true,
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,

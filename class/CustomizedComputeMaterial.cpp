@@ -130,6 +130,11 @@ void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<Com
 			AssembleBarrier(textureUnit, FrameMgr()->FrameIndex(), barrierInsertionPoint, imgBarrier, subresourceRange);
 			barriers.push_back(imgBarrier);
 		}
+		else if (textureUnit.textureSelector == TextureUnit::BY_PINGPONG)
+		{
+			AssembleBarrier(textureUnit, (pingpong + 1) % 2, barrierInsertionPoint, imgBarrier, subresourceRange);
+			barriers.push_back(imgBarrier);
+		}
 		else if (textureUnit.textureSelector == TextureUnit::ALL)
 		{
 			for (uint32_t i = 0; i < (uint32_t)textureUnit.textures.size(); i++)
