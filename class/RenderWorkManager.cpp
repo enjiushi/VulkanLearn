@@ -18,7 +18,6 @@
 #include "ForwardMaterial.h"
 #include "TemporalResolveMaterial.h"
 #include "PostProcessingMaterial.h"
-#include "DOFMaterial.h"
 #include "GBufferPlanetMaterial.h"
 #include "MaterialInstance.h"
 
@@ -76,7 +75,7 @@ bool RenderWorkManager::Init()
 		case TemporalResolve:	m_materials[i] = { { TemporalResolveMaterial::CreateDefaultMaterial(0), TemporalResolveMaterial::CreateDefaultMaterial(1) } }; break;
 		case DepthOfField:
 		{
-			for (uint32_t j = 0; j < DOFMaterial::DOFPass_Count; j++)
+			for (uint32_t j = 0; j < (uint32_t)DOFPass::COUNT; j++)
 			{
 				m_materials[i].materialSet.push_back(CreateDOFMaterial((DOFPass)j));
 			}
@@ -242,7 +241,7 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->EndRenderPass(pDrawCmdBuffer);
 	GetMaterial(TemporalResolve, pingpong)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
-	for (uint32_t i = 0; i < DOFMaterial::DOFPass_Count; i++)
+	for (uint32_t i = 0; i < (uint32_t)DOFPass::COUNT; i++)
 	{
 		GetMaterial(DepthOfField, i)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
 		GetMaterial(DepthOfField, i)->Dispatch(pDrawCmdBuffer, pingpong);
