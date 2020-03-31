@@ -72,7 +72,7 @@ bool RenderWorkManager::Init()
 
 			m_materials[i] = { { ForwardMaterial::CreateDefaultMaterial(info) } };
 		} break;
-		case TemporalResolve:	m_materials[i] = { { TemporalResolveMaterial::CreateDefaultMaterial(0), TemporalResolveMaterial::CreateDefaultMaterial(1) } }; break;
+		case TemporalResolve:	m_materials[i] = { { CreateTemporalResolveMaterial(0), CreateTemporalResolveMaterial(1) } }; break;
 		case DepthOfField:
 		{
 			for (uint32_t j = 0; j < (uint32_t)DOFPass::COUNT; j++)
@@ -236,9 +236,7 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 
 
 	GetMaterial(TemporalResolve, pingpong)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (FrameMgr()->FrameIndex() + 1) % GetSwapChain()->GetSwapChainImageCount(), (pingpong + 1) % 2));
-	GetMaterial(TemporalResolve, pingpong)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (FrameMgr()->FrameIndex() + 1) % GetSwapChain()->GetSwapChainImageCount(), (pingpong + 1) % 2));
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassTemporalResolve)->EndRenderPass(pDrawCmdBuffer);
+	GetMaterial(TemporalResolve, pingpong)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(TemporalResolve, pingpong)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 	for (uint32_t i = 0; i < (uint32_t)DOFPass::COUNT; i++)

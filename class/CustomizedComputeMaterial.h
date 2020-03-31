@@ -32,10 +32,11 @@ public:
 		// Barrier info
 		enum TextureSelector
 		{
-			BY_FRAME,	// A texture will be selected by frame index
-			BY_PINGPONG,// A texture will be selected by pingpoing index
-			ALL,		// All textures will be selected
-			NONE,		// No textures will be selected, no need for barriers
+			BY_FRAME,			// A texture will be selected by frame index
+			BY_PINGPONG,		// A texture will be selected by pingpoing index
+			BY_NEXTPINGPONG,	// A texture will be selected by next pingpoing index
+			ALL,				// All textures will be selected
+			NONE,				// No textures will be selected, no need for barriers
 			COUNT
 		}textureSelector;
 
@@ -52,6 +53,9 @@ public:
 
 		// Push constants
 		std::vector<uint8_t>	pushConstantData;
+
+		std::function<void(const std::shared_ptr<CommandBuffer>&, uint32_t)>	customFunctionAfterDispatch = 
+			[](const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong) {};
 	}Variables;
 
 public:
@@ -67,6 +71,7 @@ protected:
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;
 	void CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) override;
 
+	void AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong) override;
 	void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong = 0) override;
 
 	static void AssembleBarrier(const TextureUnit& textureUnit, uint32_t textureIndex, BarrierInsertionPoint barrierInsertPoint, VkImageMemoryBarrier& barrier, VkImageSubresourceRange& subresRange);

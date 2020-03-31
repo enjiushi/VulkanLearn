@@ -477,6 +477,8 @@ void VulkanGlobal::InitUniforms()
 
 	gli::texture_cube gliSkyBox(gli::load("../data/textures/hdr/gcanyon_cube.ktx"));
 	UniformData::GetInstance()->GetGlobalTextures()->InitIBLTextures(gliSkyBox);
+
+	UniformData::GetInstance()->GetGlobalTextures()->InsertScreenSizeTexture({ "MipmapTemporalResult", "", "Mip map temporal result, used for next frame ssr" });
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()

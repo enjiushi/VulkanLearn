@@ -237,8 +237,6 @@ bool TemporalResolveMaterial::Init(const std::shared_ptr<TemporalResolveMaterial
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 7, temporalResults);
 	m_pUniformStorageDescriptorSet->UpdateImages(MaterialUniformStorageTypeCount + 8, temporalCoC);
 
-	UniformData::GetInstance()->GetGlobalTextures()->InsertScreenSizeTexture({ "MipmapTemporalResult", "", "Mip map temporal result, used for next frame ssr" });
-
 	return true;
 }
 

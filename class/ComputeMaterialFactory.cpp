@@ -6,9 +6,490 @@
 #include "../vulkan/SwapChainImage.h"
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/GlobalDeviceObjects.h"
+#include "../vulkan/CommandBuffer.h"
 
 // FIXME: hard-code
 static uint32_t groupSize = 16;
+
+std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
+{
+	std::vector<std::shared_ptr<Image>> motionVectors;
+	std::vector<std::shared_ptr<Image>> shadingResults;
+	std::vector<std::shared_ptr<Image>> SSRResults;
+	std::vector<std::shared_ptr<Image>> GBuffer1;
+	std::vector<std::shared_ptr<Image>> motionNeighborMax;
+	std::vector<std::shared_ptr<Image>> temporalShadingResults;
+	std::vector<std::shared_ptr<Image>> temporalSSRResults;
+	std::vector<std::shared_ptr<Image>> temporalResults;
+	std::vector<std::shared_ptr<Image>> temporalCoC;
+	std::vector<std::shared_ptr<Image>> outTemporalShadingResults;
+	std::vector<std::shared_ptr<Image>> outTemporalSSRResults;
+	std::vector<std::shared_ptr<Image>> outTemporalResults;
+	std::vector<std::shared_ptr<Image>> outTemporalCoC;
+
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pGBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
+		motionVectors.push_back(pGBuffer->GetColorTarget(FrameBufferDiction::MotionVector));
+	}
+
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pShadingResultBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
+		shadingResults.push_back(pShadingResultBuffer->GetColorTarget(0));
+	}
+
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pShadingResultBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
+		SSRResults.push_back(pShadingResultBuffer->GetColorTarget(1));
+	}
+
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pGBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
+		GBuffer1.push_back(pGBuffer->GetColorTarget(FrameBufferDiction::GBuffer1));
+	}
+
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pMotionNeighborMax = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionNeighborMax)[j];
+		motionNeighborMax.push_back(pMotionNeighborMax->GetColorTarget(0));
+	}
+
+	std::shared_ptr<FrameBuffer> pTemporalResolveFB = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong);
+	temporalShadingResults.push_back(pTemporalResolveFB->GetColorTarget(FrameBufferDiction::ShadingResult));
+	temporalSSRResults.push_back(pTemporalResolveFB->GetColorTarget(FrameBufferDiction::SSRResult));
+	temporalResults.push_back(pTemporalResolveFB->GetColorTarget(FrameBufferDiction::CombinedResult));
+	temporalCoC.push_back(pTemporalResolveFB->GetColorTarget(FrameBufferDiction::CoC));
+
+	std::shared_ptr<FrameBuffer> pOutTemporalResolveFB = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2);
+	outTemporalShadingResults.push_back(pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::ShadingResult));
+	outTemporalSSRResults.push_back(pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::SSRResult));
+	outTemporalResults.push_back(pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::CombinedResult));
+	outTemporalCoC.push_back(pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::CoC));
+
+	Vector2ui size =
+	{
+		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x,
+		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().y,
+	};
+
+	Vector3ui groupNum =
+	{
+		size.x / groupSize,
+		size.y / groupSize,
+		1
+	};
+
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	textureUnits.push_back
+	(
+		{
+			0,
+
+			motionVectors,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			1,
+
+			shadingResults,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			2,
+
+			SSRResults,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			3,
+
+			GBuffer1,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			4,
+
+			motionNeighborMax,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			5,
+
+			temporalShadingResults,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			6,
+
+			temporalSSRResults,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			7,
+
+			temporalResults,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			8,
+
+			temporalCoC,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			9,
+
+			outTemporalShadingResults,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::NONE,
+
+			{
+				{
+					false
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			10,
+
+			outTemporalSSRResults,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::NONE,
+
+			{
+				{
+					false
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			11,
+
+			outTemporalResults,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::NONE,
+
+			{
+				{
+					false
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			12,
+
+			outTemporalCoC,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::NONE,
+
+			{
+				{
+					false
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	std::vector<uint8_t> pushConstantData;
+	uint32_t dirtTextureIndex = -1;
+	TransferBytesToVector(pushConstantData, &dirtTextureIndex, sizeof(dirtTextureIndex));
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		L"../data/shaders/temporal_resolve.comp.spv",
+		groupNum,
+		textureUnits,
+		pushConstantData,
+		[](const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
+		{
+			std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(FrameBufferDiction::CombinedResult);
+			std::shared_ptr<Image> pTextureArray = UniformData::GetInstance()->GetGlobalTextures()->GetScreenSizeTextureArray();
+
+			uint32_t index;
+			bool ret = UniformData::GetInstance()->GetGlobalTextures()->GetScreenSizeTextureIndex("MipmapTemporalResult", index);
+			ASSERTION(ret && pTextureArray != nullptr);
+
+			Vector2d windowSize = UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize();
+			VkImageBlit blit =
+			{
+				{
+					VK_IMAGE_ASPECT_COLOR_BIT,
+					0,
+					index,
+					1
+				},
+				{ { 0, 0, 0 },{ (int32_t)windowSize.x, (int32_t)windowSize.y, 1 } },
+
+				{
+					VK_IMAGE_ASPECT_COLOR_BIT,
+					0,
+					index,
+					1
+				},
+				{ { 0, 0, 0 },{ (int32_t)windowSize.x, (int32_t)windowSize.y, 1 } }
+			};
+			pCmdBuf->BlitImage(pTemporalResult, pTextureArray, blit);
+			pCmdBuf->GenerateMipmaps(pTextureArray, index);
+		}
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
 
 std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 {
@@ -63,17 +544,17 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				false,
 
-				CustomizedComputeMaterial::TextureUnit::BY_PINGPONG,
+				CustomizedComputeMaterial::TextureUnit::BY_NEXTPINGPONG,
 
 				{
 					{
 						true,
-						VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-						VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_GENERAL,
+						VK_ACCESS_SHADER_WRITE_BIT,
 
 						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						VK_IMAGE_LAYOUT_GENERAL,
 						VK_ACCESS_SHADER_READ_BIT
 					},
 					{
@@ -93,17 +574,17 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				false,
 
-				CustomizedComputeMaterial::TextureUnit::BY_PINGPONG,
+				CustomizedComputeMaterial::TextureUnit::BY_NEXTPINGPONG,
 
 				{
 					{
 						true,
-						VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-						VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_GENERAL,
+						VK_ACCESS_SHADER_WRITE_BIT,
 
 						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						VK_IMAGE_LAYOUT_GENERAL,
 						VK_ACCESS_SHADER_READ_BIT
 					},
 					{
@@ -123,7 +604,7 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				true,
 
-				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+				CustomizedComputeMaterial::TextureUnit::NONE,
 
 				{
 					{
@@ -202,7 +683,7 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				true,
 
-				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+				CustomizedComputeMaterial::TextureUnit::NONE,
 
 				{
 					{
@@ -280,7 +761,7 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				true,
 
-				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+				CustomizedComputeMaterial::TextureUnit::NONE,
 
 				{
 					{
@@ -366,7 +847,7 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				false,
 
-				CustomizedComputeMaterial::TextureUnit::BY_PINGPONG,
+				CustomizedComputeMaterial::TextureUnit::NONE,
 
 				{
 					{
@@ -389,7 +870,7 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				false,
 
-				CustomizedComputeMaterial::TextureUnit::BY_PINGPONG,
+				CustomizedComputeMaterial::TextureUnit::NONE,
 
 				{
 					{
@@ -412,7 +893,7 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				true,
 
-				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+				CustomizedComputeMaterial::TextureUnit::NONE,
 
 				{
 					{
@@ -586,7 +1067,7 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+			CustomizedComputeMaterial::TextureUnit::NONE,
 
 			{
 				{
@@ -640,22 +1121,6 @@ std::shared_ptr<Material> CreateCombineMaterial()
 		1
 	};
 
-	VkPipelineStageFlagBits srcStageFlags;
-	VkImageLayout srcLayout;
-	VkAccessFlagBits srcAccessFlags;
-
-	VkPipelineStageFlagBits dstStageFlags;
-	VkImageLayout dstLayout;
-	VkAccessFlagBits dstAccessFlags;
-
-	srcStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-	srcLayout = VK_IMAGE_LAYOUT_GENERAL;
-	srcAccessFlags = VK_ACCESS_SHADER_WRITE_BIT;
-
-	dstStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-	dstLayout = VK_IMAGE_LAYOUT_GENERAL;
-	dstAccessFlags = VK_ACCESS_SHADER_READ_BIT;
-
 	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
 	textureUnits.push_back
 	(
@@ -672,13 +1137,13 @@ std::shared_ptr<Material> CreateCombineMaterial()
 			{
 				{
 					true,
-					srcStageFlags,
-					srcLayout,
-					srcAccessFlags,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
 
-					dstStageFlags,
-					dstLayout,
-					dstAccessFlags
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
 				},
 				{
 					false
@@ -727,7 +1192,7 @@ std::shared_ptr<Material> CreateCombineMaterial()
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+			CustomizedComputeMaterial::TextureUnit::NONE,
 
 			{
 				{

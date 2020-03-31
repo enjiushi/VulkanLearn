@@ -289,26 +289,26 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateTemporalResolveFr
 
 	std::vector<std::shared_ptr<Image>> temporalShadingResult =
 	{
-		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
-		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT),
+		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT)
 	};
 
 	std::vector<std::shared_ptr<Image>> temporalSSRResult =
 	{
-		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
-		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT),
+		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT)
 	};
 
 	std::vector<std::shared_ptr<Image>> temporalResult =
 	{
-		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
-		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT),
+		Image::CreateOffscreenTexture2D(GetDevice(), size, OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT)
 	};
 
 	std::vector<std::shared_ptr<Image>> temporalCoC =
 	{
-		Image::CreateOffscreenTexture2D(GetDevice(), size, COC_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
-		Image::CreateOffscreenTexture2D(GetDevice(), size, COC_FORMAT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		Image::CreateOffscreenTexture2D(GetDevice(), size, COC_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT),
+		Image::CreateOffscreenTexture2D(GetDevice(), size, COC_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT)
 	};
 
 	FrameBufferCombo frameBuffers;

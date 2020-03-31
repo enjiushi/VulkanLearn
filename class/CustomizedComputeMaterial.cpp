@@ -89,6 +89,12 @@ void CustomizedComputeMaterial::CustomizeCommandBuffer(const std::shared_ptr<Com
 	pCmdBuf->PushConstants(m_pPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, (uint32_t)m_variables.pushConstantData.size(), m_variables.pushConstantData.data());
 }
 
+void CustomizedComputeMaterial::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
+{
+	Material::AfterRenderPass(pCmdBuf, pingpong);
+	m_variables.customFunctionAfterDispatch(pCmdBuf, pingpong);
+}
+
 void CustomizedComputeMaterial::AssembleBarrier(const TextureUnit& textureUnit, uint32_t textureIndex, BarrierInsertionPoint barrierInsertPoint, VkImageMemoryBarrier& barrier, VkImageSubresourceRange& subresRange)
 {
 	subresRange = {};
@@ -131,6 +137,11 @@ void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<Com
 			barriers.push_back(imgBarrier);
 		}
 		else if (textureUnit.textureSelector == TextureUnit::BY_PINGPONG)
+		{
+			AssembleBarrier(textureUnit, pingpong, barrierInsertionPoint, imgBarrier, subresourceRange);
+			barriers.push_back(imgBarrier);
+		}
+		else if (textureUnit.textureSelector == TextureUnit::BY_NEXTPINGPONG)
 		{
 			AssembleBarrier(textureUnit, (pingpong + 1) % 2, barrierInsertionPoint, imgBarrier, subresourceRange);
 			barriers.push_back(imgBarrier);
