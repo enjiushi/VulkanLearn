@@ -16,7 +16,6 @@
 #include "SSAOMaterial.h"
 #include "GaussianBlurMaterial.h"
 #include "ForwardMaterial.h"
-#include "TemporalResolveMaterial.h"
 #include "PostProcessingMaterial.h"
 #include "GBufferPlanetMaterial.h"
 #include "MaterialInstance.h"
