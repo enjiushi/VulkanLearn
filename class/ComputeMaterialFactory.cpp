@@ -13,61 +13,126 @@ static uint32_t groupSize = 16;
 
 std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 {
-	std::vector<std::shared_ptr<Image>> motionVectors;
-	std::vector<std::shared_ptr<Image>> shadingResults;
-	std::vector<std::shared_ptr<Image>> SSRResults;
-	std::vector<std::shared_ptr<Image>> GBuffer1;
-	std::vector<std::shared_ptr<Image>> motionNeighborMax;
-	std::vector<std::shared_ptr<Image>> temporalShadingResults;
-	std::vector<std::shared_ptr<Image>> temporalSSRResults;
-	std::vector<std::shared_ptr<Image>> temporalResults;
-	std::vector<std::shared_ptr<Image>> temporalCoC;
-	std::vector<std::shared_ptr<Image>> outTemporalShadingResults;
-	std::vector<std::shared_ptr<Image>> outTemporalSSRResults;
-	std::vector<std::shared_ptr<Image>> outTemporalResults;
-	std::vector<std::shared_ptr<Image>> outTemporalCoC;
+	std::vector<CombinedImage> motionVectors;
+	std::vector<CombinedImage> shadingResults;
+	std::vector<CombinedImage> SSRResults;
+	std::vector<CombinedImage> GBuffer1;
+	std::vector<CombinedImage> motionNeighborMax;
+	std::vector<CombinedImage> temporalShadingResults;
+	std::vector<CombinedImage> temporalSSRResults;
+	std::vector<CombinedImage> temporalResults;
+	std::vector<CombinedImage> temporalCoC;
+	std::vector<CombinedImage> outTemporalShadingResults;
+	std::vector<CombinedImage> outTemporalSSRResults;
+	std::vector<CombinedImage> outTemporalResults;
+	std::vector<CombinedImage> outTemporalCoC;
 
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
 		std::shared_ptr<FrameBuffer> pGBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
-		motionVectors.push_back(pGBuffer->GetColorTarget(FrameBufferDiction::MotionVector));
+		motionVectors.push_back
+		({
+			pGBuffer->GetColorTarget(FrameBufferDiction::MotionVector),
+			pGBuffer->GetColorTarget(FrameBufferDiction::MotionVector)->CreateLinearClampToEdgeSampler(),
+			pGBuffer->GetColorTarget(FrameBufferDiction::MotionVector)->CreateDefaultImageView()
+		});
 	}
 
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
 		std::shared_ptr<FrameBuffer> pShadingResultBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
-		shadingResults.push_back(pShadingResultBuffer->GetColorTarget(0));
+		shadingResults.push_back
+		({
+			pShadingResultBuffer->GetColorTarget(0),
+			pShadingResultBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pShadingResultBuffer->GetColorTarget(0)->CreateDefaultImageView()
+		});
 	}
 
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
 		std::shared_ptr<FrameBuffer> pShadingResultBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
-		SSRResults.push_back(pShadingResultBuffer->GetColorTarget(1));
+		SSRResults.push_back
+		({
+			pShadingResultBuffer->GetColorTarget(1),
+			pShadingResultBuffer->GetColorTarget(1)->CreateLinearClampToEdgeSampler(),
+			pShadingResultBuffer->GetColorTarget(1)->CreateDefaultImageView()
+		});
 	}
 
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
 		std::shared_ptr<FrameBuffer> pGBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
-		GBuffer1.push_back(pGBuffer->GetColorTarget(FrameBufferDiction::GBuffer1));
+		GBuffer1.push_back
+		({
+			pGBuffer->GetColorTarget(FrameBufferDiction::GBuffer1),
+			pGBuffer->GetColorTarget(FrameBufferDiction::GBuffer1)->CreateLinearClampToEdgeSampler(),
+			pGBuffer->GetColorTarget(FrameBufferDiction::GBuffer1)->CreateDefaultImageView()
+		});
 	}
 
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
 		std::shared_ptr<FrameBuffer> pMotionNeighborMax = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionNeighborMax)[j];
-		motionNeighborMax.push_back(pMotionNeighborMax->GetColorTarget(0));
+		motionNeighborMax.push_back
+		({
+			pMotionNeighborMax->GetColorTarget(0),
+			pMotionNeighborMax->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pMotionNeighborMax->GetColorTarget(0)->CreateDefaultImageView()
+		});
 	}
 
 	std::shared_ptr<FrameBuffer> pTemporalResolveFB = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, pingpong);
-	temporalShadingResults.push_back(pTemporalResolveFB->GetColorTarget(FrameBufferDiction::ShadingResult));
-	temporalSSRResults.push_back(pTemporalResolveFB->GetColorTarget(FrameBufferDiction::SSRResult));
-	temporalResults.push_back(pTemporalResolveFB->GetColorTarget(FrameBufferDiction::CombinedResult));
-	temporalCoC.push_back(pTemporalResolveFB->GetColorTarget(FrameBufferDiction::CoC));
+	temporalShadingResults.push_back
+	({
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::ShadingResult),
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateLinearClampToEdgeSampler(),
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateDefaultImageView()
+	});
+	temporalSSRResults.push_back
+	({
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::SSRResult),
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::SSRResult)->CreateLinearClampToEdgeSampler(),
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::SSRResult)->CreateDefaultImageView()
+	});
+	temporalResults.push_back
+	({
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::CombinedResult),
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateLinearClampToEdgeSampler(),
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateDefaultImageView()
+	});
+	temporalCoC.push_back
+	({
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::CoC),
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::CoC)->CreateLinearClampToEdgeSampler(),
+		pTemporalResolveFB->GetColorTarget(FrameBufferDiction::CoC)->CreateDefaultImageView()
+	});
 
 	std::shared_ptr<FrameBuffer> pOutTemporalResolveFB = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2);
-	outTemporalShadingResults.push_back(pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::ShadingResult));
-	outTemporalSSRResults.push_back(pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::SSRResult));
-	outTemporalResults.push_back(pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::CombinedResult));
-	outTemporalCoC.push_back(pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::CoC));
+	outTemporalShadingResults.push_back
+	({
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::ShadingResult),
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateLinearClampToEdgeSampler(),
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::ShadingResult)->CreateDefaultImageView()
+	});
+	outTemporalSSRResults.push_back
+	({
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::SSRResult),
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::SSRResult)->CreateLinearClampToEdgeSampler(),
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::SSRResult)->CreateDefaultImageView()
+	});
+	outTemporalResults.push_back
+	({
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::CombinedResult),
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateLinearClampToEdgeSampler(),
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateDefaultImageView()
+	});
+	outTemporalCoC.push_back
+	({
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::CoC),
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::CoC)->CreateLinearClampToEdgeSampler(),
+		pOutTemporalResolveFB->GetColorTarget(FrameBufferDiction::CoC)->CreateDefaultImageView()
+	});
 
 	Vector2ui size =
 	{
@@ -511,26 +576,41 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 	{
 	case DOFPass::PREFILTER:
 	{
-		std::vector<std::shared_ptr<Image>> combinedTemporalResult;
-		std::vector<std::shared_ptr<Image>> temporalCoCResults;
+		std::vector<CombinedImage> combinedTemporalResult;
+		std::vector<CombinedImage> temporalCoCResults;
 		for (uint32_t j = 0; j < 2; j++)
 		{
 			std::shared_ptr<FrameBuffer> pTemporalFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
-			combinedTemporalResult.push_back(pTemporalFrameBuffer->GetColorTarget(FrameBufferDiction::CombinedResult));
-			temporalCoCResults.push_back(pTemporalFrameBuffer->GetColorTarget(FrameBufferDiction::CoC));
+			combinedTemporalResult.push_back
+			({
+				pTemporalFrameBuffer->GetColorTarget(FrameBufferDiction::CombinedResult),
+				pTemporalFrameBuffer->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateLinearClampToEdgeSampler(),
+				pTemporalFrameBuffer->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateDefaultImageView()
+			});
+			temporalCoCResults.push_back
+			({
+				pTemporalFrameBuffer->GetColorTarget(FrameBufferDiction::CoC),
+				pTemporalFrameBuffer->GetColorTarget(FrameBufferDiction::CoC)->CreateLinearClampToEdgeSampler(),
+				pTemporalFrameBuffer->GetColorTarget(FrameBufferDiction::CoC)->CreateDefaultImageView()
+			});
 		}
 
-		std::vector<std::shared_ptr<Image>> outputImages;
+		std::vector<CombinedImage> outputImages;
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
 			std::shared_ptr<FrameBuffer> pPostfilterResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::PREFILTER)[j];
-			outputImages.push_back(pPostfilterResult->GetColorTarget(0));
+			outputImages.push_back
+			({
+				pPostfilterResult->GetColorTarget(0),
+				pPostfilterResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pPostfilterResult->GetColorTarget(0)->CreateDefaultImageView()
+			});
 		}
 
 		groupNum =
 		{
-			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.width / (double)groupSize),
-			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.height / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0].pImage->GetImageInfo().extent.width / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0].pImage->GetImageInfo().extent.height / (double)groupSize),
 			1
 		};
 
@@ -621,25 +701,35 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 
 	case DOFPass::BLUR:
 	{
-		std::vector<std::shared_ptr<Image>> prefilterResults;
+		std::vector<CombinedImage> prefilterResults;
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
 			std::shared_ptr<FrameBuffer> pPrefilterResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::PREFILTER)[j];
 
-			prefilterResults.push_back(pPrefilterResult->GetColorTarget(0));
+			prefilterResults.push_back
+			({
+				pPrefilterResult->GetColorTarget(0),
+				pPrefilterResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pPrefilterResult->GetColorTarget(0)->CreateDefaultImageView()
+			});
 		}
 
-		std::vector<std::shared_ptr<Image>> outputImages;
+		std::vector<CombinedImage> outputImages;
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
 			std::shared_ptr<FrameBuffer> pBlurResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::BLUR)[j];
-			outputImages.push_back(pBlurResult->GetColorTarget(0));
+			outputImages.push_back
+			({
+				pBlurResult->GetColorTarget(0),
+				pBlurResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pBlurResult->GetColorTarget(0)->CreateDefaultImageView()
+			});
 		}
 
 		groupNum =
 		{
-			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.width / (double)groupSize),
-			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.height / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0].pImage->GetImageInfo().extent.width / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0].pImage->GetImageInfo().extent.height / (double)groupSize),
 			1
 		};
 
@@ -699,25 +789,35 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 	break;
 	case DOFPass::POSTFILTER:
 	{
-		std::vector<std::shared_ptr<Image>> blurResults;
+		std::vector<CombinedImage> blurResults;
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
 			std::shared_ptr<FrameBuffer> pBlurResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::BLUR)[j];
 
-			blurResults.push_back(pBlurResult->GetColorTarget(0));
+			blurResults.push_back
+			({
+				pBlurResult->GetColorTarget(0),
+				pBlurResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pBlurResult->GetColorTarget(0)->CreateDefaultImageView()
+			});
 		}
 
-		std::vector<std::shared_ptr<Image>> outputImages;
+		std::vector<CombinedImage> outputImages;
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
 			std::shared_ptr<FrameBuffer> pPostfilterResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::POSTFILTER)[j];
-			outputImages.push_back(pPostfilterResult->GetColorTarget(0));
+			outputImages.push_back
+			({
+				pPostfilterResult->GetColorTarget(0),
+				pPostfilterResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pPostfilterResult->GetColorTarget(0)->CreateDefaultImageView()
+			});
 		}
 
 		groupNum =
 		{
-			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.width / (double)groupSize),
-			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.height / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0].pImage->GetImageInfo().extent.width / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0].pImage->GetImageInfo().extent.height / (double)groupSize),
 			1
 		};
 
@@ -777,33 +877,53 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 	break;
 	case DOFPass::COMBINE:
 	{
-		std::vector<std::shared_ptr<Image>> postfilterResults;
+		std::vector<CombinedImage> postfilterResults;
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
 			std::shared_ptr<FrameBuffer> pPostfilterResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::POSTFILTER)[j];
-			postfilterResults.push_back(pPostfilterResult->GetColorTarget(0));
+			postfilterResults.push_back
+			({
+				pPostfilterResult->GetColorTarget(0),
+				pPostfilterResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pPostfilterResult->GetColorTarget(0)->CreateDefaultImageView()
+			});
 		}
 
-		std::vector<std::shared_ptr<Image>> combinedTemporalResult;
-		std::vector<std::shared_ptr<Image>> temporalCoCResults;
+		std::vector<CombinedImage> combinedTemporalResult;
+		std::vector<CombinedImage> temporalCoCResults;
 		for (uint32_t j = 0; j < 2; j++)
 		{
 			std::shared_ptr<FrameBuffer> pTemporalResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_TemporalResolve)[j];
-			combinedTemporalResult.push_back(pTemporalResult->GetColorTarget(FrameBufferDiction::CombinedResult));
-			temporalCoCResults.push_back(pTemporalResult->GetColorTarget(FrameBufferDiction::CoC));
+			combinedTemporalResult.push_back
+			({
+				pTemporalResult->GetColorTarget(FrameBufferDiction::CombinedResult),
+				pTemporalResult->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateLinearClampToEdgeSampler(),
+				pTemporalResult->GetColorTarget(FrameBufferDiction::CombinedResult)->CreateDefaultImageView()
+			});
+			temporalCoCResults.push_back
+			({
+				pTemporalResult->GetColorTarget(FrameBufferDiction::CoC),
+				pTemporalResult->GetColorTarget(FrameBufferDiction::CoC)->CreateLinearClampToEdgeSampler(),
+				pTemporalResult->GetColorTarget(FrameBufferDiction::CoC)->CreateDefaultImageView()
+			});
 		}
 
-		std::vector<std::shared_ptr<Image>> outputImages;
+		std::vector<CombinedImage> outputImages;
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
 			std::shared_ptr<FrameBuffer> pDOFCombinedResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, (uint32_t)DOFPass::COMBINE)[j];
-			outputImages.push_back(pDOFCombinedResult->GetColorTarget(0));
+			outputImages.push_back
+			({
+				pDOFCombinedResult->GetColorTarget(0),
+				pDOFCombinedResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pDOFCombinedResult->GetColorTarget(0)->CreateDefaultImageView()
+			});
 		}
 
 		groupNum =
 		{
-			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.width / (double)groupSize),
-			(uint32_t)std::ceil((double)outputImages[0]->GetImageInfo().extent.height / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0].pImage->GetImageInfo().extent.width / (double)groupSize),
+			(uint32_t)std::ceil((double)outputImages[0].pImage->GetImageInfo().extent.height / (double)groupSize),
 			1
 		};
 
@@ -936,8 +1056,8 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 		break;
 	}
 
-	std::vector<std::shared_ptr<Image>> inputImgs;
-	std::vector<std::shared_ptr<Image>> outputImgs;
+	std::vector<CombinedImage> inputImgs;
+	std::vector<CombinedImage> outputImgs;
 
 	switch (bloomPass)
 	{
@@ -945,30 +1065,60 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
 			std::shared_ptr<FrameBuffer> pDOFResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, FrameBufferDiction::CombineLayer)[j];
-			inputImgs.push_back(pDOFResult->GetColorTarget(0));
+			inputImgs.push_back
+			({
+				pDOFResult->GetColorTarget(0),
+				pDOFResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pDOFResult->GetColorTarget(0)->CreateDefaultImageView()
+			});
 
 			std::shared_ptr<FrameBuffer> pTarget = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Bloom, iterIndex + 1)[j];
-			outputImgs.push_back(pTarget->GetColorTarget(0));
+			outputImgs.push_back
+			({
+				pTarget->GetColorTarget(0),
+				pTarget->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pTarget->GetColorTarget(0)->CreateDefaultImageView()
+			});
 		}
 		break;
 	case BloomPass::DOWNSAMPLE:
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
 			std::shared_ptr<FrameBuffer> pPrevBloomResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Bloom, iterIndex)[j];
-			inputImgs.push_back(pPrevBloomResult->GetColorTarget(0));
+			inputImgs.push_back
+			({
+				pPrevBloomResult->GetColorTarget(0),
+				pPrevBloomResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pPrevBloomResult->GetColorTarget(0)->CreateDefaultImageView()
+			});
 
 			std::shared_ptr<FrameBuffer> pTarget = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Bloom, iterIndex + 1)[j];
-			outputImgs.push_back(pTarget->GetColorTarget(0));
+			outputImgs.push_back
+			({
+				pTarget->GetColorTarget(0),
+				pTarget->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pTarget->GetColorTarget(0)->CreateDefaultImageView()
+			});
 		}
 		break;
 	case BloomPass::UPSAMPLE:
 		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 		{
 			std::shared_ptr<FrameBuffer> pPrevBloomResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Bloom, iterIndex + 1)[j];
-			inputImgs.push_back(pPrevBloomResult->GetColorTarget(0));
+			inputImgs.push_back
+			({
+				pPrevBloomResult->GetColorTarget(0),
+				pPrevBloomResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pPrevBloomResult->GetColorTarget(0)->CreateDefaultImageView()
+			});
 
 			std::shared_ptr<FrameBuffer> pTarget = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Bloom, iterIndex)[j];
-			outputImgs.push_back(pTarget->GetColorTarget(0));
+			outputImgs.push_back
+			({
+				pTarget->GetColorTarget(0),
+				pTarget->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+				pTarget->GetColorTarget(0)->CreateDefaultImageView()
+			});
 		}
 		break;
 	default:
@@ -978,8 +1128,8 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 
 	Vector3ui groupNum =
 	{
-		(uint32_t)std::ceil((double)outputImgs[0]->GetImageInfo().extent.width / (double)groupSize),
-		(uint32_t)std::ceil((double)outputImgs[0]->GetImageInfo().extent.height / (double)groupSize),
+		(uint32_t)std::ceil((double)outputImgs[0].pImage->GetImageInfo().extent.width / (double)groupSize),
+		(uint32_t)std::ceil((double)outputImgs[0].pImage->GetImageInfo().extent.height / (double)groupSize),
 		1
 	};
 
@@ -1093,31 +1243,46 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 
 std::shared_ptr<Material> CreateCombineMaterial()
 {
-	std::vector<std::shared_ptr<Image>> DOFResults;
+	std::vector<CombinedImage> DOFResults;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
 		std::shared_ptr<FrameBuffer> pDOFResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_DOF, FrameBufferDiction::CombineLayer)[j];
-		DOFResults.push_back(pDOFResult->GetColorTarget(0));
+		DOFResults.push_back
+		({
+			pDOFResult->GetColorTarget(0),
+			pDOFResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pDOFResult->GetColorTarget(0)->CreateDefaultImageView()
+		});
 	}
 
-	std::vector<std::shared_ptr<Image>> bloomTextures;
+	std::vector<CombinedImage> bloomTextures;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
 		std::shared_ptr<FrameBuffer> pBloomFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Bloom)[j];
-		bloomTextures.push_back(pBloomFrameBuffer->GetColorTarget(0));
+		bloomTextures.push_back
+		({
+			pBloomFrameBuffer->GetColorTarget(0),
+			pBloomFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pBloomFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
+		});
 	}
 
-	std::vector<std::shared_ptr<Image>> combineTextures;
+	std::vector<CombinedImage> combineTextures;
 	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
 	{
 		std::shared_ptr<FrameBuffer> pCombineResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_CombineResult)[j];
-		combineTextures.push_back(pCombineResult->GetColorTarget(0));
+		combineTextures.push_back
+		({
+			pCombineResult->GetColorTarget(0),
+			pCombineResult->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pCombineResult->GetColorTarget(0)->CreateDefaultImageView()
+		});
 	}
 
 	Vector3ui groupNum =
 	{
-		combineTextures[0]->GetImageInfo().extent.width / groupSize,
-		combineTextures[0]->GetImageInfo().extent.height / groupSize,
+		combineTextures[0].pImage->GetImageInfo().extent.width / groupSize,
+		combineTextures[0].pImage->GetImageInfo().extent.height / groupSize,
 		1
 	};
 

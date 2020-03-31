@@ -250,7 +250,7 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 			{
 				i,
 
-				{ textures[i] },
+				{ {textures[i], textures[i]->CreateLinearClampToEdgeSampler(), textures[i]->CreateDefaultImageView()} },
 				VK_IMAGE_ASPECT_COLOR_BIT,
 				{ 0, 1, chunkIndex, 1 },
 				true,

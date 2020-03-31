@@ -42,12 +42,7 @@ bool CustomizedComputeMaterial::Init(const std::shared_ptr<CustomizedComputeMate
 		std::vector<CombinedImage> combinedImages;
 		for (uint32_t j = 0; j < (uint32_t)variables.textureUnits[i].textures.size(); j++)
 		{
-			combinedImages.push_back
-			({
-				variables.textureUnits[i].textures[j],
-				variables.textureUnits[i].textures[j]->CreateLinearClampToEdgeSampler(),
-				variables.textureUnits[i].textures[j]->CreateDefaultImageView()
-			});
+			combinedImages.push_back(variables.textureUnits[i].textures[j]);
 		}
 
 		m_pUniformStorageDescriptorSet->UpdateImages(variables.textureUnits[i].bindingIndex, combinedImages, variables.textureUnits[i].isStorageImage);
@@ -106,7 +101,7 @@ void CustomizedComputeMaterial::AssembleBarrier(const TextureUnit& textureUnit, 
 
 	barrier = {};
 	barrier.sType				= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barrier.image				= textureUnit.textures[textureIndex]->GetDeviceHandle();
+	barrier.image				= textureUnit.textures[textureIndex].pImage->GetDeviceHandle();
 	barrier.subresourceRange	= subresRange;
 	barrier.oldLayout			= textureUnit.textureBarrier[barrierInsertPoint].oldImageLayout;
 	barrier.srcAccessMask		= textureUnit.textureBarrier[barrierInsertPoint].srcAccessFlags;

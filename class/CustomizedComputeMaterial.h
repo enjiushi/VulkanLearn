@@ -2,6 +2,7 @@
 #include "Material.h"
 #include "FrameBufferDiction.h"
 #include "RenderPassDiction.h"
+#include "../vulkan/DescriptorSet.h"
 
 class Image;
 
@@ -24,7 +25,7 @@ public:
 	{
 		uint32_t							bindingIndex;
 
-		std::vector<std::shared_ptr<Image>>	textures;
+		std::vector<CombinedImage>			textures;
 		VkImageAspectFlags					aspectMask;
 		Vector4ui							textureSubresRange;	// Base miplevel, mipLevel count, base array layer, array layer count
 		bool								isStorageImage;		// Storage image is for compute
