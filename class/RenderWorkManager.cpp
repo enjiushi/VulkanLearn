@@ -56,7 +56,7 @@ bool RenderWorkManager::Init()
 		case SSAO:				m_materials[i] = { { SSAOMaterial::CreateDefaultMaterial() } }; break;
 		case SSAOBlurV:			m_materials[i] = { { GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOSSR, FrameBufferDiction::FrameBufferType_SSAOBlurV, RenderPassDiction::PipelineRenderPassSSAOBlurV,{ true, 1, 1 }) } }; break;
 		case SSAOBlurH:			m_materials[i] = { { GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOBlurV, FrameBufferDiction::FrameBufferType_SSAOBlurH, RenderPassDiction::PipelineRenderPassSSAOBlurH,{ false, 1, 1 }) } }; break;
-		case DeferredShading:	m_materials[i] = { { DeferredShadingMaterial::CreateDefaultMaterial() } }; break;
+		case DeferredShading:	m_materials[i] = { { CreateDeferredShadingMaterial() } }; break;
 		case TemporalResolve:	m_materials[i] = { { CreateTemporalResolveMaterial(0), CreateTemporalResolveMaterial(1) } }; break;
 		case DepthOfField:
 		{
@@ -203,9 +203,7 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 
 
 	GetMaterial(DeferredShading)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading));
-	GetMaterial(DeferredShading)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading), pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->EndRenderPass(pDrawCmdBuffer);
+	GetMaterial(DeferredShading)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(DeferredShading)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 

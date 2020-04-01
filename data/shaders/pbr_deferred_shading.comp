@@ -22,12 +22,6 @@ layout (set = 3, binding = 7) uniform sampler2D SSRInfo[3];
 layout (set = 3, binding = 8, rgba32f) uniform image2D outShadingColor[3];
 layout (set = 3, binding = 9, rgba32f) uniform image2D outSSRColor[3];
 
-layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec2 inOneNearPosition;
-
-layout (location = 0) out vec4 outShadingColor;
-layout (location = 1) out vec4 outSSRColor;
-
 float rayTraceMaxStep = globalData.SSRSettings1.z;
 float rayTraceBorderFadeDist = globalData.SSRSettings2.x;
 float rayTraceMaxStepFadeDist = globalData.SSRSettings2.y;
@@ -49,14 +43,14 @@ float BorderFading(vec2 hitUV)
 	return smoothstep(0.0f, rayTraceBorderFadeDist, borderDist);
 }
 
-vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 CSPosition, float metalic, vec3 skyBoxReflection)
+vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 CSPosition, vec2 uv, vec2 oneNearPosition, float metalic, vec3 skyBoxReflection)
 {
-	ivec2 coord = ivec2(inUv * globalData.gameWindowSize.xy);
+	ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
 
 	vec4 SSRRadiance = vec4(0);
 	float weightSum = 0.0f;
 
-	vec2 rand2 = normalize(PDsrand2(inUv + vec2(perFrameData.time.x)));
+	vec2 rand2 = normalize(PDsrand2(uv + vec2(perFrameData.time.x)));
 	mat2 offsetRotation = mat2(rand2.x, rand2.y, -rand2.y, rand2.x);
 
 	float coneTangent = mix(0.0, albedoRoughness.a * (1.0f - globalData.SSRSettings0.x), NdotV * sqrt(albedoRoughness.a));
@@ -70,13 +64,13 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 CSPosi
 
 		vec2 motionVec = texelFetch(MotionVector[frameIndex], ivec2(SSRHitInfo.xy + perFrameData.cameraJitterOffset * globalData.gameWindowSize.xy), 0).rg;
 
-		float intersectionCircleRadius = coneTangent * length(hitUV - inUv);
+		float intersectionCircleRadius = coneTangent * length(hitUV - uv);
 		float mip = clamp(log2(intersectionCircleRadius * max(globalData.gameWindowSize.x, globalData.gameWindowSize.y)), 0.0, screenSizeMiplevel) * globalData.SSRSettings0.y;
 
 		vec3 SSRSurfColor = textureLod(RGBA16_SCREEN_SIZE_MIP_2DARRAY, vec3(hitUV + motionVec, 0), mip).rgb * hitFlag;
 
 		float SSRSurfDepth;
-		vec3 SSRSurfPosition = ReconstructCSPosition(ivec2(SSRHitInfo.xy), inOneNearPosition, DepthStencilBuffer[frameIndex], SSRSurfDepth);
+		vec3 SSRSurfPosition = ReconstructCSPosition(ivec2(SSRHitInfo.xy), oneNearPosition, DepthStencilBuffer[frameIndex], SSRSurfDepth);
 
 		vec3 l = normalize(SSRSurfPosition.xyz - CSPosition);
 		vec3 h = normalize(l + v);
@@ -115,15 +109,26 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 CSPosi
 
 void main() 
 {
-	ivec2 coord = ivec2(floor(inUv * globalData.gameWindowSize.xy));
+	ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 size = imageSize(outShadingColor[frameIndex]);
+	vec2 uv = vec2(gl_GlobalInvocationID.xy + 0.5f) / vec2(size);
+	vec2 oneNearPosition = AcquireOneNearPosition(uv);
 
-	GBufferVariables vars = UnpackGBuffers(coord, inUv, inOneNearPosition, GBuffer0[frameIndex], GBuffer1[frameIndex], GBuffer2[frameIndex], DepthStencilBuffer[frameIndex], BlurredSSAOBuffer[frameIndex], ShadowMapDepthBuffer[frameIndex]);
+	GBufferVariables vars = UnpackGBuffers(coord, uv, oneNearPosition, GBuffer0[frameIndex], GBuffer1[frameIndex], GBuffer2[frameIndex], DepthStencilBuffer[frameIndex], BlurredSSAOBuffer[frameIndex], ShadowMapDepthBuffer[frameIndex]);
 
-	if (length(vars.normalAO.xyz) > 1.1f)
-		discard;
+	if (vars.isBackground)
+	{
+		imageStore(outShadingColor[frameIndex],	
+			ivec2(gl_GlobalInvocationID.xy), 
+			vec4(vars.albedoRoughness.rgb, vars.albedoRoughness.a));
+		imageStore(outSSRColor[frameIndex],	
+			ivec2(gl_GlobalInvocationID.xy), 
+			vec4(0));
+		return;
+	}
 
 	vec3 n = normalize(vars.normalAO.xyz);
-	vec3 v = normalize(-vec3(inOneNearPosition, -1));	// Beware, you'll have to multiply camera space linear depth -1(or any depth you want), and view ray goes towards camera
+	vec3 v = normalize(-vec3(oneNearPosition, -1));	// Beware, you'll have to multiply camera space linear depth -1(or any depth you want), and view ray goes towards camera
 	vec3 l = perFrameData.mainLightDir.xyz;
 	vec3 h = normalize(l + v);
 
@@ -154,7 +159,7 @@ void main()
 
 	// Here we use NdotV rather than LdotH, since L's direction is based on punctual light, and here ambient reflection calculation
 	// requires reflection vector dot with N, which is RdotN, equals NdotV
-	vec4 SSRRadiance = CalculateSSR(n, v, NdotV, vars.albedoRoughness, vars.csPosition.xyz, vars.metalic, reflect);
+	vec4 SSRRadiance = CalculateSSR(n, v, NdotV, vars.albedoRoughness, vars.csPosition.xyz, uv, oneNearPosition, vars.metalic, reflect);
 
 	float aoFactor = min(vars.normalAO.a, 1.0f - vars.ssaoFactor);
 
@@ -171,6 +176,10 @@ void main()
 	vec3 dirLightDiffuse = vars.albedoRoughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * perFrameData.mainLightColor.rgb);
 
-	outShadingColor = vec4(punctualRadiance, vars.albedoRoughness.a);
-	outSSRColor = vec4(skyBoxAmbient, SSRRadiance.a);
+	imageStore(outShadingColor[frameIndex],	
+		ivec2(gl_GlobalInvocationID.xy), 
+		vec4(punctualRadiance, vars.albedoRoughness.a));
+	imageStore(outSSRColor[frameIndex],	
+		ivec2(gl_GlobalInvocationID.xy), 
+		vec4(skyBoxAmbient, SSRRadiance.a));
 }

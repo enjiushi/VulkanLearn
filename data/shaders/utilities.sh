@@ -166,4 +166,14 @@ int GetIndirectIndex(int drawID, int instanceID)
 	return indirectOffsets[drawID].offset + instanceID;
 }
 
+vec2 AcquireOneNearPosition(vec2 uv)
+{
+	vec2 corner = vec2(-1, 1);
+	vec2 bottomLeft		= perFrameData.cameraSpaceSize.xy / 2.0f * corner.xx / perFrameData.nearFarAB.x;
+	vec2 bottomRight	= perFrameData.cameraSpaceSize.xy / 2.0f * corner.yx / perFrameData.nearFarAB.x;
+	vec2 topLeft		= perFrameData.cameraSpaceSize.xy / 2.0f * corner.xy / perFrameData.nearFarAB.x;
+	vec2 topRight		= perFrameData.cameraSpaceSize.xy / 2.0f * corner.yy / perFrameData.nearFarAB.x;
+	return mix(mix(topLeft, topRight, uv.x), mix(bottomLeft, bottomRight, uv.x), uv.y);
+}
+
 #endif
