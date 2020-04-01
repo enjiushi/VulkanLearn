@@ -11,6 +11,312 @@
 // FIXME: hard-code
 static uint32_t groupSize = 16;
 
+std::shared_ptr<Material> CreateDeferredShadingMaterial()
+{
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+
+	for (uint32_t i = 0; i < FrameBufferDiction::GBufferCount; i++)
+	{
+		std::vector<CombinedImage> gbuffers;
+		for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+		{
+			std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
+			gbuffers.push_back
+			({
+				pGBufferFrameBuffer->GetColorTarget(i),
+				pGBufferFrameBuffer->GetColorTarget(i)->CreateLinearClampToEdgeSampler(),
+				pGBufferFrameBuffer->GetColorTarget(i)->CreateDefaultImageView()
+			});
+		}
+
+		textureUnits.push_back
+		(
+			{
+				i,
+
+				gbuffers,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				{ 0, 1, 0, 1 },
+				false,
+
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+				{
+					{
+						true,
+						VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						VK_ACCESS_SHADER_READ_BIT
+					},
+					{
+						false
+					}
+				}
+			}
+		);
+	}
+
+	std::vector<CombinedImage> depthStencil;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
+		depthStencil.push_back
+		({
+			pGBufferFrameBuffer->GetDepthStencilTarget(),
+			pGBufferFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToEdgeSampler(),
+			pGBufferFrameBuffer->GetDepthStencilTarget()->CreateDepthSampleImageView()
+		});
+	}
+
+	textureUnits.push_back
+	(
+		{
+			4,
+
+			depthStencil,
+			VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	std::vector<CombinedImage> shadowMap;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pShadowPassFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_ShadowMap)[j];
+		shadowMap.push_back
+		({
+			pShadowPassFrameBuffer->GetDepthStencilTarget(),
+			pShadowPassFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToBorderSampler(VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK),
+			pShadowPassFrameBuffer->GetDepthStencilTarget()->CreateDepthSampleImageView()
+		});
+	}
+
+	textureUnits.push_back
+	(
+		{
+			5,
+
+			shadowMap,
+			VK_IMAGE_ASPECT_DEPTH_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	std::vector<CombinedImage> blurredSSAOBuffers;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOBlurH)[j];
+		blurredSSAOBuffers.push_back
+		({
+			pFrameBuffer->GetColorTarget(0),
+			pFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
+		});
+	}
+
+	textureUnits.push_back
+	(
+		{
+			6,
+
+			blurredSSAOBuffers,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	std::vector<CombinedImage> SSRInfoBuffers;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOSSR)[j];
+
+		SSRInfoBuffers.push_back
+		({
+			pFrameBuffer->GetColorTarget(1),
+			pFrameBuffer->GetColorTarget(1)->CreateLinearClampToEdgeSampler(),
+			pFrameBuffer->GetColorTarget(1)->CreateDefaultImageView()
+		});
+	}
+
+	textureUnits.push_back
+	(
+		{
+			7,
+
+			SSRInfoBuffers,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	std::vector<CombinedImage> outShadingResults;
+	std::vector<CombinedImage> outSSRResults;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pShadingResultBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
+		outShadingResults.push_back
+		({
+			pShadingResultBuffer->GetColorTarget(0),
+			pShadingResultBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pShadingResultBuffer->GetColorTarget(0)->CreateDefaultImageView()
+		});
+	}
+
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pShadingResultBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[j];
+		outSSRResults.push_back
+		({
+			pShadingResultBuffer->GetColorTarget(1),
+			pShadingResultBuffer->GetColorTarget(1)->CreateLinearClampToEdgeSampler(),
+			pShadingResultBuffer->GetColorTarget(1)->CreateDefaultImageView()
+		});
+	}
+
+	textureUnits.push_back
+	(
+		{
+			9,
+
+			outShadingResults,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::NONE,
+
+			{
+				{
+					false
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			10,
+
+			outSSRResults,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::NONE,
+
+			{
+				{
+					false
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	Vector3ui groupNum =
+	{
+		(uint32_t)std::ceil((double)outShadingResults[0].pImage->GetImageInfo().extent.width / (double)groupSize),
+		(uint32_t)std::ceil((double)outShadingResults[0].pImage->GetImageInfo().extent.height / (double)groupSize),
+		1
+	};
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		L"../data/shaders/pbr_deferred_shading.comp.spv",
+		groupNum,
+		textureUnits,
+		{}
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
+
 std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 {
 	std::vector<CombinedImage> motionVectors;
@@ -510,16 +816,12 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 		}
 	);
 
-	std::vector<uint8_t> pushConstantData;
-	uint32_t dirtTextureIndex = -1;
-	TransferBytesToVector(pushConstantData, &dirtTextureIndex, sizeof(dirtTextureIndex));
-
 	CustomizedComputeMaterial::Variables variables =
 	{
 		L"../data/shaders/temporal_resolve.comp.spv",
 		groupNum,
 		textureUnits,
-		pushConstantData,
+		{},
 		[](const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
 		{
 			std::shared_ptr<Image> pTemporalResult = FrameBufferDiction::GetInstance()->GetPingPongFrameBuffer(FrameBufferDiction::FrameBufferType_TemporalResolve, (pingpong + 1) % 2)->GetColorTarget(FrameBufferDiction::CombinedResult);

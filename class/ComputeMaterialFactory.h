@@ -21,6 +21,7 @@ enum class DOFPass
 	COUNT
 };
 
+std::shared_ptr<Material> CreateDeferredShadingMaterial();
 std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong);
 std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass);
 std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iterIndex);
