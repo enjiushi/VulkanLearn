@@ -6,6 +6,7 @@
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 prevClipSpacePos;
 layout (location = 2) out vec3 currClipSpacePos;
+layout (location = 3) out vec3 outViewDir;
 
 #include "uniform_layout.sh"
 
@@ -24,6 +25,12 @@ void main()
 
 	currClipSpacePos = (globalData.projection * vec4(cameraSpacePos, 1.0f)).xyw;
 	prevClipSpacePos = (globalData.projection * vec4(prevCameraSpacePos, 1.0f)).xyw;
+
+	// NOTE: Do remember that we can't normalize it here, as I'm doing a big triangle to represent a screen quad
+	//       This means that vectors pointing to upper and right vertex of this triangle is streched.
+	//       Interpolation using rasterizer won't work if you normalize these 2 vectors
+	outViewDir = worldSpacePos;
+	outViewDir.y *= -1.0f;
 
 	gl_Position.y *= -1.0f;
 	outUv.y = 1.0f - outUv.y;

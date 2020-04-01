@@ -57,20 +57,6 @@ bool RenderWorkManager::Init()
 		case SSAOBlurV:			m_materials[i] = { { GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOSSR, FrameBufferDiction::FrameBufferType_SSAOBlurV, RenderPassDiction::PipelineRenderPassSSAOBlurV,{ true, 1, 1 }) } }; break;
 		case SSAOBlurH:			m_materials[i] = { { GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOBlurV, FrameBufferDiction::FrameBufferType_SSAOBlurH, RenderPassDiction::PipelineRenderPassSSAOBlurH,{ false, 1, 1 }) } }; break;
 		case DeferredShading:	m_materials[i] = { { DeferredShadingMaterial::CreateDefaultMaterial() } }; break;
-		case SkyBox:
-		{
-			SimpleMaterialCreateInfo info = {};
-			info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/sky_box.frag.spv", L"" };
-			info.materialUniformVars = {};
-			info.vertexFormat = VertexFormatP;
-			info.vertexFormatInMem = VertexFormatP;
-			info.subpassIndex = 1;
-			info.pRenderPass = RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading);
-			info.depthWriteEnable = false;
-			info.frameBufferType = FrameBufferDiction::FrameBufferType_Shading;
-
-			m_materials[i] = { { ForwardMaterial::CreateDefaultMaterial(info) } };
-		} break;
 		case TemporalResolve:	m_materials[i] = { { CreateTemporalResolveMaterial(0), CreateTemporalResolveMaterial(1) } }; break;
 		case DepthOfField:
 		{
@@ -138,13 +124,6 @@ std::shared_ptr<MaterialInstance> RenderWorkManager::AcquireSkinnedShadowMateria
 {
 	std::shared_ptr<MaterialInstance> pMaterialInstance = GetMaterial(SkinnedShadow)->CreateMaterialInstance();
 	pMaterialInstance->SetRenderMask(1 << ShadowMapGen);
-	return pMaterialInstance;
-}
-
-std::shared_ptr<MaterialInstance> RenderWorkManager::AcquireSkyBoxMaterialInstance() const
-{
-	std::shared_ptr<MaterialInstance> pMaterialInstance = GetMaterial(SkyBox)->CreateMaterialInstance();
-	pMaterialInstance->SetRenderMask(1 << Scene);
 	return pMaterialInstance;
 }
 
@@ -224,13 +203,9 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 
 
 	GetMaterial(DeferredShading)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	GetMaterial(SkyBox)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading));
 	GetMaterial(DeferredShading)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading), pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->NextSubpass(pDrawCmdBuffer);
-	GetMaterial(SkyBox)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_Shading), pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShading)->EndRenderPass(pDrawCmdBuffer);
-	GetMaterial(SkyBox)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 	GetMaterial(DeferredShading)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 

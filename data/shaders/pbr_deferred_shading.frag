@@ -115,8 +115,12 @@ void main()
 
 	GBufferVariables vars = UnpackGBuffers(coord, inUv, inOneNearPosition, GBuffer0[frameIndex], GBuffer1[frameIndex], GBuffer2[frameIndex], DepthStencilBuffer[frameIndex], BlurredSSAOBuffer[frameIndex], ShadowMapDepthBuffer[frameIndex]);
 
-	if (length(vars.normalAO.xyz) > 1.1f)
-		discard;
+	if (vars.isBackground)
+	{
+		outShadingColor = vec4(vars.albedoRoughness.rgb, vars.albedoRoughness.a);
+		outSSRColor = vec4(0);
+		return;
+	}
 
 	vec3 n = normalize(vars.normalAO.xyz);
 	vec3 v = normalize(-vec3(inOneNearPosition, -1));	// Beware, you'll have to multiply camera space linear depth -1(or any depth you want), and view ray goes towards camera
