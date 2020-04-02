@@ -30,6 +30,8 @@ typedef struct _GaussianBlurParams
 	float	strength = 1.0f;
 }GaussianBlurParams;
 
+std::shared_ptr<Material> CreateTileMaxMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages);
+std::shared_ptr<Material> CreateNeighborMaxMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages);
 std::shared_ptr<Material> CreateSSAOSSRMaterial();
 std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages, const GaussianBlurParams& params);
 std::shared_ptr<Material> CreateDeferredShadingMaterial();

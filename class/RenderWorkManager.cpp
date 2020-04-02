@@ -47,8 +47,28 @@ bool RenderWorkManager::Init()
 			m_materials[i] = { {ForwardMaterial::CreateDefaultMaterial(info)} };
 		}break;
 
-		case MotionTileMax:		m_materials[i] = { { MotionTileMaxMaterial::CreateDefaultMaterial() } }; break;
-		case MotionNeighborMax:	m_materials[i] = { { MotionNeighborMaxMaterial::CreateDefaultMaterial() } }; break;
+		case MotionTileMax:		
+		{
+			std::vector<std::shared_ptr<Image>> inputImages;
+			std::vector<std::shared_ptr<Image>> outputImages;
+			for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+			{
+				inputImages.push_back(FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[i]->GetColorTarget(FrameBufferDiction::MotionVector));
+				outputImages.push_back(FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionTileMax)[i]->GetColorTarget(0));
+			}
+			m_materials[i] = { { CreateTileMaxMaterial(inputImages, outputImages) } };
+		}break;
+		case MotionNeighborMax:
+		{
+			std::vector<std::shared_ptr<Image>> inputImages;
+			std::vector<std::shared_ptr<Image>> outputImages;
+			for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+			{
+				inputImages.push_back(FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionTileMax)[i]->GetColorTarget(0));
+				outputImages.push_back(FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionNeighborMax)[i]->GetColorTarget(0));
+			}
+			m_materials[i] = { { CreateNeighborMaxMaterial(inputImages, outputImages) } };
+		}break;
 		case Shadow:			m_materials[i] = { { ShadowMapMaterial::CreateDefaultMaterial() } }; break;
 		case SkinnedShadow:		m_materials[i] = { { ShadowMapMaterial::CreateDefaultMaterial(true) } }; break;
 		case SSAOSSR:			m_materials[i] = { { CreateSSAOSSRMaterial() } }; break;
@@ -176,16 +196,12 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 
 
 	GetMaterial(MotionTileMax)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionTileMax)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_MotionTileMax));
-	GetMaterial(MotionTileMax)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_MotionTileMax), pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionTileMax)->EndRenderPass(pDrawCmdBuffer);
+	GetMaterial(MotionTileMax)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(MotionTileMax)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
 	GetMaterial(MotionNeighborMax)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionNeighborMax)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_MotionNeighborMax));
-	GetMaterial(MotionNeighborMax)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_MotionNeighborMax), pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassMotionNeighborMax)->EndRenderPass(pDrawCmdBuffer);
+	GetMaterial(MotionNeighborMax)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(MotionNeighborMax)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 

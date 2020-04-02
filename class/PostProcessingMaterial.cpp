@@ -222,9 +222,9 @@ void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<Comman
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	imgBarrier.image = pMotionNeighborMax->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+	imgBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+	imgBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
 	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	barriers.push_back(imgBarrier);

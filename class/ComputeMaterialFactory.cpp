@@ -11,6 +11,202 @@
 // FIXME: hard-code
 static uint32_t groupSize = 16;
 
+std::shared_ptr<Material> CreateTileMaxMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages)
+{
+	std::vector<CombinedImage> _inputImages;
+	for (auto pImage : inputImages)
+	{
+		_inputImages.push_back
+		({
+			pImage,
+			pImage->CreateLinearClampToEdgeSampler(),
+			pImage->CreateDefaultImageView()
+		});
+	}
+
+	std::vector<CombinedImage> _outputImages;
+	for (auto pImage : outputImages)
+	{
+		_outputImages.push_back
+		({
+			pImage,
+			pImage->CreateLinearClampToEdgeSampler(),
+			pImage->CreateDefaultImageView()
+		});
+	}
+
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	textureUnits.push_back
+	(
+		{
+			0,
+
+			_inputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					inputImages[0]->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					inputImages[0]->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			1,
+
+			_outputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::NONE,
+
+			{
+				{
+					false,
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	Vector3ui groupNum =
+	{
+		(uint32_t)std::ceil((double)_outputImages[0].pImage->GetImageInfo().extent.width / (double)groupSize),
+		(uint32_t)std::ceil((double)_outputImages[0].pImage->GetImageInfo().extent.height / (double)groupSize),
+		1
+	};
+
+	std::vector<uint8_t> pushConstantData;
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		L"../data/shaders/tile_max.comp.spv",
+		groupNum,
+		textureUnits,
+		pushConstantData
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
+
+std::shared_ptr<Material> CreateNeighborMaxMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages)
+{
+	std::vector<CombinedImage> _inputImages;
+	for (auto pImage : inputImages)
+	{
+		_inputImages.push_back
+		({
+			pImage,
+			pImage->CreateLinearClampToEdgeSampler(),
+			pImage->CreateDefaultImageView()
+			});
+	}
+
+	std::vector<CombinedImage> _outputImages;
+	for (auto pImage : outputImages)
+	{
+		_outputImages.push_back
+		({
+			pImage,
+			pImage->CreateLinearClampToEdgeSampler(),
+			pImage->CreateDefaultImageView()
+			});
+	}
+
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	textureUnits.push_back
+	(
+		{
+			0,
+
+			_inputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					inputImages[0]->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					inputImages[0]->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			1,
+
+			_outputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::NONE,
+
+			{
+				{
+					false,
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	Vector3ui groupNum =
+	{
+		(uint32_t)std::ceil((double)_outputImages[0].pImage->GetImageInfo().extent.width / (double)groupSize),
+		(uint32_t)std::ceil((double)_outputImages[0].pImage->GetImageInfo().extent.height / (double)groupSize),
+		1
+	};
+
+	std::vector<uint8_t> pushConstantData;
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		L"../data/shaders/neighbor_max.comp.spv",
+		groupNum,
+		textureUnits,
+		pushConstantData
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
+
 std::shared_ptr<Material> CreateSSAOSSRMaterial()
 {
 	std::vector<CombinedImage> gbuffer0;
@@ -899,12 +1095,12 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			{
 				{
 					true,
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
 
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_IMAGE_LAYOUT_GENERAL,
 					VK_ACCESS_SHADER_READ_BIT
 				},
 				{
