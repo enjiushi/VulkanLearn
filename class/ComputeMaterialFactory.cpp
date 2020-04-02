@@ -25,7 +25,7 @@ std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shar
 	}
 
 	std::vector<CombinedImage> _outputImages;
-	for (auto pImage : inputImages)
+	for (auto pImage : outputImages)
 	{
 		_outputImages.push_back
 		({
@@ -56,7 +56,7 @@ std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shar
 					VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
+					inputImages[0]->GetImageInfo().initialLayout,
 					VK_ACCESS_SHADER_READ_BIT
 				},
 				{
@@ -270,12 +270,12 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			{
 				{
 					true,
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
 
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_IMAGE_LAYOUT_GENERAL,
 					VK_ACCESS_SHADER_READ_BIT
 				},
 				{

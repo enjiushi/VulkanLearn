@@ -54,8 +54,28 @@ bool RenderWorkManager::Init()
 		case Shadow:			m_materials[i] = { { ShadowMapMaterial::CreateDefaultMaterial() } }; break;
 		case SkinnedShadow:		m_materials[i] = { { ShadowMapMaterial::CreateDefaultMaterial(true) } }; break;
 		case SSAO:				m_materials[i] = { { SSAOMaterial::CreateDefaultMaterial() } }; break;
-		case SSAOBlurV:			m_materials[i] = { { GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOSSR, FrameBufferDiction::FrameBufferType_SSAOBlurV, RenderPassDiction::PipelineRenderPassSSAOBlurV,{ true, 1, 1 }) } }; break;
-		case SSAOBlurH:			m_materials[i] = { { GaussianBlurMaterial::CreateDefaultMaterial(FrameBufferDiction::FrameBufferType_SSAOBlurV, FrameBufferDiction::FrameBufferType_SSAOBlurH, RenderPassDiction::PipelineRenderPassSSAOBlurH,{ false, 1, 1 }) } }; break;
+		case SSAOBlurV:			
+		{
+			std::vector<std::shared_ptr<Image>> inputImages;
+			std::vector<std::shared_ptr<Image>> outputImages;
+			for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+			{
+				inputImages.push_back(FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOSSR)[i]->GetColorTarget(0));
+				outputImages.push_back(FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOBlurV)[i]->GetColorTarget(0));
+			}
+			m_materials[i] = { { CreateGaussianBlurMaterial(inputImages, outputImages, { true, 1, 1 }) } };
+		}break;
+		case SSAOBlurH:			
+		{
+			std::vector<std::shared_ptr<Image>> inputImages;
+			std::vector<std::shared_ptr<Image>> outputImages;
+			for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
+			{
+				inputImages.push_back(FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOBlurV)[i]->GetColorTarget(0));
+				outputImages.push_back(FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOBlurH)[i]->GetColorTarget(0));
+			}
+			m_materials[i] = { { CreateGaussianBlurMaterial(inputImages, outputImages,{ false, 1, 1 }) } };
+		}break;
 		case DeferredShading:	m_materials[i] = { { CreateDeferredShadingMaterial() } }; break;
 		case TemporalResolve:	m_materials[i] = { { CreateTemporalResolveMaterial(0), CreateTemporalResolveMaterial(1) } }; break;
 		case DepthOfField:
@@ -189,16 +209,12 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 
 
 	GetMaterial(SSAOBlurV)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurV)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurV));
-	GetMaterial(SSAOBlurV)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurV), pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurV)->EndRenderPass(pDrawCmdBuffer);
+	GetMaterial(SSAOBlurV)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(SSAOBlurV)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
 	GetMaterial(SSAOBlurH)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurH)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurH));
-	GetMaterial(SSAOBlurH)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOBlurH), pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOBlurH)->EndRenderPass(pDrawCmdBuffer);
+	GetMaterial(SSAOBlurH)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(SSAOBlurH)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
