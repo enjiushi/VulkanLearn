@@ -13,7 +13,6 @@
 #include "MotionTileMaxMaterial.h"
 #include "MotionNeighborMaxMaterial.h"
 #include "ShadowMapMaterial.h"
-#include "SSAOMaterial.h"
 #include "ForwardMaterial.h"
 #include "PostProcessingMaterial.h"
 #include "GBufferPlanetMaterial.h"
