@@ -12,13 +12,13 @@ public:
 	typedef struct _TextureBarrier
 	{
 		bool								enableBarrier;
-		VkPipelineStageFlagBits				srcPipelineStages;
+		VkPipelineStageFlags				srcPipelineStages;
 		VkImageLayout						oldImageLayout;
-		VkAccessFlagBits					srcAccessFlags;
+		VkAccessFlags						srcAccessFlags;
 
-		VkPipelineStageFlagBits				dstPipelineStages;
+		VkPipelineStageFlags				dstPipelineStages;
 		VkImageLayout						newImageLayout;
-		VkAccessFlagBits					dstAccessFlags;
+		VkAccessFlags						dstAccessFlags;
 	}TextureBarrier;
 
 	typedef struct _TextureUnit

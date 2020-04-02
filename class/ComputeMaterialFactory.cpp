@@ -11,6 +11,105 @@
 // FIXME: hard-code
 static uint32_t groupSize = 16;
 
+std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages, const GaussianBlurParams& params)
+{
+	std::vector<CombinedImage> _inputImages;
+	for (auto pImage : inputImages)
+	{
+		_inputImages.push_back
+		({
+			pImage,
+			pImage->CreateLinearClampToEdgeSampler(),
+			pImage->CreateDefaultImageView()
+		});
+	}
+
+	std::vector<CombinedImage> _outputImages;
+	for (auto pImage : inputImages)
+	{
+		_outputImages.push_back
+		({
+			pImage,
+			pImage->CreateLinearClampToEdgeSampler(),
+			pImage->CreateDefaultImageView()
+		});
+	}
+
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	textureUnits.push_back
+	(
+		{
+			0,
+
+			_inputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					inputImages[0]->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			1,
+
+			_outputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::NONE,
+
+			{
+				{
+					false,
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	Vector3ui groupNum =
+	{
+		inputImages[0]->GetImageInfo().extent.width / groupSize,
+		inputImages[0]->GetImageInfo().extent.height / groupSize,
+		1
+	};
+
+	std::vector<uint8_t> pushConstantData;
+	TransferBytesToVector(pushConstantData, &params, sizeof(params));
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		L"../data/shaders/gaussian_blur.comp.spv",
+		groupNum,
+		textureUnits,
+		pushConstantData
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
+
 std::shared_ptr<Material> CreateDeferredShadingMaterial()
 {
 	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
@@ -1437,13 +1536,13 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 
 	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
 
-	VkPipelineStageFlagBits srcStageFlags;
+	VkPipelineStageFlags srcStageFlags;
 	VkImageLayout srcLayout;
-	VkAccessFlagBits srcAccessFlags;
+	VkAccessFlags srcAccessFlags;
 
-	VkPipelineStageFlagBits dstStageFlags;
+	VkPipelineStageFlags dstStageFlags;
 	VkImageLayout dstLayout;
-	VkAccessFlagBits dstAccessFlags;
+	VkAccessFlags dstAccessFlags;
 
 	switch (bloomPass)
 	{
