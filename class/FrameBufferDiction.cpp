@@ -208,8 +208,8 @@ FrameBufferDiction::FrameBufferCombo FrameBufferDiction::CreateSSAOSSRFrameBuffe
 
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 	{
-		std::shared_ptr<Image> pSSAO = Image::CreateOffscreenTexture2D(GetDevice(), size, SSAO_FORMAT);
-		std::shared_ptr<Image> pSSR = Image::CreateOffscreenTexture2D(GetDevice(), size, SSR_FORMAT);
+		std::shared_ptr<Image> pSSAO = Image::CreateOffscreenTexture2D(GetDevice(), size, SSAO_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT);
+		std::shared_ptr<Image> pSSR = Image::CreateOffscreenTexture2D(GetDevice(), size, SSR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT);
 		frameBuffers.push_back(FrameBuffer::Create(GetDevice(), { pSSAO, pSSR }, nullptr, RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOSSR)->GetRenderPass()));
 	}
 

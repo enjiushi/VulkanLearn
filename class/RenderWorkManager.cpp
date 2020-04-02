@@ -52,7 +52,7 @@ bool RenderWorkManager::Init()
 		case MotionNeighborMax:	m_materials[i] = { { MotionNeighborMaxMaterial::CreateDefaultMaterial() } }; break;
 		case Shadow:			m_materials[i] = { { ShadowMapMaterial::CreateDefaultMaterial() } }; break;
 		case SkinnedShadow:		m_materials[i] = { { ShadowMapMaterial::CreateDefaultMaterial(true) } }; break;
-		case SSAO:				m_materials[i] = { { SSAOMaterial::CreateDefaultMaterial() } }; break;
+		case SSAOSSR:			m_materials[i] = { { CreateSSAOSSRMaterial() } }; break;
 		case SSAOBlurV:			
 		{
 			std::vector<std::shared_ptr<Image>> inputImages;
@@ -200,11 +200,9 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	GetMaterial(Shadow)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	GetMaterial(SSAO)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOSSR)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOSSR));
-	GetMaterial(SSAO)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_SSAOSSR), pingpong);
-	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassSSAOSSR)->EndRenderPass(pDrawCmdBuffer);
-	GetMaterial(SSAO)->AfterRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(SSAOSSR)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(SSAOSSR)->Dispatch(pDrawCmdBuffer, pingpong);
+	GetMaterial(SSAOSSR)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
 	GetMaterial(SSAOBlurV)->BeforeRenderPass(pDrawCmdBuffer, pingpong);

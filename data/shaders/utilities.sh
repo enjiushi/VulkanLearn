@@ -181,4 +181,25 @@ vec2 AcquireOneNearPosition(vec2 uv)
 	return mix(mix(topLeft, topRight, uv.x), mix(bottomLeft, bottomRight, uv.x), uv.y);
 }
 
+void AcquireOneNearPositionAndCSViewDir(vec2 uv, out vec2 oneNearPosition, out vec3 CSViewDir)
+{
+	vec2 corner = vec2(-1, 1);
+	vec3 bottomLeft		= vec3(perFrameData.cameraSpaceSize.xy / 2.0f * corner.xx, -perFrameData.nearFarAB.x);
+	vec3 bottomRight	= vec3(perFrameData.cameraSpaceSize.xy / 2.0f * corner.yx, -perFrameData.nearFarAB.x);
+	vec3 topLeft		= vec3(perFrameData.cameraSpaceSize.xy / 2.0f * corner.xy, -perFrameData.nearFarAB.x);
+	vec3 topRight		= vec3(perFrameData.cameraSpaceSize.xy / 2.0f * corner.yy, -perFrameData.nearFarAB.x);
+
+	// NOTE: Do remember that vulkan NDC's y axis is from top to bottom, compares to OpenGL's bottom to top
+	//       Rendered texture is up side down because of this
+	//       When we acquire one near position to reconstruct camera space position
+	//       We need to consider this too: 0 of uv.y means upper bound, and 1 of uv.y means lower bound(opposite to OpenGL)
+	CSViewDir = mix(mix(topLeft, topRight, uv.x), mix(bottomLeft, bottomRight, uv.x), uv.y);
+
+	bottomLeft.xy /= -bottomLeft.z;
+	bottomRight.xy /= -bottomRight.z;
+	topLeft.xy /= -topLeft.z;
+	topRight.xy /= -topRight.z;
+	oneNearPosition = mix(mix(topLeft.xy, topRight.xy, uv.x), mix(bottomLeft.xy, bottomRight.xy, uv.x), uv.y);
+}
+
 #endif

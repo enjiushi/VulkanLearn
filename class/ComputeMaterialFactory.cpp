@@ -11,6 +11,217 @@
 // FIXME: hard-code
 static uint32_t groupSize = 16;
 
+std::shared_ptr<Material> CreateSSAOSSRMaterial()
+{
+	std::vector<CombinedImage> gbuffer0;
+	std::vector<CombinedImage> gbuffer2;
+	std::vector<CombinedImage> depthBuffer;
+	std::vector<CombinedImage> outSSAOFactor;
+	std::vector<CombinedImage> outSSRInfo;
+	for (uint32_t j = 0; j < GetSwapChain()->GetSwapChainImageCount(); j++)
+	{
+		std::shared_ptr<FrameBuffer> pGBufferFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_GBuffer)[j];
+
+		gbuffer0.push_back
+		({
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer0),
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer0)->CreateLinearClampToEdgeSampler(),
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer0)->CreateDefaultImageView()
+		});
+
+		gbuffer2.push_back
+		({
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer2),
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer2)->CreateLinearClampToEdgeSampler(),
+			pGBufferFrameBuffer->GetColorTarget(FrameBufferDiction::GBuffer2)->CreateDefaultImageView()
+		});
+
+		depthBuffer.push_back
+		({
+			pGBufferFrameBuffer->GetDepthStencilTarget(),
+			pGBufferFrameBuffer->GetDepthStencilTarget()->CreateLinearClampToBorderSampler(VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK),
+			pGBufferFrameBuffer->GetDepthStencilTarget()->CreateDepthSampleImageView()
+		});
+
+		std::shared_ptr<FrameBuffer> pSSAOSSRFrameBuffer = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_SSAOSSR)[j];
+
+		outSSAOFactor.push_back
+		({
+			pSSAOSSRFrameBuffer->GetColorTarget(0),
+			pSSAOSSRFrameBuffer->GetColorTarget(0)->CreateLinearClampToEdgeSampler(),
+			pSSAOSSRFrameBuffer->GetColorTarget(0)->CreateDefaultImageView()
+		});
+
+		outSSRInfo.push_back
+		({
+			pSSAOSSRFrameBuffer->GetColorTarget(1),
+			pSSAOSSRFrameBuffer->GetColorTarget(1)->CreateLinearClampToEdgeSampler(),
+			pSSAOSSRFrameBuffer->GetColorTarget(1)->CreateDefaultImageView()
+		});
+	}
+
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	textureUnits.push_back
+	(
+		{
+			0,
+
+			gbuffer0,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			1,
+
+			gbuffer2,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			2,
+
+			depthBuffer,
+			VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			3,
+
+			outSSAOFactor,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::NONE,
+
+			{
+				{
+					false
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			4,
+
+			outSSRInfo,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::NONE,
+
+			{
+				{
+					false
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	uint32_t index;
+	UniformData::GetInstance()->GetGlobalTextures()->GetTextureIndex(RGBA8_1024, "BlueNoise", index);
+	float floatIndex = (float)index;
+
+	std::vector<uint8_t> pushConstantData;
+	TransferBytesToVector(pushConstantData, &floatIndex, sizeof(floatIndex));
+
+	Vector3ui groupNum =
+	{
+		outSSAOFactor[0].pImage->GetImageInfo().extent.width / groupSize,
+		outSSAOFactor[0].pImage->GetImageInfo().extent.height / groupSize,
+		1
+	};
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		L"../data/shaders/ssao_gen.comp.spv",
+		groupNum,
+		textureUnits,
+		pushConstantData
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
+
 std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages, const GaussianBlurParams& params)
 {
 	std::vector<CombinedImage> _inputImages;
@@ -313,12 +524,12 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			{
 				{
 					true,
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
 
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_IMAGE_LAYOUT_GENERAL,
 					VK_ACCESS_SHADER_READ_BIT
 				},
 				{

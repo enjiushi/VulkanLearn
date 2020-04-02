@@ -53,7 +53,7 @@ public:
 		MotionNeighborMax,
 		Shadow,
 		SkinnedShadow,
-		SSAO,
+		SSAOSSR,
 		SSAOBlurV,
 		SSAOBlurH,
 		DeferredShading,
