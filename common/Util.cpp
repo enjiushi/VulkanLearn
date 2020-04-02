@@ -149,6 +149,6 @@ void TransferBytesToVector(std::vector<uint8_t>& vec, const void* pData, uint32_
 {
 	for (uint32_t i = 0; i < numBytes; i++)
 	{
-		vec.push_back(*((uint32_t*)(pData) + i));
+		vec.push_back(*((uint8_t*)(pData) + i));
 	}
 }
