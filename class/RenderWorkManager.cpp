@@ -14,7 +14,6 @@
 #include "MotionNeighborMaxMaterial.h"
 #include "ShadowMapMaterial.h"
 #include "SSAOMaterial.h"
-#include "GaussianBlurMaterial.h"
 #include "ForwardMaterial.h"
 #include "PostProcessingMaterial.h"
 #include "GBufferPlanetMaterial.h"
