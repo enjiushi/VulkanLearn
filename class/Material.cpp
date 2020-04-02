@@ -94,8 +94,6 @@ void Material::GeneralInit
 
 	CustomizeMaterialLayout(m_materialVariableLayout);
 
-	VkDescriptorType imageType = isCompute ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-
 	// Build vulkan layout bindings
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
 	for (auto & var : m_materialVariableLayout)
@@ -128,7 +126,7 @@ void Material::GeneralInit
 			bindings.push_back
 			({
 				(uint32_t)bindings.size(),
-				imageType,
+				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 				var.count,
 				VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
 				nullptr
@@ -138,9 +136,9 @@ void Material::GeneralInit
 			bindings.push_back
 			({
 				(uint32_t)bindings.size(),
-				imageType,
+				VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
 				var.count,
-				VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
+				VK_SHADER_STAGE_COMPUTE_BIT,
 				nullptr
 				});
 			break;
@@ -516,11 +514,12 @@ void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_
 
 void Material::BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
 {
-	AttachResourceBarriers(pCmdBuf, pingpong);
+	AttachResourceBarriers(pCmdBuf, BEFORE_DISPATCH, pingpong);
 }
 
 void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
 {
+	AttachResourceBarriers(pCmdBuf, AFTER_DISPATCH, pingpong);
 }
 
 void Material::PrepareCommandBuffer(const std::shared_ptr<CommandBuffer>& pCommandBuffer, const std::shared_ptr<FrameBuffer>& pFrameBuffer, bool isCompute, uint32_t pingpong, bool overrideVP)

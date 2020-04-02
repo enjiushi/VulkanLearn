@@ -187,11 +187,14 @@ void PostProcessingMaterial::CustomizePoolSize(std::vector<uint32_t>& counts)
 	counts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] += (GetSwapChain()->GetSwapChainImageCount() * 2);
 }
 
-void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong)
+void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong)
 {
+	if (barrierInsertionPoint == Material::BarrierInsertionPoint::AFTER_DISPATCH)
+		return;
+
 	std::vector<VkImageMemoryBarrier> barriers;
 
-	std::shared_ptr<Image> pCombineResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_Shading)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
+	std::shared_ptr<Image> pCombineResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_CombineResult)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 	std::shared_ptr<Image> pMotionNeighborMax = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionNeighborMax)[FrameMgr()->FrameIndex()]->GetColorTarget(0);
 
 	VkImageSubresourceRange subresourceRange = {};
@@ -204,9 +207,9 @@ void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<Comman
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	imgBarrier.image = pCombineResult->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+	imgBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+	imgBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
 	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	barriers.push_back(imgBarrier);
@@ -219,16 +222,16 @@ void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<Comman
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	imgBarrier.image = pMotionNeighborMax->GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
-	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imgBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+	imgBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+	imgBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
 	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	barriers.push_back(imgBarrier);
 
 	pCmdBuffer->AttachBarriers
 	(
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 		{},
 		{},

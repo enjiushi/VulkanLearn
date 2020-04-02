@@ -144,3 +144,11 @@ std::vector<VkVertexInputAttributeDescription> GenerateReservedVBAttribDesc(uint
 
 	return attribDesc;
 }
+
+void TransferBytesToVector(std::vector<uint8_t>& vec, const void* pData, uint32_t numBytes)
+{
+	for (uint32_t i = 0; i < numBytes; i++)
+	{
+		vec.push_back(*((uint8_t*)(pData) + i));
+	}
+}

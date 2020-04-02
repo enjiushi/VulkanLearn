@@ -66,6 +66,13 @@ public:
 		MaterialUniformStorageTypeCount
 	};
 
+	enum BarrierInsertionPoint
+	{
+		BEFORE_DISPATCH,
+		AFTER_DISPATCH,
+		COUNT
+	};
+
 public:
 	std::shared_ptr<RenderPassBase> GetRenderPass() const { return m_pRenderPass; }
 	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
@@ -129,7 +136,7 @@ protected:
 	virtual void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	virtual void BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
-	virtual void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, uint32_t pingpong = 0) {}
+	virtual void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong = 0) {}
 
 	virtual void PrepareCommandBuffer(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, bool isCompute, uint32_t pingpong = 0, bool overrideVP = false);
 	virtual void CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) {}

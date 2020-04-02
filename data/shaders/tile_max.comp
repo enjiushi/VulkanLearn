@@ -1,0 +1,46 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+#include "uniform_layout.sh"
+#include "global_parameters.sh"
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout (set = 3, binding = 0) uniform sampler2D motionVector[3];
+layout (set = 3, binding = 1, rgba32f) uniform image2D outTileMax[3];
+
+void main() 
+{
+	ivec2 size = imageSize(outTileMax[frameIndex]);
+	vec2 uv = vec2(gl_GlobalInvocationID.xy + 0.5f) / vec2(size);
+
+	if (any(greaterThanEqual(gl_GlobalInvocationID.xy, size)))
+		return;
+
+	vec2 base = uv + globalData.gameWindowSize.zw * (0.5f - 0.5f * globalData.motionTileWindowSize.xy);
+	vec2 du = vec2(globalData.gameWindowSize.z, 0.0f);
+	vec2 dv = vec2(0.0f, globalData.gameWindowSize.w);
+
+	vec2 maxMotion = vec2(0);
+	float maxLength = 0;
+
+	for (int x = 0; x < int(globalData.motionTileWindowSize.x); x++)
+	{
+		for (int y = 0; y < int(globalData.motionTileWindowSize.y); y++)
+		{
+			vec2 motionVec = texture(motionVector[frameIndex], base + x * du + y * dv).rg;
+			float len = dot(motionVec, motionVec);
+			if (maxLength < len)
+			{
+				maxLength = len;
+				maxMotion = motionVec;
+			}
+		}
+	}
+
+	imageStore(outTileMax[frameIndex],	
+		ivec2(gl_GlobalInvocationID.xy), 
+		vec4(maxMotion, 0.0f, 0.0f));
+}

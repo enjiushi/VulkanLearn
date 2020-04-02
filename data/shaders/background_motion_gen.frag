@@ -4,10 +4,11 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec3 prevClipSpacePos;
-layout (location = 2) in vec3 currClipSpacePos;
+layout (location = 1) in vec3 inPrevClipSpacePos;
+layout (location = 2) in vec3 inCurrClipSpacePos;
+layout (location = 3) in vec3 inViewDir;
 
-layout (location = 0) out vec4 outBGCoC;
+layout (location = 0) out vec4 outBGColorAndCoC;
 layout (location = 1) out vec4 outBGMotionVec;
 
 #include "uniform_layout.sh"
@@ -16,12 +17,13 @@ layout (location = 1) out vec4 outBGMotionVec;
 
 void main() 
 {
-	outBGCoC = vec4(0, 0, 0, CalculateCoC(perFrameData.nearFarAB.y));
+	vec3 skyBox = texture(RGBA16_1024_MIP_CUBE_SKYBOX, normalize(inViewDir)).xyz;
+	outBGColorAndCoC = vec4(skyBox, CalculateCoC(perFrameData.nearFarAB.y));
 
-	vec2 prevScreenCoord = prevClipSpacePos.xy / prevClipSpacePos.z;
+	vec2 prevScreenCoord = inPrevClipSpacePos.xy / inPrevClipSpacePos.z;
 	prevScreenCoord = prevScreenCoord * 0.5f + 0.5f;
 
-	vec2 currScreenCoord = currClipSpacePos.xy / currClipSpacePos.z;
+	vec2 currScreenCoord = inCurrClipSpacePos.xy / inCurrClipSpacePos.z;
 	currScreenCoord = currScreenCoord * 0.5f + 0.5f;
 
 	outBGMotionVec = vec4(prevScreenCoord - currScreenCoord, 0.0f, 1.0f);

@@ -9,6 +9,7 @@ struct GBufferVariables
 	float metalic;
 	float shadowFactor;
 	float ssaoFactor;
+	bool isBackground;
 };
 
 float ReconstructLinearDepth(float sampledDepth)
@@ -101,6 +102,8 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 oneNearPosition, sampler2D GBu
 
 	vars.metalic = gbuffer2.g;
 
+	vars.isBackground = (length(gbuffer0.xyz) == 0.0f);
+
 	return vars;
 }
 
@@ -129,6 +132,8 @@ GBufferVariables UnpackGBuffers(ivec2 coord, vec2 texcoord, vec2 oneNearPosition
 
 	vars.ssaoFactor = min(1.0f, vars.ssaoFactor);
     vars.ssaoFactor = min(1.0f, pow(vars.ssaoFactor, globalData.SSAOSettings.w));
+
+	vars.isBackground = (length(gbuffer0.xyz) == 0.0f);
 
 	return vars;
 }

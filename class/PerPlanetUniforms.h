@@ -101,8 +101,6 @@ protected:
 
 protected:
 	static void PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::vector<std::shared_ptr<Image>>& textures, const std::vector<uint8_t>& data, uint32_t chunkIndex);
-	static void AttachBarriersBeforePrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::vector<std::shared_ptr<Image>>& textures, uint32_t chunkIndex);
-	static void AttachBarriersAfterPrecompute(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::vector<std::shared_ptr<Image>>& textures, uint32_t chunkIndex);
 
 protected:
 	PerPlanetVariablesd		m_perPlanetVariables[MAXIMUM_OBJECTS];

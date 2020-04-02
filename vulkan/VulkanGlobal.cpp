@@ -477,6 +477,8 @@ void VulkanGlobal::InitUniforms()
 
 	gli::texture_cube gliSkyBox(gli::load("../data/textures/hdr/gcanyon_cube.ktx"));
 	UniformData::GetInstance()->GetGlobalTextures()->InitIBLTextures(gliSkyBox);
+
+	UniformData::GetInstance()->GetGlobalTextures()->InsertScreenSizeTexture({ "MipmapTemporalResult", "", "Mip map temporal result, used for next frame ssr" });
 }
 
 void VulkanGlobal::InitDescriptorSetLayout()
@@ -631,8 +633,6 @@ void VulkanGlobal::InitMaterials()
 	m_pSophiaMaterialInstance->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
 	m_pPlanetMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRPlanetMaterialInstance();
-
-	m_pSkyBoxMaterialInstance = RenderWorkManager::GetInstance()->AcquireSkyBoxMaterialInstance();
 
 	m_pShadowMapMaterialInstance = RenderWorkManager::GetInstance()->AcquireShadowMaterialInstance();
 	m_pSkinnedShadowMapMaterialInstance = RenderWorkManager::GetInstance()->AcquireSkinnedShadowMaterialInstance();
@@ -818,10 +818,6 @@ void VulkanGlobal::InitScene()
 	Quaterniond rot = Quaterniond(Vector3d(1, 0, 0), 0);
 	m_pQuadObject->SetRotation(Quaterniond(Vector3d(1, 0, 0), -1.57));
 
-	m_pSkyBoxObject = BaseObject::Create();
-	m_pSkyBoxMeshRenderer = MeshRenderer::Create(m_pCubeMesh, { m_pSkyBoxMaterialInstance });
-	m_pSkyBoxObject->AddComponent(m_pSkyBoxMeshRenderer);
-
 	m_pSophiaObject = AssimpSceneReader::ReadAndAssemblyScene("../data/models/rp_sophia_animated_003_idling.FBX", { VertexFormatPNTCTB }, sceneInfo);
 	m_pSophiaMesh = sceneInfo.meshLinks[0].first;
 
@@ -855,7 +851,6 @@ void VulkanGlobal::InitScene()
 	m_pSceneRootObject->AddChild(m_pBoxObject1);
 	m_pSceneRootObject->AddChild(m_pBoxObject2);
 	m_pSceneRootObject->AddChild(m_pSophiaObject);
-	m_pSceneRootObject->AddChild(m_pSkyBoxObject);
 	m_pSceneRootObject->AddChild(m_pDirLightObj);
 	m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 0.5);
 

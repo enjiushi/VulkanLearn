@@ -2,6 +2,7 @@
 
 #include "../common/Singleton.h"
 #include "../vulkan/RenderPass.h"
+#include "CustomizedComputeMaterial.h"
 #include "RenderPassDiction.h"
 
 class FrameBuffer;
@@ -52,11 +53,10 @@ public:
 		MotionNeighborMax,
 		Shadow,
 		SkinnedShadow,
-		SSAO,
+		SSAOSSR,
 		SSAOBlurV,
 		SSAOBlurH,
 		DeferredShading,
-		SkyBox,
 		TemporalResolve,
 		DepthOfField,
 		BloomDownSample,
@@ -80,7 +80,6 @@ public:
 	std::shared_ptr<MaterialInstance> AcquirePBRPlanetMaterialInstance() const;
 	std::shared_ptr<MaterialInstance> AcquireShadowMaterialInstance() const;
 	std::shared_ptr<MaterialInstance> AcquireSkinnedShadowMaterialInstance() const;
-	std::shared_ptr<MaterialInstance> AcquireSkyBoxMaterialInstance() const;
 
 	void SyncMaterialData();
 	void Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffer, uint32_t pingpong);
