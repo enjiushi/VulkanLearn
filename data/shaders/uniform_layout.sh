@@ -115,6 +115,7 @@ struct PerFrameData
 	vec4 wsCameraDirection;
 	vec4 cameraSpaceSize;
 	vec4 nearFarAB;
+	vec4 wsMainLightDir;
 	vec4 mainLightDir;
 	vec4 mainLightColor;
 	vec2 cameraJitterOffset;

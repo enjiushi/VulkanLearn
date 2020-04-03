@@ -57,9 +57,9 @@ void DirectionLight::UpdateData()
 	// light space 2 world space
 	Matrix4d ls2ws = pObj->GetCachedWorldTransform();
 	// light direction in world space
-	m_csLightDirection = ls2ws[2].xyz();
+	m_wsLightDirection = ls2ws[2].xyz();
 	// light direction in camera space
-	m_csLightDirection = UniformData::GetInstance()->GetPerFrameUniforms()->GetViewMatrix().TransformAsVector(m_csLightDirection);
+	m_csLightDirection = UniformData::GetInstance()->GetPerFrameUniforms()->GetViewMatrix().TransformAsVector(m_wsLightDirection);
 
 	// 2nd step: from world space 2 light space
 	m_cs2lsProjMatrix *= ls2ws.Inverse();
@@ -84,6 +84,7 @@ void DirectionLight::OnPreRender()
 {
 	UpdateData();
 
+	UniformData::GetInstance()->GetPerFrameUniforms()->SetWorldSpaceMainLightDir(m_wsLightDirection);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightDir(m_csLightDirection);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightVP(m_cs2lsProjMatrix);
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightColor(m_lightColor);

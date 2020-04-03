@@ -20,6 +20,7 @@ public:
 	Vector4<T>		cameraDirection;
 	Vector4<T>		eyeSpaceSize;			// xy: eye space size, zw: inverted eye space size
 	Vector4<T>		nearFarAB;
+	Vector4<T>		wsMainLightDir;
 	Vector4<T>		mainLightDir;
 	Vector4<T>		mainLightColor;
 	Vector2<T>		cameraJitterOffset;
@@ -63,6 +64,8 @@ public:
 	Vector2d GetEyeSpaceSizeInv() const { return { m_perFrameVariables.eyeSpaceSize.z, m_perFrameVariables.eyeSpaceSize.w }; }
 	void SetNearFarAB(const Vector4d& nearFarAB);
 	Vector4d GetNearFarAB() const { return m_perFrameVariables.nearFarAB; }
+	void SetWorldSpaceMainLightDir(const Vector3d& dir);
+	Vector4d GetWorldSpaceMainLightDir() const { return m_perFrameVariables.wsMainLightDir; }
 	void SetMainLightDir(const Vector3d& dir);
 	Vector4d GetMainLightDir() const { return m_perFrameVariables.mainLightDir; }
 	void SetMainLightColor(const Vector3d& color);

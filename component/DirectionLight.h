@@ -31,5 +31,6 @@ protected:
 	Vector3d	m_frustumSize;
 	Vector2ui	m_shadowMapSize;
 	Matrix4d	m_cs2lsProjMatrix;
+	Vector3d	m_wsLightDirection;
 	Vector3d	m_csLightDirection;
 };

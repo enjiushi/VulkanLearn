@@ -68,6 +68,12 @@ void PerFrameUniforms::SetNearFarAB(const Vector4d& nearFarAB)
 	SetDirty();
 }
 
+void PerFrameUniforms::SetWorldSpaceMainLightDir(const Vector3d& dir)
+{
+	m_perFrameVariables.wsMainLightDir = dir.Normal();
+	SetDirty();
+}
+
 void PerFrameUniforms::SetMainLightDir(const Vector3d& dir)
 {
 	m_perFrameVariables.mainLightDir = dir.Normal();
@@ -158,6 +164,7 @@ void PerFrameUniforms::UpdateUniformDataInternal()
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraDirection);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, eyeSpaceSize);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, nearFarAB);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, wsMainLightDir);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, mainLightDir);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, mainLightColor);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraJitterOffset);
