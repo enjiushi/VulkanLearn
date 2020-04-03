@@ -1656,7 +1656,6 @@ in <code>scattering_texture</code> and
 IrradianceSpectrum GetCombinedScattering(
     IN(AtmosphereParameters) atmosphere,
     IN(ReducedScatteringTexture) scattering_texture,
-    IN(ReducedScatteringTexture) single_mieScattering_texture,
     Length r, Number mu, Number mu_s, Number nu,
     bool ray_r_mu_intersects_ground,
     OUT(IrradianceSpectrum) single_mieScattering) {
@@ -1669,21 +1668,12 @@ IrradianceSpectrum GetCombinedScattering(
       uvwz.z, uvwz.w);
   vec3 uvw1 = vec3((tex_x + 1.0 + uvwz.y) / Number(SCATTERING_TEXTURE_NU_SIZE),
       uvwz.z, uvwz.w);
-#ifdef COMBINED_SCATTERING_TEXTURES
   vec4 combined_scattering =
       texture(scattering_texture, uvw0) * (1.0 - lerp) +
       texture(scattering_texture, uvw1) * lerp;
   IrradianceSpectrum scattering = IrradianceSpectrum(combined_scattering);
   single_mieScattering =
       GetExtrapolatedSingleMieScattering(atmosphere, combined_scattering);
-#else
-  IrradianceSpectrum scattering = IrradianceSpectrum(
-      texture(scattering_texture, uvw0) * (1.0 - lerp) +
-      texture(scattering_texture, uvw1) * lerp);
-  single_mieScattering = IrradianceSpectrum(
-      texture(single_mieScattering_texture, uvw0) * (1.0 - lerp) +
-      texture(single_mieScattering_texture, uvw1) * lerp);
-#endif
   return scattering;
 }
 
@@ -1704,7 +1694,6 @@ RadianceSpectrum GetSkyRadiance(
     IN(AtmosphereParameters) atmosphere,
     IN(TransmittanceTexture) transmittance_texture,
     IN(ReducedScatteringTexture) scattering_texture,
-    IN(ReducedScatteringTexture) single_mieScattering_texture,
     Position camera, IN(Direction) view_ray, Length shadow_length,
     IN(Direction) sun_direction, OUT(DimensionlessSpectrum) transmittance) {
   // Compute the distance to the top atmosphere boundary along the view ray,
@@ -1738,7 +1727,7 @@ RadianceSpectrum GetSkyRadiance(
   IrradianceSpectrum scattering;
   if (shadow_length == 0.0 * m) {
     scattering = GetCombinedScattering(
-        atmosphere, scattering_texture, single_mieScattering_texture,
+        atmosphere, scattering_texture,
         r, mu, mu_s, nu, ray_r_mu_intersects_ground,
         single_mieScattering);
   } else {
@@ -1753,7 +1742,7 @@ RadianceSpectrum GetSkyRadiance(
     Number mu_s_p = (r * mu_s + d * nu) / r_p;
 
     scattering = GetCombinedScattering(
-        atmosphere, scattering_texture, single_mieScattering_texture,
+        atmosphere, scattering_texture,
         r_p, mu_p, mu_s_p, nu, ray_r_mu_intersects_ground,
         single_mieScattering);
     DimensionlessSpectrum shadow_transmittance =
@@ -1786,7 +1775,6 @@ RadianceSpectrum GetSkyRadianceToPoint(
     IN(AtmosphereParameters) atmosphere,
     IN(TransmittanceTexture) transmittance_texture,
     IN(ReducedScatteringTexture) scattering_texture,
-    IN(ReducedScatteringTexture) single_mieScattering_texture,
     Position camera, IN(Position) point, Length shadow_length,
     IN(Direction) sun_direction, OUT(DimensionlessSpectrum) transmittance) {
   // Compute the distance to the top atmosphere boundary along the view ray,
@@ -1817,7 +1805,7 @@ RadianceSpectrum GetSkyRadianceToPoint(
 
   IrradianceSpectrum single_mieScattering;
   IrradianceSpectrum scattering = GetCombinedScattering(
-      atmosphere, scattering_texture, single_mieScattering_texture,
+      atmosphere, scattering_texture,
       r, mu, mu_s, nu, ray_r_mu_intersects_ground,
       single_mieScattering);
 
@@ -1833,7 +1821,7 @@ RadianceSpectrum GetSkyRadianceToPoint(
 
   IrradianceSpectrum single_mieScattering_p;
   IrradianceSpectrum scattering_p = GetCombinedScattering(
-      atmosphere, scattering_texture, single_mieScattering_texture,
+      atmosphere, scattering_texture,
       r_p, mu_p, mu_s_p, nu, ray_r_mu_intersects_ground,
       single_mieScattering_p);
 
@@ -1891,6 +1879,54 @@ IrradianceSpectrum GetSunAndSkyIrradiance(
       GetTransmittanceToSun(
           atmosphere, transmittance_texture, r, mu_s) *
       max(dot(normal, sun_direction), 0.0);
+}
+
+RadianceSpectrum GetSolarRadiance(uint planetChunkIndex) 
+{
+	AtmosphereParameters parameters = planetAtmosphereData[planetChunkIndex].atmosphereParameters;
+    return parameters.solarIrradiance.rgb /
+        (PI * parameters.solarIrradiance.a * parameters.solarIrradiance.a);
+}
+
+RadianceSpectrum GetSkyRadiance(
+    Position camera, Direction view_ray, Length shadow_length,
+    Direction sun_direction, uint planetChunkIndex, out DimensionlessSpectrum transmittance) {
+	AtmosphereParameters parameters = planetAtmosphereData[planetChunkIndex].atmosphereParameters;
+    return GetSkyRadiance(parameters, 
+		TRANSMITTANCE_DICTION[planetChunkIndex],
+        SCATTER_DICTION[planetChunkIndex],
+        camera, 
+		view_ray, 
+		shadow_length, 
+		sun_direction, 
+		transmittance);
+}
+
+RadianceSpectrum GetSkyRadianceToPoint(
+    Position camera, Position point, Length shadow_length,
+    Direction sun_direction, uint planetChunkIndex, out DimensionlessSpectrum transmittance) {
+	AtmosphereParameters parameters = planetAtmosphereData[planetChunkIndex].atmosphereParameters;
+    return GetSkyRadianceToPoint(parameters, 
+		TRANSMITTANCE_DICTION[planetChunkIndex],
+        SCATTER_DICTION[planetChunkIndex],
+        camera, 
+		point, 
+		shadow_length, 
+		sun_direction, 
+		transmittance);
+}
+
+IrradianceSpectrum GetSunAndSkyIrradiance(
+    Position p, Direction normal, Direction sun_direction, uint planetChunkIndex,
+    out IrradianceSpectrum sky_irradiance) {
+	AtmosphereParameters parameters = planetAtmosphereData[planetChunkIndex].atmosphereParameters;
+    return GetSunAndSkyIrradiance(parameters, 
+		TRANSMITTANCE_DICTION[planetChunkIndex],
+        IRRADIANCE_DICTION[planetChunkIndex], 
+		p, 
+		normal, 
+		sun_direction, 
+		sky_irradiance);
 }
 
 #endif

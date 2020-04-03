@@ -198,7 +198,7 @@ layout(set = 0, binding = 13) uniform sampler2D RGBA16_512_2D_BRDFLUT;
 layout(set = 0, binding = 14) uniform sampler2D SSAO_RANDOM_ROTATIONS;
 layout(set = 0, binding = 15) uniform sampler2D TRANSMITTANCE_DICTION[4];
 layout(set = 0, binding = 16) uniform sampler3D SCATTER_DICTION[4];
-layout(set = 0, binding = 17) uniform sampler3D IRRADIANCE_DICTION[4];
+layout(set = 0, binding = 17) uniform sampler2D IRRADIANCE_DICTION[4];
 layout(set = 0, binding = 18) uniform sampler2D DELTA_IRRADIANCE;
 layout(set = 0, binding = 19) uniform sampler3D DELTA_RAYLEIGH;
 layout(set = 0, binding = 20) uniform sampler3D DELTA_MIE;

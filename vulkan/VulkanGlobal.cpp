@@ -716,6 +716,8 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetTriangleEdgeWidth(0.03);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetMorphingRange(0.25f);
 
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSunSizeInCosine(std::cos(0.00935 / 2.0));
+
 	PhysicalCamera::PhysicalCameraProps props =
 	{
 		1440.0f / 1024.0f,

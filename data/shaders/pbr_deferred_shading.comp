@@ -8,6 +8,7 @@
 #include "pbr_functions.sh"
 #include "gbuffer_reconstruction.sh"
 #include "utilities.sh"
+#include "atmosphere/functions.sh"
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
@@ -41,6 +42,23 @@ float BorderFading(vec2 hitUV)
 	float borderDist = min(1.0 - max(hitUV.x, hitUV.y), min(hitUV.x, hitUV.y));
 	//return 1.0f - pow(borderDist, 10.1f);
 	return smoothstep(0.0f, rayTraceBorderFadeDist, borderDist);
+}
+
+void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirection, out vec3 radiance)
+{
+	uint planetChunkIndex = 0;
+	vec3 transmittance;
+	radiance = GetSkyRadiance(cameraPosition, 
+		viewDirection, 
+		0, 
+		sunDirection, 
+		planetChunkIndex,
+		transmittance);
+
+	// If the view ray intersects the Sun, add the Sun radiance.
+	if (dot(viewDirection, sunDirection) > 0.0045) {
+		radiance = radiance + transmittance * GetSolarRadiance(planetChunkIndex);
+	}
 }
 
 vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 CSPosition, vec2 uv, vec2 oneNearPosition, float metalic, vec3 skyBoxReflection)
