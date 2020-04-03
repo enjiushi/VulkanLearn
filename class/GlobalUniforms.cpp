@@ -575,6 +575,13 @@ void GlobalUniforms::SetPlanetMorphingRange(double range)
 	SetDirty();
 }
 
+void GlobalUniforms::SetSunSizeInCosine(double size)
+{
+	m_globalVariables.PlanetRenderingSettings2.x = size;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings2.x);
+	SetDirty();
+}
+
 
 
 std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
@@ -684,6 +691,10 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				{
 					Vec4Unit,
 					"Planet settings1"
+				},
+				{
+					Vec4Unit,
+					"Planet settings2"
 				},
 				{
 					Vec4Unit,

@@ -37,6 +37,7 @@ struct GlobalData
 	vec4 SSAOSettings;
 	vec4 PlanetRenderingSettings0;
 	vec4 PlanetRenderingSettings1;
+	vec4 PlanetRenderingSettings2;
 	vec4 SSAOSamples[64];
 };
 

@@ -193,7 +193,7 @@ public:
 	Vector4<T>	PlanetRenderingSettings0;
 
 	/*******************************************************************
-	* DESCRIPTION: Planet Rendering Settings0
+	* DESCRIPTION: Planet Rendering Settings1
 	*
 	* X: Whether to draw triangle edge
 	* Y: Patch edge width
@@ -201,6 +201,16 @@ public:
 	* W: Morphing range
 	*/
 	Vector4<T>	PlanetRenderingSettings1;
+
+	/*******************************************************************
+	* DESCRIPTION: Planet Rendering Settings2
+	*
+	* X: Sun plate radius in cosine
+	* Y: Reserved
+	* Z: Reserved
+	* W: Reserved
+	*/
+	Vector4<T>	PlanetRenderingSettings2;
 
 	// SSAO settings
 	Vector4<T>	SSAOSamples[SSAO_SAMPLE_COUNT];
@@ -375,6 +385,9 @@ public:
 	double GetPlanetTriangleEdgeWidth() const { return m_globalVariables.PlanetRenderingSettings1.z; }
 	void SetPlanetMorphingRange(double range);
 	double SetPlanetMorphingRange() const { return m_globalVariables.PlanetRenderingSettings1.w; }
+
+	void SetSunSizeInCosine(double size);
+	double GetSunSize() const { return m_globalVariables.PlanetRenderingSettings2.x; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);
