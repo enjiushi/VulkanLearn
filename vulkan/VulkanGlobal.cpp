@@ -761,7 +761,7 @@ void VulkanGlobal::InitScene()
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
 
-	m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp, 6378000);
+	m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp, 6360000);
 
 	AssimpSceneReader::SceneInfo sceneInfo;
 
