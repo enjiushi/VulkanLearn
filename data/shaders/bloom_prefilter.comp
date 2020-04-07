@@ -24,6 +24,8 @@ void main()
 	if (any(greaterThanEqual(gl_GlobalInvocationID.xy, size)))
 		return;
 
+	color.rgb = clamp(color.rgb, vec3(0), vec3(globalData.BloomSettings0.y));
+
 	imageStore(OutputImage[frameIndex],	
 		ivec2(gl_GlobalInvocationID.xy), 
 		vec4(color.rgb * factor, 1.0f));
