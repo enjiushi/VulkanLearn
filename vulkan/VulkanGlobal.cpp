@@ -684,8 +684,8 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.003);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetHighResponseSSRPortion(0.7);
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingLowerBound(0.99);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingUpperBound(1.1);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingLowerBound(1);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingUpperBound(5);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetUpsampleScale(1.0);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomAmplify(1.0);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomSlope(1.0);
