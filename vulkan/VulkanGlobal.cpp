@@ -566,6 +566,14 @@ void VulkanGlobal::InitMaterials()
 	m_pSphereMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pSphereMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
+	m_pSphereMaterialInstance3 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
+	m_pSphereMaterialInstance3->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pSphereMaterialInstance3->SetParameter("AlbedoRoughness", Vector4f(0.0f, 1.0f, 0.0f, 1.0f));
+	m_pSphereMaterialInstance3->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pSphereMaterialInstance3->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance3->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance3->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+
 	for (uint32_t i = 0; i < 2; i++)
 	{
 		std::shared_ptr<MaterialInstance> pInst = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
@@ -750,6 +758,7 @@ void VulkanGlobal::InitScene()
 
 	m_pSphere1 = BaseObject::Create();
 	m_pSphere2 = BaseObject::Create();
+	m_pSphere3 = BaseObject::Create();
 
 	m_pQuadObject = BaseObject::Create();
 	m_pBoxObject0 = BaseObject::Create();
@@ -788,6 +797,11 @@ void VulkanGlobal::InitScene()
 	m_pSphere2->AddComponent(m_pSphereRenderer2);
 	m_pSphere2->SetPos(1, -0.15f, 0.6f);
 	m_pSphere2->SetScale(0.01f);
+
+	m_pSphereRenderer3 = MeshRenderer::Create(sceneInfo.meshLinks[0].first, { m_pSphereMaterialInstance3 });
+	m_pSphere3->AddComponent(m_pSphereRenderer3);
+	m_pSphere3->SetPos(150000, 5000, 150000);
+	m_pSphere3->SetScale(1000.0);
 	sceneInfo.meshLinks.clear();
 
 	m_pInnerBall = AssimpSceneReader::ReadAndAssemblyScene("../data/models/Sample.FBX", { VertexFormatPNTCT }, sceneInfo);
@@ -847,6 +861,7 @@ void VulkanGlobal::InitScene()
 	m_pSceneRootObject->AddChild(m_pSphere0);
 	m_pSceneRootObject->AddChild(m_pSphere1);
 	m_pSceneRootObject->AddChild(m_pSphere2);
+	m_pSceneRootObject->AddChild(m_pSphere3);
 	m_pSceneRootObject->AddChild(m_pInnerBall);
 	m_pSceneRootObject->AddChild(m_pQuadObject);
 	m_pSceneRootObject->AddChild(m_pBoxObject0);
@@ -854,7 +869,7 @@ void VulkanGlobal::InitScene()
 	m_pSceneRootObject->AddChild(m_pBoxObject2);
 	m_pSceneRootObject->AddChild(m_pSophiaObject);
 	m_pSceneRootObject->AddChild(m_pDirLightObj);
-	m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 0.5);
+	m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 9000);
 
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pSceneRootObject);
