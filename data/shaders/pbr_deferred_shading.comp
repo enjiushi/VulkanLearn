@@ -48,7 +48,7 @@ void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirec
 {
 	uint planetChunkIndex = 0;
 	vec3 transmittance;
-	radiance = GetSkyRadiance(cameraPosition, 
+	radiance = GetSkyRadiance(cameraPosition / 1000,	// Unit is km underlay
 		viewDirection, 
 		0, 
 		sunDirection, 
@@ -56,9 +56,11 @@ void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirec
 		transmittance);
 
 	// If the view ray intersects the Sun, add the Sun radiance.
-	if (dot(viewDirection, sunDirection) > 0.0045) {
+	if (dot(viewDirection, sunDirection) > globalData.PlanetRenderingSettings2.x) {
 		radiance = radiance + transmittance * GetSolarRadiance(planetChunkIndex);
 	}
+
+	radiance *= 4;	// FIXME: parameter this(due to difference of light strength unit)
 }
 
 vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 CSPosition, vec2 uv, vec2 oneNearPosition, float metalic, vec3 skyBoxReflection)
@@ -130,15 +132,21 @@ void main()
 	ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
 	ivec2 size = imageSize(outShadingColor[frameIndex]);
 	vec2 uv = vec2(gl_GlobalInvocationID.xy + 0.5f) / vec2(size);
-	vec2 oneNearPosition = AcquireOneNearPosition(uv);
+
+	vec2 oneNearPosition;
+	vec3 CSViewDir;
+	AcquireOneNearPositionAndCSViewDir(uv, oneNearPosition, CSViewDir);
 
 	GBufferVariables vars = UnpackGBuffers(coord, uv, oneNearPosition, GBuffer0[frameIndex], GBuffer1[frameIndex], GBuffer2[frameIndex], DepthStencilBuffer[frameIndex], BlurredSSAOBuffer[frameIndex], ShadowMapDepthBuffer[frameIndex]);
 
 	if (vars.isBackground)
 	{
+		vec3 WSViewDir = mat3(perFrameData.viewCoordSystem) * normalize(CSViewDir);
+	    vec3 skySunRadiance;
+        GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, WSViewDir, perFrameData.wsMainLightDir.xyz, skySunRadiance);
 		imageStore(outShadingColor[frameIndex],	
 			ivec2(gl_GlobalInvocationID.xy), 
-			vec4(vars.albedoRoughness.rgb, vars.albedoRoughness.a));
+			vec4(skySunRadiance, vars.albedoRoughness.a));
 		imageStore(outSSRColor[frameIndex],	
 			ivec2(gl_GlobalInvocationID.xy), 
 			vec4(0));
