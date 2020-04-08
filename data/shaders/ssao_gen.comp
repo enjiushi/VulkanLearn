@@ -109,8 +109,7 @@ vec4 RayMarch(vec3 sampleCSNormal, vec3 csNormal, vec3 position, vec2 uv, vec3 c
 
 	vec2 hit;
 
-	for (;((P.x * stepDirection) <= end) &&
-			(stepCount <= rayTraceMaxStep - 1) &&
+	for (;(stepCount <= rayTraceMaxStep - 1) &&
 			//(ZMax > (sampleZ - rayTraceHitThickness)) &&
 			((ZMax > sampleZ) || (ZMin < sampleZ - rayTraceHitThickness)) && 
 			sampleZ != 0.0f;
