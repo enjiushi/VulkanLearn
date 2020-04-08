@@ -632,6 +632,22 @@ void VulkanGlobal::InitMaterials()
 	m_pBoxMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pBoxMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
+	m_pBoxMaterialInstance3 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
+	m_pBoxMaterialInstance3->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pBoxMaterialInstance3->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 0.0f, 0.9f));
+	m_pBoxMaterialInstance3->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pBoxMaterialInstance3->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance3->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance3->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+
+	m_pBoxMaterialInstance4 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
+	m_pBoxMaterialInstance4->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pBoxMaterialInstance4->SetParameter("AlbedoRoughness", Vector4f(1.0f, 0.0f, 0.0f, 0.9f));
+	m_pBoxMaterialInstance4->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pBoxMaterialInstance4->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance4->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance4->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+
 	m_pSophiaMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRSkinnedMaterialInstance();
 	m_pSophiaMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pSophiaMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
@@ -764,11 +780,15 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject0 = BaseObject::Create();
 	m_pBoxObject1 = BaseObject::Create();
 	m_pBoxObject2 = BaseObject::Create();
+	m_pBoxObject3 = BaseObject::Create();
+	m_pBoxObject4 = BaseObject::Create();
 
 	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer0 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
+	m_pBoxRenderer3 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance3 });
+	m_pBoxRenderer4 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance4 });
 
 	m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp, 6360000);
 
@@ -831,6 +851,16 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject2->SetScale(0.15f);
 	m_pBoxObject2->SetPos(-0.2f, -0.25f, 0.5f);
 
+	m_pBoxObject3->AddComponent(m_pBoxRenderer3);
+	m_pBoxObject3->SetScale({ 700000, 1000, 1000 });
+	m_pBoxObject3->SetPos(0, -9000, 7000);
+	m_pBoxObject3->SetRotation(Matrix3d::EulerAngle(0, -0.61, 0));
+
+	m_pBoxObject4->AddComponent(m_pBoxRenderer4);
+	m_pBoxObject4->SetScale({ 10000, 700000, 10000 });
+	m_pBoxObject4->SetPos(130000, 5000, 150000);
+	m_pBoxObject4->SetRotation(Matrix3d::EulerAngle(0, -0.5, 0));
+
 	Quaterniond rot = Quaterniond(Vector3d(1, 0, 0), 0);
 	m_pQuadObject->SetRotation(Quaterniond(Vector3d(1, 0, 0), -1.57));
 
@@ -867,6 +897,8 @@ void VulkanGlobal::InitScene()
 	m_pSceneRootObject->AddChild(m_pBoxObject0);
 	m_pSceneRootObject->AddChild(m_pBoxObject1);
 	m_pSceneRootObject->AddChild(m_pBoxObject2);
+	m_pSceneRootObject->AddChild(m_pBoxObject3);
+	m_pSceneRootObject->AddChild(m_pBoxObject4);
 	m_pSceneRootObject->AddChild(m_pSophiaObject);
 	m_pSceneRootObject->AddChild(m_pDirLightObj);
 	m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 9000);
