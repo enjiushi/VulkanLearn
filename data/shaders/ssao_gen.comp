@@ -109,7 +109,7 @@ vec4 RayMarch(vec3 sampleCSNormal, vec3 csNormal, vec3 position, vec2 uv, vec3 c
 
 	vec2 hit;
 
-	for (;(stepCount <= rayTraceMaxStep - 1) &&
+    for (;(stepCount <= rayTraceMaxStep - 1) &&
 			//(ZMax > (sampleZ - rayTraceHitThickness)) &&
 			((ZMax > sampleZ) || (ZMin < sampleZ - rayTraceHitThickness)) && 
 			sampleZ != 0.0f;
@@ -143,6 +143,12 @@ vec4 RayMarch(vec3 sampleCSNormal, vec3 csNormal, vec3 position, vec2 uv, vec3 c
 	rayHitInfo.b = stepCount;
 	rayHitInfo.a = float((ZMax < sampleZ) && (ZMin > sampleZ - rayTraceHitThickness) && (dot(hitNormal, csReflectDir.xyz) < 0));
 
+	rayHitInfo.r = Q0.z;
+	rayHitInfo.g = Q1.z;
+	rayHitInfo.b = (Q1 - Q0).z;
+	rayHitInfo.a = float((ZMax < sampleZ) && (ZMin > sampleZ - rayTraceHitThickness) && (dot(hitNormal, csReflectDir.xyz) < 0));
+	//rayHitInfo.a = rayHitInfo.a > 0.0f ? -ZMin : ZMin;
+	rayHitInfo.a = rayHitInfo.a > 0.0f ? -csRayOrigin.z : csRayOrigin.z;
 
 	return rayHitInfo;
 }
@@ -249,8 +255,8 @@ void main()
 	// z: pdf
 	// sign(w): -1 not hit, 1 hit
 	// w: step count
-	SSRInfo.a = SSRInfo.a > 0.0f ? SSRInfo.b : -SSRInfo.b;
-	SSRInfo.b = H.w;
+	//SSRInfo.a = SSRInfo.a > 0.0f ? SSRInfo.b : -SSRInfo.b;
+	//SSRInfo.b = H.w;
 
 	imageStore(outSSRInfo[frameIndex],	
 		ivec2(gl_GlobalInvocationID.xy), 
