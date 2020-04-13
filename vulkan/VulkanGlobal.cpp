@@ -930,7 +930,7 @@ public:
 	void ProcessKey(KeyState keyState, uint8_t keyCode) override;
 	void ProcessMouse(KeyState keyState, const Vector2d& mousePosition) override {}
 	void ProcessMouse(const Vector2d& mousePosition) override {}
-	float var = 0.0;
+	float var = 0.08333333;
 	bool boolVar = true;
 };
 
@@ -993,7 +993,7 @@ void VulkanGlobal::Draw()
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 
-	m_pCameraComp->SetFocalLength((1.0f - c->var) * 0.035f + c->var * 0.2f);
+	m_pCameraComp->SetFocalLength((1.0 - c->var) * 0.02 + c->var * 0.2);
 	m_pPlanetGenerator->ToggleCameraInfoUpdate(c->boolVar);
 
 	m_pRootObject->Update();
