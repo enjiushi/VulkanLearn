@@ -930,18 +930,18 @@ public:
 	void ProcessKey(KeyState keyState, uint8_t keyCode) override;
 	void ProcessMouse(KeyState keyState, const Vector2d& mousePosition) override {}
 	void ProcessMouse(const Vector2d& mousePosition) override {}
-	float var = 0.08333333;
+	double var = 0.08333333;
 	bool boolVar = true;
 };
 
 void VariableChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 {
-	static float interval = 0.01f;
-	static float varInterval = 0.005f;
+	static double interval = 0.01;
+	static double varInterval = 0.005;
 	if (keyCode == KEY_F)
 	{
 		var += varInterval;
-		var = var > 1.0f ? 1.0f : var;
+		var = var > 1.0 ? 1.0 : var;
 	}
 	if (keyCode == KEY_L)
 	{
