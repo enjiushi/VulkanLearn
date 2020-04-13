@@ -108,7 +108,7 @@ public:
 	* X: How far a hit to the edge of screen that it needs to be fade, to prevent from hard boundary
 	* Y: How many steps that a hit starts to fade, to prevent from hard boundary
 	* Z: Screen sized mipmap level count
-	* W: Reserved
+	* W: Max distance
 	*/
 	Vector4<T>	SSRSettings2;
 
@@ -315,6 +315,8 @@ public:
 	double GetSSRTStepCountFadingDist() const { return m_globalVariables.SSRSettings2.y; }
 	void SetScreenSizeMipLevel(double mipLevel);
 	double GetScreenSizeMipLevel() const { return m_globalVariables.SSRSettings2.z; }
+	void SetSSRTMaxDistance(double maxDistance);
+	double GetSSRTMaxDistance() const { return m_globalVariables.SSRSettings2.w; }
 
 	void SetTemporalSettings0(const Vector4d& setting);
 	Vector4d GetTemporalSettings0() const { return m_globalVariables.TemporalSettings0; }

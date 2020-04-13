@@ -27,7 +27,7 @@ float rayTraceStride = globalData.SSRSettings1.x;
 float rayTraceInitOffset = globalData.SSRSettings1.y;
 float rayTraceMaxStep = globalData.SSRSettings1.z;
 float rayTraceHitThickness = globalData.SSRSettings1.w;
-float maxDistance = 5000000.0f;
+float maxDistance = globalData.SSRSettings2.w;
 
 void UnpackNormalRoughness(ivec2 coord, out vec3 normal, out float roughness)
 {

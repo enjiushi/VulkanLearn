@@ -700,6 +700,7 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTThickness(0.05);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTBorderFadingDist(0.05);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStepCountFadingDist(0.1);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTMaxDistance(5000000);
 
 	uint32_t smaller = FrameBufferDiction::WINDOW_HEIGHT < FrameBufferDiction::WINDOW_WIDTH ? FrameBufferDiction::WINDOW_HEIGHT : FrameBufferDiction::WINDOW_WIDTH;
 	UniformData::GetInstance()->GetGlobalUniforms()->SetScreenSizeMipLevel(log2(smaller) + 1);

@@ -356,6 +356,13 @@ void GlobalUniforms::SetScreenSizeMipLevel(double mipLevel)
 	SetDirty();
 }
 
+void GlobalUniforms::SetSSRTMaxDistance(double maxDistance)
+{
+	m_globalVariables.SSRSettings2.w = maxDistance;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, SSRSettings2.w);
+	SetDirty();
+}
+
 void GlobalUniforms::SetTemporalSettings0(const Vector4d& setting)
 {
 	m_globalVariables.TemporalSettings0 = setting;
