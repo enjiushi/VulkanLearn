@@ -131,6 +131,9 @@ public:
 	virtual void OnFrameBegin();
 	virtual void OnFrameEnd();
 
+	virtual void UpdatePushConstantDataInternal(const void* pData, uint32_t size) {}
+	void UpdatePushConstantData(const void* pData, uint32_t size) { UpdatePushConstantDataInternal(pData, size); }
+
 protected:
 	virtual void BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	virtual void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
