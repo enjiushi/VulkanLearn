@@ -409,7 +409,7 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 
 	CustomizedComputeMaterial::Variables variables =
 	{
-		L"../data/shaders/ssao_gen.comp.spv",
+		L"../data/shaders/ssao_ssr_gen.comp.spv",
 		groupNum,
 		textureUnits,
 		pushConstantData
