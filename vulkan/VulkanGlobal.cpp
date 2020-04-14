@@ -830,13 +830,13 @@ void VulkanGlobal::InitScene()
 
 	m_pSphereRenderer3 = MeshRenderer::Create(sceneInfo.meshLinks[0].first, { m_pSphereMaterialInstance3 });
 	m_pSphere3->AddComponent(m_pSphereRenderer3);
-	m_pSphere3->SetPos(150000, 5000, 150000);
+	m_pSphere3->SetPos(150000, m_pPlanetGenerator->GetPlanetRadius() + 5000, 150000);
 	m_pSphere3->SetScale(1000.0);
 
 	m_pSphereRenderer4 = MeshRenderer::Create(sceneInfo.meshLinks[0].first, { m_pSphereMaterialInstance4 });
 	m_pSphere4->AddComponent(m_pSphereRenderer4);
-	m_pSphere4->SetPos(100000000, 0, 50000000);
-	m_pSphere4->SetScale(100000.0);
+	m_pSphere4->SetPos(100000000, m_pPlanetGenerator->GetPlanetRadius() + 9000, 50000000);
+	m_pSphere4->SetScale(2000000.0);
 	sceneInfo.meshLinks.clear();
 
 	m_pInnerBall = AssimpSceneReader::ReadAndAssemblyScene("../data/models/Sample.FBX", { VertexFormatPNTCT }, sceneInfo);
@@ -868,12 +868,12 @@ void VulkanGlobal::InitScene()
 
 	m_pBoxObject3->AddComponent(m_pBoxRenderer3);
 	m_pBoxObject3->SetScale({ 700000, 1000, 1000 });
-	m_pBoxObject3->SetPos(0, -9000, 7000);
+	m_pBoxObject3->SetPos(0, m_pPlanetGenerator->GetPlanetRadius() + 3000, 7000);
 	m_pBoxObject3->SetRotation(Matrix3d::EulerAngle(0, -0.61, 0));
 
 	m_pBoxObject4->AddComponent(m_pBoxRenderer4);
 	m_pBoxObject4->SetScale({ 10000, 700000, 10000 });
-	m_pBoxObject4->SetPos(130000, 5000, 150000);
+	m_pBoxObject4->SetPos(130000, m_pPlanetGenerator->GetPlanetRadius() + 15000, 150000);
 	m_pBoxObject4->SetRotation(Matrix3d::EulerAngle(0, -0.5, 0));
 
 	Quaterniond rot = Quaterniond(Vector3d(1, 0, 0), 0);
@@ -906,15 +906,11 @@ void VulkanGlobal::InitScene()
 	m_pSceneRootObject->AddChild(m_pSphere0);
 	m_pSceneRootObject->AddChild(m_pSphere1);
 	m_pSceneRootObject->AddChild(m_pSphere2);
-	m_pSceneRootObject->AddChild(m_pSphere3);
-	m_pSceneRootObject->AddChild(m_pSphere4);
 	m_pSceneRootObject->AddChild(m_pInnerBall);
 	m_pSceneRootObject->AddChild(m_pQuadObject);
 	m_pSceneRootObject->AddChild(m_pBoxObject0);
 	m_pSceneRootObject->AddChild(m_pBoxObject1);
 	m_pSceneRootObject->AddChild(m_pBoxObject2);
-	m_pSceneRootObject->AddChild(m_pBoxObject3);
-	m_pSceneRootObject->AddChild(m_pBoxObject4);
 	m_pSceneRootObject->AddChild(m_pSophiaObject);
 	m_pSceneRootObject->AddChild(m_pDirLightObj);
 	m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 9000);
@@ -922,6 +918,10 @@ void VulkanGlobal::InitScene()
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pSceneRootObject);
 	m_pRootObject->AddChild(m_pPlanetObject);
+	m_pRootObject->AddChild(m_pSphere3);
+	m_pRootObject->AddChild(m_pBoxObject3);
+	m_pRootObject->AddChild(m_pBoxObject4);
+	m_pRootObject->AddChild(m_pSphere4);
 }
 
 class VariableChanger : public IInputListener
