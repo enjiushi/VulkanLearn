@@ -72,6 +72,8 @@ public:
 		const std::shared_ptr<Fence>& pFence,
 		bool waitUtilQueueIdle = false);
 
+	void WaitForIdle();
+
 public:
 	static std::shared_ptr<Queue> Create(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex);
 

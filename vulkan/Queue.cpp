@@ -164,3 +164,8 @@ void Queue::SubmitCommandBuffers(
 		CHECK_VK_ERROR(vkQueueWaitIdle(GetDeviceHandle()));
 	}
 }
+
+void Queue::WaitForIdle()
+{
+	CHECK_VK_ERROR(vkQueueWaitIdle(GetDeviceHandle()));
+}
