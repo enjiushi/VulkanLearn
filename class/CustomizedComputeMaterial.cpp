@@ -6,6 +6,7 @@
 #include "../vulkan/Sampler.h"
 #include "../vulkan/ImageView.h"
 #include "../vulkan/CommandBuffer.h"
+#include "../common/Util.h"
 
 std::shared_ptr<CustomizedComputeMaterial> CustomizedComputeMaterial::CreateMaterial(const CustomizedComputeMaterial::Variables& variables)
 {
@@ -165,4 +166,9 @@ void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<Com
 		{},
 		barriers
 	);
+}
+
+void CustomizedComputeMaterial::UpdatePushConstantDataInternal(const void* pData, uint32_t size)
+{
+	TransferBytesToVector(m_variables.pushConstantData, pData, size);
 }
