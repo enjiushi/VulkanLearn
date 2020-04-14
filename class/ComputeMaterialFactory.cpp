@@ -11,6 +11,61 @@
 // FIXME: hard-code
 static uint32_t groupSize = 16;
 
+std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::shared_ptr<Image>& pOutputImage)
+{
+	std::vector<CombinedImage> _outputImages;
+	_outputImages.push_back
+	({
+		pOutputImage,
+		pOutputImage->CreateLinearClampToEdgeSampler(),
+		pOutputImage->CreateDefaultImageView()
+	});
+
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	textureUnits.push_back
+	(
+		{
+			0,
+
+			_outputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					false
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	Vector3ui groupNum =
+	{
+		(uint32_t)std::ceil((double)_outputImages[0].pImage->GetImageInfo().extent.width / (double)groupSize),
+		(uint32_t)std::ceil((double)_outputImages[0].pImage->GetImageInfo().extent.height / (double)groupSize),
+		1
+	};
+
+	std::vector<uint8_t> pushConstantData;
+	pushConstantData.resize(sizeof(Vector4f) * 6);
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		L"../data/shaders/skybox_gen.comp.spv",
+		groupNum,
+		textureUnits,
+		pushConstantData
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
+
 std::shared_ptr<Material> CreateTileMaxMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages)
 {
 	std::vector<CombinedImage> _inputImages;
