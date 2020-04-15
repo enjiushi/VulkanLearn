@@ -108,6 +108,7 @@ public:
 	static std::shared_ptr<Image> CreateCubeTexture(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, VkFormat format);
+	static std::shared_ptr<Image> CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, VkFormat format, VkImageLayout layout, VkImageUsageFlagBits extraUsage);
 
 	// DepthStencilBuffer:
 	static std::shared_ptr<Image> CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size);

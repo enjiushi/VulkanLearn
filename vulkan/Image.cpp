@@ -742,6 +742,27 @@ std::shared_ptr<Image> Image::CreateEmptyCubeTexture(const std::shared_ptr<Devic
 	);
 }
 
+std::shared_ptr<Image> Image::CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, VkFormat format, VkImageLayout layout, VkImageUsageFlagBits extraUsage)
+{
+	uint32_t extraStageFlags = 0;
+	if (extraUsage | VK_IMAGE_USAGE_STORAGE_BIT)
+		extraStageFlags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		mipLevels,
+		6,
+		format,
+		layout,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | extraUsage,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | extraStageFlags,
+		VK_ACCESS_SHADER_READ_BIT,
+		VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT
+	);
+}
+
 std::shared_ptr<Image> Image::CreateCubeTexture(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format)
 {
 	gli::texture_cube gliTexCube(gli::load(path.c_str()));
