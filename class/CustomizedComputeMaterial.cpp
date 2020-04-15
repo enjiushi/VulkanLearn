@@ -170,5 +170,6 @@ void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<Com
 
 void CustomizedComputeMaterial::UpdatePushConstantDataInternal(const void* pData, uint32_t size)
 {
+	m_variables.pushConstantData.clear();
 	TransferBytesToVector(m_variables.pushConstantData, pData, size);
 }
