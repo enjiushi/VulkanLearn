@@ -1929,4 +1929,40 @@ IrradianceSpectrum GetSunAndSkyIrradiance(
 		sky_irradiance);
 }
 
+void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirection, out vec3 radiance)
+{
+	uint planetChunkIndex = 0;	// FIXME: Hard-code
+	vec3 transmittance;
+	radiance = GetSkyRadiance(cameraPosition / 1000,	// Unit is km underlay
+		viewDirection, 
+		0, 
+		sunDirection, 
+		planetChunkIndex,
+		transmittance);
+
+	// If the view ray intersects the Sun, add the Sun radiance.
+	if (dot(viewDirection, sunDirection) > globalData.PlanetRenderingSettings2.x) {
+		radiance = radiance + transmittance * GetSolarRadiance(planetChunkIndex);
+	}
+
+	radiance *= 4;	// FIXME: parameter this(due to difference of light strength unit)
+}
+
+void GetRadianceToSurface(vec3 cameraPosition, vec3 surfacePosition, vec3 surfaceNormal, vec3 sunDirection, 
+							vec3 surfacePunctualRadiance, vec3 surfaceAmbientRadiance,
+							out vec3 aerialPerspectivePunctual, out vec3 aerialPerspectiveAmbient)
+{
+	uint planetChunkIndex = 0;	// FIXME: Hard-code
+	vec3 transmittance;
+	vec3 inScatter = GetSkyRadianceToPoint(cameraPosition / 1000,	// Unit is km underlay
+		surfacePosition / 1000, 
+		0, 
+		sunDirection, 
+		planetChunkIndex,
+		transmittance) * 4;	// FIXME: parameter this(due to difference of light strength unit)
+
+	aerialPerspectivePunctual = surfacePunctualRadiance * transmittance + inScatter;
+	aerialPerspectiveAmbient   = surfaceAmbientRadiance * transmittance;
+}
+
 #endif
