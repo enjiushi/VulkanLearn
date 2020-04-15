@@ -53,7 +53,7 @@ std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::shared_ptr<Image>& 
 	};
 
 	std::vector<uint8_t> pushConstantData;
-	pushConstantData.resize(sizeof(Vector4f) * 6);
+	pushConstantData.resize(sizeof(Vector4f) * 4);
 
 	CustomizedComputeMaterial::Variables variables =
 	{
