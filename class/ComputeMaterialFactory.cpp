@@ -18,7 +18,7 @@ std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::shared_ptr<Image>& 
 	({
 		pOutputImage,
 		pOutputImage->CreateLinearClampToEdgeSampler(),
-		pOutputImage->CreateDefaultImageView()
+		pOutputImage->CreateDefaultImageView(true)
 	});
 
 	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;

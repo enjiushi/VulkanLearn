@@ -273,7 +273,7 @@ std::shared_ptr<Sampler> Image::CreateLinearClampToEdgeSampler() const
 	return Sampler::Create(GetDevice(), samplerCreateInfo);
 }
 
-std::shared_ptr<ImageView> Image::CreateDefaultImageView() const
+std::shared_ptr<ImageView> Image::CreateDefaultImageView(bool isStorage) const
 {
 	VkImageViewCreateInfo imgViewCreateInfo = {};
 	imgViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -295,7 +295,10 @@ std::shared_ptr<ImageView> Image::CreateDefaultImageView() const
 
 	if (m_info.flags == VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
 	{
-		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+		if (isStorage)
+			imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+		else
+			imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
 	}
 	else if (m_info.arrayLayers > 1)
 	{
