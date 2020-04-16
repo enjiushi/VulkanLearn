@@ -19,7 +19,10 @@ void main()
 	vec2 texelSize = vec2(1) / vec2(size);
 
 	vec4 color = DownsampleBox13Tap(DOFResults[frameIndex], uv, texelSize);
-	float factor = smoothstep(globalData.BloomSettings0.x, globalData.BloomSettings0.y, Luminance(color.rgb));
+
+	float luminance = Luminance(color.rgb);
+	float factor = clamp(luminance, globalData.BloomSettings0.x, globalData.BloomSettings0.y) -  globalData.BloomSettings0.x;
+	factor /= luminance;
 
 	if (any(greaterThanEqual(gl_GlobalInvocationID.xy, size)))
 		return;
