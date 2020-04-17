@@ -14,6 +14,8 @@ bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t fra
 
 	m_pPersistantCBPool = CommandPool::Create(pDevice, pDevice->GetPhysicalDevice()->GetGraphicQueueIndex(), pSelf);
 	m_pTransientCBPool = CommandPool::CreateTransientCBPool(pDevice, pDevice->GetPhysicalDevice()->GetGraphicQueueIndex(), pSelf);
+	m_pPersistantComputeCBPool = CommandPool::Create(pDevice, pDevice->GetPhysicalDevice()->GetComputeQueueIndex(), pSelf);
+	m_pTransientComputeCBPool = CommandPool::CreateTransientCBPool(pDevice, pDevice->GetPhysicalDevice()->GetComputeQueueIndex(), pSelf);
 
 	std::vector<VkDescriptorPoolSize> descPoolSize =
 	{
@@ -25,13 +27,6 @@ bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t fra
 		}
 	};
 
-	VkDescriptorPoolCreateInfo descPoolInfo = {};
-	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	descPoolInfo.pPoolSizes = descPoolSize.data();
-	descPoolInfo.poolSizeCount = (uint32_t)descPoolSize.size();
-	descPoolInfo.maxSets = 10;
-	m_pDescriptorPool = DescriptorPool::Create(pDevice, descPoolInfo);
-	
 	m_frameIndex = frameIndex;
 
 	return true;
@@ -65,8 +60,12 @@ std::shared_ptr<CommandBuffer> PerFrameResource::AllocateTransientSecondaryComma
 	return m_pTransientCBPool->AllocateSecondaryCommandBuffer();
 }
 
-
-std::shared_ptr<DescriptorSet> PerFrameResource::AllocateDescriptorSet(const std::shared_ptr<DescriptorSetLayout>& pDsLayout)
+std::shared_ptr<CommandBuffer> PerFrameResource::AllocatePersistantComputeCommandBuffer()
 {
-	return m_pDescriptorPool->AllocateDescriptorSet(pDsLayout);
+	return m_pPersistantComputeCBPool->AllocatePrimaryCommandBuffer();
+}
+
+std::shared_ptr<CommandBuffer> PerFrameResource::AllocateTransientComputeCommandBuffer()
+{
+	return m_pTransientComputeCBPool->AllocatePrimaryCommandBuffer();
 }

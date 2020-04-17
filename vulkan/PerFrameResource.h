@@ -22,12 +22,14 @@ public:
 	std::shared_ptr<CommandBuffer> AllocatePersistantSecondaryCommandBuffer();
 	std::shared_ptr<CommandBuffer> AllocateTransientPrimaryCommandBuffer();
 	std::shared_ptr<CommandBuffer> AllocateTransientSecondaryCommandBuffer();
-	std::shared_ptr<DescriptorSet> AllocateDescriptorSet(const std::shared_ptr<DescriptorSetLayout>& pDsLayout);
+	std::shared_ptr<CommandBuffer> AllocatePersistantComputeCommandBuffer();
+	std::shared_ptr<CommandBuffer> AllocateTransientComputeCommandBuffer();
 	uint32_t GetFrameIndex() const { return m_frameIndex; }
 
 private:
 	std::shared_ptr<CommandPool>		m_pPersistantCBPool;
 	std::shared_ptr<CommandPool>		m_pTransientCBPool;
-	std::shared_ptr<DescriptorPool>		m_pDescriptorPool;
+	std::shared_ptr<CommandPool>		m_pPersistantComputeCBPool;
+	std::shared_ptr<CommandPool>		m_pTransientComputeCBPool;
 	uint32_t							m_frameIndex;
 };
