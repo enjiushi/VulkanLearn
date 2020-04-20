@@ -64,6 +64,7 @@ public:
 		Combine,
 		PostProcess,
 		SkyboxGen,
+		IrradianceGen1,
 		MaterialEnumCount
 	};
 

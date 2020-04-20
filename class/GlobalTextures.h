@@ -54,6 +54,7 @@ class GlobalTextures : public SelfRefBase<GlobalTextures>, public IMaterialUnifo
 {
 public:
 	const static uint32_t SSAO_RANDOM_ROTATION_COUNT = 16;
+	const static uint32_t ENV_MAP_SIZE = 512;
 
 public:
 	static std::shared_ptr<GlobalTextures> Create();
@@ -80,7 +81,7 @@ public:
 	virtual std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
-	std::shared_ptr<Image> GetSkyboxTexture() const { return m_pSkyboxTexture; }
+	std::shared_ptr<Image> GetIBLTextureCube1(IBLTextureType type) const { return m_IBLCubeTextures1[type]; }
 	void GenerateSkyBox(uint32_t chunkIndex);
 
 protected:
@@ -102,7 +103,7 @@ protected:
 	TextureArrayDesc							m_screenSizeTextureDiction;
 	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures;
 	std::vector<std::shared_ptr<Image>>			m_IBL2DTextures;
-	std::shared_ptr<Image>						m_pSkyboxTexture;
+	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures1;
 	std::shared_ptr<Image>						m_pSSAORandomRotations;
 
 	std::vector<std::shared_ptr<Image>>			m_transmittanceTextureDiction;
@@ -116,7 +117,16 @@ protected:
 	std::shared_ptr<Image>						m_pDeltaScatterDensity;
 	std::shared_ptr<Image>						m_pDeltaMultiScatter;
 
+	// Skybox generation related
+	enum class EnvGenState
+	{
+		SKYBOX_GEN,
+		REFLECTION_GEN,
+		IRRADIANCE_GEN,
+		COUNT
+	};
 	Vector4f									m_cubeFaces[6][4];
-	uint32_t									m_perFrameBackgroundWorkIndex = 0;
+	EnvGenState									m_envGenState;
+	uint32_t									m_envJobCounter = 0;
 	std::shared_ptr<CommandBuffer>				m_pSkyboxGenCmdBuf;
 };

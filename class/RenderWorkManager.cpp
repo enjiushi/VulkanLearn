@@ -118,7 +118,8 @@ bool RenderWorkManager::Init()
 		}break;
 		case Combine:			m_materials[i] = { { CreateCombineMaterial() } }; break;
 		case PostProcess:		m_materials[i] = { { PostProcessingMaterial::CreateDefaultMaterial() } }; break;
-		case SkyboxGen:			m_materials[i] = { { CreateSkyboxGenMaterial(UniformData::GetInstance()->GetGlobalTextures()->GetSkyboxTexture()) } }; break;
+		case SkyboxGen:			m_materials[i] = { { CreateSkyboxGenMaterial(UniformData::GetInstance()->GetGlobalTextures()->GetIBLTextureCube1(RGBA16_1024_SkyBox)) } }; break;
+		case IrradianceGen1:	m_materials[i] = { { CreateIrradianceGenMaterial(UniformData::GetInstance()->GetGlobalTextures()->GetIBLTextureCube1(RGBA16_1024_SkyBox), UniformData::GetInstance()->GetGlobalTextures()->GetIBLTextureCube1(RGBA16_512_SkyBoxIrradiance)) } }; break;
 						 
 		default:
 			ASSERTION(false);
