@@ -209,8 +209,10 @@ void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<Comman
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+	imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imgBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
 	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
 	barriers.push_back(imgBarrier);
 

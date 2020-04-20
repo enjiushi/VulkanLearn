@@ -261,8 +261,10 @@ void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<BufferBase>& p
 		imgBarrier.subresourceRange = subresourceRange;
 		imgBarrier.oldLayout = pDst->GetImageInfo().initialLayout;
 		imgBarrier.srcAccessMask = pDst->GetAccessFlags();
+		imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
 		imgBarriers.push_back(imgBarrier);
 	}
@@ -324,8 +326,10 @@ void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<BufferBase>& pS
 		imgBarrier.subresourceRange = subresourceRange;
 		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imgBarrier.newLayout = pDst->GetImageInfo().initialLayout;
 		imgBarrier.dstAccessMask = pDst->GetAccessFlags();
+		imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
 		imgBarriers.push_back(imgBarrier);
 	}
@@ -351,8 +355,10 @@ void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Image>& pSrc, 
 		imgBarrier.image = pSrc->GetDeviceHandle();
 		imgBarrier.oldLayout = pSrc->GetImageInfo().initialLayout;
 		imgBarrier.srcAccessMask = pSrc->GetAccessFlags();
+		imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 		imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imgBarrier.subresourceRange =
 		{
 			regions[i].srcSubresource.aspectMask,
@@ -414,8 +420,10 @@ void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Image>& pSrc, c
 		imgBarrier.image = pSrc->GetDeviceHandle();
 		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 		imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imgBarrier.newLayout = pSrc->GetImageInfo().initialLayout;
 		imgBarrier.dstAccessMask = pSrc->GetAccessFlags();
+		imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imgBarrier.subresourceRange =
 		{
 			regions[i].srcSubresource.aspectMask,
@@ -473,8 +481,10 @@ void CommandBuffer::IssueBarriersBeforeCopy(const std::shared_ptr<Image>& pSrc, 
 	imgBarrier.image = pSrc->GetDeviceHandle();
 	imgBarrier.oldLayout = pSrc->GetImageInfo().initialLayout;
 	imgBarrier.srcAccessMask = pSrc->GetAccessFlags();
+	imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 	imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imgBarrier.subresourceRange =
 	{
 		srcLayers.aspectMask,
@@ -522,8 +532,10 @@ void CommandBuffer::IssueBarriersAfterCopy(const std::shared_ptr<Image>& pSrc, c
 	imgBarrier.image = pSrc->GetDeviceHandle();
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 	imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imgBarrier.newLayout = pSrc->GetImageInfo().initialLayout;
 	imgBarrier.dstAccessMask = pSrc->GetAccessFlags();
+	imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imgBarrier.subresourceRange =
 	{
 		srcLayers.aspectMask,

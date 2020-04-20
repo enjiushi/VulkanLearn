@@ -106,15 +106,14 @@ void CustomizedComputeMaterial::AssembleBarrier(const TextureUnit& textureUnit, 
 	barrier.subresourceRange	= subresRange;
 	barrier.oldLayout			= textureUnit.textureBarrier[barrierInsertPoint].oldImageLayout;
 	barrier.srcAccessMask		= textureUnit.textureBarrier[barrierInsertPoint].srcAccessFlags;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.newLayout			= textureUnit.textureBarrier[barrierInsertPoint].newImageLayout;
 	barrier.dstAccessMask		= textureUnit.textureBarrier[barrierInsertPoint].dstAccessFlags;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 }
 
 void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong)
 {
-	if (barrierInsertionPoint == Material::BarrierInsertionPoint::AFTER_DISPATCH)
-		return;
-
 	std::vector<VkImageMemoryBarrier> barriers;
 	VkPipelineStageFlags srcStages = 0;
 	VkPipelineStageFlags dstStages = 0;

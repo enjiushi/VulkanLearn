@@ -114,9 +114,11 @@ void Image::EnsureImageLayout()
 	imgBarrier.image = GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imgBarrier.srcAccessMask = 0;
 	imgBarrier.newLayout = m_info.initialLayout;
 	imgBarrier.dstAccessMask = 0;
+	imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
 	pCmdBuffer->AttachBarriers
 	(
