@@ -125,7 +125,8 @@ void main()
 		vec3 WSViewDir = mat3(perFrameData.viewCoordSystem) * normalize(CSViewDir);
 	    vec3 skyRadiance;
 		vec3 sunRadiance;
-        GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, WSViewDir, perFrameData.wsMainLightDir.xyz, skyRadiance, sunRadiance);
+		// FIXME: Hard-coded planet chunk index. This variable should come from client side
+        GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, WSViewDir, perFrameData.wsMainLightDir.xyz, 0, skyRadiance, sunRadiance);
 		imageStore(outShadingColor[frameIndex],	
 			ivec2(gl_GlobalInvocationID.xy), 
 			vec4(skyRadiance + sunRadiance, vars.albedoRoughness.a));

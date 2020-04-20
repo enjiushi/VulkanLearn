@@ -20,6 +20,8 @@ void main()
 	ivec3 size = imageSize(envSkybox);
 	vec2 uv = vec2(gl_GlobalInvocationID.xy + 0.5f) / vec2(size.xy);
 
+	uint planetChunkIndex = uint(pushConsts.corners[3].w);
+
 	vec3 bottomLeft		= pushConsts.corners[0].xyz;
 	vec3 bottomRight	= pushConsts.corners[1].xyz;
 	vec3 topLeft		= pushConsts.corners[2].xyz;
@@ -29,7 +31,7 @@ void main()
 
 	vec3 skyRadiance;
 	vec3 sunRadiance;
-    GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, viewDir, perFrameData.wsMainLightDir.xyz, skyRadiance, sunRadiance);
+    GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, viewDir, perFrameData.wsMainLightDir.xyz, planetChunkIndex, skyRadiance, sunRadiance);
 
 	imageStore(envSkybox,	
 		ivec3(gl_GlobalInvocationID.xy, pushConsts.corners[0].w),	// Hack: Put face id to the w component of the first corner

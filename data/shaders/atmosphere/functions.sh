@@ -1929,9 +1929,8 @@ IrradianceSpectrum GetSunAndSkyIrradiance(
 		sky_irradiance);
 }
 
-void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirection, out vec3 skyRadiance, out vec3 sunRadiance)
+void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirection, uint planetChunkIndex, out vec3 skyRadiance, out vec3 sunRadiance)
 {
-	uint planetChunkIndex = 0;	// FIXME: Hard-code
 	vec3 transmittance;
 	skyRadiance = GetSkyRadiance(cameraPosition / 1000,	// Unit is km underlay
 		viewDirection, 

@@ -28,6 +28,8 @@ void main()
 	ivec3 size = imageSize(envIrradiance);
 	vec2 uv = vec2(coord + 0.5f) / vec2(size.xy);
 
+	uint planetChunkIndex = uint(pushConsts.corners[3].w);
+
 	vec3 bottomLeft		= pushConsts.corners[0].xyz;
 	vec3 bottomRight	= pushConsts.corners[1].xyz;
 	vec3 topLeft		= pushConsts.corners[2].xyz;
