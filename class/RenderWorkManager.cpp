@@ -118,6 +118,7 @@ bool RenderWorkManager::Init()
 		}break;
 		case Combine:			m_materials[i] = { { CreateCombineMaterial() } }; break;
 		case PostProcess:		m_materials[i] = { { PostProcessingMaterial::CreateDefaultMaterial() } }; break;
+		case SkyboxGen:			m_materials[i] = { { CreateSkyboxGenMaterial(UniformData::GetInstance()->GetGlobalTextures()->GetSkyboxTexture()) } }; break;
 						 
 		default:
 			ASSERTION(false);

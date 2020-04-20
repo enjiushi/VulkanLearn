@@ -8,6 +8,9 @@
 #include "../vulkan/Queue.h"
 #include "../vulkan/StagingBufferManager.h"
 #include "../vulkan/Framebuffer.h"
+#include "../vulkan/Fence.h"
+#include "../vulkan/PerFrameResource.h"
+#include "../vulkan/FrameManager.h"
 #include "../class/RenderWorkManager.h"
 #include "../class/Mesh.h"
 #include "../component/MeshRenderer.h"
@@ -15,10 +18,12 @@
 #include "../scene/SceneGenerator.h"
 #include "../class/RenderPassDiction.h"
 #include "../vulkan/DescriptorSet.h"
+#include "../thread/ThreadTaskQueue.hpp"
 #include "ForwardRenderPass.h"
 #include "GlobalTextures.h"
 #include "Material.h"
 #include "ForwardMaterial.h"
+#include "ComputeMaterialFactory.h"
 #include "../Maths/Vector.h"
 #include "FrameBufferDiction.h"
 #include <random>
@@ -37,6 +42,7 @@ bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 	InitIBLTextures();
 	InitSSAORandomRotationTexture();
 	InitTransmittanceTextureDiction();
+	InitSkyboxGenParameters();
 
 	return true;
 }
@@ -87,6 +93,107 @@ void GlobalTextures::InitIBLTextures()
 		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 	};
 	m_IBL2DTextures[RGBA16_512_BRDFLut] = Image::CreateEmptyTexture2D(GetDevice(), size, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+
+	m_pSkyboxTexture = Image::CreateEmptyCubeTexture(GetDevice(), { 512, 512 }, (uint32_t)std::log2(512) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_USAGE_STORAGE_BIT);
+}
+
+void GlobalTextures::InitSkyboxGenParameters()
+{
+	enum CubeCorner
+	{
+		BOTTOM_LEFT_FRONT,
+		BOTTOM_RIGHT_FRONT,
+		TOP_LEFT_FRONT,
+		TOP_RIGHT_FRONT,
+		BOTTOM_LEFT_BACK,
+		BOTTOM_RIGHT_BACK,
+		TOP_LEFT_BACK,
+		TOP_RIGHT_BACK,
+		CUBE_CORNER_COUNT
+	};
+
+	enum CubeFace
+	{
+		RIGHT,
+		LEFT,
+		TOP,
+		BOTTOM,
+		BACK,
+		FRONT,
+		CUBE_FACE_COUNT
+	};
+
+	Vector4f cubeConers[] =
+	{
+		{ -1, -1,  1, 0 },
+		{  1, -1,  1, 0 },
+		{ -1,  1,  1, 0 },
+		{  1,  1,  1, 0 },
+		{ -1, -1, -1, 0 },
+		{  1, -1, -1, 0 },
+		{ -1,  1, -1, 0 },
+		{  1,  1, -1, 0 }
+	};
+
+	// Note: Negative z is front, and positive z is back, reversed compare to other faces. So we reverse them here
+	m_cubeFaces[RIGHT][0] = cubeConers[BOTTOM_RIGHT_BACK];
+	m_cubeFaces[RIGHT][1] = cubeConers[BOTTOM_RIGHT_FRONT];
+	m_cubeFaces[RIGHT][2] = cubeConers[TOP_RIGHT_BACK];
+	m_cubeFaces[RIGHT][3] = cubeConers[TOP_RIGHT_FRONT];
+
+	m_cubeFaces[LEFT][0] = cubeConers[BOTTOM_LEFT_FRONT];
+	m_cubeFaces[LEFT][1] = cubeConers[BOTTOM_LEFT_BACK];
+	m_cubeFaces[LEFT][2] = cubeConers[TOP_LEFT_FRONT];
+	m_cubeFaces[LEFT][3] = cubeConers[TOP_LEFT_BACK];
+
+	m_cubeFaces[TOP][0] = cubeConers[TOP_LEFT_BACK];
+	m_cubeFaces[TOP][1] = cubeConers[TOP_RIGHT_BACK];
+	m_cubeFaces[TOP][2] = cubeConers[TOP_LEFT_FRONT];
+	m_cubeFaces[TOP][3] = cubeConers[TOP_RIGHT_FRONT];
+
+	m_cubeFaces[BOTTOM][0] = cubeConers[BOTTOM_LEFT_FRONT];
+	m_cubeFaces[BOTTOM][1] = cubeConers[BOTTOM_RIGHT_FRONT];
+	m_cubeFaces[BOTTOM][2] = cubeConers[BOTTOM_LEFT_BACK];
+	m_cubeFaces[BOTTOM][3] = cubeConers[BOTTOM_RIGHT_BACK];
+
+	m_cubeFaces[BACK][0] = cubeConers[BOTTOM_RIGHT_FRONT];
+	m_cubeFaces[BACK][1] = cubeConers[BOTTOM_LEFT_FRONT];
+	m_cubeFaces[BACK][2] = cubeConers[TOP_RIGHT_FRONT];
+	m_cubeFaces[BACK][3] = cubeConers[TOP_LEFT_FRONT];
+
+	m_cubeFaces[FRONT][0] = cubeConers[BOTTOM_LEFT_BACK];
+	m_cubeFaces[FRONT][1] = cubeConers[BOTTOM_RIGHT_BACK];
+	m_cubeFaces[FRONT][2] = cubeConers[TOP_LEFT_BACK];
+	m_cubeFaces[FRONT][3] = cubeConers[TOP_RIGHT_BACK];
+
+	for (uint32_t i = 0; i < (uint32_t)CubeFace::CUBE_FACE_COUNT; i++)
+		for (uint32_t j = 0; j < 4; j++)
+			m_cubeFaces[i][j].Normalize();
+
+	m_perFrameBackgroundWorkIndex = 0;
+}
+
+void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
+{
+	if (m_pSkyboxGenCmdBuf != nullptr)
+		FrameMgr()->SubmitCommandBuffers(GlobalObjects()->GetComputeQueue(), { m_pSkyboxGenCmdBuf }, {}, false, false);
+
+	GlobalObjects()->GetThreadTaskQueue()->AddJobA(
+	[this](const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+	{
+		std::shared_ptr<Material> pMaterial = RenderWorkManager::GetInstance()->GetMaterial(RenderWorkManager::SkyboxGen);
+
+		m_pSkyboxGenCmdBuf = pPerFrameRes->AllocateTransientComputeCommandBuffer();
+		m_pSkyboxGenCmdBuf->StartPrimaryRecording();
+		m_cubeFaces[m_perFrameBackgroundWorkIndex][0].w = (float)m_perFrameBackgroundWorkIndex;	// Put face id to the w component of the first corner
+		pMaterial->UpdatePushConstantData(&m_cubeFaces[m_perFrameBackgroundWorkIndex][0], sizeof(m_cubeFaces[m_perFrameBackgroundWorkIndex]));
+		pMaterial->BeforeRenderPass(m_pSkyboxGenCmdBuf);
+		pMaterial->Dispatch(m_pSkyboxGenCmdBuf);
+		pMaterial->AfterRenderPass(m_pSkyboxGenCmdBuf);
+		m_pSkyboxGenCmdBuf->EndPrimaryRecording();
+
+		m_perFrameBackgroundWorkIndex = (m_perFrameBackgroundWorkIndex + 1) % 6;
+	}, FrameMgr()->FrameIndex());
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
@@ -442,6 +549,11 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 			CombinedSampler,
 			"RGBA32 w:256, h:128, d:32, delta multi scatter",
 			{},
+		},
+		{
+			CombinedSampler,
+			"Test",
+			{},
 		}
 	};
 }
@@ -566,6 +678,7 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaMie, m_pDeltaMie->CreateLinearClampToEdgeSampler(), m_pDeltaMie->CreateDefaultImageView() });
 	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaScatterDensity, m_pDeltaScatterDensity->CreateLinearClampToEdgeSampler(), m_pDeltaScatterDensity->CreateDefaultImageView() });
 	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaMultiScatter, m_pDeltaMultiScatter->CreateLinearClampToEdgeSampler(), m_pDeltaMultiScatter->CreateDefaultImageView() });
+	pDescriptorSet->UpdateImage(bindingIndex++, { m_pSkyboxTexture, m_pSkyboxTexture->CreateLinearClampToEdgeSampler(), m_pSkyboxTexture->CreateDefaultImageView() });
 	return bindingIndex;
 }
 

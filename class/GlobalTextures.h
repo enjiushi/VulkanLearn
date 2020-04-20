@@ -3,11 +3,15 @@
 #include "IMaterialUniformOperator.h"
 #include <gli\gli.hpp>
 #include <map>
+#include <mutex>
 
 class Texture2D;
 class TextureCube;
 class Texture2DArray;
 class Image;
+class Fence;
+class Material;
+class CommandBuffer;
 class DescriptorSet;
 
 enum InGameTextureType
@@ -76,6 +80,9 @@ public:
 	virtual std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
+	std::shared_ptr<Image> GetSkyboxTexture() const { return m_pSkyboxTexture; }
+	void GenerateSkyBox(uint32_t chunkIndex);
+
 protected:
 	bool Init(const std::shared_ptr<GlobalTextures>& pSelf);
 	void InitTextureDiction();
@@ -86,6 +93,7 @@ protected:
 	void InitBRDFLUTTexture();
 	void InitSSAORandomRotationTexture();
 	void InitTransmittanceTextureDiction();
+	void InitSkyboxGenParameters();
 	void InsertTextureDesc(const TextureDesc& desc, TextureArrayDesc& textureArr, uint32_t& emptySlot);
 	bool GetTextureIndex(const TextureArrayDesc& textureArr, const std::string& textureName, uint32_t& textureIndex);
 
@@ -94,6 +102,7 @@ protected:
 	TextureArrayDesc							m_screenSizeTextureDiction;
 	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures;
 	std::vector<std::shared_ptr<Image>>			m_IBL2DTextures;
+	std::shared_ptr<Image>						m_pSkyboxTexture;
 	std::shared_ptr<Image>						m_pSSAORandomRotations;
 
 	std::vector<std::shared_ptr<Image>>			m_transmittanceTextureDiction;
@@ -106,4 +115,8 @@ protected:
 	std::shared_ptr<Image>						m_pDeltaMie;
 	std::shared_ptr<Image>						m_pDeltaScatterDensity;
 	std::shared_ptr<Image>						m_pDeltaMultiScatter;
+
+	Vector4f									m_cubeFaces[6][4];
+	uint32_t									m_perFrameBackgroundWorkIndex = 0;
+	std::shared_ptr<CommandBuffer>				m_pSkyboxGenCmdBuf;
 };

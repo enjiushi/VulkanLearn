@@ -63,6 +63,7 @@ public:
 		BloomUpSample,
 		Combine,
 		PostProcess,
+		SkyboxGen,
 		MaterialEnumCount
 	};
 
@@ -87,6 +88,8 @@ public:
 	void OnFrameBegin();
 	void OnFrameEnd();
 
+	std::shared_ptr<Material>	GetMaterial(MaterialEnum materialEnum, uint32_t index = 0) const { return m_materials[materialEnum].GetMaterial(index); }
+
 protected:
 	// Since there could be some mutants of the same material class
 	// We encapsulate these one or more materials into "MaterialSet"
@@ -95,8 +98,6 @@ protected:
 		std::vector<std::shared_ptr<Material>>	materialSet;
 		std::shared_ptr<Material> GetMaterial(uint32_t index = 0) const { return materialSet[index]; }
 	}MaterialSet;
-
-	std::shared_ptr<Material>	GetMaterial(MaterialEnum materialEnum, uint32_t index = 0) const { return m_materials[materialEnum].GetMaterial(index); }
 
 	std::vector<MaterialSet>	m_materials;
 	uint32_t					m_renderStateMask;
