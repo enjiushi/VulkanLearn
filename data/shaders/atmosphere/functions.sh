@@ -1941,6 +1941,7 @@ void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirec
 		transmittance);
 
 	// If the view ray intersects the Sun, add the Sun radiance.
+	sunRadiance = vec3(0);
 	if (dot(viewDirection, sunDirection) > globalData.PlanetRenderingSettings2.x) {
 		sunRadiance = transmittance * GetSolarRadiance(planetChunkIndex);
 	}
