@@ -108,7 +108,7 @@ void Queue::SubmitPerFrameCommandBuffers(
 	const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
 	bool waitUtilQueueIdle)
 {
-	FrameMgr()->CacheSubmissioninfo(GetSelfSharedPtr(), cmdBuffers, waitSemaphores, waitStages, signalSemaphores, waitUtilQueueIdle);
+	FrameMgr()->SubmitCommandBuffers(GetSelfSharedPtr(), cmdBuffers, waitSemaphores, waitStages, signalSemaphores, waitUtilQueueIdle);
 }
 
 void Queue::SubmitCommandBuffer(
@@ -155,13 +155,25 @@ void Queue::SubmitCommandBuffers(
 
 	VkFence fence = 0;
 	if (pFence.get())
+	{
+		ASSERTION(pFence->GetFenceState() == Fence::FenceState::READ_FOR_USE);
 		fence = pFence->GetDeviceHandle();
+	}
 
 	vkQueueSubmit(GetDeviceHandle(), 1, &submitInfo, fence);
+
+	if (pFence.get())
+	{
+		pFence->m_fenceState = Fence::FenceState::READ_FOR_SIGNAL;
+	}
 
 	if (waitUtilQueueIdle)
 	{
 		CHECK_VK_ERROR(vkQueueWaitIdle(GetDeviceHandle()));
+		if (pFence.get())
+		{
+			pFence->m_fenceState = Fence::FenceState::SIGNALED;
+		}
 	}
 }
 

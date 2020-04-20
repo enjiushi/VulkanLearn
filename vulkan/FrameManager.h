@@ -37,19 +37,21 @@ public:
 	uint32_t FrameIndex() const { return m_currentFrameIndex; }
 	uint32_t MaxFrameCount() const { return m_maxFrameCount; }
 
-	void CacheSubmissioninfo(
+	void SubmitCommandBuffers(
 		const std::shared_ptr<Queue>& pQueue,
 		const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 		const std::vector<VkPipelineStageFlags>& waitStages,
-		bool waitUtilQueueIdle);
+		bool waitUtilQueueIdle,
+		bool cache = true);
 
-	void CacheSubmissioninfo(
+	void SubmitCommandBuffers(
 		const std::shared_ptr<Queue>& pQueue,
 		const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 		const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
 		const std::vector<VkPipelineStageFlags>& waitStages,
 		const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
-		bool waitUtilQueueIdle);
+		bool waitUtilQueueIdle,
+		bool cache = true);
 
 	// Thread related
 	void AddJobToFrame(ThreadJobFunc jobFunc);
@@ -77,18 +79,40 @@ protected:
 	std::shared_ptr<Semaphore> GetRenderDoneSemaphore();
 	std::vector<std::shared_ptr<Semaphore>> GetRenderDoneSemaphores();
 
-	void CacheSubmissioninfoInternal(
+	void SubmitCommandBuffersInternal(
 		const std::shared_ptr<Queue>& pQueue,
 		const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 		const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
 		const std::vector<VkPipelineStageFlags>& waitStages,
 		const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
-		bool waitUtilQueueIdle);
+		bool waitUtilQueueIdle,
+		bool cache);
 
 private:
-	FrameResourceTable						m_frameResTable;
-	std::vector<std::shared_ptr<Fence>>		m_frameFences;
-	std::vector<std::shared_ptr<Semaphore>>	m_acquireDoneSemaphores;
+	class ExtraFences : public SelfRefBase<ExtraFences>
+	{
+	public:
+		static std::shared_ptr<ExtraFences> Create();
+
+	public:
+		std::shared_ptr<Fence> GetCurrentFence();
+		std::shared_ptr<Fence> GetNewFence();
+
+		void Wait();
+		void Reset();
+
+	protected:
+		bool Init(const std::shared_ptr<ExtraFences>& pExtraFences);
+
+	private:
+		std::vector<std::shared_ptr<Fence>>		m_fences;
+		int32_t									m_currIndex;
+	};
+
+	FrameResourceTable							m_frameResTable;
+	std::vector<std::shared_ptr<Fence>>			m_frameFences;
+	std::vector<std::shared_ptr<ExtraFences>>	m_extraFrameFences;	// For those CBs submitting immediately
+	std::vector<std::shared_ptr<Semaphore>>		m_acquireDoneSemaphores;
 
 	std::vector<std::vector<std::shared_ptr<Semaphore>>>	m_renderDoneSemaphores;
 	uint32_t												m_renderDoneSemaphoreIndex;

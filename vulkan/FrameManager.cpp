@@ -28,6 +28,7 @@ bool FrameManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFram
 	{
 		m_frameResTable[i] = std::vector<std::shared_ptr<PerFrameResource>>();
 		m_frameFences.push_back(Fence::Create(pDevice));
+		m_extraFrameFences.push_back(ExtraFences::Create());
 		m_acquireDoneSemaphores.push_back(Semaphore::Create(pDevice));
 	}
 
@@ -37,6 +38,59 @@ bool FrameManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFram
 	m_maxFrameCount = maxFrameCount;
 	
 	return true;
+}
+
+std::shared_ptr<FrameManager::ExtraFences> FrameManager::ExtraFences::Create()
+{
+	std::shared_ptr<FrameManager::ExtraFences> pExtraFences = std::make_shared<FrameManager::ExtraFences>();
+	if (pExtraFences.get() && pExtraFences->Init(pExtraFences))
+		return pExtraFences;
+
+	return nullptr;
+}
+
+bool FrameManager::ExtraFences::Init(const std::shared_ptr<ExtraFences>& pExtraFences)
+{
+	if (!SelfRefBase::Init(pExtraFences))
+		return false;
+
+	m_currIndex = -1;
+	return true;
+}
+
+std::shared_ptr<Fence> FrameManager::ExtraFences::GetCurrentFence()
+{
+	if (m_currIndex < 0)
+		return GetNewFence();
+
+	return m_fences[m_currIndex];
+}
+
+std::shared_ptr<Fence> FrameManager::ExtraFences::GetNewFence()
+{
+	m_currIndex++;
+	if ((int32_t)m_fences.size() == m_currIndex)
+		m_fences.push_back(Fence::Create(GlobalObjects()->GetDevice()));
+	else
+		m_fences[m_currIndex]->Reset();
+	return m_fences[m_currIndex];
+}
+
+void FrameManager::ExtraFences::Reset()
+{
+	for (int32_t i = 0; i <= m_currIndex; i++)
+	{
+		m_fences[i]->Reset();
+		m_fences[i]->ClearReferenceTable();
+	}
+
+	m_currIndex = -1;
+}
+
+void FrameManager::ExtraFences::Wait()
+{
+	for (int32_t i = 0; i <= m_currIndex; i++)
+		m_fences[i]->Wait();
 }
 
 std::shared_ptr<FrameManager> FrameManager::Create(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount)
@@ -65,6 +119,8 @@ void FrameManager::WaitForFence()
 void FrameManager::WaitForFence(uint32_t frameIndex)
 {
 	m_frameFences[frameIndex]->Wait();
+	m_extraFrameFences[frameIndex]->Wait();
+	m_extraFrameFences[frameIndex]->Reset();
 }
 
 void FrameManager::WaitForAllJobsDone()
@@ -94,36 +150,39 @@ void FrameManager::AfterAcquire(uint32_t index)
 	m_currentFrameIndex = index;
 }
 
-void FrameManager::CacheSubmissioninfo(
+void FrameManager::SubmitCommandBuffers(
 	const std::shared_ptr<Queue>& pQueue,
 	const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 	const std::vector<VkPipelineStageFlags>& waitStages,
-	bool waitUtilQueueIdle)
+	bool waitUtilQueueIdle,
+	bool cache)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
 	
-	CacheSubmissioninfoInternal(pQueue, cmdBuffer, { }, waitStages, { }, waitUtilQueueIdle);
+	SubmitCommandBuffersInternal(pQueue, cmdBuffer, { }, waitStages, { }, waitUtilQueueIdle, cache);
 }
 
-void FrameManager::CacheSubmissioninfo(
+void FrameManager::SubmitCommandBuffers(
 	const std::shared_ptr<Queue>& pQueue,
 	const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
 	const std::vector<VkPipelineStageFlags>& waitStages,
 	const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
-	bool waitUtilQueueIdle)
+	bool waitUtilQueueIdle,
+	bool cache)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
-	CacheSubmissioninfoInternal(pQueue, cmdBuffer, waitSemaphores, waitStages, signalSemaphores, waitUtilQueueIdle);
+	SubmitCommandBuffersInternal(pQueue, cmdBuffer, waitSemaphores, waitStages, signalSemaphores, waitUtilQueueIdle, cache);
 }
 
-void FrameManager::CacheSubmissioninfoInternal(
+void FrameManager::SubmitCommandBuffersInternal(
 	const std::shared_ptr<Queue>& pQueue,
 	const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
 	const std::vector<VkPipelineStageFlags>& waitStages,
 	const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
-	bool waitUtilQueueIdle)
+	bool waitUtilQueueIdle,
+	bool cache)
 {
 #ifdef _DEBUG
 	{
@@ -137,29 +196,47 @@ void FrameManager::CacheSubmissioninfoInternal(
 	}
 #endif //_DEBUG
 
-	// Attach acquire done semaphore to waiting list
-	std::vector<std::shared_ptr<Semaphore>> _waitSemaphores = waitSemaphores;
-	_waitSemaphores.push_back(GetAcqurieDoneSemaphore());
-
-	std::vector<VkPipelineStageFlags> _waitStages;
-	_waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-
-	// Attach render done semaphores to signal list
-	std::vector<std::shared_ptr<Semaphore>> _signalSemaphores = signalSemaphores;
-	_signalSemaphores.insert(_signalSemaphores.end(), signalSemaphores.begin(), signalSemaphores.end());
-	_signalSemaphores.push_back(GetRenderDoneSemaphore());
-
-	SubmissionInfo info = 
+	if (cache)
 	{
-		pQueue,
-		cmdBuffer,
-		_waitSemaphores,
-		_waitStages,
-		_signalSemaphores,
-		waitUtilQueueIdle,
-	};
+		// Attach acquire done semaphore to waiting list
+		std::vector<std::shared_ptr<Semaphore>> _waitSemaphores = waitSemaphores;
+		_waitSemaphores.push_back(GetAcqurieDoneSemaphore());
 
-	m_pendingSubmissionInfoTable[m_currentFrameIndex].push_back(info);
+		std::vector<VkPipelineStageFlags> _waitStages;
+		_waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+		// Attach render done semaphores to signal list
+		std::vector<std::shared_ptr<Semaphore>> _signalSemaphores = signalSemaphores;
+		_signalSemaphores.insert(_signalSemaphores.end(), signalSemaphores.begin(), signalSemaphores.end());
+		_signalSemaphores.push_back(GetRenderDoneSemaphore());
+
+		SubmissionInfo info =
+		{
+			pQueue,
+			cmdBuffer,
+			_waitSemaphores,
+			_waitStages,
+			_signalSemaphores,
+			waitUtilQueueIdle,
+		};
+
+		m_pendingSubmissionInfoTable[m_currentFrameIndex].push_back(info);
+	}
+	else
+	{
+		pQueue->SubmitCommandBuffers(cmdBuffer, waitSemaphores, waitStages, signalSemaphores, m_extraFrameFences[m_currentFrameIndex]->GetNewFence(), waitUtilQueueIdle);
+
+		// Add objects used for this submission into fences reference table
+		// They'll be cleared once this submission is done
+		for (uint32_t i = 0; i < (uint32_t)cmdBuffer.size(); i++)
+			m_extraFrameFences[m_currentFrameIndex]->GetCurrentFence()->AddToReferenceTable(cmdBuffer[i]);
+
+		for (uint32_t i = 0; i < (uint32_t)waitSemaphores.size(); i++)
+			m_extraFrameFences[m_currentFrameIndex]->GetCurrentFence()->AddToReferenceTable(waitSemaphores[i]);
+
+		for (uint32_t i = 0; i < (uint32_t)signalSemaphores.size(); i++)
+			m_extraFrameFences[m_currentFrameIndex]->GetCurrentFence()->AddToReferenceTable(signalSemaphores[i]);
+	}
 }
 
 void FrameManager::FlushCachedSubmission(uint32_t frameIndex)

@@ -1037,7 +1037,7 @@ void VulkanGlobal::Draw()
 
 	RenderWorkManager::GetInstance()->OnFrameEnd();
 
-	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { m_commandBufferList[cbIndex] }, {}, false);
+	FrameMgr()->SubmitCommandBuffers(GlobalGraphicQueue(), { m_commandBufferList[cbIndex] }, {}, false);
 	
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 
