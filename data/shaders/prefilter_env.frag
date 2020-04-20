@@ -11,7 +11,7 @@ layout (location = 0) out vec4 outFragColor;
 #include "utilities.sh"
 #include "pbr_functions.sh"
 
-const uint numSamples = 1024;
+const uint numSamples = 16;
 
 void main() 
 {

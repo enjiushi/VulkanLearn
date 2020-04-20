@@ -123,11 +123,12 @@ void main()
 	if (vars.isBackground)
 	{
 		vec3 WSViewDir = mat3(perFrameData.viewCoordSystem) * normalize(CSViewDir);
-	    vec3 skySunRadiance;
-        GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, WSViewDir, perFrameData.wsMainLightDir.xyz, skySunRadiance);
+	    vec3 skyRadiance;
+		vec3 sunRadiance;
+        GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, WSViewDir, perFrameData.wsMainLightDir.xyz, skyRadiance, sunRadiance);
 		imageStore(outShadingColor[frameIndex],	
 			ivec2(gl_GlobalInvocationID.xy), 
-			vec4(skySunRadiance, vars.albedoRoughness.a));
+			vec4(skyRadiance + sunRadiance, vars.albedoRoughness.a));
 		imageStore(outSSRColor[frameIndex],	
 			ivec2(gl_GlobalInvocationID.xy), 
 			vec4(0));

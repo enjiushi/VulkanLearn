@@ -10,7 +10,7 @@ layout (location = 0) out vec4 outFragColor;
 #include "uniform_layout.sh"
 #include "global_parameters.sh"
 
-const float sampleDelta = 0.03;
+const float sampleDelta = 0.1;
 
 void main() 
 {
