@@ -1945,8 +1945,8 @@ void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirec
 		sunRadiance = transmittance * GetSolarRadiance(planetChunkIndex);
 	}
 
-	skyRadiance *= 4;	// FIXME: parameter this(due to difference of light strength unit)
-	sunRadiance *= 4;	// FIXME: parameter this(due to difference of light strength unit)
+	skyRadiance *= 6;	// FIXME: parameter this(due to difference of light strength unit)
+	sunRadiance *= 6;	// FIXME: parameter this(due to difference of light strength unit)
 }
 
 void GetRadianceToSurface(vec3 cameraPosition, vec3 surfacePosition, vec3 surfaceNormal, vec3 sunDirection, 
