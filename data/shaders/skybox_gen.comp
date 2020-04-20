@@ -1,0 +1,37 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+#include "uniform_layout.sh"
+#include "global_parameters.sh"
+#include "atmosphere/functions.sh"
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout (set = 3, binding = 0, rgba32f) uniform image2DArray skybox;
+
+layout(push_constant) uniform PushConsts {
+	layout (offset = 0) vec4 corners[4];
+} pushConsts;
+
+void main() 
+{
+	ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+	ivec3 size = imageSize(skybox);
+	vec2 uv = vec2(gl_GlobalInvocationID.xy + 0.5f) / vec2(size.xyz);
+
+	vec3 bottomLeft		= pushConsts.corners[0].xyz;
+	vec3 bottomRight	= pushConsts.corners[1].xyz;
+	vec3 topLeft		= pushConsts.corners[2].xyz;
+	vec3 topRight		= pushConsts.corners[3].xyz;
+
+	vec3 viewDir = normalize(mix(mix(topLeft, topRight, uv.x), mix(bottomLeft, bottomRight, uv.x), uv.y));
+
+	vec3 skySunRadiance;
+    GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, viewDir, perFrameData.wsMainLightDir.xyz, skySunRadiance);
+
+	imageStore(skybox,	
+		ivec3(gl_GlobalInvocationID.xy, pushConsts.corners[0].w),	// Hack: Put face id to the w component of the first corner
+		vec4(skySunRadiance, 0));
+}
