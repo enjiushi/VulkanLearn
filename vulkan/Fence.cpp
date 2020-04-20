@@ -13,7 +13,7 @@ bool Fence::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<F
 	VkFenceCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	CHECK_VK_ERROR(vkCreateFence(GetDevice()->GetDeviceHandle(), &info, nullptr, &m_fence));
-	m_signaled = true;
+	m_fenceState = FenceState::READ_FOR_USE;
 	return true;
 }
 
@@ -25,20 +25,24 @@ std::shared_ptr<Fence> Fence::Create(const std::shared_ptr<Device>& pDevice)
 	return nullptr;
 }
 
-void Fence::Wait()
+bool Fence::Wait()
 {
-	if (m_signaled)
-		return;
+	if (m_fenceState != FenceState::READ_FOR_SIGNAL)
+		return false;
 
 	CHECK_VK_ERROR(vkWaitForFences(GetDevice()->GetDeviceHandle(), 1, &m_fence, VK_TRUE, UINT64_MAX));
-	m_signaled = true;
+	m_fenceState = FenceState::SIGNALED;
+
+	return true;
 }
 
-void Fence::Reset()
+bool Fence::Reset()
 {
-	if (!m_signaled)
-		return;
+	if (m_fenceState != FenceState::SIGNALED)
+		return false;
 
 	CHECK_VK_ERROR(vkResetFences(GetDevice()->GetDeviceHandle(), 1, &m_fence));
-	m_signaled = false;
+	m_fenceState = FenceState::READ_FOR_USE;
+
+	return true;
 }
