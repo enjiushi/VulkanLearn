@@ -1931,8 +1931,10 @@ IrradianceSpectrum GetSunAndSkyIrradiance(
 
 void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirection, uint planetChunkIndex, out vec3 skyRadiance, out vec3 sunRadiance)
 {
+	cameraPosition = cameraPosition / 1000; 	// Unit is km underlay
+
 	vec3 transmittance;
-	skyRadiance = GetSkyRadiance(cameraPosition / 1000,	// Unit is km underlay
+	skyRadiance = GetSkyRadiance(cameraPosition,
 		viewDirection, 
 		0, 
 		sunDirection, 
@@ -1950,10 +1952,9 @@ void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirec
 }
 
 void GetRadianceToSurface(vec3 cameraPosition, vec3 surfacePosition, vec3 surfaceNormal, vec3 sunDirection, 
-							vec3 surfacePunctualRadiance, vec3 surfaceAmbientRadiance,
+							vec3 surfacePunctualRadiance, vec3 surfaceAmbientRadiance, uint planetChunkIndex,
 							out vec3 aerialPerspectivePunctual, out vec3 aerialPerspectiveAmbient)
 {
-	uint planetChunkIndex = 0;	// FIXME: Hard-code
 	vec3 transmittance;
 	vec3 inScatter = GetSkyRadianceToPoint(cameraPosition / 1000,	// Unit is km underlay
 		surfacePosition / 1000, 

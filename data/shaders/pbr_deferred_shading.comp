@@ -193,6 +193,7 @@ void main()
 		perFrameData.wsMainLightDir.xyz, 
 		punctualRadiance, 
 		skyBoxAmbient,
+		0,
 		aerialPerspectivePunctual,
 		aerialPerspectiveAmbient);
 
