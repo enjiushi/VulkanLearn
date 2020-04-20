@@ -980,6 +980,8 @@ void VulkanGlobal::Draw()
 	uint32_t cbIndex = frameIndex * 2 + pingpong;
 	nextPingpong = (pingpong + 1) % 2;
 
+	UniformData::GetInstance()->GetGlobalTextures()->GenerateSkyBox(0);
+
 	FrameEventManager::GetInstance()->OnFrameBegin();
 
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetDeltaTime(Timer::GetElapsedTime());
