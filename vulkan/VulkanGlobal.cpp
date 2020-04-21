@@ -251,18 +251,18 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			break;
 		default:
-			InputHub::GetInstance()->ProcessKey(KEY_DOWN, (uint8_t)wParam);
+			InputHub::GetInstance()->ProcessKey(KeyState::KEY_DOWN, (uint8_t)wParam);
 			break;
 		}
 		break;
 	case WM_KEYUP:
-		InputHub::GetInstance()->ProcessKey(KEY_UP, (uint8_t)wParam);
+		InputHub::GetInstance()->ProcessKey(KeyState::KEY_UP, (uint8_t)wParam);
 		break;
 	case WM_RBUTTONDOWN:
-		InputHub::GetInstance()->ProcessMouse(KEY_DOWN, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_DOWN, MouseButton::RIGHT, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
 		break;
 	case WM_RBUTTONUP:
-		InputHub::GetInstance()->ProcessMouse(KEY_UP, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_UP, MouseButton::RIGHT, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
 		break;
 	case WM_MOUSEMOVE:
 		InputHub::GetInstance()->ProcessMouse({ (float)LOWORD(lParam), (float)HIWORD(lParam) });
@@ -928,7 +928,7 @@ class VariableChanger : public IInputListener
 {
 public:
 	void ProcessKey(KeyState keyState, uint8_t keyCode) override;
-	void ProcessMouse(KeyState keyState, const Vector2d& mousePosition) override {}
+	void ProcessMouse(KeyState keyState, MouseButton mouseButton, const Vector2d& mousePosition) override {}
 	void ProcessMouse(const Vector2d& mousePosition) override {}
 	double var = 0.08333333;
 	bool boolVar = true;
@@ -948,7 +948,7 @@ void VariableChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 		var -= varInterval;
 		var = var < 0 ? 0 : var;
 	}
-	if (keyCode == KEY_T && keyState == KEY_UP)
+	if (keyCode == KEY_T && keyState == KeyState::KEY_UP)
 	{
 		boolVar = !boolVar;
 	}
