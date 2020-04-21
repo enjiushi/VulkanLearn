@@ -31,7 +31,13 @@ void main()
 
 	vec3 skyRadiance;
 	vec3 sunRadiance;
-    GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, viewDir, perFrameData.wsMainLightDir.xyz, planetChunkIndex, skyRadiance, sunRadiance);
+    GetSkyAndSunRadiance_WithGround(
+		perFrameData.wsCameraPosition.xyz, 
+		viewDir, 
+		perFrameData.wsMainLightDir.xyz, 
+		planetChunkIndex, 
+		skyRadiance, 
+		sunRadiance);
 
 	imageStore(envSkybox,	
 		ivec3(gl_GlobalInvocationID.xy, pushConsts.corners[0].w),	// Hack: Put face id to the w component of the first corner

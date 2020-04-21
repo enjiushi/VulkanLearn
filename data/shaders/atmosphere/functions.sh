@@ -1929,12 +1929,29 @@ IrradianceSpectrum GetSunAndSkyIrradiance(
 		sky_irradiance);
 }
 
+void GetRadianceToSurface(vec3 cameraPosition, vec3 surfacePosition, vec3 surfaceNormal, vec3 sunDirection, 
+							vec3 surfacePunctualRadiance, vec3 surfaceAmbientRadiance, uint planetChunkIndex,
+							out vec3 aerialPerspectivePunctual, out vec3 aerialPerspectiveAmbient)
+{
+	vec3 transmittance;
+	vec3 inScatter = GetSkyRadianceToPoint(cameraPosition / 1000,	// Unit is km underlay
+		surfacePosition / 1000, 
+		0, 
+		sunDirection, 
+		planetChunkIndex,
+		transmittance) * 6;	// FIXME: parameter this(due to difference of light strength unit)
+
+	aerialPerspectivePunctual = surfacePunctualRadiance * transmittance + inScatter;
+	aerialPerspectiveAmbient   = surfaceAmbientRadiance * transmittance;
+}
+
 void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirection, uint planetChunkIndex, out vec3 skyRadiance, out vec3 sunRadiance)
 {
 	cameraPosition = cameraPosition / 1000; 	// Unit is km underlay
 
 	vec3 transmittance;
-	skyRadiance = GetSkyRadiance(cameraPosition,
+	skyRadiance = GetSkyRadiance(
+		cameraPosition,
 		viewDirection, 
 		0, 
 		sunDirection, 
@@ -1951,20 +1968,54 @@ void GetSkyAndSunRadiance(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirec
 	sunRadiance *= 6;	// FIXME: parameter this(due to difference of light strength unit)
 }
 
-void GetRadianceToSurface(vec3 cameraPosition, vec3 surfacePosition, vec3 surfaceNormal, vec3 sunDirection, 
-							vec3 surfacePunctualRadiance, vec3 surfaceAmbientRadiance, uint planetChunkIndex,
-							out vec3 aerialPerspectivePunctual, out vec3 aerialPerspectiveAmbient)
+void GetSkyAndSunRadiance_WithGround(vec3 cameraPosition, vec3 viewDirection, vec3 sunDirection, uint planetChunkIndex, out vec3 skyRadiance, out vec3 sunRadiance)
 {
-	vec3 transmittance;
-	vec3 inScatter = GetSkyRadianceToPoint(cameraPosition / 1000,	// Unit is km underlay
-		surfacePosition / 1000, 
-		0, 
-		sunDirection, 
-		planetChunkIndex,
-		transmittance) * 4;	// FIXME: parameter this(due to difference of light strength unit)
+	GetSkyAndSunRadiance(cameraPosition, viewDirection, sunDirection, planetChunkIndex, skyRadiance, sunRadiance);
 
-	aerialPerspectivePunctual = surfacePunctualRadiance * transmittance + inScatter;
-	aerialPerspectiveAmbient   = surfaceAmbientRadiance * transmittance;
+	cameraPosition = cameraPosition / 1000; 	// Unit is km underlay
+
+	AtmosphereParameters parameters = planetAtmosphereData[planetChunkIndex].atmosphereParameters;
+
+	float cameraAltitudeViewProj = max(0, -dot(cameraPosition, viewDirection));
+	float cameraAltitudeViewProjSquare = cameraAltitudeViewProj * cameraAltitudeViewProj;
+	float cameraAltitudeSquare = dot(cameraPosition, cameraPosition);
+	float distEarthCenterToViewRaySquare = cameraAltitudeSquare - cameraAltitudeViewProjSquare;
+	float planetRadiusSquare = parameters.variables.x * parameters.variables.x;
+	float distViewRayInsideEarth = sqrt(planetRadiusSquare - distEarthCenterToViewRaySquare);
+	float distToViewEarthIntersection = cameraAltitudeViewProj - distViewRayInsideEarth;
+
+	vec3 groundRadiance = vec3(0);
+	float groundMask = 0;
+	if (distToViewEarthIntersection > 0)
+	{
+		vec3 intersectionPoint = cameraPosition + distToViewEarthIntersection * viewDirection;
+		vec3 intersectionNormal = normalize(intersectionPoint);
+
+		vec3 skyIrradiance;
+		vec3 sunIrradiance = GetSunAndSkyIrradiance(
+			intersectionPoint, 
+			intersectionNormal, 
+			sunDirection, 
+			planetChunkIndex,
+			skyIrradiance);
+
+		groundRadiance = vec3(0, 0.46667, 0.7451) / 4.0f * (1.0 / PI) * (sunIrradiance + skyIrradiance);
+
+		float shadow_length = 0;
+		vec3 transmittance;
+		vec3 inScatter = GetSkyRadianceToPoint(
+			cameraPosition,
+			intersectionPoint, 
+			0, 
+			sunDirection,
+			planetChunkIndex,
+			transmittance);
+
+		groundRadiance = groundRadiance * transmittance + inScatter;
+		groundMask = 1;
+	}
+
+	skyRadiance = mix(skyRadiance, groundRadiance * 6, groundMask); // FIXME: parameter this(due to difference of light strength unit)
 }
 
 #endif
