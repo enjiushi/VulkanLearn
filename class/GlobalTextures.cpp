@@ -219,6 +219,8 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				m_envGenState = EnvGenState::IRRADIANCE_GEN;
 				m_envJobCounter = 0;
 			}
+
+			return;
 		}
 
 		if (m_envGenState == EnvGenState::IRRADIANCE_GEN)
@@ -251,6 +253,8 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				m_envGenState = EnvGenState::SKYBOX_GEN;
 				m_envJobCounter = 0;
 			}
+
+			return;
 		}
 	}, FrameMgr()->FrameIndex());
 }
