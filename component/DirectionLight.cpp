@@ -99,13 +99,11 @@ void DirectionLight::Update()
 	cs2os = cs2os * UniformData::GetInstance()->GetPerFrameUniforms()->GetViewCoordinateSystem();
 
 	// Transform target light direction from camera space to object space
-	m_targetLightDirection = cs2os.TransformAsVector(m_targetLightDirection);
+	m_targetLightDirectionOS = cs2os.TransformAsVector(m_targetLightDirection);
 
 	// Acquire rotation from z axis(light direction) to target light direction
-	Quaterniond rotation = Quaterniond({ 0, 0, 1 }, m_targetLightDirection);
+	Quaterniond rotation = Quaterniond({ 0, 0, 1 }, m_targetLightDirectionOS);
 	pObj->SetRotation(rotation);
-
-	m_targetLightDirectionChanged = false;
 }
 
 void DirectionLight::OnPreRender()
@@ -120,24 +118,34 @@ void DirectionLight::OnPreRender()
 
 void DirectionLight::ProcessMouse(KeyState keyState, MouseButton mouseButton, const Vector2d& mousePosition)
 {
-	if (keyState == KeyState::KEY_DOWN && mouseButton == MouseButton::LEFT)
-	{
-		Vector2d cameraSpaceSize = UniformData::GetInstance()->GetPerFrameUniforms()->GetEyeSpaceSize();
-		cameraSpaceSize *= 0.5;
-		Vector4d nearFarAB = UniformData::GetInstance()->GetPerFrameUniforms()->GetNearFarAB();
-		Vector3d bottomLeft		= { -cameraSpaceSize.x, -cameraSpaceSize.y, -nearFarAB.x };
-		Vector3d bottomRight	= {  cameraSpaceSize.x, -cameraSpaceSize.y, -nearFarAB.x };
-		Vector3d topLeft		= { -cameraSpaceSize.x,  cameraSpaceSize.y, -nearFarAB.x };
-		Vector3d topRight		= {  cameraSpaceSize.x,  cameraSpaceSize.y, -nearFarAB.x };
+	if (mouseButton != MouseButton::LEFT)
+		return;
 
-		Vector3d bottom = bottomLeft * (1.0 - mousePosition.x) + bottomRight * mousePosition.x;
-		Vector3d top = topLeft * (1.0 - mousePosition.x) + topRight * mousePosition.x;
-		m_targetLightDirection = bottom * (1.0 - mousePosition.y) + top * mousePosition.y;
+	m_targetLightDirectionChanged = (keyState == KeyState::KEY_DOWN);
+}
 
-		m_targetLightDirection.Normalize();
+void DirectionLight::ProcessMouse(const Vector2d& mousePosition)
+{
+	if (!m_targetLightDirectionChanged)
+		return;
 
-		m_targetLightDirectionChanged = true;
-	}
+	PrepareTargetLightDirection(mousePosition);
+}
+
+void DirectionLight::PrepareTargetLightDirection(const Vector2d& mousePosition)
+{
+	Vector2d cameraSpaceSize = UniformData::GetInstance()->GetPerFrameUniforms()->GetEyeSpaceSize();
+	cameraSpaceSize *= 0.5;
+	Vector4d nearFarAB = UniformData::GetInstance()->GetPerFrameUniforms()->GetNearFarAB();
+	Vector3d bottomLeft = { -cameraSpaceSize.x, -cameraSpaceSize.y, -nearFarAB.x };
+	Vector3d bottomRight = { cameraSpaceSize.x, -cameraSpaceSize.y, -nearFarAB.x };
+	Vector3d topLeft = { -cameraSpaceSize.x,  cameraSpaceSize.y, -nearFarAB.x };
+	Vector3d topRight = { cameraSpaceSize.x,  cameraSpaceSize.y, -nearFarAB.x };
+
+	Vector3d bottom = bottomLeft * (1.0 - mousePosition.x) + bottomRight * mousePosition.x;
+	Vector3d top = topLeft * (1.0 - mousePosition.x) + topRight * mousePosition.x;
+	m_targetLightDirection = bottom * (1.0 - mousePosition.y) + top * mousePosition.y;
+	m_targetLightDirection.Normalize();
 }
 
 

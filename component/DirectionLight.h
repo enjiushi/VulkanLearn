@@ -27,10 +27,11 @@ public:
 	// For input listener
 	void ProcessKey(KeyState keyState, uint8_t keyCode) override {}
 	void ProcessMouse(KeyState keyState, MouseButton mouseButton, const Vector2d& mousePosition) override;
-	void ProcessMouse(const Vector2d& mousePosition) override {}
+	void ProcessMouse(const Vector2d& mousePosition) override;
 
 protected:
 	void UpdateData();
+	void PrepareTargetLightDirection(const Vector2d& mousePosition);
 
 protected:
 	Vector3d	m_lightColor;
@@ -40,5 +41,6 @@ protected:
 	Vector3d	m_wsLightDirection;
 	Vector3d	m_csLightDirection;
 	Vector3d	m_targetLightDirection;
+	Vector3d	m_targetLightDirectionOS;
 	bool		m_targetLightDirectionChanged;
 };
