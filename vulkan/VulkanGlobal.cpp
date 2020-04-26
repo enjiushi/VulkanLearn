@@ -258,6 +258,12 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 		InputHub::GetInstance()->ProcessKey(KeyState::KEY_UP, (uint8_t)wParam);
 		break;
+	case WM_LBUTTONDOWN:
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_DOWN, MouseButton::LEFT, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		break;
+	case WM_LBUTTONUP:
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_UP, MouseButton::LEFT, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		break;
 	case WM_RBUTTONDOWN:
 		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_DOWN, MouseButton::RIGHT, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
 		break;
