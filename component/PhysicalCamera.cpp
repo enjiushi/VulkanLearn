@@ -206,3 +206,31 @@ const Vector3d PhysicalCamera::GetCameraDir() const
 {
 	return m_pObject.lock()->GetCachedWorldTransform()[2].xyz().Negative();
 }
+
+Vector3d PhysicalCamera::GetViewDirectionFromScreenUV(const Vector2d& uv)
+{
+	Vector2d cameraSpaceSize = UniformData::GetInstance()->GetPerFrameUniforms()->GetEyeSpaceSize();
+	cameraSpaceSize *= 0.5;
+	Vector4d nearFarAB = UniformData::GetInstance()->GetPerFrameUniforms()->GetNearFarAB();
+	Vector3d bottomLeft = { -cameraSpaceSize.x, -cameraSpaceSize.y, -nearFarAB.x };
+	Vector3d bottomRight = { cameraSpaceSize.x, -cameraSpaceSize.y, -nearFarAB.x };
+	Vector3d topLeft = { -cameraSpaceSize.x,  cameraSpaceSize.y, -nearFarAB.x };
+	Vector3d topRight = { cameraSpaceSize.x,  cameraSpaceSize.y, -nearFarAB.x };
+
+	bottomLeft	*= 1.0 - uv.x;
+	bottomRight *= uv.x;
+	topLeft		*= 1.0 - uv.x;
+	topRight	*= uv.x;
+
+	bottomLeft	+= bottomRight;	// BottomLeft == Bottom
+	topLeft		+= topRight;	// TopLeft == Top
+
+	bottomLeft	*= 1.0 - uv.y;
+	topLeft		*= uv.y;
+
+	bottomLeft	+= topLeft;		// BottomLeft == result
+
+	bottomLeft.Normalize();
+
+	return bottomLeft;
+}

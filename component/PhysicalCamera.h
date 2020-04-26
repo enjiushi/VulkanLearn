@@ -59,6 +59,8 @@ public:
 	const Vector3d GetCameraDir() const;
 	PyramidFrustumd GetCameraFrustum() const { return m_frustum; }
 
+	static Vector3d GetViewDirectionFromScreenUV(const Vector2d& uv);
+
 	static std::shared_ptr<PhysicalCamera> Create(const PhysicalCameraProps& props);
 
 protected:

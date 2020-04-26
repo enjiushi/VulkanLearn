@@ -134,18 +134,7 @@ void DirectionLight::ProcessMouse(const Vector2d& mousePosition)
 
 void DirectionLight::PrepareTargetLightDirection(const Vector2d& mousePosition)
 {
-	Vector2d cameraSpaceSize = UniformData::GetInstance()->GetPerFrameUniforms()->GetEyeSpaceSize();
-	cameraSpaceSize *= 0.5;
-	Vector4d nearFarAB = UniformData::GetInstance()->GetPerFrameUniforms()->GetNearFarAB();
-	Vector3d bottomLeft = { -cameraSpaceSize.x, -cameraSpaceSize.y, -nearFarAB.x };
-	Vector3d bottomRight = { cameraSpaceSize.x, -cameraSpaceSize.y, -nearFarAB.x };
-	Vector3d topLeft = { -cameraSpaceSize.x,  cameraSpaceSize.y, -nearFarAB.x };
-	Vector3d topRight = { cameraSpaceSize.x,  cameraSpaceSize.y, -nearFarAB.x };
-
-	Vector3d bottom = bottomLeft * (1.0 - mousePosition.x) + bottomRight * mousePosition.x;
-	Vector3d top = topLeft * (1.0 - mousePosition.x) + topRight * mousePosition.x;
-	m_targetLightDirection = bottom * (1.0 - mousePosition.y) + top * mousePosition.y;
-	m_targetLightDirection.Normalize();
+	m_targetLightDirection = PhysicalCamera::GetViewDirectionFromScreenUV(mousePosition);
 }
 
 
