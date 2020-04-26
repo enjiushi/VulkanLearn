@@ -190,7 +190,14 @@ Quaterniond BaseObject::GetWorldRotationQ() const
 	return Quaterniond(GetWorldRotationM());
 }
 
+void BaseObject::Rotate(const Quaterniond& rotation)
+{
+	m_localRotationQ = rotation * m_localRotationQ;
+	m_localRotationM = m_localRotationQ.Matrix();
+	UpdateLocalTransform();
+}
+
 void BaseObject::Rotate(const Vector3d& v, double angle)
 {
-
+	Rotate({ v, angle });
 }

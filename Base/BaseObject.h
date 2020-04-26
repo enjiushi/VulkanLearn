@@ -128,6 +128,7 @@ public:
 	void SetRotation(const Matrix3d& m);
 	void SetRotation(const Quaterniond& q);
 
+	void Rotate(const Quaterniond& rotation);
 	void Rotate(const Vector3d& v, double angle);
 
 public:
