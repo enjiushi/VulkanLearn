@@ -112,10 +112,14 @@ Quaternion<T>::Quaternion(const Vector3<T>& from, const Vector3<T>& to)
 	else
 	{
 		w = halfway * from;
-		if (w == 1)
+		if (w == static_cast<T>(1))
 			imag = { 0, 0, 0 };
 		else
+		{
 			imag = from ^ to;
+			imag.Normalize();
+			imag *= static_cast<T>(std::sqrt((double)(static_cast<T>(1) - w * w)));
+		}
 	}
 }
 
