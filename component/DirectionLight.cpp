@@ -122,12 +122,6 @@ void DirectionLight::ProcessMouse(KeyState keyState, MouseButton mouseButton, co
 {
 	if (keyState == KeyState::KEY_DOWN && mouseButton == MouseButton::LEFT)
 	{
-		Vector2d uv = 
-		{ 
-			mousePosition.x / GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, 
-			(GetPhysicalDevice()->GetSurfaceCap().currentExtent.height - mousePosition.y) / GetPhysicalDevice()->GetSurfaceCap().currentExtent.height
-		};
-
 		Vector2d cameraSpaceSize = UniformData::GetInstance()->GetPerFrameUniforms()->GetEyeSpaceSize();
 		cameraSpaceSize *= 0.5;
 		Vector4d nearFarAB = UniformData::GetInstance()->GetPerFrameUniforms()->GetNearFarAB();
@@ -136,9 +130,9 @@ void DirectionLight::ProcessMouse(KeyState keyState, MouseButton mouseButton, co
 		Vector3d topLeft		= { -cameraSpaceSize.x,  cameraSpaceSize.y, -nearFarAB.x };
 		Vector3d topRight		= {  cameraSpaceSize.x,  cameraSpaceSize.y, -nearFarAB.x };
 
-		Vector3d bottom = bottomLeft * (1.0 - uv.x) + bottomRight * uv.x;
-		Vector3d top = topLeft * (1.0 - uv.x) + topRight * uv.x;
-		m_targetLightDirection = bottom * (1.0 - uv.y) + top * uv.y;
+		Vector3d bottom = bottomLeft * (1.0 - mousePosition.x) + bottomRight * mousePosition.x;
+		Vector3d top = topLeft * (1.0 - mousePosition.x) + topRight * mousePosition.x;
+		m_targetLightDirection = bottom * (1.0 - mousePosition.y) + top * mousePosition.y;
 
 		m_targetLightDirection.Normalize();
 

@@ -237,6 +237,11 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 
 void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	Vector2d mouseUV = 
+	{
+		(float)LOWORD(lParam) / FrameBufferDiction::WINDOW_WIDTH, (FrameBufferDiction::WINDOW_HEIGHT - (float)HIWORD(lParam)) / FrameBufferDiction::WINDOW_HEIGHT
+	};
+
 	switch (uMsg)
 	{
 	case WM_CLOSE:
@@ -259,19 +264,19 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		InputHub::GetInstance()->ProcessKey(KeyState::KEY_UP, (uint8_t)wParam);
 		break;
 	case WM_LBUTTONDOWN:
-		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_DOWN, MouseButton::LEFT, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_DOWN, MouseButton::LEFT, mouseUV);
 		break;
 	case WM_LBUTTONUP:
-		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_UP, MouseButton::LEFT, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_UP, MouseButton::LEFT, mouseUV);
 		break;
 	case WM_RBUTTONDOWN:
-		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_DOWN, MouseButton::RIGHT, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_DOWN, MouseButton::RIGHT, mouseUV);
 		break;
 	case WM_RBUTTONUP:
-		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_UP, MouseButton::RIGHT, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_UP, MouseButton::RIGHT, mouseUV);
 		break;
 	case WM_MOUSEMOVE:
-		InputHub::GetInstance()->ProcessMouse({ (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		InputHub::GetInstance()->ProcessMouse(mouseUV);
 		break;
 	}
 }

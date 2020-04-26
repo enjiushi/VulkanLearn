@@ -229,7 +229,7 @@ void Character::Rotate(const Vector2d& v)
 
 void Character::Update()
 {
-	OnRotate({ m_lastSampleCursorPosition.x / GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, (GetPhysicalDevice()->GetSurfaceCap().currentExtent.height - m_lastSampleCursorPosition.y) / GetPhysicalDevice()->GetSurfaceCap().currentExtent.height }, m_isControlInRotation);
+	OnRotate(m_lastSampleCursorPosition, m_isControlInRotation);
 
 	Move(m_moveFlag, Timer::GetElapsedTime());
 	OnRotate(m_rotateFlag, Timer::GetElapsedTime());
