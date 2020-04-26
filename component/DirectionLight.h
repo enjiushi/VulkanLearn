@@ -1,8 +1,9 @@
 #pragma once
 #include "../Base/BaseComponent.h"
 #include "../Maths/Matrix.h"
+#include "../class/InputHub.h"
 
-class DirectionLight : public BaseComponent
+class DirectionLight : public BaseComponent, public IInputListener
 {
 	DECLARE_CLASS_RTTI(DirectionLight);
 
@@ -23,6 +24,11 @@ public:
 	void Update() override;
 	void OnPreRender() override;
 
+	// For input listener
+	void ProcessKey(KeyState keyState, uint8_t keyCode) override {}
+	void ProcessMouse(KeyState keyState, MouseButton mouseButton, const Vector2d& mousePosition) override;
+	void ProcessMouse(const Vector2d& mousePosition) override {}
+
 protected:
 	void UpdateData();
 
@@ -33,4 +39,6 @@ protected:
 	Matrix4d	m_cs2lsProjMatrix;
 	Vector3d	m_wsLightDirection;
 	Vector3d	m_csLightDirection;
+	Vector3d	m_targetLightDirection;
+	bool		m_targetLightDirectionChanged;
 };
