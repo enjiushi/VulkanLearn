@@ -129,4 +129,8 @@ protected:
 	EnvGenState									m_envGenState;
 	uint32_t									m_envJobCounter = 0;
 	std::shared_ptr<CommandBuffer>				m_pSkyboxGenCmdBuf;
+	// Record world space camera position and main ligh direction
+	// as soon as skybox gen starts
+	Vector3f									m_wsCameraPosition;
+	Vector4f									m_wsMainLightDir;
 };

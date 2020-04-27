@@ -12,7 +12,7 @@ layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 layout (set = 3, binding = 0, rgba32f) uniform image2DArray envSkybox;
 
 layout(push_constant) uniform PushConsts {
-	layout (offset = 0) vec4 corners[4];
+	layout (offset = 0) vec4 data[6];
 } pushConsts;
 
 void main() 
@@ -20,26 +20,28 @@ void main()
 	ivec3 size = imageSize(envSkybox);
 	vec2 uv = vec2(gl_GlobalInvocationID.xy + 0.5f) / vec2(size.xy);
 
-	uint planetChunkIndex = uint(pushConsts.corners[3].w);
+	uint planetChunkIndex = uint(pushConsts.data[3].w);
 
-	vec3 bottomLeft		= pushConsts.corners[0].xyz;
-	vec3 bottomRight	= pushConsts.corners[1].xyz;
-	vec3 topLeft		= pushConsts.corners[2].xyz;
-	vec3 topRight		= pushConsts.corners[3].xyz;
+	vec3 bottomLeft		= pushConsts.data[0].xyz;
+	vec3 bottomRight	= pushConsts.data[1].xyz;
+	vec3 topLeft		= pushConsts.data[2].xyz;
+	vec3 topRight		= pushConsts.data[3].xyz;
 
 	vec3 viewDir = normalize(mix(mix(topLeft, topRight, uv.x), mix(bottomLeft, bottomRight, uv.x), uv.y));
+	vec3 wsCameraPosition = pushConsts.data[4].xyz;
+	vec3 wsMainLightDirection = pushConsts.data[5].xyz;
 
 	vec3 skyRadiance;
 	vec3 sunRadiance;
     GetSkyAndSunRadiance_WithGround(
-		perFrameData.wsCameraPosition.xyz, 
+		wsCameraPosition, 
 		viewDir, 
-		perFrameData.wsMainLightDir.xyz, 
+		wsMainLightDirection, 
 		planetChunkIndex, 
 		skyRadiance, 
 		sunRadiance);
 
 	imageStore(envSkybox,	
-		ivec3(gl_GlobalInvocationID.xy, pushConsts.corners[0].w),	// Hack: Put face id to the w component of the first corner
+		ivec3(gl_GlobalInvocationID.xy, pushConsts.data[0].w),	// Hack: Put face id to the w component of the first corner
 		vec4(skyRadiance, 0));
 }

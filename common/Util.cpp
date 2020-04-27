@@ -145,10 +145,15 @@ std::vector<VkVertexInputAttributeDescription> GenerateReservedVBAttribDesc(uint
 	return attribDesc;
 }
 
-void TransferBytesToVector(std::vector<uint8_t>& vec, const void* pData, uint32_t numBytes)
+void TransferBytesToVector(std::vector<uint8_t>& vec, const void* pData, uint32_t offset, uint32_t numBytes)
 {
+	if (offset + numBytes > (uint32_t)vec.size())
+	{
+		vec.resize(offset + numBytes);
+	}
+
 	for (uint32_t i = 0; i < numBytes; i++)
 	{
-		vec.push_back(*((uint8_t*)(pData) + i));
+		vec[offset + i] = *((uint8_t*)(pData) + i);
 	}
 }

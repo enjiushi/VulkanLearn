@@ -208,13 +208,33 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 	{
 		if (m_envGenState == EnvGenState::SKYBOX_GEN)
 		{
+			// Record world space camera and main ligh direction
+			// This info remains unchanged until next round of skybox gen
+			if (m_envJobCounter == 0)
+			{
+				m_wsCameraPosition = UniformData::GetInstance()->GetPerFrameUniforms()->GetCameraPosition().SinglePrecision();
+				m_wsMainLightDir = UniformData::GetInstance()->GetPerFrameUniforms()->GetWorldSpaceMainLightDir().SinglePrecision();
+			}
+
 			uint32_t faceID = m_envJobCounter;
 
 			std::shared_ptr<Material> pMaterial = RenderWorkManager::GetInstance()->GetMaterial(RenderWorkManager::SkyboxGen);
 			m_pSkyboxGenCmdBuf = pPerFrameRes->AllocateTransientComputeCommandBuffer();
 			m_pSkyboxGenCmdBuf->StartPrimaryRecording();
 			m_cubeFaces[m_envJobCounter][0].w = (float)m_envJobCounter;
-			pMaterial->UpdatePushConstantData(&m_cubeFaces[m_envJobCounter][0], sizeof(m_cubeFaces[m_envJobCounter]));
+			pMaterial->UpdatePushConstantData(&m_cubeFaces[m_envJobCounter][0], 0, sizeof(m_cubeFaces[m_envJobCounter]));
+			pMaterial->UpdatePushConstantData
+			(
+				&m_wsCameraPosition,
+				sizeof(m_cubeFaces[m_envJobCounter]), 
+				sizeof(m_wsCameraPosition)
+			);
+			pMaterial->UpdatePushConstantData
+			(
+				&m_wsMainLightDir,
+				sizeof(m_cubeFaces[m_envJobCounter]) + sizeof(Vector4f),
+				sizeof(m_wsMainLightDir)
+			);
 			pMaterial->BeforeRenderPass(m_pSkyboxGenCmdBuf);
 			pMaterial->Dispatch(m_pSkyboxGenCmdBuf);
 			pMaterial->AfterRenderPass(m_pSkyboxGenCmdBuf);
@@ -248,7 +268,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 			m_cubeFaces[faceID][0].w = (float)faceID;
 			m_cubeFaces[faceID][1].w = (float)groupOffsetX * groupCountOneDispatchBorder * GROUP_SIZE;
 			m_cubeFaces[faceID][2].w = (float)groupOffsetY * groupCountOneDispatchBorder * GROUP_SIZE;
-			pMaterial->UpdatePushConstantData(&m_cubeFaces[faceID][0], sizeof(m_cubeFaces[faceID]));
+			pMaterial->UpdatePushConstantData(&m_cubeFaces[faceID][0], 0, sizeof(m_cubeFaces[faceID]));
 			pMaterial->BeforeRenderPass(m_pSkyboxGenCmdBuf);
 			pMaterial->Dispatch(m_pSkyboxGenCmdBuf);
 			pMaterial->AfterRenderPass(m_pSkyboxGenCmdBuf);
@@ -273,7 +293,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 			m_cubeFaces[faceID][0].w = (float)faceID;
 			m_cubeFaces[faceID][1].w = (float)groupOffsetX * groupCountOneDispatchBorder * GROUP_SIZE;
 			m_cubeFaces[faceID][2].w = (float)groupOffsetY * groupCountOneDispatchBorder * GROUP_SIZE;
-			pMaterial->UpdatePushConstantData(&m_cubeFaces[faceID][0], sizeof(m_cubeFaces[faceID]));
+			pMaterial->UpdatePushConstantData(&m_cubeFaces[faceID][0], 0, sizeof(m_cubeFaces[faceID]));
 			pMaterial->BeforeRenderPass(m_pSkyboxGenCmdBuf);
 			pMaterial->Dispatch(m_pSkyboxGenCmdBuf);
 			pMaterial->AfterRenderPass(m_pSkyboxGenCmdBuf);

@@ -56,8 +56,10 @@ std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::shared_ptr<Image>& 
 	// xyz1: bottom right corner. w1: padding
 	// xyz2: top left corner. w2: padding
 	// xyz3: top right corner. w3: padding
+	// xyz4: world space camera position
+	// xyz5: world space main light direction
 	std::vector<uint8_t> pushConstantData;
-	pushConstantData.resize(sizeof(Vector4f) * 4);
+	pushConstantData.resize(sizeof(Vector4f) * 6);
 
 	CustomizedComputeMaterial::Variables variables =
 	{
@@ -655,7 +657,7 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 	float floatIndex = (float)index;
 
 	std::vector<uint8_t> pushConstantData;
-	TransferBytesToVector(pushConstantData, &floatIndex, sizeof(floatIndex));
+	TransferBytesToVector(pushConstantData, &floatIndex, 0, sizeof(floatIndex));
 
 	Vector3ui groupNum =
 	{
@@ -761,7 +763,7 @@ std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shar
 	};
 
 	std::vector<uint8_t> pushConstantData;
-	TransferBytesToVector(pushConstantData, &params, sizeof(params));
+	TransferBytesToVector(pushConstantData, &params, 0, sizeof(params));
 
 	CustomizedComputeMaterial::Variables variables =
 	{
@@ -2437,7 +2439,7 @@ std::shared_ptr<Material> CreateCombineMaterial()
 
 	std::vector<uint8_t> pushConstantData;
 	uint32_t dirtTextureIndex = -1;
-	TransferBytesToVector(pushConstantData, &dirtTextureIndex, sizeof(dirtTextureIndex));
+	TransferBytesToVector(pushConstantData, &dirtTextureIndex, 0, sizeof(dirtTextureIndex));
 
 	CustomizedComputeMaterial::Variables variables =
 	{

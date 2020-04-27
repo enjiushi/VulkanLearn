@@ -30,4 +30,4 @@ VkVertexInputBindingDescription GenerateReservedVBBindingDesc(uint32_t vertexFor
 // By default vertex attributes acquire data from reserved vertex buffer binding slot
 std::vector<VkVertexInputAttributeDescription> GenerateReservedVBAttribDesc(uint32_t vertexFormat, uint32_t vertexFormatInMem);
 
-void TransferBytesToVector(std::vector<uint8_t>& vec, const void* pData, uint32_t numBytes);
+void TransferBytesToVector(std::vector<uint8_t>& vec, const void* pData, uint32_t offset, uint32_t numBytes);
