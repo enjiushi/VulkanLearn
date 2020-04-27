@@ -70,105 +70,6 @@ std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::shared_ptr<Image>& 
 	return CustomizedComputeMaterial::CreateMaterial(variables);
 }
 
-std::shared_ptr<Material> CreateReflectionGenMaterial(const std::shared_ptr<Image>& pInputImage, const std::shared_ptr<Image>& pOutputImage)
-{
-	std::vector<CombinedImage> _inputImages;
-	_inputImages.push_back
-	({
-		pInputImage,
-		pInputImage->CreateLinearClampToEdgeSampler(),
-		pInputImage->CreateDefaultImageView()
-	});
-
-	std::vector<CombinedImage> _outputImages;
-	_outputImages.push_back
-	({
-		pOutputImage,
-		pOutputImage->CreateLinearClampToEdgeSampler(),
-		pOutputImage->CreateDefaultImageView(true)
-	});
-
-	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
-	textureUnits.push_back
-	(
-		{
-			0,
-
-			_inputImages,
-			VK_IMAGE_ASPECT_COLOR_BIT,
-			{ 0, 1, 0, 1 },
-			false,
-
-			CustomizedComputeMaterial::TextureUnit::ALL,
-
-			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
-
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
-			}
-		}
-	);
-
-	textureUnits.push_back
-	(
-		{
-			1,
-
-			_outputImages,
-			VK_IMAGE_ASPECT_COLOR_BIT,
-			{ 0, 1, 0, 1 },
-			true,
-
-			CustomizedComputeMaterial::TextureUnit::ALL,
-
-			{
-				{
-					false
-				},
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
-
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				}
-			}
-		}
-	);
-
-	Vector3ui groupNum = { 4, 4, 1 };
-
-	// xyz0: bottom left corner. w0: face id
-	// xyz1: bottom right corner. w1: group offset x
-	// xyz2: top left corner. w2: group offset y
-	// xyz3: top right corner. w3: padding
-	std::vector<uint8_t> pushConstantData;
-	pushConstantData.resize(sizeof(Vector4f) * 4);
-
-	CustomizedComputeMaterial::Variables variables =
-	{
-		L"../data/shaders/env_reflection_gen.comp.spv",
-		groupNum,
-		textureUnits,
-		pushConstantData
-	};
-
-	return CustomizedComputeMaterial::CreateMaterial(variables);
-}
-
 std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::shared_ptr<Image>& pInputImage, const std::shared_ptr<Image>& pOutputImage)
 {
 	std::vector<CombinedImage> _inputImages;
@@ -260,6 +161,105 @@ std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::shared_ptr<Imag
 	CustomizedComputeMaterial::Variables variables =
 	{
 		L"../data/shaders/env_irradiance_gen.comp.spv",
+		groupNum,
+		textureUnits,
+		pushConstantData
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
+
+std::shared_ptr<Material> CreateReflectionGenMaterial(const std::shared_ptr<Image>& pInputImage, const std::shared_ptr<Image>& pOutputImage)
+{
+	std::vector<CombinedImage> _inputImages;
+	_inputImages.push_back
+	({
+		pInputImage,
+		pInputImage->CreateLinearClampToEdgeSampler(),
+		pInputImage->CreateDefaultImageView()
+		});
+
+	std::vector<CombinedImage> _outputImages;
+	_outputImages.push_back
+	({
+		pOutputImage,
+		pOutputImage->CreateLinearClampToEdgeSampler(),
+		pOutputImage->CreateDefaultImageView(true)
+		});
+
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	textureUnits.push_back
+	(
+		{
+			0,
+
+			_inputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			1,
+
+			_outputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					false
+				},
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
+				}
+			}
+		}
+	);
+
+	Vector3ui groupNum = { 4, 4, 1 };
+
+	// xyz0: bottom left corner. w0: face id
+	// xyz1: bottom right corner. w1: group offset x
+	// xyz2: top left corner. w2: group offset y
+	// xyz3: top right corner. w3: padding
+	std::vector<uint8_t> pushConstantData;
+	pushConstantData.resize(sizeof(Vector4f) * 4);
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		L"../data/shaders/env_reflection_gen.comp.spv",
 		groupNum,
 		textureUnits,
 		pushConstantData
