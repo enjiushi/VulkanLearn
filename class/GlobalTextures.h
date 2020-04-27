@@ -121,8 +121,8 @@ protected:
 	enum class EnvGenState
 	{
 		SKYBOX_GEN,
-		REFLECTION_GEN,
 		IRRADIANCE_GEN,
+		REFLECTION_GEN,
 		COUNT
 	};
 	Vector4f									m_cubeFaces[6][4];
