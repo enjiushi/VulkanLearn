@@ -8,7 +8,7 @@
 #include "atmosphere/functions.sh"
 #include "pbr_functions.sh"
 
-layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 layout (set = 3, binding = 0) uniform samplerCube envSkybox;
 layout (set = 3, binding = 1, rgba32f) uniform image2DArray envReflection;
@@ -16,22 +16,18 @@ layout (set = 3, binding = 1, rgba32f) uniform image2DArray envReflection;
 const uint numSamples = 16;
 
 layout(push_constant) uniform PushConsts {
-	layout (offset = 0) vec4 corners[4];
+	layout (offset = 0) vec4 data[4];
 } pushConsts;
 
 void main() 
 {
-	ivec2 offset = ivec2(pushConsts.corners[1].w, pushConsts.corners[2].w);
-	ivec2 coord = ivec2(gl_GlobalInvocationID.xy + offset);
 	ivec3 size = imageSize(envReflection);
-	vec2 uv = vec2(coord + 0.5f) / vec2(size.xy);
+	vec2 uv = vec2(gl_GlobalInvocationID.xy + 0.5f) / vec2(size.xy);
 
-	uint planetChunkIndex = uint(pushConsts.corners[3].w);
-
-	vec3 bottomLeft		= pushConsts.corners[0].xyz;
-	vec3 bottomRight	= pushConsts.corners[1].xyz;
-	vec3 topLeft		= pushConsts.corners[2].xyz;
-	vec3 topRight		= pushConsts.corners[3].xyz;
+	vec3 bottomLeft		= pushConsts.data[0].xyz;
+	vec3 bottomRight	= pushConsts.data[1].xyz;
+	vec3 topLeft		= pushConsts.data[2].xyz;
+	vec3 topRight		= pushConsts.data[3].xyz;
 
 	vec3 viewDir = normalize(mix(mix(topLeft, topRight, uv.x), mix(bottomLeft, bottomRight, uv.x), uv.y));
 
@@ -45,7 +41,7 @@ void main()
 	for (int samples = 0; samples < numSamples; samples++)
 	{
 		vec2 Xi = Hammersley(samples, numSamples);
-		vec3 L = ImportanceSampleGGX(Xi, N, 0);
+		vec3 L = ImportanceSampleGGX(Xi, N, pushConsts.data[1].w);
 
 		float NdotL = dot(N, L);
 		if (NdotL > 0)
@@ -56,6 +52,6 @@ void main()
 	}
 
 	imageStore(envReflection,	
-		ivec3(coord, pushConsts.corners[0].w),	// Hack: Put face id to the w component of the first corner
+		ivec3(gl_GlobalInvocationID.xy, pushConsts.data[0].w),	// Hack: Put face id to the w component of the first corner
 		vec4(color / weight, 1.0));
 }

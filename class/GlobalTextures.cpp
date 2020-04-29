@@ -206,6 +206,9 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 	GlobalObjects()->GetThreadTaskQueue()->AddJobA(
 	[this](const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 	{
+		m_pSkyboxGenCmdBuf = pPerFrameRes->AllocateTransientComputeCommandBuffer();
+		m_pSkyboxGenCmdBuf->StartPrimaryRecording();
+
 		if (m_envGenState == EnvGenState::SKYBOX_GEN)
 		{
 			// Record world space camera and main ligh direction
@@ -219,8 +222,6 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 			uint32_t faceID = m_envJobCounter;
 
 			std::shared_ptr<Material> pMaterial = RenderWorkManager::GetInstance()->GetMaterial(RenderWorkManager::SkyboxGen);
-			m_pSkyboxGenCmdBuf = pPerFrameRes->AllocateTransientComputeCommandBuffer();
-			m_pSkyboxGenCmdBuf->StartPrimaryRecording();
 			m_cubeFaces[m_envJobCounter][0].w = (float)m_envJobCounter;
 			pMaterial->UpdatePushConstantData(&m_cubeFaces[m_envJobCounter][0], 0, sizeof(m_cubeFaces[m_envJobCounter]));
 			pMaterial->UpdatePushConstantData
@@ -250,21 +251,19 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 
 			return;
 		}
-
-		static uint32_t groupCountOneDispatchBorder = 4;
-		static uint32_t groupCountOneDispatch = groupCountOneDispatchBorder * groupCountOneDispatchBorder;
-		static uint32_t dispatchCountPerBorder = ENV_MAP_SIZE / GROUP_SIZE / groupCountOneDispatchBorder;
-		static uint32_t dispatchCountPerFace = dispatchCountPerBorder * dispatchCountPerBorder;
-		uint32_t faceID = m_envJobCounter / dispatchCountPerFace;
-		uint32_t groupOffset = m_envJobCounter % dispatchCountPerFace;
-		uint32_t groupOffsetX = groupOffset % dispatchCountPerBorder;
-		uint32_t groupOffsetY = groupOffset / dispatchCountPerBorder;
-
-		if (m_envGenState == EnvGenState::IRRADIANCE_GEN)
+		else if (m_envGenState == EnvGenState::IRRADIANCE_GEN)
 		{
+			static uint32_t groupCountOneDispatchBorder = 4;
+			static uint32_t groupCountOneDispatch = groupCountOneDispatchBorder * groupCountOneDispatchBorder;
+			static uint32_t dispatchCountPerBorder = ENV_MAP_SIZE / GROUP_SIZE / groupCountOneDispatchBorder;
+			static uint32_t dispatchCountPerFace = dispatchCountPerBorder * dispatchCountPerBorder;
+
+			uint32_t faceID = m_envJobCounter / dispatchCountPerFace;
+			uint32_t groupOffset = m_envJobCounter % dispatchCountPerFace;
+			uint32_t groupOffsetX = groupOffset % dispatchCountPerBorder;
+			uint32_t groupOffsetY = groupOffset / dispatchCountPerBorder;
+
 			std::shared_ptr<Material> pMaterial = RenderWorkManager::GetInstance()->GetMaterial(RenderWorkManager::IrradianceGen1);
-			m_pSkyboxGenCmdBuf = pPerFrameRes->AllocateTransientComputeCommandBuffer();
-			m_pSkyboxGenCmdBuf->StartPrimaryRecording();
 			m_cubeFaces[faceID][0].w = (float)faceID;
 			m_cubeFaces[faceID][1].w = (float)groupOffsetX * groupCountOneDispatchBorder * GROUP_SIZE;
 			m_cubeFaces[faceID][2].w = (float)groupOffsetY * groupCountOneDispatchBorder * GROUP_SIZE;
@@ -284,31 +283,39 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 
 			return;
 		}
-
-		if (m_envGenState == EnvGenState::REFLECTION_GEN)
+		else if (m_envGenState == EnvGenState::REFLECTION_GEN)
 		{
-			std::shared_ptr<Material> pMaterial = RenderWorkManager::GetInstance()->GetMaterial(RenderWorkManager::ReflectionGen1);
-			m_pSkyboxGenCmdBuf = pPerFrameRes->AllocateTransientComputeCommandBuffer();
-			m_pSkyboxGenCmdBuf->StartPrimaryRecording();
-			m_cubeFaces[faceID][0].w = (float)faceID;
-			m_cubeFaces[faceID][1].w = (float)groupOffsetX * groupCountOneDispatchBorder * GROUP_SIZE;
-			m_cubeFaces[faceID][2].w = (float)groupOffsetY * groupCountOneDispatchBorder * GROUP_SIZE;
-			pMaterial->UpdatePushConstantData(&m_cubeFaces[faceID][0], 0, sizeof(m_cubeFaces[faceID]));
-			pMaterial->BeforeRenderPass(m_pSkyboxGenCmdBuf);
-			pMaterial->Dispatch(m_pSkyboxGenCmdBuf);
-			pMaterial->AfterRenderPass(m_pSkyboxGenCmdBuf);
-			m_pSkyboxGenCmdBuf->EndPrimaryRecording();
+			static uint32_t mipLevels = (uint32_t)std::log2((double)ENV_MAP_SIZE) + 1;
+			for (uint32_t i = 0; i < mipLevels; i++)
+			{
+				if (i == m_reflectionGenMaterials.size())
+				{
+					m_reflectionGenMaterials.push_back
+					(
+						CreateReflectionGenMaterial(m_IBLCubeTextures1[RGBA16_1024_SkyBox], m_IBLCubeTextures1[RGBA16_512_SkyBoxPrefilterEnv], i)
+					);
+				}
+
+				std::shared_ptr<Material> pMaterial = m_reflectionGenMaterials[i];
+
+				m_cubeFaces[m_envJobCounter][0].w = (float)m_envJobCounter;
+				m_cubeFaces[m_envJobCounter][1].w = i / (float)(mipLevels - 1);	// Roughness
+				pMaterial->UpdatePushConstantData(&m_cubeFaces[m_envJobCounter][0], 0, sizeof(m_cubeFaces[m_envJobCounter]));
+				pMaterial->BeforeRenderPass(m_pSkyboxGenCmdBuf);
+				pMaterial->Dispatch(m_pSkyboxGenCmdBuf);
+				pMaterial->AfterRenderPass(m_pSkyboxGenCmdBuf);
+			}
 
 			m_envJobCounter++;
 
-			if (m_envJobCounter == dispatchCountPerFace * 6)
+			if (m_envJobCounter == 6)
 			{
 				m_envGenState = EnvGenState::SKYBOX_GEN;
 				m_envJobCounter = 0;
 			}
-
-			return;
 		}
+
+		m_pSkyboxGenCmdBuf->EndPrimaryRecording();
 	}, FrameMgr()->FrameIndex());
 }
 
