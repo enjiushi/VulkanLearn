@@ -239,7 +239,6 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 			pMaterial->BeforeRenderPass(m_pSkyboxGenCmdBuf);
 			pMaterial->Dispatch(m_pSkyboxGenCmdBuf);
 			pMaterial->AfterRenderPass(m_pSkyboxGenCmdBuf);
-			m_pSkyboxGenCmdBuf->EndPrimaryRecording();
 
 			m_envJobCounter++;
 
@@ -248,8 +247,6 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				m_envGenState = EnvGenState::IRRADIANCE_GEN;
 				m_envJobCounter = 0;
 			}
-
-			return;
 		}
 		else if (m_envGenState == EnvGenState::IRRADIANCE_GEN)
 		{
@@ -271,7 +268,6 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 			pMaterial->BeforeRenderPass(m_pSkyboxGenCmdBuf);
 			pMaterial->Dispatch(m_pSkyboxGenCmdBuf);
 			pMaterial->AfterRenderPass(m_pSkyboxGenCmdBuf);
-			m_pSkyboxGenCmdBuf->EndPrimaryRecording();
 
 			m_envJobCounter++;
 
@@ -280,8 +276,6 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				m_envGenState = EnvGenState::REFLECTION_GEN;
 				m_envJobCounter = 0;
 			}
-
-			return;
 		}
 		else if (m_envGenState == EnvGenState::REFLECTION_GEN)
 		{
