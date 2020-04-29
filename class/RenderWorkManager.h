@@ -63,8 +63,6 @@ public:
 		BloomUpSample,
 		Combine,
 		PostProcess,
-		SkyboxGen,
-		IrradianceGen1,
 		MaterialEnumCount
 	};
 

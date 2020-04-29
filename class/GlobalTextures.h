@@ -81,7 +81,6 @@ public:
 	virtual std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
-	std::shared_ptr<Image> GetIBLTextureCube1(IBLTextureType type) const { return m_IBLCubeTextures1[type]; }
 	void GenerateSkyBox(uint32_t chunkIndex);
 
 protected:
@@ -103,7 +102,7 @@ protected:
 	TextureArrayDesc							m_screenSizeTextureDiction;
 	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures;
 	std::vector<std::shared_ptr<Image>>			m_IBL2DTextures;
-	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures1;
+	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures1[2];
 	std::shared_ptr<Image>						m_pSSAORandomRotations;
 
 	std::vector<std::shared_ptr<Image>>			m_transmittanceTextureDiction;
@@ -128,7 +127,9 @@ protected:
 	Vector4f									m_cubeFaces[6][4];
 	EnvGenState									m_envGenState;
 	uint32_t									m_envJobCounter = 0;
-	std::shared_ptr<CommandBuffer>				m_pSkyboxGenCmdBuf;
+	std::shared_ptr<CommandBuffer>				m_pIBLGenCmdBuffer;
+	std::shared_ptr<Material>					m_pSkyboxGenMaterial;
+	std::shared_ptr<Material>					m_pIrradianceGenMaterial;
 	std::vector<std::shared_ptr<Material>>		m_reflectionGenMaterials;
 	// Record world space camera position and main ligh direction
 	// as soon as skybox gen starts
