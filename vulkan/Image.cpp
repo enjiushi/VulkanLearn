@@ -291,7 +291,7 @@ std::shared_ptr<ImageView> Image::CreateImageView(uint32_t mipLevel, bool isStor
 	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 	imgViewCreateInfo.subresourceRange.layerCount = m_info.arrayLayers;
 	imgViewCreateInfo.subresourceRange.baseMipLevel = mipLevel;
-	imgViewCreateInfo.subresourceRange.levelCount = m_info.mipLevels;
+	imgViewCreateInfo.subresourceRange.levelCount = m_info.mipLevels - mipLevel;
 
 	if (m_info.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 	{
