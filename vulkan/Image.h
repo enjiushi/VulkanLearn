@@ -36,6 +36,7 @@ public:
 	void UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer);
 
 	virtual std::shared_ptr<ImageView> CreateDefaultImageView(bool isStorage = false) const;
+	virtual std::shared_ptr<ImageView> CreateImageView(uint32_t mipLevel, bool isStorage = false) const;
 	virtual std::shared_ptr<ImageView> CreateDepthSampleImageView() const;
 	virtual std::shared_ptr<Sampler> CreateLinearRepeatSampler() const;
 	virtual std::shared_ptr<Sampler> CreateNearestRepeatSampler() const;

@@ -277,6 +277,11 @@ std::shared_ptr<Sampler> Image::CreateLinearClampToEdgeSampler() const
 
 std::shared_ptr<ImageView> Image::CreateDefaultImageView(bool isStorage) const
 {
+	return CreateImageView(0, isStorage);
+}
+
+std::shared_ptr<ImageView> Image::CreateImageView(uint32_t mipLevel, bool isStorage) const
+{
 	VkImageViewCreateInfo imgViewCreateInfo = {};
 	imgViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	imgViewCreateInfo.image = m_image;
@@ -285,7 +290,7 @@ std::shared_ptr<ImageView> Image::CreateDefaultImageView(bool isStorage) const
 	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 	imgViewCreateInfo.subresourceRange.layerCount = m_info.arrayLayers;
-	imgViewCreateInfo.subresourceRange.baseMipLevel = 0;
+	imgViewCreateInfo.subresourceRange.baseMipLevel = mipLevel;
 	imgViewCreateInfo.subresourceRange.levelCount = m_info.mipLevels;
 
 	if (m_info.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
