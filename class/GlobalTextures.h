@@ -122,6 +122,7 @@ protected:
 		SKYBOX_GEN,
 		IRRADIANCE_GEN,
 		REFLECTION_GEN,
+		WAITING_FOR_COMPLETE,
 		COUNT
 	};
 	Vector4f									m_cubeFaces[6][4];

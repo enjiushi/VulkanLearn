@@ -9,6 +9,8 @@
 #include "../vulkan/StagingBufferManager.h"
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/Fence.h"
+#include "../vulkan/SwapChainImage.h"
+#include "../vulkan/SwapChain.h"
 #include "../vulkan/PerFrameResource.h"
 #include "../vulkan/FrameManager.h"
 #include "../class/RenderWorkManager.h"
@@ -203,14 +205,17 @@ void GlobalTextures::InitSkyboxGenParameters()
 
 void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 {
-	if (m_pIBLGenCmdBuffer != nullptr)
+	if (m_pIBLGenCmdBuffer != nullptr && m_envGenState != EnvGenState::WAITING_FOR_COMPLETE)
 		FrameMgr()->SubmitCommandBuffers(GlobalObjects()->GetComputeQueue(), { m_pIBLGenCmdBuffer }, {}, false, false);
 
 	GlobalObjects()->GetThreadTaskQueue()->AddJobA(
 	[this](const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 	{
-		m_pIBLGenCmdBuffer = pPerFrameRes->AllocateTransientComputeCommandBuffer();
-		m_pIBLGenCmdBuffer->StartPrimaryRecording();
+		if (m_envGenState != EnvGenState::WAITING_FOR_COMPLETE)
+		{
+			m_pIBLGenCmdBuffer = pPerFrameRes->AllocateTransientComputeCommandBuffer();
+			m_pIBLGenCmdBuffer->StartPrimaryRecording();
+		}
 
 		if (m_envGenState == EnvGenState::SKYBOX_GEN)
 		{
@@ -325,12 +330,25 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 
 			if (m_envJobCounter == 6)
 			{
+				m_envGenState = EnvGenState::WAITING_FOR_COMPLETE;
+				m_envJobCounter = 0;
+			}
+		}
+		// Wait for another circle to ensure last batch of generating work is done
+		// This is ensured by mechanism of FrameManager
+		// FIXME: However, I think I should create another mechanism to handle all of this kind of async resource preparation
+		else if (m_envGenState == EnvGenState::WAITING_FOR_COMPLETE)
+		{
+			m_envJobCounter++;
+			if (m_envJobCounter == GetSwapChain()->GetSwapChainImageCount())
+			{
 				m_envGenState = EnvGenState::SKYBOX_GEN;
 				m_envJobCounter = 0;
 			}
 		}
 
-		m_pIBLGenCmdBuffer->EndPrimaryRecording();
+		if (m_envGenState != EnvGenState::WAITING_FOR_COMPLETE)
+			m_pIBLGenCmdBuffer->EndPrimaryRecording();
 	}, FrameMgr()->FrameIndex());
 }
 
