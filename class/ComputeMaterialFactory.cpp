@@ -151,7 +151,7 @@ std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::shared_ptr<Imag
 		}
 	);
 
-	Vector3ui groupNum = { 4, 4, 1 };
+	Vector3ui groupNum = { 8, 8, 1 };
 
 	// xyz0: bottom left corner. w0: face id
 	// xyz1: bottom right corner. w1: group offset x

@@ -15,7 +15,7 @@ layout (set = 3, binding = 1, rgba32f) uniform image2DArray envIrradiance;
 #include "uniform_layout.sh"
 #include "global_parameters.sh"
 
-const float sampleDelta = 0.1;
+const float sampleDelta = 0.2;
 
 layout(push_constant) uniform PushConsts {
 	layout (offset = 0) vec4 corners[4];

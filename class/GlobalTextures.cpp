@@ -250,7 +250,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 		}
 		else if (m_envGenState == EnvGenState::IRRADIANCE_GEN)
 		{
-			static uint32_t groupCountOneDispatchBorder = 4;
+			static uint32_t groupCountOneDispatchBorder = 8;
 			static uint32_t groupCountOneDispatch = groupCountOneDispatchBorder * groupCountOneDispatchBorder;
 			static uint32_t dispatchCountPerBorder = ENV_MAP_SIZE / GROUP_SIZE / groupCountOneDispatchBorder;
 			static uint32_t dispatchCountPerFace = dispatchCountPerBorder * dispatchCountPerBorder;
