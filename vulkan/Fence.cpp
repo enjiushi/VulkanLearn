@@ -1,4 +1,5 @@
 #include "Fence.h"
+#include "VKFenceGuardRes.h"
 
 Fence::~Fence()
 {
@@ -33,6 +34,12 @@ bool Fence::Wait()
 	CHECK_VK_ERROR(vkWaitForFences(GetDevice()->GetDeviceHandle(), 1, &m_fence, VK_TRUE, UINT64_MAX));
 	m_fenceState = FenceState::SIGNALED;
 
+	for (auto pRes : m_guardResources)
+	{
+		pRes->Release();
+	}
+	m_guardResources.clear();
+
 	return true;
 }
 
@@ -45,4 +52,23 @@ bool Fence::Reset()
 	m_fenceState = FenceState::READ_FOR_USE;
 
 	return true;
+}
+
+bool Fence::AddResource(const std::shared_ptr<VKFenceGuardRes>& pResource)
+{
+	if (m_fenceState != READ_FOR_USE)
+		return false;
+
+	m_guardResources.push_back(pResource);
+	pResource->GuardByFence(GetSelfSharedPtr());
+
+	return true;
+}
+
+void Fence::MarkResouceOccupied()
+{
+	for (auto pRes : m_guardResources)
+	{
+		pRes->MarkOccupied();
+	}
 }

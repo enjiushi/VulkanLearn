@@ -10,6 +10,7 @@ class ShaderStorageBuffer;
 class Image;
 class Sampler;
 class ImageView;
+class VKGPUSyncRes;
 
 typedef struct _CombinedImage
 {
@@ -54,5 +55,5 @@ protected:
 	VkDescriptorSet									m_descriptorSet;
 	std::shared_ptr<DescriptorPool>					m_pDescriptorPool;
 	std::shared_ptr<DescriptorSetLayout>			m_pDescriptorSetLayout;
-	std::map<uint32_t, std::vector<std::shared_ptr<Base>>>		m_resourceTable;
+	std::vector<std::shared_ptr<VKGPUSyncRes>>		m_resourceTable;
 };

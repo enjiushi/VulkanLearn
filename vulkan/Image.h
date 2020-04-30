@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DeviceObjectBase.h"
+#include "VKGPUSyncRes.h"
 #include "../Maths/Vector.h"
 #include <gli\gli.hpp>
 
@@ -16,7 +17,7 @@ typedef struct _GliImageWrapper
 	std::vector<gli::texture>	textures;
 }GliImageWrapper;
 
-class Image : public DeviceObjectBase<Image>
+class Image : public VKGPUSyncRes
 {
 public:
 	~Image();

@@ -18,7 +18,7 @@ Image::~Image()
 
 bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag)
 {
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
+	if (!VKGPUSyncRes::Init(pDevice, pSelf))
 		return false;
 
 	// Skip this for now as it requires to enumerating all usage and pair it with format feature
@@ -38,7 +38,7 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 	m_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 	CHECK_VK_ERROR(vkCreateImage(GetDevice()->GetDeviceHandle(), &m_info, nullptr, &m_image));
-	m_pMemKey = DeviceMemMgr()->AllocateImageMemChunk(GetSelfSharedPtr(), memoryPropertyFlag);
+	m_pMemKey = DeviceMemMgr()->AllocateImageMemChunk(std::dynamic_pointer_cast<Image>(GetSelfSharedPtr()), memoryPropertyFlag);
 
 	m_info.initialLayout = layout;
 	m_memProperty = memoryPropertyFlag;
@@ -61,7 +61,7 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 
 bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, VkImage img)
 {
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
+	if (!VKGPUSyncRes::Init(pDevice, pSelf))
 		return false;
 
 	m_image = img;
@@ -433,7 +433,7 @@ uint32_t Image::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const
 		bufferCopyRegions.push_back(bufferCopyRegion);
 	}
 
-	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
+	pCmdBuffer->CopyBufferImage(pStagingBuffer, std::dynamic_pointer_cast<Image>(GetSelfSharedPtr()), bufferCopyRegions);
 	return offset;
 }
 

@@ -3,6 +3,7 @@
 #include "DeviceObjectBase.h"
 
 class Queue;
+class VKFenceGuardRes;
 
 class Fence : public DeviceObjectBase<Fence>
 {
@@ -27,11 +28,17 @@ public:
 	bool Wait();
 
 public:
+	bool AddResource(const std::shared_ptr<VKFenceGuardRes>& pResource);
+	void MarkResouceOccupied();
+
+public:
 	static std::shared_ptr<Fence> Create(const std::shared_ptr<Device>& pDevice);
 
 private:
 	VkFence		m_fence;
 	FenceState	m_fenceState;
+
+	std::vector<std::shared_ptr<VKFenceGuardRes>> m_guardResources;
 
 	friend class Queue;
 };
