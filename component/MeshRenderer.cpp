@@ -8,7 +8,7 @@
 #include "../vulkan/PerFrameResource.h"
 #include "../vulkan/PhysicalDevice.h"
 #include "../vulkan/GlobalDeviceObjects.h"
-#include "../vulkan/FrameManager.h"
+#include "../class/FrameWorkManager.h"
 #include "../vulkan/UniformBuffer.h"
 #include "../vulkan/SharedVertexBuffer.h"
 #include "../vulkan/SharedIndexBuffer.h"

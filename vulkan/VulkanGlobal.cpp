@@ -14,7 +14,7 @@
 #include "StagingBuffer.h"
 #include "Queue.h"
 #include "StagingBufferManager.h"
-#include "FrameManager.h"
+#include "../class/FrameWorkManager.h"
 #include "../thread/ThreadWorker.hpp"
 #include <gli\gli.hpp>
 #include "SharedVertexBuffer.h"
@@ -315,7 +315,7 @@ void VulkanGlobal::Update()
 			if (msg.message == WM_QUIT)
 			{
 				quitMessageReceived = true;
-				FrameMgr()->WaitForAllJobsDone();
+				FrameWorkMgr()->WaitForAllJobsDone();
 				return;
 			}
 		}
@@ -536,7 +536,7 @@ void VulkanGlobal::InitDescriptorSet()
 void VulkanGlobal::InitDrawCmdBuffers()
 {
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-		m_perFrameRes.push_back(FrameMgr()->AllocatePerFrameResource(i));
+		m_perFrameRes.push_back(FrameWorkMgr()->AllocatePerFrameResource(i));
 }
 
 void VulkanGlobal::InitSemaphore()
@@ -987,7 +987,7 @@ void VulkanGlobal::Draw()
 
 	GetSwapChain()->AcquireNextImage();
 
-	uint32_t frameIndex = FrameMgr()->FrameIndex();
+	uint32_t frameIndex = FrameWorkMgr()->FrameIndex();
 	uint32_t cbIndex = frameIndex * 2 + pingpong;
 	nextPingpong = (pingpong + 1) % 2;
 
@@ -1026,12 +1026,12 @@ void VulkanGlobal::Draw()
 	static bool newCBCreated = false;
 	if (!PREBAKE_CB)
 	{
-		m_commandBufferList[cbIndex] = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocateTransientPrimaryCommandBuffer();
+		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkMgr()->FrameIndex()]->AllocateTransientPrimaryCommandBuffer();
 		newCBCreated = true;
 	}
 	else if (m_commandBufferList[cbIndex] == nullptr)
 	{
-		m_commandBufferList[cbIndex] = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePersistantPrimaryCommandBuffer();
+		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkMgr()->FrameIndex()]->AllocatePersistantPrimaryCommandBuffer();
 		newCBCreated = true;
 	}
 
@@ -1050,7 +1050,7 @@ void VulkanGlobal::Draw()
 
 	RenderWorkManager::GetInstance()->OnFrameEnd();
 
-	FrameMgr()->SubmitCommandBuffers(GlobalGraphicQueue(), { m_commandBufferList[cbIndex] }, {}, false);
+	FrameWorkMgr()->SubmitCommandBuffers(GlobalGraphicQueue(), { m_commandBufferList[cbIndex] }, {}, false);
 	
 	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
 

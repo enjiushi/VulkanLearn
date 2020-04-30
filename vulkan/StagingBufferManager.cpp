@@ -5,7 +5,7 @@
 #include "Queue.h"
 #include "CommandBuffer.h"
 #include "PerFrameResource.h"
-#include "FrameManager.h"
+#include "../class/FrameWorkManager.h"
 
 bool StagingBufferManager::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<StagingBufferManager>& pSelf)
 {

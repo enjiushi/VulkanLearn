@@ -12,7 +12,7 @@
 #include "../vulkan/SwapChainImage.h"
 #include "../vulkan/SwapChain.h"
 #include "../vulkan/PerFrameResource.h"
-#include "../vulkan/FrameManager.h"
+#include "FrameWorkManager.h"
 #include "../class/RenderWorkManager.h"
 #include "../class/Mesh.h"
 #include "../component/MeshRenderer.h"
@@ -206,7 +206,7 @@ void GlobalTextures::InitSkyboxGenParameters()
 void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 {
 	if (m_pIBLGenCmdBuffer != nullptr && m_envGenState != EnvGenState::WAITING_FOR_COMPLETE)
-		FrameMgr()->SubmitCommandBuffers(GlobalObjects()->GetComputeQueue(), { m_pIBLGenCmdBuffer }, {}, false, false);
+		FrameWorkMgr()->SubmitCommandBuffers(GlobalObjects()->GetComputeQueue(), { m_pIBLGenCmdBuffer }, {}, false, false);
 
 	GlobalObjects()->GetThreadTaskQueue()->AddJobA(
 	[this](const std::shared_ptr<PerFrameResource>& pPerFrameRes)
@@ -349,7 +349,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 
 		if (m_envGenState != EnvGenState::WAITING_FOR_COMPLETE)
 			m_pIBLGenCmdBuffer->EndPrimaryRecording();
-	}, FrameMgr()->FrameIndex());
+	}, FrameWorkMgr()->FrameIndex());
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)

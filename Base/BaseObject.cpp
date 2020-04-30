@@ -1,6 +1,5 @@
 #include "BaseObject.h"
 #include "../vulkan/GlobalDeviceObjects.h"
-#include "../vulkan/FrameManager.h"
 
 bool BaseObject::Init(const std::shared_ptr<BaseObject>& pObj)
 {
@@ -107,7 +106,7 @@ void BaseObject::OnRenderObject()
 {
 	//update components attached to this object
 	//for (size_t i = 0; i < m_components.size(); i++)
-	//	FrameMgr()->AddJobToFrame(std::bind(&BaseComponent::OnRenderObject, m_components[i].get(), std::placeholders::_1));
+	//	FrameWorkMgr()->AddJobToFrame(std::bind(&BaseComponent::OnRenderObject, m_components[i].get(), std::placeholders::_1));
 	for (size_t i = 0; i < m_components.size(); i++)
 		m_components[i]->OnRenderObject();
 

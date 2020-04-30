@@ -2,7 +2,7 @@
 #include "MaterialInstance.h"
 #include "../vulkan/DescriptorSet.h"
 #include "../vulkan/CommandBuffer.h"
-#include "../vulkan/FrameManager.h"
+#include "FrameWorkManager.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/SwapChain.h"
 #include "../class/UniformData.h"

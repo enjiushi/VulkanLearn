@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DeviceObjectBase.h"
+#include "../vulkan/DeviceObjectBase.h"
 #include <map>
 #include <functional>
 #include <mutex>
@@ -15,8 +15,7 @@ class Semaphore;
 class Queue;
 class ThreadTaskQueue;
 
-// FIXME: Rename to FrameWorkManager
-class FrameManager : public DeviceObjectBase<FrameManager>
+class FrameWorkManager : public DeviceObjectBase<FrameWorkManager>
 {
 	typedef struct _SubmissionInfo
 	{
@@ -61,8 +60,8 @@ public:
 	void WaitForAllJobsDone();
 
 protected:
-	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount, const std::shared_ptr<FrameManager>& pSelf);
-	static std::shared_ptr<FrameManager> Create(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount);
+	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount, const std::shared_ptr<FrameWorkManager>& pSelf);
+	static std::shared_ptr<FrameWorkManager> Create(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount);
 
 	std::shared_ptr<Fence> GetCurrentFrameFence() const { return m_frameFences[m_currentFrameIndex]; }
 	std::shared_ptr<Fence> GetFrameFence(uint32_t frameIndex) const { return m_frameFences[frameIndex]; }

@@ -1,24 +1,24 @@
-#include "FrameManager.h"
-#include "CommandBuffer.h"
-#include "CommandPool.h"
-#include "DescriptorPool.h"
-#include "DescriptorSet.h"
-#include "Fence.h"
-#include "GlobalDeviceObjects.h"
-#include "SwapChain.h"
-#include "PerFrameResource.h"
-#include "Fence.h"
-#include "Semaphore.h"
-#include "CommandBuffer.h"
-#include "Queue.h"
+#include "FrameWorkManager.h"
+#include "../vulkan/CommandBuffer.h"
+#include "../vulkan/CommandPool.h"
+#include "../vulkan/DescriptorPool.h"
+#include "../vulkan/DescriptorSet.h"
+#include "../vulkan/Fence.h"
+#include "../vulkan/GlobalDeviceObjects.h"
+#include "../vulkan/SwapChain.h"
+#include "../vulkan/PerFrameResource.h"
+#include "../vulkan/Fence.h"
+#include "../vulkan/Semaphore.h"
+#include "../vulkan/CommandBuffer.h"
+#include "../vulkan/Queue.h"
 #include "../thread/ThreadTaskQueue.hpp"
 #include <algorithm>
-#include "Semaphore.h"
+#include "../vulkan/Semaphore.h"
 #include <stack>
 
-bool FrameManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount, const std::shared_ptr<FrameManager>& pSelf)
+bool FrameWorkManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount, const std::shared_ptr<FrameWorkManager>& pSelf)
 {
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
+	if (!DeviceObjectBase<FrameWorkManager>::Init(pDevice, pSelf))
 		return false;
 
 	m_currentSemaphoreIndex = 0;
@@ -40,16 +40,16 @@ bool FrameManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFram
 	return true;
 }
 
-std::shared_ptr<FrameManager::ExtraFences> FrameManager::ExtraFences::Create()
+std::shared_ptr<FrameWorkManager::ExtraFences> FrameWorkManager::ExtraFences::Create()
 {
-	std::shared_ptr<FrameManager::ExtraFences> pExtraFences = std::make_shared<FrameManager::ExtraFences>();
+	std::shared_ptr<FrameWorkManager::ExtraFences> pExtraFences = std::make_shared<FrameWorkManager::ExtraFences>();
 	if (pExtraFences.get() && pExtraFences->Init(pExtraFences))
 		return pExtraFences;
 
 	return nullptr;
 }
 
-bool FrameManager::ExtraFences::Init(const std::shared_ptr<ExtraFences>& pExtraFences)
+bool FrameWorkManager::ExtraFences::Init(const std::shared_ptr<ExtraFences>& pExtraFences)
 {
 	if (!SelfRefBase::Init(pExtraFences))
 		return false;
@@ -58,7 +58,7 @@ bool FrameManager::ExtraFences::Init(const std::shared_ptr<ExtraFences>& pExtraF
 	return true;
 }
 
-std::shared_ptr<Fence> FrameManager::ExtraFences::GetCurrentFence()
+std::shared_ptr<Fence> FrameWorkManager::ExtraFences::GetCurrentFence()
 {
 	if (m_currIndex < 0)
 		return GetNewFence();
@@ -66,7 +66,7 @@ std::shared_ptr<Fence> FrameManager::ExtraFences::GetCurrentFence()
 	return m_fences[m_currIndex];
 }
 
-std::shared_ptr<Fence> FrameManager::ExtraFences::GetNewFence()
+std::shared_ptr<Fence> FrameWorkManager::ExtraFences::GetNewFence()
 {
 	m_currIndex++;
 	if ((int32_t)m_fences.size() == m_currIndex)
@@ -76,7 +76,7 @@ std::shared_ptr<Fence> FrameManager::ExtraFences::GetNewFence()
 	return m_fences[m_currIndex];
 }
 
-void FrameManager::ExtraFences::Reset()
+void FrameWorkManager::ExtraFences::Reset()
 {
 	for (int32_t i = 0; i <= m_currIndex; i++)
 	{
@@ -87,21 +87,21 @@ void FrameManager::ExtraFences::Reset()
 	m_currIndex = -1;
 }
 
-void FrameManager::ExtraFences::Wait()
+void FrameWorkManager::ExtraFences::Wait()
 {
 	for (int32_t i = 0; i <= m_currIndex; i++)
 		m_fences[i]->Wait();
 }
 
-std::shared_ptr<FrameManager> FrameManager::Create(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount)
+std::shared_ptr<FrameWorkManager> FrameWorkManager::Create(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount)
 {
-	std::shared_ptr<FrameManager> pFrameManager = std::make_shared<FrameManager>();
+	std::shared_ptr<FrameWorkManager> pFrameManager = std::make_shared<FrameWorkManager>();
 	if (pFrameManager.get() && pFrameManager->Init(pDevice, maxFrameCount, pFrameManager))
 		return pFrameManager;
 	return nullptr;
 }
 
-std::shared_ptr<PerFrameResource> FrameManager::AllocatePerFrameResource(uint32_t frameBinIndex)
+std::shared_ptr<PerFrameResource> FrameWorkManager::AllocatePerFrameResource(uint32_t frameBinIndex)
 {
 	if (frameBinIndex < 0 || frameBinIndex >= m_maxFrameCount)
 		return nullptr;
@@ -111,19 +111,19 @@ std::shared_ptr<PerFrameResource> FrameManager::AllocatePerFrameResource(uint32_
 	return pPerFrameRes;
 }
 
-void FrameManager::WaitForFence()
+void FrameWorkManager::WaitForFence()
 {
 	WaitForFence(m_currentFrameIndex);
 }
 
-void FrameManager::WaitForFence(uint32_t frameIndex)
+void FrameWorkManager::WaitForFence(uint32_t frameIndex)
 {
 	m_frameFences[frameIndex]->Wait();
 	m_extraFrameFences[frameIndex]->Wait();
 	m_extraFrameFences[frameIndex]->Reset();
 }
 
-void FrameManager::WaitForAllJobsDone()
+void FrameWorkManager::WaitForAllJobsDone()
 {
 	GlobalThreadTaskQueue()->WaitForFree();
 
@@ -137,20 +137,20 @@ void FrameManager::WaitForAllJobsDone()
 // The key is that if the count of previous cached work is more than (max frame count - 2), the oldest one needs to be flushed
 // or swapchain acquire will fail
 // 2 comes from min frame count of swapchain
-void FrameManager::BeforeAcquire()
+void FrameWorkManager::BeforeAcquire()
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
 	m_currentSemaphoreIndex = (m_currentSemaphoreIndex + 1) % m_maxFrameCount;
 }
 
-void FrameManager::AfterAcquire(uint32_t index)
+void FrameWorkManager::AfterAcquire(uint32_t index)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
 	WaitForGPUWork(index);
 	m_currentFrameIndex = index;
 }
 
-void FrameManager::SubmitCommandBuffers(
+void FrameWorkManager::SubmitCommandBuffers(
 	const std::shared_ptr<Queue>& pQueue,
 	const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 	const std::vector<VkPipelineStageFlags>& waitStages,
@@ -162,7 +162,7 @@ void FrameManager::SubmitCommandBuffers(
 	SubmitCommandBuffersInternal(pQueue, cmdBuffer, { }, waitStages, { }, waitUtilQueueIdle, cache);
 }
 
-void FrameManager::SubmitCommandBuffers(
+void FrameWorkManager::SubmitCommandBuffers(
 	const std::shared_ptr<Queue>& pQueue,
 	const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
@@ -175,7 +175,7 @@ void FrameManager::SubmitCommandBuffers(
 	SubmitCommandBuffersInternal(pQueue, cmdBuffer, waitSemaphores, waitStages, signalSemaphores, waitUtilQueueIdle, cache);
 }
 
-void FrameManager::SubmitCommandBuffersInternal(
+void FrameWorkManager::SubmitCommandBuffersInternal(
 	const std::shared_ptr<Queue>& pQueue,
 	const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
@@ -239,7 +239,7 @@ void FrameManager::SubmitCommandBuffersInternal(
 	}
 }
 
-void FrameManager::FlushCachedSubmission(uint32_t frameIndex)
+void FrameWorkManager::FlushCachedSubmission(uint32_t frameIndex)
 {
 	if (m_pendingSubmissionInfoTable[frameIndex].size() == 0)
 		return;
@@ -262,21 +262,21 @@ void FrameManager::FlushCachedSubmission(uint32_t frameIndex)
 }
 
 // Add job to current frame
-void FrameManager::AddJobToFrame(ThreadJobFunc jobFunc)
+void FrameWorkManager::AddJobToFrame(ThreadJobFunc jobFunc)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
 	GlobalThreadTaskQueue()->AddJob(jobFunc, FrameIndex());
 }
 
 // Wait until those gpu work of this frame finished
-void FrameManager::WaitForGPUWork(uint32_t frameIndex)
+void FrameWorkManager::WaitForGPUWork(uint32_t frameIndex)
 {
 	WaitForFence(frameIndex);
 	m_submissionInfoTable[frameIndex].clear();
 }
 
 // End work submission, which means that current frame's work has been submitted completely
-void FrameManager::EndJobSubmission()
+void FrameWorkManager::EndJobSubmission()
 {
 	GlobalThreadTaskQueue()->WaitForFree();
 
@@ -288,17 +288,17 @@ void FrameManager::EndJobSubmission()
 	m_renderDoneSemaphoreIndex = 0;
 }
 
-std::shared_ptr<Semaphore> FrameManager::GetAcqurieDoneSemaphore() const 
+std::shared_ptr<Semaphore> FrameWorkManager::GetAcqurieDoneSemaphore() const
 {
 	return m_acquireDoneSemaphores[m_currentSemaphoreIndex]; 
 }
 
-std::shared_ptr<Semaphore> FrameManager::GetAcqurieDoneSemaphore(uint32_t frameIndex) const
+std::shared_ptr<Semaphore> FrameWorkManager::GetAcqurieDoneSemaphore(uint32_t frameIndex) const
 {
 	return m_acquireDoneSemaphores[frameIndex];
 }
 
-std::shared_ptr<Semaphore> FrameManager::GetRenderDoneSemaphore()
+std::shared_ptr<Semaphore> FrameWorkManager::GetRenderDoneSemaphore()
 {
 	// Cached semaphores not enough? create a new one
 	if (m_renderDoneSemaphoreIndex >= m_renderDoneSemaphores[m_currentFrameIndex].size())
@@ -307,7 +307,7 @@ std::shared_ptr<Semaphore> FrameManager::GetRenderDoneSemaphore()
 	return m_renderDoneSemaphores[m_currentFrameIndex][m_renderDoneSemaphoreIndex++];
 }
 
-std::vector<std::shared_ptr<Semaphore>> FrameManager::GetRenderDoneSemaphores()
+std::vector<std::shared_ptr<Semaphore>> FrameWorkManager::GetRenderDoneSemaphores()
 {
 	std::vector<std::shared_ptr<Semaphore>> semaphores;
 	semaphores.insert(semaphores.end(), m_renderDoneSemaphores[m_currentFrameIndex].begin(), m_renderDoneSemaphores[m_currentFrameIndex].begin() + m_renderDoneSemaphoreIndex + 1);

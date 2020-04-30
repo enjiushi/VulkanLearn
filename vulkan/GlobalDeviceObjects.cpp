@@ -58,12 +58,12 @@ bool GlobalDeviceObjects::InitObjects(const std::shared_ptr<Device>& pDevice)
 
 	m_pSwapChain = SwapChain::Create(pDevice);
 
-	m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(pDevice, FrameMgr()->MaxFrameCount(), FrameMgr());
+	m_pThreadTaskQueue = std::make_shared<ThreadTaskQueue>(pDevice, FrameWorkMgr()->MaxFrameCount(), FrameWorkMgr());
 
 	m_pGlobalVulkanStates = GlobalVulkanStates::Create(pDevice);
 
 	for (uint32_t i = 0; i < m_pSwapChain->GetSwapChainImageCount(); i++)
-		m_mainThreadPerFrameRes.push_back(FrameMgr()->AllocatePerFrameResource(i));
+		m_mainThreadPerFrameRes.push_back(FrameWorkMgr()->AllocatePerFrameResource(i));
 
 	return true;
 }
@@ -87,7 +87,7 @@ bool GlobalDeviceObjects::RequestAttributeBuffer(uint32_t size, uint32_t& offset
 
 const std::shared_ptr<PerFrameResource> GlobalDeviceObjects::GetMainThreadPerFrameRes() const
 { 
-	return m_mainThreadPerFrameRes[FrameMgr()->FrameIndex()];
+	return m_mainThreadPerFrameRes[FrameWorkMgr()->FrameIndex()];
 }
 
 const std::shared_ptr<SharedBufferManager> GlobalDeviceObjects::GetVertexAttribBufferMgr(uint32_t vertexFormat) 
@@ -108,8 +108,7 @@ std::shared_ptr<CommandPool> MainThreadTransferPool() { return GlobalObjects()->
 std::shared_ptr<DeviceMemoryManager> DeviceMemMgr() { return GlobalObjects()->GetDeviceMemMgr(); }
 std::shared_ptr<StagingBufferManager> StagingBufferMgr() { return GlobalObjects()->GetStagingBufferMgr(); }
 std::shared_ptr<SwapChain> GetSwapChain() { return GlobalObjects()->GetSwapChain(); }
-std::shared_ptr<FrameManager> FrameMgr();
-std::shared_ptr<FrameManager> FrameMgr() { return GetSwapChain()->GetFrameManager(); }
+std::shared_ptr<FrameWorkManager> FrameWorkMgr() { return GetSwapChain()->GetFrameWorkManager(); }
 std::shared_ptr<Device> GetDevice() { return GlobalObjects()->GetDevice(); }
 std::shared_ptr<PhysicalDevice> GetPhysicalDevice() { return GetDevice()->GetPhysicalDevice(); }
 std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr(uint32_t vertexFormat) { return GlobalObjects()->GetVertexAttribBufferMgr(vertexFormat); }

@@ -1,7 +1,7 @@
 #include "UniformData.h"
 #include "Material.h"
 #include "../vulkan/GlobalDeviceObjects.h"
-#include "../vulkan/FrameManager.h"
+#include "FrameWorkManager.h"
 #include "../vulkan/Buffer.h"
 #include "../vulkan/DescriptorSetLayout.h"
 #include "../vulkan/DescriptorSet.h"

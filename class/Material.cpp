@@ -4,7 +4,7 @@
 #include "../vulkan/PerFrameResource.h"
 #include "../vulkan/PhysicalDevice.h"
 #include "../vulkan/GlobalDeviceObjects.h"
-#include "../vulkan/FrameManager.h"
+#include "FrameWorkManager.h"
 #include "../vulkan/UniformBuffer.h"
 #include "../vulkan/SharedVertexBuffer.h"
 #include "../vulkan/SharedIndexBuffer.h"
@@ -422,7 +422,7 @@ void Material::SyncBufferData()
 			meshRenderData.pMesh->PrepareIndirectCmd(cmd);
 			cmd.instanceCount = meshRenderData.instanceCount;
 			cmd.firstInstance = meshRenderData.instanceDataOffset;
-			m_indirectBuffers[FrameMgr()->FrameIndex()]->SetIndirectCmd(drawID, cmd);
+			m_indirectBuffers[FrameWorkMgr()->FrameIndex()]->SetIndirectCmd(drawID, cmd);
 
 			// Prepare indirect offset
 			m_pPerMaterialIndirectOffset->SetIndirectOffset(drawID, offset);
@@ -440,7 +440,7 @@ void Material::SyncBufferData()
 			drawID++;
 		}
 
-		m_indirectCmdCountBuffers[FrameMgr()->FrameIndex()]->SetIndirectCmdCount((uint32_t)m_cachedMeshRenderData.size());
+		m_indirectCmdCountBuffers[FrameWorkMgr()->FrameIndex()]->SetIndirectCmdCount((uint32_t)m_cachedMeshRenderData.size());
 	}
 
 	for (auto & var : m_materialUniforms)
@@ -455,7 +455,7 @@ void Material::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 
 void Material::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	pCmdBuffer->BindDescriptorSets(m_pPipeline->GetPipelineBindingPoint(), GetPipelineLayout(), m_descriptorSets, m_cachedFrameOffsets[FrameMgr()->FrameIndex()]);
+	pCmdBuffer->BindDescriptorSets(m_pPipeline->GetPipelineBindingPoint(), GetPipelineLayout(), m_descriptorSets, m_cachedFrameOffsets[FrameWorkMgr()->FrameIndex()]);
 }
 
 void Material::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture)
@@ -572,7 +572,7 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 
 	PrepareCommandBuffer(pSecondaryCmd, pFrameBuffer, false, pingpong, overrideVP);
 
-	pSecondaryCmd->DrawIndexedIndirectCount(m_indirectBuffers[FrameMgr()->FrameIndex()], 0, m_indirectCmdCountBuffers[FrameMgr()->FrameIndex()], 0);
+	pSecondaryCmd->DrawIndexedIndirectCount(m_indirectBuffers[FrameWorkMgr()->FrameIndex()], 0, m_indirectCmdCountBuffers[FrameWorkMgr()->FrameIndex()], 0);
 
 	pSecondaryCmd->EndSecondaryRecording();
 
