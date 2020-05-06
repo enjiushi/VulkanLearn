@@ -1,4 +1,4 @@
-#include "VulkanGlobal.h"
+#include "AppEntry.h"
 #include "../common/Macros.h"
 #include <iostream>
 #include <chrono>
@@ -10,21 +10,21 @@
 #include "Importer.hpp"
 #include "scene.h"
 #include "postprocess.h"
-#include "Buffer.h"
-#include "StagingBuffer.h"
-#include "Queue.h"
-#include "StagingBufferManager.h"
+#include "../vulkan/Buffer.h"
+#include "../vulkan/StagingBuffer.h"
+#include "../vulkan/Queue.h"
+#include "../vulkan/StagingBufferManager.h"
 #include "../class/FrameWorkManager.h"
 #include "../thread/ThreadWorker.hpp"
 #include <gli\gli.hpp>
-#include "SharedVertexBuffer.h"
-#include "SharedIndexBuffer.h"
+#include "../vulkan/SharedVertexBuffer.h"
+#include "../vulkan/SharedIndexBuffer.h"
 #include "../class/RenderWorkManager.h"
 #include <iostream>
-#include "GlobalVulkanStates.h"
+#include "../vulkan/GlobalVulkanStates.h"
 #include "../class/UniformData.h"
-#include "IndirectBuffer.h"
-#include "SharedIndirectBuffer.h"
+#include "../vulkan/IndirectBuffer.h"
+#include "../vulkan/SharedIndirectBuffer.h"
 #include "../common/Util.h"
 #include "../common/Enums.h"
 #include "../class/GlobalTextures.h"
@@ -43,7 +43,7 @@
 
 bool PREBAKE_CB = true;
 
-void VulkanGlobal::InitVulkanInstance()
+void AppEntry::InitVulkanInstance()
 {
 	VkApplicationInfo appInfo = {};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -72,20 +72,20 @@ void VulkanGlobal::InitVulkanInstance()
 	assert(m_pVulkanInstance != nullptr);
 }
 
-void VulkanGlobal::InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd)
+void AppEntry::InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd)
 {
 	m_pPhysicalDevice = PhysicalDevice::Create(m_pVulkanInstance, hInstance, hWnd);
 	ASSERTION(m_pPhysicalDevice != nullptr);
 }
 
-void VulkanGlobal::InitVulkanDevice()
+void AppEntry::InitVulkanDevice()
 {
 	m_pDevice = Device::Create(m_pVulkanInstance, m_pPhysicalDevice);
 	ASSERTION(m_pDevice != nullptr);
 }
 
 #if defined (_WIN32)
-void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
+void AppEntry::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 {
 	m_hPlatformInst = hinstance;
 
@@ -235,7 +235,7 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 #define KEY_T 0x54
 #endif
 
-void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+void AppEntry::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	Vector2d mouseUV = 
 	{
@@ -283,19 +283,7 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 #endif
 
-void VulkanGlobal::InitQueue()
-{
-}
-
-void VulkanGlobal::InitSurface()
-{
-}
-
-void VulkanGlobal::InitSwapchain()
-{
-}
-
-void VulkanGlobal::Update()
+void AppEntry::Update()
 {
 #if defined(_WIN32)
 	static uint32_t frameCount = 0;
@@ -339,35 +327,7 @@ void VulkanGlobal::Update()
 #endif
 }
 
-void VulkanGlobal::InitCommandPool()
-{
-}
-
-void VulkanGlobal::InitSetupCommandBuffer()
-{
-}
-
-void VulkanGlobal::InitMemoryMgr()
-{
-}
-
-void VulkanGlobal::InitSwapchainImgs()
-{
-}
-
-void VulkanGlobal::InitDepthStencil()
-{
-}
-
-void VulkanGlobal::InitRenderpass()
-{
-}
-
-void VulkanGlobal::InitFrameBuffer()
-{
-}
-
-void VulkanGlobal::InitVertices()
+void AppEntry::InitVertices()
 {
 	m_LODPatchLevel = 3;
 
@@ -439,7 +399,7 @@ gli::texture2d ExtractAlphaChannel(gli::texture2d rgbaTex)
 	return alphaTex;
 }
 
-void VulkanGlobal::InitUniforms()
+void AppEntry::InitUniforms()
 {
 	gli::texture2d gliAlbedoTex(gli::load("../data/textures/cerberus/albedo_1024.ktx"));
 	gli::texture2d gliRoughnessTex(gli::load("../data/textures/cerberus/roughness_1024.ktx"));
@@ -492,58 +452,13 @@ void VulkanGlobal::InitUniforms()
 	UniformData::GetInstance()->GetGlobalTextures()->InsertScreenSizeTexture({ "MipmapTemporalResult", "", "Mip map temporal result, used for next frame ssr" });
 }
 
-void VulkanGlobal::InitDescriptorSetLayout()
-{
-}
-
-void VulkanGlobal::InitPipelineCache()
-{
-}
-
-void VulkanGlobal::InitPipeline()
-{
-}
-
-void VulkanGlobal::InitShaderModule()
-{
-}
-
-void VulkanGlobal::InitDescriptorPool()
-{
-	std::vector<VkDescriptorPoolSize> descPoolSize =
-	{
-		{
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 10
-		},
-		{
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10
-		}
-	};
-
-	VkDescriptorPoolCreateInfo descPoolInfo = {};
-	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	descPoolInfo.pPoolSizes = descPoolSize.data();
-	descPoolInfo.poolSizeCount = (uint32_t)descPoolSize.size();
-	descPoolInfo.maxSets = 10;
-
-	m_pDescriptorPool = DescriptorPool::Create(m_pDevice, descPoolInfo);
-}
-
-void VulkanGlobal::InitDescriptorSet()
-{
-}
-
-void VulkanGlobal::InitDrawCmdBuffers()
+void AppEntry::InitDrawCmdBuffers()
 {
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
 		m_perFrameRes.push_back(FrameWorkManager::GetInstance()->AllocatePerFrameResource(i));
 }
 
-void VulkanGlobal::InitSemaphore()
-{
-}
-
-void VulkanGlobal::InitMaterials()
+void AppEntry::InitMaterials()
 {
 	m_pGunMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
@@ -681,7 +596,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkinnedShadowMapMaterialInstance = RenderWorkManager::GetInstance()->AcquireSkinnedShadowMaterialInstance();
 }
 
-void VulkanGlobal::AddBoneBox(const std::shared_ptr<BaseObject>& pObject)
+void AppEntry::AddBoneBox(const std::shared_ptr<BaseObject>& pObject)
 {
 	std::shared_ptr<MaterialInstance> pInst = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 	pInst->SetRenderMask(1 << RenderWorkManager::Scene);
@@ -702,7 +617,7 @@ void VulkanGlobal::AddBoneBox(const std::shared_ptr<BaseObject>& pObject)
 	}
 }
 
-void VulkanGlobal::InitScene()
+void AppEntry::InitScene()
 {
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightColor({ 1, 1, 1 });
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightDir({ 1, 1, -1 });
@@ -967,7 +882,7 @@ void VariableChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 
 std::shared_ptr<VariableChanger> c;
 
-void VulkanGlobal::EndSetup()
+void AppEntry::EndSetup()
 {
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
 	m_commandBufferList.resize(GetSwapChain()->GetSwapChainImageCount() * 2);
@@ -979,7 +894,7 @@ void VulkanGlobal::EndSetup()
 	InputHub::GetInstance()->Register(c);
 }
 
-void VulkanGlobal::Draw()
+void AppEntry::Draw()
 {
 	static uint32_t pingpong = 0;
 	static uint32_t nextPingpong = 1;
@@ -1060,34 +975,17 @@ void VulkanGlobal::Draw()
 	FrameEventManager::GetInstance()->OnFrameEnd();
 }
 
-void VulkanGlobal::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)
+void AppEntry::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)
 {
 	SetupWindow(hInstance, wndproc);
 	InitVulkanInstance();
 	InitPhysicalDevice(m_hPlatformInst, m_hWindow);
-	InitSurface();
 	InitVulkanDevice();
 	GlobalDeviceObjects::GetInstance()->InitObjects(m_pDevice);
-	InitSwapchain();
-	InitQueue();
 
-	InitCommandPool();
-	InitSetupCommandBuffer();
-	InitMemoryMgr();
-	InitSwapchainImgs();
-	InitDepthStencil();
-	InitRenderpass();
-	InitFrameBuffer();
 	InitVertices();
 	InitUniforms();
-	InitDescriptorSetLayout();
-	InitShaderModule();
-	InitPipelineCache();
-	InitPipeline();
-	InitDescriptorPool();
-	InitDescriptorSet();
 	InitDrawCmdBuffers();
-	InitSemaphore();
 	InitMaterials();
 	InitScene();
 	EndSetup();
