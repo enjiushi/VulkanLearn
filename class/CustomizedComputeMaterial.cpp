@@ -7,6 +7,7 @@
 #include "../vulkan/ImageView.h"
 #include "../vulkan/CommandBuffer.h"
 #include "../common/Util.h"
+#include "FrameWorkManager.h"
 
 std::shared_ptr<CustomizedComputeMaterial> CustomizedComputeMaterial::CreateMaterial(const CustomizedComputeMaterial::Variables& variables)
 {

@@ -62,9 +62,6 @@ bool GlobalDeviceObjects::InitObjects(const std::shared_ptr<Device>& pDevice)
 
 	m_pGlobalVulkanStates = GlobalVulkanStates::Create(pDevice);
 
-	for (uint32_t i = 0; i < m_pSwapChain->GetSwapChainImageCount(); i++)
-		m_mainThreadPerFrameRes.push_back(FrameWorkManager::GetInstance()->AllocatePerFrameResource(i));
-
 	return true;
 }
 
@@ -83,11 +80,6 @@ bool GlobalDeviceObjects::RequestAttributeBuffer(uint32_t size, uint32_t& offset
 	offset = m_attributeBufferOffset;
 	m_attributeBufferOffset += size;
 	return true;
-}
-
-const std::shared_ptr<PerFrameResource> GlobalDeviceObjects::GetMainThreadPerFrameRes() const
-{ 
-	return m_mainThreadPerFrameRes[FrameWorkManager::GetInstance()->FrameIndex()];
 }
 
 const std::shared_ptr<SharedBufferManager> GlobalDeviceObjects::GetVertexAttribBufferMgr(uint32_t vertexFormat) 
@@ -118,4 +110,3 @@ std::shared_ptr<SharedBufferManager> IndirectBufferMgr() { return GlobalObjects(
 std::shared_ptr<SharedBufferManager> StreamingBufferMgr() { return GlobalObjects()->GetStreamingBufferMgr(); }
 std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue() { return GlobalObjects()->GetThreadTaskQueue(); }
 std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates() { return GlobalObjects()->GetGlobalVulkanStates(); }
-std::shared_ptr<PerFrameResource> MainThreadPerFrameRes() { return GlobalObjects()->GetMainThreadPerFrameRes(); }

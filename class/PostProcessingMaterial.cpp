@@ -17,6 +17,7 @@
 #include "RenderWorkManager.h"
 #include "GBufferPass.h"
 #include "FrameBufferDiction.h"
+#include "FrameWorkManager.h"
 #include "../common/Util.h"
 
 std::shared_ptr<PostProcessingMaterial> PostProcessingMaterial::CreateDefaultMaterial()

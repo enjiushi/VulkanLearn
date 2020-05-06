@@ -566,7 +566,7 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 	if (m_indirectBuffers.size() == 0)
 		return;
 
-	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pSecondaryCmd = FrameWorkManager::GetInstance()->GetMainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);
 
@@ -581,7 +581,7 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 
 void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
 {
-	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pSecondaryCmd = FrameWorkManager::GetInstance()->GetMainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);
 

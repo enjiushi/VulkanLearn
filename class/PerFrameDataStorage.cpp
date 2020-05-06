@@ -4,6 +4,7 @@
 #include "../vulkan/ShaderStorageBuffer.h"
 #include "../vulkan/StreamingBuffer.h"
 #include "PerFrameDataStorage.h"
+#include "FrameWorkManager.h"
 
 bool PerFrameDataStorage::Init(const std::shared_ptr<PerFrameDataStorage>& pSelf, uint32_t numBytes, StorageType storageType)
 {

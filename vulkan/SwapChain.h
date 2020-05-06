@@ -7,7 +7,6 @@
 #include <memory>
 #include "DeviceObjectBase.h"
 #include "SwapChainImage.h"
-#include "../class/FrameWorkManager.h"
 
 class Semaphore;
 class Queue;

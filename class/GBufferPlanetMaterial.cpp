@@ -16,6 +16,7 @@
 #include "RenderPassDiction.h"
 #include "RenderWorkManager.h"
 #include "FrameBufferDiction.h"
+#include "FrameWorkManager.h"
 #include "../common/Util.h"
 #include "../vulkan/ShaderStorageBuffer.h"
 #include "../class/PlanetGeoDataManager.h"

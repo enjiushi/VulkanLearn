@@ -4,7 +4,6 @@
 #include "Fence.h"
 #include "GlobalDeviceObjects.h"
 #include "SwapChain.h"
-#include "../class/FrameWorkManager.h"
 
 Queue::~Queue()
 {

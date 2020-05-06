@@ -31,6 +31,9 @@ bool FrameWorkManager::Init()
 
 	m_renderDoneSemaphores.resize(m_maxFrameCount);
 	m_renderDoneSemaphoreIndex = 0;
+
+	for (uint32_t i = 0; i < m_maxFrameCount; i++)
+		m_mainThreadPerFrameRes.push_back(FrameWorkManager::GetInstance()->AllocatePerFrameResource(i));
 	
 	return true;
 }
@@ -116,6 +119,11 @@ void FrameWorkManager::WaitForAllJobsDone()
 
 	std::unique_lock<std::mutex> lock(m_mutex);
 	WaitForGPUWork(m_currentFrameIndex);
+}
+
+const std::shared_ptr<PerFrameResource> FrameWorkManager::GetMainThreadPerFrameRes() const
+{
+	return m_mainThreadPerFrameRes[FrameWorkManager::GetInstance()->FrameIndex()];
 }
 
 // Increase bin index, frame manager moves to next bin, this function is called at the very beginning of a frame

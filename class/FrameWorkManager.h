@@ -66,6 +66,8 @@ public:
 
 	void WaitForAllJobsDone();
 
+	const std::shared_ptr<PerFrameResource> GetMainThreadPerFrameRes() const;
+
 protected:
 	std::shared_ptr<Fence> GetCurrentFrameFence() const { return m_frameFences[m_currentFrameIndex]; }
 	std::shared_ptr<Fence> GetFrameFence(uint32_t frameIndex) const { return m_frameFences[frameIndex]; }
@@ -119,6 +121,8 @@ private:
 
 	std::vector<std::vector<std::shared_ptr<Semaphore>>>	m_renderDoneSemaphores;
 	uint32_t												m_renderDoneSemaphoreIndex;
+
+	std::vector<std::shared_ptr<PerFrameResource>>			m_mainThreadPerFrameRes;
 
 	uint32_t								m_currentFrameIndex;
 	std::deque<uint32_t>					m_frameIndexQueue;

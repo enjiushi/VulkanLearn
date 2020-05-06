@@ -9,6 +9,7 @@
 #include "RenderPassBase.h"
 #include "ForwardRenderPass.h"
 #include "UniformData.h"
+#include "FrameWorkManager.h"
 
 VkFormat FrameBufferDiction::m_GBufferFormatTable[FrameBufferDiction::GBufferCount] =
 {
