@@ -5,10 +5,10 @@
 #include "../vulkan/SwapChain.h"
 #include "../class/FrameWorkManager.h"
 
-ThreadWorker::ThreadWorker(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount, const std::shared_ptr<FrameWorkManager>& pFrameMgr) : m_isWorking(false)
+ThreadWorker::ThreadWorker(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount) : m_isWorking(false)
 {
 	for (uint32_t i = 0; i < frameRoundBinCount; i++)
-		m_frameRes.push_back(pFrameMgr->AllocatePerFrameResource(i));
+		m_frameRes.push_back(FrameWorkManager::GetInstance()->AllocatePerFrameResource(i));
 	m_worker = std::thread(&ThreadWorker::Loop, this);
 }
 

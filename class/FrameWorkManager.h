@@ -1,11 +1,12 @@
 #pragma once
 
 #include "../vulkan/DeviceObjectBase.h"
+#include "../common/Singleton.h"
+#include "../thread/ThreadWorker.hpp"
 #include <map>
 #include <functional>
 #include <mutex>
 #include <deque>
-#include "../thread/ThreadWorker.hpp"
 
 class CommandBuffer;
 class Fence;
@@ -15,7 +16,7 @@ class Semaphore;
 class Queue;
 class ThreadTaskQueue;
 
-class FrameWorkManager : public DeviceObjectBase<FrameWorkManager>
+class FrameWorkManager : public Singleton<FrameWorkManager>
 {
 	typedef struct _SubmissionInfo
 	{
@@ -30,6 +31,9 @@ class FrameWorkManager : public DeviceObjectBase<FrameWorkManager>
 
 	typedef std::map<uint32_t, std::vector<std::shared_ptr<PerFrameResource>>> FrameResourceTable;
 	typedef std::map<uint32_t, std::vector<SubmissionInfo>> SubmissionInfoTable;
+
+public:
+	bool Init();
 
 public:
 	std::shared_ptr<PerFrameResource> AllocatePerFrameResource(uint32_t frameIndex);
@@ -57,12 +61,12 @@ public:
 	void BeforeAcquire();
 	void AfterAcquire(uint32_t index);
 
+	void AcquireNextImage();
+	void QueuePresentImage();
+
 	void WaitForAllJobsDone();
 
 protected:
-	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount, const std::shared_ptr<FrameWorkManager>& pSelf);
-	static std::shared_ptr<FrameWorkManager> Create(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount);
-
 	std::shared_ptr<Fence> GetCurrentFrameFence() const { return m_frameFences[m_currentFrameIndex]; }
 	std::shared_ptr<Fence> GetFrameFence(uint32_t frameIndex) const { return m_frameFences[frameIndex]; }
 	void WaitForFence();

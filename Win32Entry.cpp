@@ -17,6 +17,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 	VulkanGlobal::GetInstance()->Update();
 	SceneGenerator::Free();
 	VulkanGlobal::Free();
+	GlobalDeviceObjects::GetInstance()->Free();
 	return 0;
 }
 

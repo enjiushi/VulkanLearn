@@ -16,26 +16,21 @@
 #include "../vulkan/Semaphore.h"
 #include <stack>
 
-bool FrameWorkManager::Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount, const std::shared_ptr<FrameWorkManager>& pSelf)
+bool FrameWorkManager::Init()
 {
-	if (!DeviceObjectBase<FrameWorkManager>::Init(pDevice, pSelf))
-		return false;
-
 	m_currentSemaphoreIndex = 0;
-	m_maxFrameCount = maxFrameCount;
+	m_maxFrameCount = GetSwapChain()->GetSwapChainImageCount();
 
-	for (uint32_t i = 0; i < maxFrameCount; i++)
+	for (uint32_t i = 0; i < m_maxFrameCount; i++)
 	{
 		m_frameResTable[i] = std::vector<std::shared_ptr<PerFrameResource>>();
-		m_frameFences.push_back(Fence::Create(pDevice));
+		m_frameFences.push_back(Fence::Create(GetDevice()));
 		m_extraFrameFences.push_back(ExtraFences::Create());
-		m_acquireDoneSemaphores.push_back(Semaphore::Create(pDevice));
+		m_acquireDoneSemaphores.push_back(Semaphore::Create(GetDevice()));
 	}
 
-	m_renderDoneSemaphores.resize(maxFrameCount);
+	m_renderDoneSemaphores.resize(m_maxFrameCount);
 	m_renderDoneSemaphoreIndex = 0;
-
-	m_maxFrameCount = maxFrameCount;
 	
 	return true;
 }
@@ -93,14 +88,6 @@ void FrameWorkManager::ExtraFences::Wait()
 		m_fences[i]->Wait();
 }
 
-std::shared_ptr<FrameWorkManager> FrameWorkManager::Create(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount)
-{
-	std::shared_ptr<FrameWorkManager> pFrameManager = std::make_shared<FrameWorkManager>();
-	if (pFrameManager.get() && pFrameManager->Init(pDevice, maxFrameCount, pFrameManager))
-		return pFrameManager;
-	return nullptr;
-}
-
 std::shared_ptr<PerFrameResource> FrameWorkManager::AllocatePerFrameResource(uint32_t frameBinIndex)
 {
 	if (frameBinIndex < 0 || frameBinIndex >= m_maxFrameCount)
@@ -148,6 +135,23 @@ void FrameWorkManager::AfterAcquire(uint32_t index)
 	std::unique_lock<std::mutex> lock(m_mutex);
 	WaitForGPUWork(index);
 	m_currentFrameIndex = index;
+}
+
+void FrameWorkManager::AcquireNextImage()
+{
+	BeforeAcquire();
+
+	uint32_t index = GetSwapChain()->AcquireNextImage(GetAcqurieDoneSemaphore());
+
+	AfterAcquire(index);
+}
+
+void FrameWorkManager::QueuePresentImage()
+{
+	// Flush pending submissions before present
+	EndJobSubmission();
+
+	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue(), GetRenderDoneSemaphores(), m_currentFrameIndex);
 }
 
 void FrameWorkManager::SubmitCommandBuffers(

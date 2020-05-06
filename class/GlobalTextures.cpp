@@ -206,7 +206,7 @@ void GlobalTextures::InitSkyboxGenParameters()
 void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 {
 	if (m_pIBLGenCmdBuffer != nullptr && m_envGenState != EnvGenState::WAITING_FOR_COMPLETE)
-		FrameWorkMgr()->SubmitCommandBuffers(GlobalObjects()->GetComputeQueue(), { m_pIBLGenCmdBuffer }, {}, false, false);
+		FrameWorkManager::GetInstance()->SubmitCommandBuffers(GlobalObjects()->GetComputeQueue(), { m_pIBLGenCmdBuffer }, {}, false, false);
 
 	GlobalObjects()->GetThreadTaskQueue()->AddJobA(
 	[this](const std::shared_ptr<PerFrameResource>& pPerFrameRes)
@@ -349,7 +349,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 
 		if (m_envGenState != EnvGenState::WAITING_FOR_COMPLETE)
 			m_pIBLGenCmdBuffer->EndPrimaryRecording();
-	}, FrameWorkMgr()->FrameIndex());
+	}, FrameWorkManager::GetInstance()->FrameIndex());
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)

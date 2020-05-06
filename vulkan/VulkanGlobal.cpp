@@ -315,7 +315,7 @@ void VulkanGlobal::Update()
 			if (msg.message == WM_QUIT)
 			{
 				quitMessageReceived = true;
-				FrameWorkMgr()->WaitForAllJobsDone();
+				FrameWorkManager::GetInstance()->WaitForAllJobsDone();
 				return;
 			}
 		}
@@ -536,7 +536,7 @@ void VulkanGlobal::InitDescriptorSet()
 void VulkanGlobal::InitDrawCmdBuffers()
 {
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-		m_perFrameRes.push_back(FrameWorkMgr()->AllocatePerFrameResource(i));
+		m_perFrameRes.push_back(FrameWorkManager::GetInstance()->AllocatePerFrameResource(i));
 }
 
 void VulkanGlobal::InitSemaphore()
@@ -985,9 +985,9 @@ void VulkanGlobal::Draw()
 	static uint32_t nextPingpong = 1;
 	static uint32_t frameCount = 0;
 
-	GetSwapChain()->AcquireNextImage();
+	FrameWorkManager::GetInstance()->AcquireNextImage();
 
-	uint32_t frameIndex = FrameWorkMgr()->FrameIndex();
+	uint32_t frameIndex = FrameWorkManager::GetInstance()->FrameIndex();
 	uint32_t cbIndex = frameIndex * 2 + pingpong;
 	nextPingpong = (pingpong + 1) % 2;
 
@@ -1026,12 +1026,12 @@ void VulkanGlobal::Draw()
 	static bool newCBCreated = false;
 	if (!PREBAKE_CB)
 	{
-		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkMgr()->FrameIndex()]->AllocateTransientPrimaryCommandBuffer();
+		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkManager::GetInstance()->FrameIndex()]->AllocateTransientPrimaryCommandBuffer();
 		newCBCreated = true;
 	}
 	else if (m_commandBufferList[cbIndex] == nullptr)
 	{
-		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkMgr()->FrameIndex()]->AllocatePersistantPrimaryCommandBuffer();
+		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkManager::GetInstance()->FrameIndex()]->AllocatePersistantPrimaryCommandBuffer();
 		newCBCreated = true;
 	}
 
@@ -1050,9 +1050,9 @@ void VulkanGlobal::Draw()
 
 	RenderWorkManager::GetInstance()->OnFrameEnd();
 
-	FrameWorkMgr()->SubmitCommandBuffers(GlobalGraphicQueue(), { m_commandBufferList[cbIndex] }, {}, false);
+	FrameWorkManager::GetInstance()->SubmitCommandBuffers(GlobalGraphicQueue(), { m_commandBufferList[cbIndex] }, {}, false);
 	
-	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
+	FrameWorkManager::GetInstance()->QueuePresentImage();
 
 	pingpong = nextPingpong;
 	frameCount++;

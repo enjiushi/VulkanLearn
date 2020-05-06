@@ -25,7 +25,7 @@ public:
 	}ThreadJob;
 
 public:
-	ThreadWorker(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount, const std::shared_ptr<FrameWorkManager>& pFrameMgr);
+	ThreadWorker(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount);
 	~ThreadWorker();
 
 public:

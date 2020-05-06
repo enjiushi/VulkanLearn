@@ -32,7 +32,6 @@ std::shared_ptr<CommandPool> MainThreadTransferPool();
 std::shared_ptr<DeviceMemoryManager> DeviceMemMgr();
 std::shared_ptr<StagingBufferManager> StagingBufferMgr();
 std::shared_ptr<SwapChain> GetSwapChain();
-std::shared_ptr<FrameWorkManager> FrameWorkMgr();
 std::shared_ptr<Device> GetDevice();
 std::shared_ptr<PhysicalDevice> GetPhysicalDevice();
 std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr(uint32_t vertexFormat);

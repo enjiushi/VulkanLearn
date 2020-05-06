@@ -51,7 +51,7 @@ void PerFrameDataStorage::SyncBufferData()
 
 void PerFrameDataStorage::SyncBufferDataInternal()
 {
-	uint32_t currentFrameIndex = FrameWorkMgr()->FrameIndex();
+	uint32_t currentFrameIndex = FrameWorkManager::GetInstance()->FrameIndex();
 	if (m_pendingSync[currentFrameIndex])
 		return;
 

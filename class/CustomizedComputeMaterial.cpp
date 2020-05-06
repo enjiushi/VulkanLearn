@@ -128,7 +128,7 @@ void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<Com
 
 		if (textureUnit.textureSelector == TextureUnit::BY_FRAME)
 		{ 
-			AssembleBarrier(textureUnit, FrameWorkMgr()->FrameIndex(), barrierInsertionPoint, imgBarrier, subresourceRange);
+			AssembleBarrier(textureUnit, FrameWorkManager::GetInstance()->FrameIndex(), barrierInsertionPoint, imgBarrier, subresourceRange);
 			barriers.push_back(imgBarrier);
 		}
 		else if (textureUnit.textureSelector == TextureUnit::BY_PINGPONG)

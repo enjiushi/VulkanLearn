@@ -31,12 +31,12 @@ std::shared_ptr<Queue> Queue::Create(const std::shared_ptr<Device>& pDevice, uin
 void Queue::SubmitPerFrameCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, bool waitUtilQueueIdle)
 {
 	std::vector<std::shared_ptr<CommandBuffer>> v = { pCmdBuffer };
-	SubmitCommandBuffers(v, FrameWorkMgr()->GetCurrentFrameFence(), waitUtilQueueIdle);
+	SubmitCommandBuffers(v, FrameWorkManager::GetInstance()->GetCurrentFrameFence(), waitUtilQueueIdle);
 }
 
 void Queue::SubmitPerFrameCommandBuffers(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers, bool waitUtilQueueIdle)
 {
-	SubmitCommandBuffers(cmdBuffers, std::vector<std::shared_ptr<Semaphore>>(), std::vector<VkPipelineStageFlags>(), FrameWorkMgr()->GetCurrentFrameFence(), waitUtilQueueIdle);
+	SubmitCommandBuffers(cmdBuffers, std::vector<std::shared_ptr<Semaphore>>(), std::vector<VkPipelineStageFlags>(), FrameWorkManager::GetInstance()->GetCurrentFrameFence(), waitUtilQueueIdle);
 }
 
 void Queue::SubmitCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<Fence>& pFence, bool waitUtilQueueIdle)
@@ -108,7 +108,7 @@ void Queue::SubmitPerFrameCommandBuffers(
 	const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
 	bool waitUtilQueueIdle)
 {
-	FrameWorkMgr()->SubmitCommandBuffers(GetSelfSharedPtr(), cmdBuffers, waitSemaphores, waitStages, signalSemaphores, waitUtilQueueIdle);
+	FrameWorkManager::GetInstance()->SubmitCommandBuffers(GetSelfSharedPtr(), cmdBuffers, waitSemaphores, waitStages, signalSemaphores, waitUtilQueueIdle);
 }
 
 void Queue::SubmitCommandBuffer(

@@ -19,8 +19,6 @@ std::shared_ptr<SwapChain> SwapChain::Create(const std::shared_ptr<Device>& pDev
 
 SwapChain::~SwapChain()
 {
-	m_pFrameManager->WaitForFence();
-
 	if (m_pDevice.get())
 		m_fpDestroySwapchainKHR(m_pDevice->GetDeviceHandle(), m_swapchain, nullptr);
 }
@@ -82,8 +80,6 @@ bool SwapChain::Init(const std::shared_ptr<Device>& pDevice, const std::shared_p
 
 	m_swapchainImages = SwapChainImage::Create(pDevice, pSelf);
 
-	m_pFrameManager = FrameWorkManager::Create(pDevice, swapchainCreateInfo.minImageCount);
-
 	return true;
 }
 
@@ -95,33 +91,31 @@ void SwapChain::EnsureSwapChainImageLayout()
 	}
 }
 
-void SwapChain::AcquireNextImage()
+uint32_t SwapChain::AcquireNextImage(const std::shared_ptr<Semaphore>& pAcquireDoneSemaphore)
 {
-	m_pFrameManager->BeforeAcquire();
+	VkSemaphore deviceSemaphore = 0;
+	if (pAcquireDoneSemaphore != nullptr)
+		deviceSemaphore = pAcquireDoneSemaphore->GetDeviceHandle();
 
 	uint32_t index;
-	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, m_pFrameManager->GetAcqurieDoneSemaphore()->GetDeviceHandle(), nullptr, &index));
+	CHECK_VK_ERROR(m_fpAcquireNextImageKHR(m_pDevice->GetDeviceHandle(), GetDeviceHandle(), UINT64_MAX, deviceSemaphore, nullptr, &index));
 
-	m_pFrameManager->AfterAcquire(index);
+	return index;
 }
 
-void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue)
+void SwapChain::QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, const std::vector<std::shared_ptr<Semaphore>>& pRenderDoneSemaphores, uint32_t frameIndex)
 {
-	// Flush pending submissions before present
-	m_pFrameManager->EndJobSubmission();
-
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = &m_swapchain;
 
-	std::vector<std::shared_ptr<Semaphore>> semaphores = m_pFrameManager->GetRenderDoneSemaphores();
 	std::vector<VkSemaphore> rawSemaphores;
-	std::for_each(semaphores.begin(), semaphores.end(), [&rawSemaphores](auto & pSemaphore) {rawSemaphores.push_back(pSemaphore->GetDeviceHandle());});
+	std::for_each(pRenderDoneSemaphores.begin(), pRenderDoneSemaphores.end(), [&rawSemaphores](auto & pSemaphore) {rawSemaphores.push_back(pSemaphore->GetDeviceHandle());});
 	presentInfo.waitSemaphoreCount = (uint32_t)rawSemaphores.size();
 	presentInfo.pWaitSemaphores = rawSemaphores.data();
 
-	auto indices = m_pFrameManager->FrameIndex();
+	auto indices = frameIndex;
 	presentInfo.pImageIndices = &indices;
 
 	CHECK_VK_ERROR(m_fpQueuePresentKHR(pPresentQueue->GetDeviceHandle(), &presentInfo));
