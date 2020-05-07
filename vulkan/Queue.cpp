@@ -16,6 +16,7 @@ bool Queue::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Q
 
 	// We only acquire 1st queue in a queue family, for now
 	vkGetDeviceQueue(pDevice->GetDeviceHandle(), queueFamilyIndex, 0, &m_queue);
+	m_queueFamilyIndex = queueFamilyIndex;
 	return true;
 }
 

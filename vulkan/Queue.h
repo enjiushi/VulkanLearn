@@ -50,8 +50,12 @@ public:
 	void WaitForIdle();
 
 public:
+	uint32_t GetQueueFamilyIndex() const { return m_queueFamilyIndex; }
+
+public:
 	static std::shared_ptr<Queue> Create(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex);
 
 protected:
 	VkQueue		m_queue;
+	uint32_t	m_queueFamilyIndex;
 };
