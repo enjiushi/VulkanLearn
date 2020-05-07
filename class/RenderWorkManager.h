@@ -4,6 +4,7 @@
 #include "../vulkan/RenderPass.h"
 #include "CustomizedComputeMaterial.h"
 #include "RenderPassDiction.h"
+#include "FrameEventListener.h"
 
 class FrameBuffer;
 class Texture2D;
@@ -26,7 +27,7 @@ class DOFMaterial;
 class GBufferPlanetMaterial;
 class Material;
 
-class RenderWorkManager : public Singleton<RenderWorkManager>
+class RenderWorkManager : public Singleton<RenderWorkManager>, public IFrameEventListener
 {
 	// FIXME: Temp
 	static const uint32_t BLOOM_ITER_COUNT = 5;
@@ -84,8 +85,11 @@ public:
 	void SyncMaterialData();
 	void Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffer, uint32_t pingpong);
 
-	void OnFrameBegin();
-	void OnFrameEnd();
+	void OnFrameBegin() override;
+	void OnPostSceneTraversal() override {}
+	void OnPreCmdPreparation() override;
+	void OnPreCmdSubmission() override;
+	void OnFrameEnd() override {}
 
 	std::shared_ptr<Material>	GetMaterial(MaterialEnum materialEnum, uint32_t index = 0) const { return m_materials[materialEnum].GetMaterial(index); }
 

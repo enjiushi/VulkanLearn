@@ -8,6 +8,30 @@ void FrameEventManager::OnFrameBegin()
 	}
 }
 
+void FrameEventManager::OnPostSceneTraversal()
+{
+	for each(auto pListener in m_Listeners)
+	{
+		pListener->OnPostSceneTraversal();
+	}
+}
+
+void FrameEventManager::OnPreCmdPreparation()
+{
+	for each(auto pListener in m_Listeners)
+	{
+		pListener->OnPreCmdPreparation();
+	}
+}
+
+void FrameEventManager::OnPreCmdSubmission()
+{
+	for each(auto pListener in m_Listeners)
+	{
+		pListener->OnPreCmdSubmission();
+	}
+}
+
 void FrameEventManager::OnFrameEnd()
 {
 	for each(auto pListener in m_Listeners)

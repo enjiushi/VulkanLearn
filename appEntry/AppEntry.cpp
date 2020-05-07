@@ -919,8 +919,6 @@ void AppEntry::Draw()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX32Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x32, frameCount));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX256Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x256, frameCount));
 
-	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
-
 	m_pCameraComp->SetFocalLength((1.0 - c->var) * 0.02 + c->var * 0.2);
 	m_pPlanetGenerator->ToggleCameraInfoUpdate(c->boolVar);
 
@@ -931,12 +929,14 @@ void AppEntry::Draw()
 	m_pRootObject->OnPreRender();
 	m_pRootObject->OnRenderObject();
 
+	FrameEventManager::GetInstance()->OnPostSceneTraversal();
+
 	// Sync data for current frame before rendering
 	UniformData::GetInstance()->SyncDataBuffer();
 	RenderWorkManager::GetInstance()->SyncMaterialData();
 	PerFrameData::GetInstance()->SyncDataBuffer();
 
-	RenderWorkManager::GetInstance()->OnFrameBegin();
+	FrameEventManager::GetInstance()->OnPreCmdPreparation();
 
 	static bool newCBCreated = false;
 	if (!PREBAKE_CB)
@@ -963,16 +963,16 @@ void AppEntry::Draw()
 
 	m_pRootObject->OnPostRender();
 
-	RenderWorkManager::GetInstance()->OnFrameEnd();
+	FrameEventManager::GetInstance()->OnPreCmdSubmission();
 
 	FrameWorkManager::GetInstance()->SubmitCommandBuffers(GlobalGraphicQueue(), { m_commandBufferList[cbIndex] }, {}, false);
 	
 	FrameWorkManager::GetInstance()->QueuePresentImage();
 
+	FrameEventManager::GetInstance()->OnFrameEnd();
+
 	pingpong = nextPingpong;
 	frameCount++;
-
-	FrameEventManager::GetInstance()->OnFrameEnd();
 }
 
 void AppEntry::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)

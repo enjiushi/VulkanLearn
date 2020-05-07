@@ -13,6 +13,9 @@ public:
 public:
 	// Maybe more
 	void OnFrameBegin();
+	void OnPostSceneTraversal();
+	void OnPreCmdPreparation();
+	void OnPreCmdSubmission();
 	void OnFrameEnd();
 
 public:

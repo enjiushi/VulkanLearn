@@ -17,6 +17,9 @@ public:
 
 public:
 	void OnFrameBegin() override;
+	void OnPostSceneTraversal() override {}
+	void OnPreCmdPreparation() override {};
+	void OnPreCmdSubmission() override {};
 	void OnFrameEnd() override;
 
 private:
