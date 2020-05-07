@@ -310,7 +310,7 @@ void AppEntry::Update()
 		auto endTime = std::chrono::high_resolution_clock::now();
 		Timer::SetElapsedTime(std::chrono::duration<double, std::milli>(endTime - startTime).count());
 		startTime = endTime;
-		Draw();
+		Tick();
 		frameCount++;
 
 		fpsTimer += (float)Timer::GetElapsedTime();
@@ -894,7 +894,7 @@ void AppEntry::EndSetup()
 	InputHub::GetInstance()->Register(c);
 }
 
-void AppEntry::Draw()
+void AppEntry::Tick()
 {
 	static uint32_t pingpong = 0;
 	static uint32_t nextPingpong = 1;
@@ -905,8 +905,6 @@ void AppEntry::Draw()
 	uint32_t frameIndex = FrameWorkManager::GetInstance()->FrameIndex();
 	uint32_t cbIndex = frameIndex * 2 + pingpong;
 	nextPingpong = (pingpong + 1) % 2;
-
-	UniformData::GetInstance()->GetGlobalTextures()->GenerateSkyBox(0);
 
 	FrameEventManager::GetInstance()->OnFrameBegin();
 

@@ -65,6 +65,11 @@ bool UniformData::Init()
 	return true;
 }
 
+void UniformData::OnFrameBegin()
+{
+	GetGlobalTextures()->GenerateSkyBox(0);
+}
+
 void UniformData::OnPostSceneTraversal()
 {
 	SyncDataBuffer();

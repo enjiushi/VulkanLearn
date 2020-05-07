@@ -77,7 +77,7 @@ public:
 	std::vector<std::shared_ptr<DescriptorSet>> GetDescriptorSets() const { return m_descriptorSets; }
 
 public:
-	void OnFrameBegin() override {}
+	void OnFrameBegin() override;
 	void OnPostSceneTraversal() override;
 	void OnPreCmdPreparation() override {}
 	void OnPreCmdSubmission() override {}

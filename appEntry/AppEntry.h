@@ -65,7 +65,7 @@ public:
 	void InitScene();
 	void EndSetup();
 
-	void Draw();
+	void Tick();
 	void Update();
 
 public:
