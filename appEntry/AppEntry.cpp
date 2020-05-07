@@ -931,11 +931,6 @@ void AppEntry::Draw()
 
 	FrameEventManager::GetInstance()->OnPostSceneTraversal();
 
-	// Sync data for current frame before rendering
-	UniformData::GetInstance()->SyncDataBuffer();
-	RenderWorkManager::GetInstance()->SyncMaterialData();
-	PerFrameData::GetInstance()->SyncDataBuffer();
-
 	FrameEventManager::GetInstance()->OnPreCmdPreparation();
 
 	static bool newCBCreated = false;

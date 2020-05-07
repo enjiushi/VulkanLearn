@@ -1,4 +1,5 @@
 #include "PerFrameData.h"
+#include "FrameEventManager.h"
 
 std::shared_ptr<PerFrameBuffer> PerFrameBuffer::Create(uint32_t size)
 {
@@ -35,6 +36,18 @@ void PerFrameBuffer::SetDirty()
 PerFrameData::PerFrameDataKey::~PerFrameDataKey()
 {
 	m_pPerFrameData->DeallocateBuffer(key);
+}
+
+bool PerFrameData::Init()
+{
+	FrameEventManager::GetInstance()->Register(m_pInstance);
+
+	return true;
+}
+
+void PerFrameData::OnPostSceneTraversal()
+{
+	SyncDataBuffer();
 }
 
 void PerFrameData::SyncDataBuffer()

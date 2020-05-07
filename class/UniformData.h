@@ -8,12 +8,13 @@
 #include "../common/Singleton.h"
 #include "../Maths/Matrix.h"
 #include "../Base/Base.h"
+#include "FrameEventListener.h"
 
 class DescriptorPool;
 class DescriptorSetLayout;
 class DescriptorSet;
 
-class UniformData : public Singleton<UniformData>
+class UniformData : public Singleton<UniformData>, public IFrameEventListener
 {
 public:
 	enum UniformDataLayoutLocation
@@ -74,6 +75,13 @@ public:
 
 	std::vector<std::shared_ptr<DescriptorSetLayout>> GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
 	std::vector<std::shared_ptr<DescriptorSet>> GetDescriptorSets() const { return m_descriptorSets; }
+
+public:
+	void OnFrameBegin() override {}
+	void OnPostSceneTraversal() override;
+	void OnPreCmdPreparation() override {}
+	void OnPreCmdSubmission() override {}
+	void OnFrameEnd() override {}
 
 protected:
 	void BuildDescriptorSets();

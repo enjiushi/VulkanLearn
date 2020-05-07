@@ -86,7 +86,7 @@ public:
 	void Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffer, uint32_t pingpong);
 
 	void OnFrameBegin() override;
-	void OnPostSceneTraversal() override {}
+	void OnPostSceneTraversal() override;
 	void OnPreCmdPreparation() override;
 	void OnPreCmdSubmission() override;
 	void OnFrameEnd() override {}

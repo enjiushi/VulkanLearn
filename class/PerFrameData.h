@@ -3,6 +3,7 @@
 #include "../Maths/Matrix.h"
 #include "../common/Singleton.h"
 #include "UniformDataStorage.h"
+#include "FrameEventListener.h"
 
 class PerFrameBuffer : public PerFrameDataStorage
 {
@@ -28,7 +29,7 @@ private:
 	void*	m_pData;
 };
 
-class PerFrameData : public Singleton<PerFrameData>
+class PerFrameData : public Singleton<PerFrameData>, public IFrameEventListener
 {
 public:
 	class PerFrameDataKey
@@ -46,10 +47,20 @@ public:
 	};
 
 public:
+	bool Init() override;
+
+public:
 	std::shared_ptr<PerFrameDataKey> AllocateBuffer(uint32_t size);
 	const std::shared_ptr<PerFrameBuffer>& GetPerFrameBuffer(const std::shared_ptr<PerFrameDataKey>& pKey) const { return m_storageBuffers[pKey->key]; }
 
 	void SyncDataBuffer();
+
+public:
+	void OnFrameBegin() override {}
+	void OnPostSceneTraversal() override;
+	void OnPreCmdPreparation() override {}
+	void OnPreCmdSubmission() override {}
+	void OnFrameEnd() override {}
 
 private:
 	void DeallocateBuffer(uint32_t key);

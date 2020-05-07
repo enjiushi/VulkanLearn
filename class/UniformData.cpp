@@ -9,6 +9,7 @@
 #include "../vulkan/SwapChain.h"
 #include "GlobalTextures.h"
 #include "GBufferInputUniforms.h"
+#include "FrameEventManager.h"
 
 bool UniformData::Init()
 {
@@ -59,7 +60,14 @@ bool UniformData::Init()
 		m_cachedFrameOffsets.push_back(offsets);
 	}
 
+	FrameEventManager::GetInstance()->Register(m_pInstance);
+
 	return true;
+}
+
+void UniformData::OnPostSceneTraversal()
+{
+	SyncDataBuffer();
 }
 
 void UniformData::SyncDataBuffer()

@@ -280,6 +280,11 @@ void RenderWorkManager::OnFrameBegin()
 	SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
 }
 
+void RenderWorkManager::OnPostSceneTraversal()
+{
+	SyncMaterialData();
+}
+
 void RenderWorkManager::OnPreCmdPreparation()
 {
 	for (auto& materialSet : m_materials)
