@@ -9,8 +9,8 @@
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
-layout (set = 3, binding = 0) uniform samplerCube envSkybox;
-layout (set = 3, binding = 1, rgba32f) uniform image2DArray envIrradiance;
+layout (set = 3, binding = 0) uniform samplerCube envSkybox[2];
+layout (set = 3, binding = 1, rgba32f) uniform image2DArray envIrradiance[2];
 
 #include "uniform_layout.sh"
 #include "global_parameters.sh"
@@ -23,12 +23,11 @@ layout(push_constant) uniform PushConsts {
 
 void main() 
 {
+	uint texPingpongIndex = uint(pushConsts.corners[3].w);
 	ivec2 offset = ivec2(pushConsts.corners[1].w, pushConsts.corners[2].w);
 	ivec2 coord = ivec2(gl_GlobalInvocationID.xy + offset);
-	ivec3 size = imageSize(envIrradiance);
+	ivec3 size = imageSize(envIrradiance[texPingpongIndex]);
 	vec2 uv = vec2(coord + 0.5f) / vec2(size.xy);
-
-	uint planetChunkIndex = uint(pushConsts.corners[3].w);
 
 	vec3 bottomLeft		= pushConsts.corners[0].xyz;
 	vec3 bottomRight	= pushConsts.corners[1].xyz;
@@ -54,12 +53,12 @@ void main()
 		for (float theta = 0.0; theta < 0.5 * PI; theta += sampleDelta) {
 			vec3 sampleDir = vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
 			sampleDir = normalize(tangentSpace * sampleDir);
-			irradiance += texture(envSkybox, sampleDir).rgb * cos(theta) * sin(theta);
+			irradiance += texture(envSkybox[texPingpongIndex], sampleDir).rgb * cos(theta) * sin(theta);
 			numSamples++;
 		}
 	}
 
-	imageStore(envIrradiance,	
+	imageStore(envIrradiance[texPingpongIndex],	
 		ivec3(coord, pushConsts.corners[0].w),	// Hack: Put face id to the w component of the first corner
 		vec4((irradiance / numSamples) * PI, 1.0));
 }

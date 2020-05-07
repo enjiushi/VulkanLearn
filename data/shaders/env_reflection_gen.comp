@@ -10,8 +10,8 @@
 
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
-layout (set = 3, binding = 0) uniform samplerCube envSkybox;
-layout (set = 3, binding = 1, rgba32f) uniform image2DArray envReflection;
+layout (set = 3, binding = 0) uniform samplerCube envSkybox[2];
+layout (set = 3, binding = 1, rgba32f) uniform image2DArray envReflection[2];
 
 const uint numSamples = 16;
 
@@ -21,7 +21,8 @@ layout(push_constant) uniform PushConsts {
 
 void main() 
 {
-	ivec3 size = imageSize(envReflection);
+	uint texPingpongIndex = uint(pushConsts.data[3].w);
+	ivec3 size = imageSize(envReflection[texPingpongIndex]);
 	vec2 uv = vec2(gl_GlobalInvocationID.xy + 0.5f) / vec2(size.xy);
 
 	vec3 bottomLeft		= pushConsts.data[0].xyz;
@@ -46,12 +47,12 @@ void main()
 		float NdotL = dot(N, L);
 		if (NdotL > 0)
 		{
-			color += texture(envSkybox, L).rgb;
+			color += texture(envSkybox[texPingpongIndex], L).rgb;
 			weight += NdotL;
 		}
 	}
 
-	imageStore(envReflection,	
+	imageStore(envReflection[texPingpongIndex],	
 		ivec3(gl_GlobalInvocationID.xy, pushConsts.data[0].w),	// Hack: Put face id to the w component of the first corner
 		vec4(color / weight, 1.0));
 }

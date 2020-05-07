@@ -102,7 +102,7 @@ protected:
 	TextureArrayDesc							m_screenSizeTextureDiction;
 	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures;
 	std::vector<std::shared_ptr<Image>>			m_IBL2DTextures;
-	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures1[2];
+	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures1[IBLCubeTextureTypeCount];
 	std::shared_ptr<Image>						m_pSSAORandomRotations;
 
 	std::vector<std::shared_ptr<Image>>			m_transmittanceTextureDiction;
@@ -128,6 +128,7 @@ protected:
 	Vector4f									m_cubeFaces[6][4];
 	EnvGenState									m_envGenState;
 	uint32_t									m_envJobCounter = 0;
+	uint32_t									m_envTexturePingpongIndex = 0;
 	std::shared_ptr<CommandBuffer>				m_pIBLGenCmdBuffer;
 	std::shared_ptr<Material>					m_pSkyboxGenMaterial;
 	std::shared_ptr<Material>					m_pIrradianceGenMaterial;

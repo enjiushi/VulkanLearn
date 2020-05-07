@@ -9,7 +9,7 @@
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
-layout (set = 3, binding = 0, rgba32f) uniform image2DArray envSkybox;
+layout (set = 3, binding = 0, rgba32f) uniform image2DArray envSkybox[2];
 
 layout(push_constant) uniform PushConsts {
 	layout (offset = 0) vec4 data[6];
@@ -17,10 +17,11 @@ layout(push_constant) uniform PushConsts {
 
 void main() 
 {
-	ivec3 size = imageSize(envSkybox);
+	uint texPingpongIndex = uint(pushConsts.data[3].w);
+	ivec3 size = imageSize(envSkybox[texPingpongIndex]);
 	vec2 uv = vec2(gl_GlobalInvocationID.xy + 0.5f) / vec2(size.xy);
 
-	uint planetChunkIndex = uint(pushConsts.data[3].w);
+	uint planetChunkIndex = uint(pushConsts.data[1].w);
 
 	vec3 bottomLeft		= pushConsts.data[0].xyz;
 	vec3 bottomRight	= pushConsts.data[1].xyz;
@@ -41,7 +42,7 @@ void main()
 		skyRadiance, 
 		sunRadiance);
 
-	imageStore(envSkybox,	
+	imageStore(envSkybox[texPingpongIndex],	
 		ivec3(gl_GlobalInvocationID.xy, pushConsts.data[0].w),	// Hack: Put face id to the w component of the first corner
 		vec4(skyRadiance, 0));
 }

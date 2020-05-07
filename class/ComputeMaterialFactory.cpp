@@ -11,15 +11,16 @@
 // FIXME: hard-code
 static uint32_t groupSize = 16;
 
-std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::shared_ptr<Image>& pOutputImage)
+std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::vector<std::shared_ptr<Image>>& outputImages)
 {
 	std::vector<CombinedImage> _outputImages;
-	_outputImages.push_back
-	({
-		pOutputImage,
-		pOutputImage->CreateLinearClampToEdgeSampler(),
-		pOutputImage->CreateDefaultImageView(true)
-	});
+	for (auto pOutputImage : outputImages)
+		_outputImages.push_back
+		({
+			pOutputImage,
+			pOutputImage->CreateLinearClampToEdgeSampler(),
+			pOutputImage->CreateDefaultImageView(true)
+		});
 
 	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
 	textureUnits.push_back
@@ -55,7 +56,7 @@ std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::shared_ptr<Image>& 
 	// xyz0: bottom left corner. w0: face id
 	// xyz1: bottom right corner. w1: padding
 	// xyz2: top left corner. w2: padding
-	// xyz3: top right corner. w3: padding
+	// xyz3: top right corner. w3: pingpoing index
 	// xyz4: world space camera position
 	// xyz5: world space main light direction
 	std::vector<uint8_t> pushConstantData;
@@ -72,23 +73,25 @@ std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::shared_ptr<Image>& 
 	return CustomizedComputeMaterial::CreateMaterial(variables);
 }
 
-std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::shared_ptr<Image>& pInputImage, const std::shared_ptr<Image>& pOutputImage)
+std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages)
 {
 	std::vector<CombinedImage> _inputImages;
-	_inputImages.push_back
-	({
-		pInputImage,
-		pInputImage->CreateLinearClampToEdgeSampler(),
-		pInputImage->CreateDefaultImageView()
-	});
+	for (auto pInputImage : inputImages)
+		_inputImages.push_back
+		({
+			pInputImage,
+			pInputImage->CreateLinearClampToEdgeSampler(),
+			pInputImage->CreateDefaultImageView()
+		});
 
 	std::vector<CombinedImage> _outputImages;
+	for (auto pOutputImage : outputImages)
 	_outputImages.push_back
-	({
-		pOutputImage,
-		pOutputImage->CreateLinearClampToEdgeSampler(),
-		pOutputImage->CreateDefaultImageView(true)
-	});
+		({
+			pOutputImage,
+			pOutputImage->CreateLinearClampToEdgeSampler(),
+			pOutputImage->CreateDefaultImageView(true)
+		});
 
 	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
 	textureUnits.push_back
@@ -171,22 +174,24 @@ std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::shared_ptr<Imag
 	return CustomizedComputeMaterial::CreateMaterial(variables);
 }
 
-std::shared_ptr<Material> CreateReflectionGenMaterial(const std::shared_ptr<Image>& pInputImage, const std::shared_ptr<Image>& pOutputImage, uint32_t outMipLevel)
+std::shared_ptr<Material> CreateReflectionGenMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages, uint32_t outMipLevel)
 {
 	std::vector<CombinedImage> _inputImages;
-	_inputImages.push_back
-	({
-		pInputImage,
-		pInputImage->CreateLinearClampToEdgeSampler(),
-		pInputImage->CreateDefaultImageView()
+	for (auto pInputImage : inputImages)
+		_inputImages.push_back
+		({
+			pInputImage,
+			pInputImage->CreateLinearClampToEdgeSampler(),
+			pInputImage->CreateDefaultImageView()
 		});
 
 	std::vector<CombinedImage> _outputImages;
-	_outputImages.push_back
-	({
-		pOutputImage,
-		pOutputImage->CreateLinearClampToEdgeSampler(),
-		pOutputImage->CreateImageView(outMipLevel, true)
+	for (auto pOutputImage : outputImages)
+		_outputImages.push_back
+		({
+			pOutputImage,
+			pOutputImage->CreateLinearClampToEdgeSampler(),
+			pOutputImage->CreateImageView(outMipLevel, true)
 		});
 
 	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
@@ -227,7 +232,7 @@ std::shared_ptr<Material> CreateReflectionGenMaterial(const std::shared_ptr<Imag
 
 			_outputImages,
 			VK_IMAGE_ASPECT_COLOR_BIT,
-			{ outMipLevel, 1, 0, pOutputImage->GetImageInfo().arrayLayers },
+			{ outMipLevel, 1, 0, outputImages[0]->GetImageInfo().arrayLayers },
 			true,
 
 			CustomizedComputeMaterial::TextureUnit::ALL,
@@ -250,7 +255,7 @@ std::shared_ptr<Material> CreateReflectionGenMaterial(const std::shared_ptr<Imag
 		}
 	);
 
-	Vector3ui groupNum = { pOutputImage->GetImageInfo().extent.width >> outMipLevel, pOutputImage->GetImageInfo().extent.height >> outMipLevel, 1 };
+	Vector3ui groupNum = { outputImages[0]->GetImageInfo().extent.width >> outMipLevel, outputImages[0]->GetImageInfo().extent.height >> outMipLevel, 1 };
 
 	// xyz0: bottom left corner. w0: face id
 	// xyz1: bottom right corner. w1: roughness
