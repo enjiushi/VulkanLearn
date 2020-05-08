@@ -140,9 +140,9 @@ void PerFrameUniforms::SetPingpongIndex(double pingpongIndex)
 	SetDirty();
 }
 
-void PerFrameUniforms::SetPadding0(double val)
+void PerFrameUniforms::SetEnvPingpongIndex(double val)
 {
-	m_perFrameVariables.padding0 = val;
+	m_perFrameVariables.envPingpongIndex = val;
 	SetDirty();
 }
 
@@ -175,7 +175,7 @@ void PerFrameUniforms::UpdateUniformDataInternal()
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, haltonX256Jitter);
 	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, frameIndex);
 	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, pingpongIndex);
-	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, padding0);
+	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, envPingpongIndex);
 	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, padding1);
 }
 

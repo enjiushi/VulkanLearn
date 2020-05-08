@@ -25,7 +25,7 @@ void main()
 	for (int samples = 0; samples < numSamples; samples++)
 	{
 		vec2 Xi = Hammersley(samples, numSamples);
-		vec3 L = ImportanceSampleGGX(Xi, N, perFrameData.reservedPadding0);
+		vec3 L = ImportanceSampleGGX(Xi, N, perFrameData.envPingpongIndex);
 
 		float NdotL = dot(N, L);
 		if (NdotL > 0)

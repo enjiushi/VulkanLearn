@@ -126,7 +126,7 @@ struct PerFrameData
 	vec2 haltonX256Jitter;
 	float frameIndex;
 	float pingpongIndex;
-	float reservedPadding0;
+	float envPingpongIndex;
 	float reservedPadding1;
 };
 
@@ -205,6 +205,9 @@ layout(set = 0, binding = 19) uniform sampler3D DELTA_RAYLEIGH;
 layout(set = 0, binding = 20) uniform sampler3D DELTA_MIE;
 layout(set = 0, binding = 21) uniform sampler3D DELTA_SCATTER_DENSITY;
 layout(set = 0, binding = 22) uniform sampler3D DELTA_MULTI_SCATTER;
+layout(set = 0, binding = 23) uniform samplerCube RGBA16_512_CUBE_SKYBOX1[2];
+layout(set = 0, binding = 24) uniform samplerCube RGBA16_512_CUBE_IRRADIANCE1[2];
+layout(set = 0, binding = 25) uniform samplerCube RGBA16_512_CUBE_PREFILTERENV1[2];
 
 layout(std430, set = 1, binding = 0) uniform PerFrameUniforms
 {

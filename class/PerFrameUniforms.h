@@ -33,7 +33,7 @@ public:
 
 	T				frameIndex;
 	T				pingpongIndex;
-	T				padding0;
+	T				envPingpongIndex;
 	T				padding1;
 };
 
@@ -84,8 +84,8 @@ public:
 	double GetFrameIndex() const { return m_perFrameVariables.frameIndex; }
 	void SetPingpongIndex(double pingpongIndex);
 	double GetPingpongIndex() const { return m_perFrameVariables.pingpongIndex; }
-	void SetPadding0(double val);
-	double GetPadding0() const { return m_perFrameVariables.padding0; }
+	void SetEnvPingpongIndex(double val);
+	double GetEnvPingpongIndex() const { return m_perFrameVariables.envPingpongIndex; }
 	void SetPadding1(double val);
 	double GetPadding1() const { return m_perFrameVariables.padding1; }
 
