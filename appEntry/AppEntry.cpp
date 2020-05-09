@@ -719,7 +719,7 @@ void AppEntry::InitScene()
 	m_pBoxObject3 = BaseObject::Create();
 	m_pBoxObject4 = BaseObject::Create();
 
-	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
+	m_pQuadRenderer = MeshRenderer::Create(m_pPBRBoxMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer0 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
@@ -777,8 +777,8 @@ void AppEntry::InitScene()
 	sceneInfo.meshLinks.clear();
 
 	m_pQuadObject->AddComponent(m_pQuadRenderer);
-	m_pQuadObject->SetPos(-0.5f, -0.4f, 0);
-	m_pQuadObject->SetScale(2);
+	m_pQuadObject->SetPos(-0.5f, -0.43f, 0);
+	m_pQuadObject->SetScale({2, 0.03, 2});
 
 	m_pBoxObject0->AddComponent(m_pBoxRenderer0);
 	m_pBoxObject0->SetScale(0.3f);
@@ -801,9 +801,6 @@ void AppEntry::InitScene()
 	m_pBoxObject4->SetScale({ 10000, 700000, 10000 });
 	m_pBoxObject4->SetPos(130000, m_pPlanetGenerator->GetPlanetRadius() + 15000, 150000);
 	m_pBoxObject4->SetRotation(Matrix3d::EulerAngle(0, -0.5, 0));
-
-	Quaterniond rot = Quaterniond(Vector3d(1, 0, 0), 0);
-	m_pQuadObject->SetRotation(Quaterniond(Vector3d(1, 0, 0), -1.57));
 
 	m_pSophiaObject = AssimpSceneReader::ReadAndAssemblyScene("../data/models/rp_sophia_animated_003_idling.FBX", { VertexFormatPNTCTB }, sceneInfo);
 	m_pSophiaMesh = sceneInfo.meshLinks[0].first;
