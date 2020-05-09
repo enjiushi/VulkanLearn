@@ -22,7 +22,7 @@ void main()
 
 	float luminance = Luminance(color.rgb);
 	float factor = clamp(luminance, globalData.BloomSettings0.x, globalData.BloomSettings0.y) -  globalData.BloomSettings0.x;
-	factor /= luminance;
+	factor /= (globalData.BloomSettings0.y - globalData.BloomSettings0.x);
 
 	if (any(greaterThanEqual(gl_GlobalInvocationID.xy, size)))
 		return;
