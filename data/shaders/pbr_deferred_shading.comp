@@ -139,6 +139,23 @@ void main()
 		return;
 	}
 
+	// Here we get sun and sky radiance, and normalize it to acquire the rgb ratio, for later lighting
+	AtmosphereParameters parameters = planetAtmosphereData[planetChunkIndex].atmosphereParameters;
+	float planetRadius = parameters.variables.x;
+
+	vec4 wsPosition = (perFrameData.viewCoordSystem * vars.csPosition);
+	// Make sure nothing is below planet surface due to precision problem
+	// Below planet surface could introduce minus infinite number
+	// Drag world space position a little bit higher(here is 100m) to calculate sun and sky radiance
+	// FIXME: Parameterize this hard-coded "0.1"
+	wsPosition.xyz = max((planetRadius + 0.1) * 1000, length(wsPosition.xyz)) * normalize(wsPosition.xyz);
+
+	vec3 skyRadiance;
+	vec3 sunRadiance;
+	GetSkyAndSunRadiance(wsPosition.xyz, perFrameData.wsMainLightDir.xyz, perFrameData.wsMainLightDir.xyz, planetChunkIndex, skyRadiance, sunRadiance);
+	sunRadiance += skyRadiance;
+	sunRadiance = normalize(sunRadiance);
+
 	vec3 n = normalize(vars.normalAO.xyz);
 	vec3 v = normalize(-vec3(oneNearPosition, -1));	// Beware, you'll have to multiply camera space linear depth -1(or any depth you want), and view ray goes towards camera
 	vec3 l = perFrameData.mainLightDir.xyz;
@@ -187,7 +204,7 @@ void main()
 	vec3 skyBoxAmbient	= (irradiance + skyBoxRadiance) * aoFactor;
 	//----------------------------------------------
 
-	vec4 wsPosition = (perFrameData.viewCoordSystem * vars.csPosition) / 1000.0f;
+	wsPosition /= 1000.0f;	// unit km
 
 	// Acquire squared altitude of current pixel
 	float altitude = dot(wsPosition.xyz, wsPosition.xyz);
@@ -197,15 +214,13 @@ void main()
 	float backSideSign = sign(altitude_lightDir_proj);
 	altitude_lightDir_proj = altitude_lightDir_proj * altitude_lightDir_proj;
 
-	// Acquire squared version of planet radius
-	AtmosphereParameters parameters = planetAtmosphereData[planetChunkIndex].atmosphereParameters;
-	float planetRadius = parameters.variables.x * parameters.variables.x;
-
 	// Acquire the distance from planet center to light direction shooting from current pixel, in squared version
 	float length_planetCenter_to_viewDir = altitude - altitude_lightDir_proj;
 
 	// Transfer back side sign from -1,1(back and front) to 0,1
 	backSideSign = backSideSign * 0.5f + 0.5f;
+
+	planetRadius = parameters.variables.x * parameters.variables.x;
 
 	// Only if the point is located at the back side of the planet compared to light direction
 	// And the distance from planet center to light direction is less than planet radius
@@ -215,7 +230,7 @@ void main()
 
 	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedoRoughness.a) * min(1.0f, GGX_D(NdotH, vars.albedoRoughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
 	vec3 dirLightDiffuse = vars.albedoRoughness.rgb * kD / PI;
-	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * perFrameData.mainLightColor.rgb);
+	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * perFrameData.mainLightColor.rgb * sunRadiance);
 
 	vec3 aerialPerspectivePunctual;
 	vec3 aerialPerspectiveAmbient;
