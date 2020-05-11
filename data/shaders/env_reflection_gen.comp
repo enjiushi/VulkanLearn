@@ -33,6 +33,7 @@ void main()
 	vec3 viewDir = normalize(mix(mix(topLeft, topRight, uv.x), mix(bottomLeft, bottomRight, uv.x), uv.y));
 
 	vec3 N = normalize(viewDir);
+	N.z *= -1.0f;	// Cubemap left-hand coordinate
 	vec3 R = N;
 	vec3 V = N;
 

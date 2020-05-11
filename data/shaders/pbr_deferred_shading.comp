@@ -155,14 +155,17 @@ void main()
 	vec3 fresnel_roughness = Fresnel_Schlick_Roughness(F0, NdotV, vars.albedoRoughness.a);
 	vec3 kD_roughness = (1.0 - vars.metalic) * (vec3(1.0) - fresnel_roughness);
 
-	vec3 irradiance = texture(RGBA16_512_CUBE_IRRADIANCE, vec3(n.x, -n.y, n.z)).rgb * vars.albedoRoughness.rgb / PI;
+	// NOTE: Do remember that cubemap coordinate is left-handed
+	// We record camera +z face to -z face of cubemap and vice versa
+	// So we need to manually nagativate z here
+	vec3 irradiance = texture(RGBA16_512_CUBE_IRRADIANCE1[uint(perFrameData.envPingpongIndex)], vec3(n.x, -n.y, -n.z)).rgb * vars.albedoRoughness.rgb / PI;
 
 	vec3 reflectSampleDir = mat3(perFrameData.viewCoordSystem) * reflect(-v, n);
-	reflectSampleDir.y *= -1.0;
+	reflectSampleDir.z *= -1.0f;	// NOTE: Same goes here
 
 	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
 	float lod = vars.albedoRoughness.a * MAX_REFLECTION_LOD;
-	vec3 reflect = textureLod(RGBA16_512_CUBE_PREFILTERENV, reflectSampleDir, lod).rgb;
+	vec3 reflect = textureLod(RGBA16_512_CUBE_PREFILTERENV1[uint(perFrameData.envPingpongIndex)], reflectSampleDir, lod).rgb;
 
 	vec2 brdf_lut = texture(RGBA16_512_2D_BRDFLUT, vec2(NdotV, vars.albedoRoughness.a)).rg;
 

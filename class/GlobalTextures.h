@@ -10,6 +10,7 @@ class TextureCube;
 class Texture2DArray;
 class Image;
 class Fence;
+class Semaphore;
 class Material;
 class CommandBuffer;
 class DescriptorSet;
@@ -127,6 +128,7 @@ protected:
 	};
 	Vector4f									m_cubeFaces[6][4];
 	EnvGenState									m_envGenState;
+	EnvGenState									m_lastEnvGenState;
 	uint32_t									m_envJobCounter = 0;
 	uint32_t									m_envTexturePingpongIndex = 0;
 	std::shared_ptr<CommandBuffer>				m_pIBLGenCmdBuffer;
