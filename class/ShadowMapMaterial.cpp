@@ -81,9 +81,9 @@ std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(bool
 	rasterizerCreateInfo.depthClampEnable = VK_FALSE;
 	rasterizerCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 	rasterizerCreateInfo.depthBiasEnable = VK_TRUE;
-	rasterizerCreateInfo.depthBiasConstantFactor = 1;
+	rasterizerCreateInfo.depthBiasConstantFactor = 20000;
 	rasterizerCreateInfo.depthBiasClamp = 2;
-	rasterizerCreateInfo.depthBiasSlopeFactor = 1;
+	rasterizerCreateInfo.depthBiasSlopeFactor = 0;
 
 	VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {};
 	viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
