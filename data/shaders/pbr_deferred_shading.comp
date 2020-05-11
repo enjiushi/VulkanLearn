@@ -28,6 +28,9 @@ float rayTraceBorderFadeDist = globalData.SSRSettings2.x;
 float rayTraceMaxStepFadeDist = globalData.SSRSettings2.y;
 float screenSizeMiplevel = globalData.SSRSettings2.z;
 
+// FIXME: hard-coded, change this when I do multi planets
+uint planetChunkIndex = 0;
+
 const vec2 offset[4] =
 {
 	vec2(0, 0),
@@ -126,7 +129,7 @@ void main()
 	    vec3 skyRadiance;
 		vec3 sunRadiance;
 		// FIXME: Hard-coded planet chunk index. This variable should come from client side
-        GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, WSViewDir, perFrameData.wsMainLightDir.xyz, 0, skyRadiance, sunRadiance);
+        GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, WSViewDir, perFrameData.wsMainLightDir.xyz, planetChunkIndex, skyRadiance, sunRadiance);
 		imageStore(outShadingColor[frameIndex],	
 			ivec2(gl_GlobalInvocationID.xy), 
 			vec4(skyRadiance + sunRadiance, vars.albedoRoughness.a));
@@ -184,6 +187,32 @@ void main()
 	vec3 skyBoxAmbient	= (irradiance + skyBoxRadiance) * aoFactor;
 	//----------------------------------------------
 
+	vec4 wsPosition = (perFrameData.viewCoordSystem * vars.csPosition) / 1000.0f;
+
+	// Acquire squared altitude of current pixel
+	float altitude = dot(wsPosition.xyz, wsPosition.xyz);
+
+	// Acquire the squared projection length between the vector of planet center to pixel and light direction
+	float altitude_lightDir_proj = dot(perFrameData.wsMainLightDir.xyz, wsPosition.xyz);
+	float backSideSign = sign(altitude_lightDir_proj);
+	altitude_lightDir_proj = altitude_lightDir_proj * altitude_lightDir_proj;
+
+	// Acquire squared version of planet radius
+	AtmosphereParameters parameters = planetAtmosphereData[planetChunkIndex].atmosphereParameters;
+	float planetRadius = parameters.variables.x * parameters.variables.x;
+
+	// Acquire the distance from planet center to light direction shooting from current pixel, in squared version
+	float length_planetCenter_to_viewDir = altitude - altitude_lightDir_proj;
+
+	// Transfer back side sign from -1,1(back and front) to 0,1
+	backSideSign = backSideSign * 0.5f + 0.5f;
+
+	// Only if the point is located at the back side of the planet compared to light direction
+	// And the distance from planet center to light direction is less than planet radius
+	// This pixel is considered to be blocked by planet
+	if (length_planetCenter_to_viewDir < planetRadius)
+		vars.shadowFactor *= backSideSign;
+
 	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedoRoughness.a) * min(1.0f, GGX_D(NdotH, vars.albedoRoughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
 	vec3 dirLightDiffuse = vars.albedoRoughness.rgb * kD / PI;
 	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * perFrameData.mainLightColor.rgb);
@@ -196,7 +225,7 @@ void main()
 		perFrameData.wsMainLightDir.xyz, 
 		punctualRadiance, 
 		skyBoxAmbient,
-		0,
+		planetChunkIndex,
 		aerialPerspectivePunctual,
 		aerialPerspectiveAmbient);
 
