@@ -65,7 +65,6 @@ public:
 	void InsertScreenSizeTexture(const TextureDesc& desc);
 	std::shared_ptr<Image>	GetTextureArray(InGameTextureType type) const { return m_textureDiction[type].pTextureArray; }
 	std::shared_ptr<Image>	GetScreenSizeTextureArray() const { return m_screenSizeTextureDiction.pTextureArray; }
-	std::shared_ptr<Image> GetIBLTextureCube(IBLTextureType type) const { return m_IBLCubeTextures[type]; }
 	std::shared_ptr<Image> GetIBLTexture2D(IBLTextureType type) const { return m_IBL2DTextures[type]; }
 	std::shared_ptr<Image> GetTransmittanceTextureDiction(uint32_t planetIndex) const { return m_transmittanceTextureDiction[planetIndex]; }
 	std::shared_ptr<Image> GetScatterTextureDiction(uint32_t planetIndex) const { return m_scatterTextureDiction[planetIndex]; }
@@ -75,13 +74,13 @@ public:
 	std::shared_ptr<Image> GetDeltaMie() const { return m_pDeltaMie; }
 	std::shared_ptr<Image> GetDeltaScatterDensity() const { return m_pDeltaScatterDensity; }
 	std::shared_ptr<Image> GetDeltaMultiScatter() const { return m_pDeltaMultiScatter; }
-	void InitIBLTextures(const gli::texture_cube& skyBoxTex);
 	bool GetTextureIndex(InGameTextureType type, const std::string& textureName, uint32_t& textureIndex);
 	bool GetScreenSizeTextureIndex(const std::string& textureName, uint32_t& textureIndex);
 
 	virtual std::vector<UniformVarList> PrepareUniformVarList() const override;
 	uint32_t SetupDescriptorSet(const std::shared_ptr<DescriptorSet>& pDescriptorSet, uint32_t bindingIndex) const override;
 
+	void GenerateBRDFLUTTexture();
 	void GenerateSkyBox(uint32_t chunkIndex);
 
 protected:
@@ -89,9 +88,6 @@ protected:
 	void InitTextureDiction();
 	void InitScreenSizeTextureDiction();
 	void InitIBLTextures();
-	void InitIrradianceTexture();
-	void InitPrefilterEnvTexture();
-	void InitBRDFLUTTexture();
 	void InitSSAORandomRotationTexture();
 	void InitTransmittanceTextureDiction();
 	void InitSkyboxGenParameters();
@@ -101,7 +97,6 @@ protected:
 protected:
 	std::vector<TextureArrayDesc>				m_textureDiction;
 	TextureArrayDesc							m_screenSizeTextureDiction;
-	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures;
 	std::vector<std::shared_ptr<Image>>			m_IBL2DTextures;
 	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures1[IBLCubeTextureTypeCount];
 	std::shared_ptr<Image>						m_pSSAORandomRotations;

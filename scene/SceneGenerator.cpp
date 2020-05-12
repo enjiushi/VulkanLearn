@@ -28,50 +28,6 @@ void SceneGenerator::PurgeExcistSceneData()
 	m_pMaterial0 = nullptr;
 }
 
-void SceneGenerator::GenerateIrradianceGenScene()
-{
-	PurgeExcistSceneData();
-
-	m_pRootObj = BaseObject::Create();
-
-	m_pCameraObj = GenerateIBLGenOffScreenCamera((uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
-	m_pRootObj->AddChild(m_pCameraObj);
-
-	m_pMesh0 = GenerateBoxMesh();
-	m_pMaterial0 = GenerateIrradianceGenMaterial(m_pMesh0);
-	m_pMaterialInstance0 = m_pMaterial0->CreateMaterialInstance();
-	m_pMaterialInstance0->SetRenderMask(1 << RenderWorkManager::IrradianceGen);
-	m_pMeshRenderer0 = MeshRenderer::Create(m_pMesh0, { m_pMaterialInstance0 });
-
-	std::shared_ptr<BaseObject> pSkyBox = BaseObject::Create();
-	pSkyBox->AddComponent(m_pMeshRenderer0);
-	m_pRootObj->AddChild(pSkyBox);
-
-	StagingBufferMgr()->FlushDataMainThread();
-}
-
-void SceneGenerator::GeneratePrefilterEnvGenScene()
-{
-	PurgeExcistSceneData();
-
-	m_pRootObj = BaseObject::Create();
-
-	m_pCameraObj = GenerateIBLGenOffScreenCamera((uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
-	m_pRootObj->AddChild(m_pCameraObj);
-
-	m_pMesh0 = GenerateBoxMesh();
-	m_pMaterial0 = GeneratePrefilterEnvGenMaterial(m_pMesh0);
-	m_pMaterialInstance0 = m_pMaterial0->CreateMaterialInstance();
-	m_pMaterialInstance0->SetRenderMask(1 << RenderWorkManager::ReflectionGen);
-	m_pMeshRenderer0 = MeshRenderer::Create(m_pMesh0, { m_pMaterialInstance0 });
-
-	std::shared_ptr<BaseObject> pSkyBox = BaseObject::Create();
-	pSkyBox->AddComponent(m_pMeshRenderer0);
-	m_pRootObj->AddChild(pSkyBox);
-
-	StagingBufferMgr()->FlushDataMainThread();
-}
-
 void SceneGenerator::GenerateBRDFLUTGenScene()
 {
 	PurgeExcistSceneData();
@@ -570,34 +526,6 @@ std::shared_ptr<Mesh> SceneGenerator::GenPBRIcosahedronMesh()
 		&icoVertices[0], 12, VertexFormatP,
 		&indices[0], 20 * 3, VK_INDEX_TYPE_UINT32
 	);
-}
-
-std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateIrradianceGenMaterial(const std::shared_ptr<Mesh>& pMesh)
-{
-	SimpleMaterialCreateInfo info = {};
-	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/irradiance.frag.spv", L"" };
-	info.materialUniformVars = {};
-	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
-	info.vertexFormatInMem = pMesh->GetVertexBuffer()->GetVertexFormat();
-	info.subpassIndex = 0;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen();
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_EnvGenOffScreen;
-
-	return ForwardMaterial::CreateDefaultMaterial(info);
-}
-
-std::shared_ptr<ForwardMaterial> SceneGenerator::GeneratePrefilterEnvGenMaterial(const std::shared_ptr<Mesh>& pMesh)
-{
-	SimpleMaterialCreateInfo info = {};
-	info.shaderPaths = { L"../data/shaders/sky_box.vert.spv", L"", L"", L"", L"../data/shaders/prefilter_env.frag.spv", L"" };
-	info.materialUniformVars = {};
-	info.vertexFormat = pMesh->GetVertexBuffer()->GetVertexFormat();
-	info.vertexFormatInMem = pMesh->GetVertexBuffer()->GetVertexFormat();
-	info.subpassIndex = 0;
-	info.pRenderPass = RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen();
-	info.frameBufferType = FrameBufferDiction::FrameBufferType_EnvGenOffScreen;
-
-	return ForwardMaterial::CreateDefaultMaterial(info);
 }
 
 std::shared_ptr<ForwardMaterial> SceneGenerator::GenerateBRDFLUTGenMaterial()

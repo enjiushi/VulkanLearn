@@ -84,11 +84,6 @@ void GlobalTextures::InitScreenSizeTextureDiction()
 
 void GlobalTextures::InitIBLTextures()
 {
-	m_IBLCubeTextures.resize(IBLCubeTextureTypeCount);
-	m_IBLCubeTextures[RGBA16_1024_SkyBox] = Image::CreateEmptyCubeTexture(GetDevice(), { 1024, 1024 }, (uint32_t)std::log2(1024) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance] = Image::CreateEmptyCubeTexture(GetDevice(), { (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y }, 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
-	m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv] = Image::CreateEmptyCubeTexture(GetDevice(), { (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y }, (uint32_t)std::log2(512) + 1, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
-
 	m_IBL2DTextures.resize(IBL2DTextureTypeCount);
 
 	Vector2ui size = 
@@ -484,14 +479,6 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 	}, FrameWorkManager::GetInstance()->FrameIndex());
 }
 
-void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
-{
-	m_IBLCubeTextures[RGBA16_1024_SkyBox]->UpdateByteStream({ {skyBoxTex} });
-	InitIrradianceTexture();
-	InitPrefilterEnvTexture();
-	InitBRDFLUTTexture();
-}
-
 void GlobalTextures::InitSSAORandomRotationTexture()
 {
 	std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
@@ -511,177 +498,7 @@ void GlobalTextures::InitSSAORandomRotationTexture()
 	m_pSSAORandomRotations = Image::CreateTexture2D(GetDevice(), { {tex} }, VK_FORMAT_R32G32B32A32_SFLOAT);
 }
 
-void GlobalTextures::InitIrradianceTexture()
-{
-	SceneGenerator::GetInstance()->GenerateIrradianceGenScene();
-
-	RenderWorkManager::GetInstance()->SetRenderStateMask(RenderWorkManager::IrradianceGen);
-
-	Vector3d up = { 0, 1, 0 };
-	Vector3d look = { 0, 0, -1 };
-	look.Normalize();
-	Vector3d xaxis = up ^ look.Negativate();
-	xaxis.Normalize();
-	Vector3d yaxis = look ^ xaxis;
-	yaxis.Normalize();
-
-	Matrix3d rotation;
-	rotation.c[0] = xaxis;
-	rotation.c[1] = yaxis;
-	rotation.c[2] = look;
-
-	Matrix3d cameraRotations[] =
-	{
-		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * Matrix3d::Rotation(3.0 * 3.14159265 / 2.0, Vector3d(0, 1, 0)) * rotation,	// Positive X, i.e right
-		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * Matrix3d::Rotation(1.0 * 3.14159265 / 2.0, Vector3d(0, 1, 0)) * rotation,	// Negative X, i.e left
-		Matrix3d::Rotation(3.0 * 3.14159265 / 2.0, Vector3d(1, 0, 0)) * rotation,	// Positive Y, i.e top
-		Matrix3d::Rotation(1.0 * 3.14159265 / 2.0, Vector3d(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
-		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * rotation,	// Positive Z, i.e back
-		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(0, 0, 1)) * rotation,	// Negative Z, i.e front
-	};
-
-	for (uint32_t i = 0; i < 6; i++)
-	{
-		std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
-
-		std::vector<VkClearValue> clearValues =
-		{
-			{ 0.0, 0.0, 0.0, 0.0 },
-			{ 1.0, 0 }
-		};
-
-		VkViewport viewport =
-		{
-			0, 0,
-			(float)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (float)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
-			0, 1
-		};
-
-		VkRect2D scissorRect =
-		{
-			0, 0,
-			(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x, (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
-		};
-
-		SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
-
-		SceneGenerator::GetInstance()->GetRootObject()->Update();
-		SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
-		SceneGenerator::GetInstance()->GetRootObject()->UpdateCachedData();
-		SceneGenerator::GetInstance()->GetRootObject()->OnPreRender();
-		SceneGenerator::GetInstance()->GetRootObject()->OnRenderObject();
-		SceneGenerator::GetInstance()->GetRootObject()->OnPostRender();
-		UniformData::GetInstance()->SyncDataBuffer();
-		SceneGenerator::GetInstance()->GetMaterial0()->SyncBufferData();
-
-		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameBegin();
-		pDrawCmdBuffer->StartPrimaryRecording();
-
-		SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer);
-		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]);
-		SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_EnvGenOffScreen));
-		RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer);
-		SceneGenerator::GetInstance()->GetMaterial0()->AfterRenderPass(pDrawCmdBuffer);
-
-		pDrawCmdBuffer->EndPrimaryRecording();
-		SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
-
-		GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
-
-		FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxIrradiance], 0, 1, i, 1);
-	}
-}
-
-void GlobalTextures::InitPrefilterEnvTexture()
-{
-	SceneGenerator::GetInstance()->GeneratePrefilterEnvGenScene();
-
-	RenderWorkManager::GetInstance()->SetRenderStateMask(RenderWorkManager::ReflectionGen);
-
-	Vector3d up = { 0, 1, 0 };
-	Vector3d look = { 0, 0, -1 };
-	look.Normalize();
-	Vector3d xaxis = up ^ look.Negativate();
-	xaxis.Normalize();
-	Vector3d yaxis = look ^ xaxis;
-	yaxis.Normalize();
-
-	Matrix3d rotation;
-	rotation.c[0] = xaxis;
-	rotation.c[1] = yaxis;
-	rotation.c[2] = look;
-
-	Matrix3d cameraRotations[] =
-	{
-		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * Matrix3d::Rotation(3.0 * 3.14159265 / 2.0, Vector3d(0, 1, 0)) * rotation,	// Positive X, i.e right
-		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * Matrix3d::Rotation(1.0 * 3.14159265 / 2.0, Vector3d(0, 1, 0)) * rotation,	// Negative X, i.e left
-		Matrix3d::Rotation(3.0 * 3.14159265 / 2.0, Vector3d(1, 0, 0)) * rotation,	// Positive Y, i.e top
-		Matrix3d::Rotation(1.0 * 3.14159265 / 2.0, Vector3d(1, 0, 0)) * rotation,	// Negative Y, i.e bottom
-		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(1, 0, 0)) * rotation,	// Positive Z, i.e back
-		Matrix3d::Rotation(1.0 * 3.14159265 / 1.0, Vector3d(0, 0, 1)) * rotation,	// Negative Z, i.e front
-	};
-
-	uint32_t mipLevels = (uint32_t)std::log2(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
-	for (uint32_t mipLevel = 0; mipLevel < mipLevels + 1; mipLevel++)
-	{
-		UniformData::GetInstance()->GetPerFrameUniforms()->SetEnvPingpongIndex(mipLevel / (float)mipLevels);
-		uint32_t size = (uint32_t)std::pow(2, mipLevels - mipLevel);
-		for (uint32_t i = 0; i < 6; i++)
-		{
-			std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
-
-			std::vector<VkClearValue> clearValues =
-			{
-				{ 0.0, 0.0, 0.0, 0.0 },
-				{ 1.0, 0 }
-			};
-
-			VkViewport viewport =
-			{
-				0, 0,
-				(float)size, (float)size,
-				0, 1
-			};
-
-			VkRect2D scissorRect =
-			{
-				0, 0,
-				size, size,
-			};
-
-			GetGlobalVulkanStates()->SetViewport(viewport);
-			GetGlobalVulkanStates()->SetScissorRect(scissorRect);
-
-			SceneGenerator::GetInstance()->GetCameraObject()->SetRotation(cameraRotations[i]);
-			SceneGenerator::GetInstance()->GetRootObject()->Update();
-			SceneGenerator::GetInstance()->GetRootObject()->LateUpdate();
-			SceneGenerator::GetInstance()->GetRootObject()->UpdateCachedData();
-			SceneGenerator::GetInstance()->GetRootObject()->OnPreRender();
-			SceneGenerator::GetInstance()->GetRootObject()->OnRenderObject();
-			SceneGenerator::GetInstance()->GetRootObject()->OnPostRender();
-			UniformData::GetInstance()->SyncDataBuffer();
-			SceneGenerator::GetInstance()->GetMaterial0()->SyncBufferData();
-
-			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameBegin();
-			pDrawCmdBuffer->StartPrimaryRecording();
-
-			SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer);
-			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]);
-			SceneGenerator::GetInstance()->GetMaterial0()->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_EnvGenOffScreen), 0, true);
-			RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer);
-			SceneGenerator::GetInstance()->GetMaterial0()->AfterRenderPass(pDrawCmdBuffer);
-
-			pDrawCmdBuffer->EndPrimaryRecording();
-			SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
-
-			GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
-
-			FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]->ExtractContent(m_IBLCubeTextures[RGBA16_512_SkyBoxPrefilterEnv], mipLevel, 1, i, 1, size, size);
-		}
-	}
-}
-
-void GlobalTextures::InitBRDFLUTTexture()
+void GlobalTextures::GenerateBRDFLUTTexture()
 {
 	SceneGenerator::GetInstance()->GenerateBRDFLUTGenScene();
 
@@ -776,18 +593,6 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 		},
 		{
 			CombinedSampler,
-			"RGBA8_1024_Texture_Cube_SkyBox"
-		},
-		{
-			CombinedSampler,
-			"R8_512_Texture_Cube_Irradiance"
-		},
-		{
-			CombinedSampler,
-			"RGBA8_512_Texture_Cube_PrefilterEnv"
-		},
-		{
-			CombinedSampler,
 			"R8_512_Texture_2D_BRDFLUT"
 		},
 		{
@@ -840,19 +645,19 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 		},
 		{
 			CombinedSampler,
-			"Skybox",
+			"Runtime generated skybox cube texture",
 			{},
 			2
 		},
 		{
 			CombinedSampler,
-			"irradiance",
+			"Runtime generated irradiance cube texture",
 			{},
 			2
 		},
 		{
 			CombinedSampler,
-			"reflection",
+			"Runtime generated reflection cube texture",
 			{},
 			2
 		}
@@ -931,13 +736,6 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	}
 
 	pDescriptorSet->UpdateImage(bindingIndex++, m_screenSizeTextureDiction.pTextureArray, m_screenSizeTextureDiction.pTextureArray->CreateLinearRepeatSampler(), m_screenSizeTextureDiction.pTextureArray->CreateDefaultImageView());
-
-	// Binding global IBL texture cube
-	for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
-	{
-		std::shared_ptr<Image> pTextureCube = GetIBLTextureCube((IBLTextureType)i);
-		pDescriptorSet->UpdateImage(bindingIndex++, pTextureCube, pTextureCube->CreateLinearRepeatSampler(), pTextureCube->CreateDefaultImageView());
-	}
 
 	// Binding global IBL texture2d
 	for (uint32_t i = 0; i < IBL2DTextureTypeCount; i++)
