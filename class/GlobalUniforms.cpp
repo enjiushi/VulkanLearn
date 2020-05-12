@@ -426,6 +426,13 @@ void GlobalUniforms::SetUpsampleScale(double upsampleScale)
 	SetDirty();
 }
 
+void GlobalUniforms::SetBloomLuminanceUpperBound(double upperBound)
+{
+	m_globalVariables.BloomSettings0.w = upperBound;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, BloomSettings0.w);
+	SetDirty();
+}
+
 void GlobalUniforms::SetBloomAmplify(double bloomAmplify)
 {
 	m_globalVariables.BloomSettings1.x = bloomAmplify;
