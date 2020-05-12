@@ -1,17 +1,13 @@
-![Alt text](assets/img0.png "Screen Shot 0")
-![Alt text](assets/img1.png "Screen Shot 1")
-![Alt text](assets/img2.png "Screen Shot 2")
-![Alt text](assets/img3.png "Screen Shot 3")
-![Alt text](assets/dof_img0.png "DOF Screen Shot 0")
-![Alt text](assets/dof_img1.png "DOF Screen Shot 1")
-![Alt text](assets/dof_img2.png "DOF Screen Shot 2")
-![Alt text](assets/dof_img3.png "DOF Screen Shot 3")
-![Alt text](assets/dof_img4.png "DOF Screen Shot 4")
-![Alt text](assets/dof_img5.png "DOF Screen Shot 5")
-
 # Update after ugly covid-19 pandemic 5/12/2020
 Finally I've managed to get runtime atmosphere working(thanks to the great work and detailed doc from https://github.com/ebruneton/precomputed_atmospheric_scattering), along with a runtime IBL images generating scheme.
 
+![Alt text](assets/img_0.png "screen shot from 5/12/2020")
+![Alt text](assets/img_1.png "screen shot from 5/12/2020")
+![Alt text](assets/img_2.png "screen shot from 5/12/2020")
+![Alt text](assets/img_3.png "screen shot from 5/12/2020")
+![Alt text](assets/img_4.png "screen shot from 5/12/2020")
+![Alt text](assets/img_5.png "screen shot from 5/12/2020")
+![Alt text](assets/img_6.png "screen shot from 5/12/2020")
 ![Alt text](assets/giant_stuff.png "screen shot from 5/12/2020")
 
 What you can do:
