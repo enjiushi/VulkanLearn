@@ -11,6 +11,7 @@ Also some sun rise/set shots:
 
 ![Alt text](assets/img_5.png "screen shot from 5/12/2020")
 ![Alt text](assets/img_6.png "screen shot from 5/12/2020")
+![Alt text](assets/img_7.png "screen shot from 5/12/2020")
 
 I placed some extremely huge simple geometries in the scene, to illustrate the sense of the scale atmosphere could give you:
 
