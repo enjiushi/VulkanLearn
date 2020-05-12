@@ -192,22 +192,19 @@ layout(std430, set = 0, binding = 6) buffer PerAnimationUniforms
 layout(set = 0, binding = 7) uniform sampler2DArray RGBA8_1024_MIP_2DARRAY;
 layout(set = 0, binding = 8) uniform sampler2DArray R8_1024_MIP_2DARRAY;
 layout(set = 0, binding = 9) uniform sampler2DArray RGBA16_SCREEN_SIZE_MIP_2DARRAY;
-layout(set = 0, binding = 10) uniform samplerCube RGBA16_1024_MIP_CUBE_SKYBOX;
-layout(set = 0, binding = 11) uniform samplerCube RGBA16_512_CUBE_IRRADIANCE;
-layout(set = 0, binding = 12) uniform samplerCube RGBA16_512_CUBE_PREFILTERENV;
-layout(set = 0, binding = 13) uniform sampler2D RGBA16_512_2D_BRDFLUT;
-layout(set = 0, binding = 14) uniform sampler2D SSAO_RANDOM_ROTATIONS;
-layout(set = 0, binding = 15) uniform sampler2D TRANSMITTANCE_DICTION[4];
-layout(set = 0, binding = 16) uniform sampler3D SCATTER_DICTION[4];
-layout(set = 0, binding = 17) uniform sampler2D IRRADIANCE_DICTION[4];
-layout(set = 0, binding = 18) uniform sampler2D DELTA_IRRADIANCE;
-layout(set = 0, binding = 19) uniform sampler3D DELTA_RAYLEIGH;
-layout(set = 0, binding = 20) uniform sampler3D DELTA_MIE;
-layout(set = 0, binding = 21) uniform sampler3D DELTA_SCATTER_DENSITY;
-layout(set = 0, binding = 22) uniform sampler3D DELTA_MULTI_SCATTER;
-layout(set = 0, binding = 23) uniform samplerCube RGBA16_512_CUBE_SKYBOX1[2];
-layout(set = 0, binding = 24) uniform samplerCube RGBA16_512_CUBE_IRRADIANCE1[2];
-layout(set = 0, binding = 25) uniform samplerCube RGBA16_512_CUBE_PREFILTERENV1[2];
+layout(set = 0, binding = 10) uniform sampler2D RGBA16_512_2D_BRDFLUT;
+layout(set = 0, binding = 11) uniform sampler2D SSAO_RANDOM_ROTATIONS;
+layout(set = 0, binding = 12) uniform sampler2D TRANSMITTANCE_DICTION[4];
+layout(set = 0, binding = 13) uniform sampler3D SCATTER_DICTION[4];
+layout(set = 0, binding = 14) uniform sampler2D IRRADIANCE_DICTION[4];
+layout(set = 0, binding = 15) uniform sampler2D DELTA_IRRADIANCE;
+layout(set = 0, binding = 16) uniform sampler3D DELTA_RAYLEIGH;
+layout(set = 0, binding = 17) uniform sampler3D DELTA_MIE;
+layout(set = 0, binding = 18) uniform sampler3D DELTA_SCATTER_DENSITY;
+layout(set = 0, binding = 19) uniform sampler3D DELTA_MULTI_SCATTER;
+layout(set = 0, binding = 20) uniform samplerCube RGBA16_512_CUBE_SKYBOX[2];
+layout(set = 0, binding = 21) uniform samplerCube RGBA16_512_CUBE_SKYBOX_IRRADIANCE[2];
+layout(set = 0, binding = 22) uniform samplerCube RGBA16_512_CUBE_SKYBOX_REFLECTION[2];
 
 layout(std430, set = 1, binding = 0) uniform PerFrameUniforms
 {

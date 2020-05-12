@@ -176,14 +176,14 @@ void main()
 	// NOTE: Do remember that cubemap coordinate is left-handed
 	// We record camera +z face to -z face of cubemap and vice versa
 	// So we need to manually nagativate z here
-	vec3 irradiance = texture(RGBA16_512_CUBE_IRRADIANCE1[uint(perFrameData.envPingpongIndex)], vec3(n.x, -n.y, -n.z)).rgb * vars.albedoRoughness.rgb / PI;
+	vec3 irradiance = texture(RGBA16_512_CUBE_SKYBOX_IRRADIANCE[uint(perFrameData.envPingpongIndex)], vec3(n.x, -n.y, -n.z)).rgb * vars.albedoRoughness.rgb / PI;
 
 	vec3 reflectSampleDir = mat3(perFrameData.viewCoordSystem) * reflect(-v, n);
 	reflectSampleDir.z *= -1.0f;	// NOTE: Same goes here
 
 	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
 	float lod = vars.albedoRoughness.a * MAX_REFLECTION_LOD;
-	vec3 reflect = textureLod(RGBA16_512_CUBE_PREFILTERENV1[uint(perFrameData.envPingpongIndex)], reflectSampleDir, lod).rgb;
+	vec3 reflect = textureLod(RGBA16_512_CUBE_SKYBOX_REFLECTION[uint(perFrameData.envPingpongIndex)], reflectSampleDir, lod).rgb;
 
 	vec2 brdf_lut = texture(RGBA16_512_2D_BRDFLUT, vec2(NdotV, vars.albedoRoughness.a)).rg;
 

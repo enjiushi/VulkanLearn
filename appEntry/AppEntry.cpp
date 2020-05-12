@@ -446,11 +446,9 @@ void AppEntry::InitUniforms()
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "CamDirt0", "", "Camera dirt texture 0" }, gliCamDirt);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "SophiaAlbedoRoughness", "", "Sophia model albedo" }, gliSophiaAlbedoRoughness);
 	UniformData::GetInstance()->GetGlobalTextures()->InsertTexture(InGameTextureType::RGBA8_1024, { "SophiaNormalAO", "", "Sophia model normal" }, gliSophiaNormal);
-
-	gli::texture_cube gliSkyBox(gli::load("../data/textures/hdr/gcanyon_cube.ktx"));
-	UniformData::GetInstance()->GetGlobalTextures()->InitIBLTextures(gliSkyBox);
-
 	UniformData::GetInstance()->GetGlobalTextures()->InsertScreenSizeTexture({ "MipmapTemporalResult", "", "Mip map temporal result, used for next frame ssr" });
+
+	UniformData::GetInstance()->GetGlobalTextures()->GenerateBRDFLUTTexture();
 }
 
 void AppEntry::InitDrawCmdBuffers()
