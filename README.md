@@ -9,24 +9,20 @@
 ![Alt text](assets/dof_img4.png "DOF Screen Shot 4")
 ![Alt text](assets/dof_img5.png "DOF Screen Shot 5")
 
-# Update in 1/5/2020
-The screen shots are kinda out dated as I've been changing the code constantly. Now it looks like this:
+# Update after ugly covid-19 pandemic 5/12/2020
+Finally I've managed to get runtime atmosphere working(thanks to the great work and detailed doc from https://github.com/ebruneton/precomputed_atmospheric_scattering), along with a runtime IBL images generating scheme.
 
-![Alt text](assets/1_5_2020.png "screen shot from 1/5/2020")
+![Alt text](assets/giant_stuff.png "screen shot from 5/12/2020")
 
-The whole scene sits on a giant plane like a solar panel. This solar panel is actually a very small portion of a giant sphere, which radius is exactly the same as our planet without a single vertex jittering due to precision problem.
+What you can do:
+1. Keep pressing right mouse button and dragging is able to rotate your camera.
+2. Keep pressing left mouse button and dragging is able to change sun position to your screen mouse position.
+3. Buttons "w, s, a, d, q, e" and dragging right mouse button provide the functionality to navigate inside the since
+4. Button "f" increases camera focus distance which creates a stronger effect of depth of field. Button "l" works exactly the opposite.
+5. Button "t" stops updating camera info to GPU per frame buffer, so you could examine the backface and frustum culling of planet vertices.
+6. Button "r": I added this button to switch the altitude of our scene between 9km and 10m, to observe the different view caused by the thickness of the atmosphere.
 
-You can play around in the scene with traditionaly "w, s, a, d, q, e". You can change camera focus distance with "f" and "l". You can also toggle camera position update on/off by "t" to observe the result of frustum culling, back face culling, and subdivide.
-
-Of course you could change the radius of this planet in:
-```
-m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp, 6378000);
-```
-at VulkanGlobal.cpp.
-
-I'm gonna replace this giant panel with actual terrain with height maps next.
-
-# A Scene Viewer Rendered By Vulkan
+# A Render lab built on top of Vulkan
 
 ## How To Build
 This project works **ONLY FOR WINDOWS** for now. But it could be ported to other platforms potentially by touching only a few parts of code.
