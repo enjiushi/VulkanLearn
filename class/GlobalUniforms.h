@@ -206,7 +206,7 @@ public:
 	* DESCRIPTION: Planet Rendering Settings2
 	*
 	* X: Sun plate radius in cosine
-	* Y: Reserved
+	* Y: Planet vertex offset to get rid of nan value produced by altitude below earth surface due to depth precision, in unit km
 	* Z: Reserved
 	* W: Reserved
 	*/
@@ -390,6 +390,8 @@ public:
 
 	void SetSunSizeInCosine(double size);
 	double GetSunSize() const { return m_globalVariables.PlanetRenderingSettings2.x; }
+	void SetPlanetVertexOffset(double offset);
+	double GetPlanetVertexOffset() const { return m_globalVariables.PlanetRenderingSettings2.y; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

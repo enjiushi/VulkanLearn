@@ -676,6 +676,7 @@ void AppEntry::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetMorphingRange(0.25f);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSunSizeInCosine(std::cos(0.00935 / 2.0));
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetVertexOffset(0.1);
 
 	PhysicalCamera::PhysicalCameraProps props =
 	{

@@ -589,6 +589,12 @@ void GlobalUniforms::SetSunSizeInCosine(double size)
 	SetDirty();
 }
 
+void GlobalUniforms::SetPlanetVertexOffset(double offset)
+{
+	m_globalVariables.PlanetRenderingSettings2.y = offset;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings2.y);
+	SetDirty();
+}
 
 
 std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const

@@ -128,7 +128,6 @@ void main()
 		vec3 WSViewDir = mat3(perFrameData.viewCoordSystem) * normalize(CSViewDir);
 	    vec3 skyRadiance;
 		vec3 sunRadiance;
-		// FIXME: Hard-coded planet chunk index. This variable should come from client side
         GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, WSViewDir, perFrameData.wsMainLightDir.xyz, planetChunkIndex, skyRadiance, sunRadiance);
 		imageStore(outShadingColor[frameIndex],	
 			ivec2(gl_GlobalInvocationID.xy), 
@@ -147,8 +146,7 @@ void main()
 	// Make sure nothing is below planet surface due to precision problem
 	// Below planet surface could introduce minus infinite number
 	// Drag world space position a little bit higher(here is 100m) to calculate sun and sky radiance
-	// FIXME: Parameterize this hard-coded "0.1"
-	wsPosition.xyz = max((planetRadius + 0.1) * 1000, length(wsPosition.xyz)) * normalize(wsPosition.xyz);
+	wsPosition.xyz = max((planetRadius + globalData.PlanetRenderingSettings2.y) * 1000, length(wsPosition.xyz)) * normalize(wsPosition.xyz);
 
 	vec3 skyRadiance;
 	vec3 sunRadiance;
