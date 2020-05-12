@@ -24,9 +24,9 @@ enum InGameTextureType
 
 enum IBLTextureType
 {
-	RGBA16_1024_SkyBox,
+	RGBA16_512_SkyBox,
 	RGBA16_512_SkyBoxIrradiance,
-	RGBA16_512_SkyBoxPrefilterEnv,
+	RGBA16_512_SkyBoxReflection,
 	IBLCubeTextureTypeCount,
 	RGBA16_512_BRDFLut = 0,
 	IBL2DTextureTypeCount,
@@ -98,7 +98,7 @@ protected:
 	std::vector<TextureArrayDesc>				m_textureDiction;
 	TextureArrayDesc							m_screenSizeTextureDiction;
 	std::vector<std::shared_ptr<Image>>			m_IBL2DTextures;
-	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures1[IBLCubeTextureTypeCount];
+	std::vector<std::shared_ptr<Image>>			m_IBLCubeTextures[IBLCubeTextureTypeCount];
 	std::shared_ptr<Image>						m_pSSAORandomRotations;
 
 	std::vector<std::shared_ptr<Image>>			m_transmittanceTextureDiction;
