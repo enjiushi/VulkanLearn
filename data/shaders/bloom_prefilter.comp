@@ -30,5 +30,5 @@ void main()
 
 	imageStore(OutputImage[frameIndex],	
 		ivec2(gl_GlobalInvocationID.xy), 
-		vec4(normalize(color.rgb) * luminance * factor, 1.0f));
+		vec4(normalize(max(color.rgb, vec3(0.00001))) * luminance * factor, 1.0f));
 }
