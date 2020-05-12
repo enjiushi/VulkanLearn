@@ -6,11 +6,17 @@ Finally I've managed to get runtime atmosphere working(thanks to the great work 
 ![Alt text](assets/img_2.png "screen shot from 5/12/2020")
 ![Alt text](assets/img_3.png "screen shot from 5/12/2020")
 ![Alt text](assets/img_4.png "screen shot from 5/12/2020")
+
+Also some sun rise/set shots:
+
 ![Alt text](assets/img_5.png "screen shot from 5/12/2020")
 ![Alt text](assets/img_6.png "screen shot from 5/12/2020")
+
+I placed some extremely huge simple geometries in the scene, to illustrate the sense of the scale atmosphere could give you:
+
 ![Alt text](assets/giant_stuff.png "screen shot from 5/12/2020")
 
-What you can do:
+What you can do in the scene:
 1. Keep pressing right mouse button and dragging is able to rotate your camera.
 2. Keep pressing left mouse button and dragging is able to change sun position to your screen mouse position.
 3. Buttons "w, s, a, d, q, e" and dragging right mouse button provide the functionality to navigate inside the since
