@@ -233,6 +233,7 @@ void AppEntry::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 #define KEY_N 0x4E
 #define KEY_O 0x4F
 #define KEY_T 0x54
+#define KEY_R 0x52
 #endif
 
 void AppEntry::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -855,7 +856,8 @@ public:
 	void ProcessMouse(KeyState keyState, MouseButton mouseButton, const Vector2d& mousePosition) override {}
 	void ProcessMouse(const Vector2d& mousePosition) override {}
 	double var = 0.08333333;
-	bool boolVar = true;
+	bool updateCameraInfo = true;
+	bool sceneAltitude = true;
 };
 
 void VariableChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
@@ -872,9 +874,13 @@ void VariableChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 		var -= varInterval;
 		var = var < 0 ? 0 : var;
 	}
+	if (keyCode == KEY_R && keyState == KeyState::KEY_UP)
+	{
+		sceneAltitude = !sceneAltitude;
+	}
 	if (keyCode == KEY_T && keyState == KeyState::KEY_UP)
 	{
-		boolVar = !boolVar;
+		updateCameraInfo = !updateCameraInfo;
 	}
 }
 
@@ -916,7 +922,16 @@ void AppEntry::Tick()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX256Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x256, frameCount));
 
 	m_pCameraComp->SetFocalLength((1.0 - c->var) * 0.02 + c->var * 0.2);
-	m_pPlanetGenerator->ToggleCameraInfoUpdate(c->boolVar);
+	m_pPlanetGenerator->ToggleCameraInfoUpdate(c->updateCameraInfo);
+
+	if (c->sceneAltitude)
+	{
+		m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 9000);
+	}
+	else
+	{
+		m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 10);
+	}
 
 	m_pRootObject->Update();
 	m_pRootObject->OnAnimationUpdate();
