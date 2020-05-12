@@ -228,7 +228,7 @@ void main()
 
 	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedoRoughness.a) * min(1.0f, GGX_D(NdotH, vars.albedoRoughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
 	vec3 dirLightDiffuse = vars.albedoRoughness.rgb * kD / PI;
-	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * perFrameData.mainLightColor.rgb * sunRadiance);
+	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * length(perFrameData.mainLightColor.rgb) * sunRadiance);
 
 	vec3 aerialPerspectivePunctual;
 	vec3 aerialPerspectiveAmbient;

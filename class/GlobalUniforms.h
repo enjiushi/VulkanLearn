@@ -128,7 +128,7 @@ public:
 	* X: Bloom intensity clamping lower bound
 	* Y: Bloom intensity clamping upper bound
 	* Z: Upsample scale
-	* W: Reserved
+	* W: Bloom luminance upper bound
 	*/
 	Vector4<T>  BloomSettings0;
 
@@ -337,6 +337,8 @@ public:
 	double GetBloomClampingUpperBound() const { return m_globalVariables.BloomSettings0.y; }
 	void SetUpsampleScale(double upsampleScale);
 	double GetUpsampleScale() const { return m_globalVariables.BloomSettings0.z; }
+	void SetBloomLuminanceUpperBound(double upperBound);
+	double GetBloomLuminanceUpperBound() const { return m_globalVariables.BloomSettings0.w; }
 	void SetBloomAmplify(double bloomAmplify);
 	double GetBloomAmplify() const { return m_globalVariables.BloomSettings1.x; }
 	void SetBloomSlope(double bloomSlope);
