@@ -68,6 +68,12 @@ void PerFrameUniforms::SetNearFarAB(const Vector4d& nearFarAB)
 	SetDirty();
 }
 
+void PerFrameUniforms::SetWorldSpaceMainLightDir(const Vector3d& dir)
+{
+	m_perFrameVariables.wsMainLightDir = dir.Normal();
+	SetDirty();
+}
+
 void PerFrameUniforms::SetMainLightDir(const Vector3d& dir)
 {
 	m_perFrameVariables.mainLightDir = dir.Normal();
@@ -134,9 +140,9 @@ void PerFrameUniforms::SetPingpongIndex(double pingpongIndex)
 	SetDirty();
 }
 
-void PerFrameUniforms::SetPadding0(double val)
+void PerFrameUniforms::SetEnvPingpongIndex(double val)
 {
-	m_perFrameVariables.padding0 = val;
+	m_perFrameVariables.envPingpongIndex = val;
 	SetDirty();
 }
 
@@ -158,6 +164,7 @@ void PerFrameUniforms::UpdateUniformDataInternal()
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraDirection);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, eyeSpaceSize);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, nearFarAB);
+	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, wsMainLightDir);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, mainLightDir);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, mainLightColor);
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, cameraJitterOffset);
@@ -168,7 +175,7 @@ void PerFrameUniforms::UpdateUniformDataInternal()
 	CONVERT2SINGLE(m_perFrameVariables, m_singlePrecisionPerFrameVariables, haltonX256Jitter);
 	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, frameIndex);
 	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, pingpongIndex);
-	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, padding0);
+	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, envPingpongIndex);
 	CONVERT2SINGLEVAL(m_perFrameVariables, m_singlePrecisionPerFrameVariables, padding1);
 }
 

@@ -9,6 +9,7 @@
 #include "RenderPassBase.h"
 #include "ForwardRenderPass.h"
 #include "UniformData.h"
+#include "FrameWorkManager.h"
 
 VkFormat FrameBufferDiction::m_GBufferFormatTable[FrameBufferDiction::GBufferCount] =
 {
@@ -93,12 +94,12 @@ std::shared_ptr<FrameBuffer> FrameBufferDiction::GetFrameBuffer(FrameBufferType 
 		for (uint32_t i = 0; i < layer - m_frameBuffers[type].size() + 1; i++)
 			m_frameBuffers[type].push_back(CreateFrameBuffer(type, (uint32_t)m_frameBuffers[type].size()));
 	}
-	return m_frameBuffers[type][layer][FrameMgr()->FrameIndex()];
+	return m_frameBuffers[type][layer][FrameWorkManager::GetInstance()->FrameIndex()];
 }
 
 std::shared_ptr<FrameBuffer> FrameBufferDiction::GetPingPongFrameBuffer(FrameBufferType type, uint32_t pingPongIndex)
 {
-	return GetPingPongFrameBuffer(type, FrameMgr()->FrameIndex(), pingPongIndex);
+	return GetPingPongFrameBuffer(type, FrameWorkManager::GetInstance()->FrameIndex(), pingPongIndex);
 }
 
 std::shared_ptr<FrameBuffer> FrameBufferDiction::GetPingPongFrameBuffer(FrameBufferType type, uint32_t frameIndex, uint32_t pingPongIndex)

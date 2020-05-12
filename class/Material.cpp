@@ -4,7 +4,7 @@
 #include "../vulkan/PerFrameResource.h"
 #include "../vulkan/PhysicalDevice.h"
 #include "../vulkan/GlobalDeviceObjects.h"
-#include "../vulkan/FrameManager.h"
+#include "FrameWorkManager.h"
 #include "../vulkan/UniformBuffer.h"
 #include "../vulkan/SharedVertexBuffer.h"
 #include "../vulkan/SharedIndexBuffer.h"
@@ -422,7 +422,7 @@ void Material::SyncBufferData()
 			meshRenderData.pMesh->PrepareIndirectCmd(cmd);
 			cmd.instanceCount = meshRenderData.instanceCount;
 			cmd.firstInstance = meshRenderData.instanceDataOffset;
-			m_indirectBuffers[FrameMgr()->FrameIndex()]->SetIndirectCmd(drawID, cmd);
+			m_indirectBuffers[FrameWorkManager::GetInstance()->FrameIndex()]->SetIndirectCmd(drawID, cmd);
 
 			// Prepare indirect offset
 			m_pPerMaterialIndirectOffset->SetIndirectOffset(drawID, offset);
@@ -440,7 +440,7 @@ void Material::SyncBufferData()
 			drawID++;
 		}
 
-		m_indirectCmdCountBuffers[FrameMgr()->FrameIndex()]->SetIndirectCmdCount((uint32_t)m_cachedMeshRenderData.size());
+		m_indirectCmdCountBuffers[FrameWorkManager::GetInstance()->FrameIndex()]->SetIndirectCmdCount((uint32_t)m_cachedMeshRenderData.size());
 	}
 
 	for (auto & var : m_materialUniforms)
@@ -455,7 +455,7 @@ void Material::BindPipeline(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 
 void Material::BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
-	pCmdBuffer->BindDescriptorSets(m_pPipeline->GetPipelineBindingPoint(), GetPipelineLayout(), m_descriptorSets, m_cachedFrameOffsets[FrameMgr()->FrameIndex()]);
+	pCmdBuffer->BindDescriptorSets(m_pPipeline->GetPipelineBindingPoint(), GetPipelineLayout(), m_descriptorSets, m_cachedFrameOffsets[FrameWorkManager::GetInstance()->FrameIndex()]);
 }
 
 void Material::SetMaterialTexture(uint32_t index, const std::shared_ptr<Image>& pTexture)
@@ -566,13 +566,13 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 	if (m_indirectBuffers.size() == 0)
 		return;
 
-	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pSecondaryCmd = FrameWorkManager::GetInstance()->GetMainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);
 
 	PrepareCommandBuffer(pSecondaryCmd, pFrameBuffer, false, pingpong, overrideVP);
 
-	pSecondaryCmd->DrawIndexedIndirectCount(m_indirectBuffers[FrameMgr()->FrameIndex()], 0, m_indirectCmdCountBuffers[FrameMgr()->FrameIndex()], 0);
+	pSecondaryCmd->DrawIndexedIndirectCount(m_indirectBuffers[FrameWorkManager::GetInstance()->FrameIndex()], 0, m_indirectCmdCountBuffers[FrameWorkManager::GetInstance()->FrameIndex()], 0);
 
 	pSecondaryCmd->EndSecondaryRecording();
 
@@ -581,7 +581,7 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 
 void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
 {
-	std::shared_ptr<CommandBuffer> pSecondaryCmd = MainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pSecondaryCmd = FrameWorkManager::GetInstance()->GetMainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);
 

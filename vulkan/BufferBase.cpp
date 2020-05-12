@@ -2,7 +2,7 @@
 
 bool BufferBase::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<BufferBase>& pSelf, const VkBufferCreateInfo& info)
 {
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
+	if (!VKGPUSyncRes::Init(pDevice, pSelf))
 		return false;
 	
 	m_info = info;

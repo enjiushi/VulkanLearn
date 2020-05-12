@@ -26,7 +26,7 @@ public:
 
 	// For input listener
 	void ProcessKey(KeyState keyState, uint8_t keyCode) override;
-	void ProcessMouse(KeyState keyState, const Vector2d& mousePosition) override;
+	void ProcessMouse(KeyState keyState, MouseButton mouseButton, const Vector2d& mousePosition) override;
 	void ProcessMouse(const Vector2d& mousePosition) override;
 
 	void Move(uint32_t dir, double delta);

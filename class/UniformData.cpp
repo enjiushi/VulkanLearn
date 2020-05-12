@@ -1,7 +1,7 @@
 #include "UniformData.h"
 #include "Material.h"
 #include "../vulkan/GlobalDeviceObjects.h"
-#include "../vulkan/FrameManager.h"
+#include "FrameWorkManager.h"
 #include "../vulkan/Buffer.h"
 #include "../vulkan/DescriptorSetLayout.h"
 #include "../vulkan/DescriptorSet.h"
@@ -9,6 +9,7 @@
 #include "../vulkan/SwapChain.h"
 #include "GlobalTextures.h"
 #include "GBufferInputUniforms.h"
+#include "FrameEventManager.h"
 
 bool UniformData::Init()
 {
@@ -59,7 +60,19 @@ bool UniformData::Init()
 		m_cachedFrameOffsets.push_back(offsets);
 	}
 
+	FrameEventManager::GetInstance()->Register(m_pInstance);
+
 	return true;
+}
+
+void UniformData::OnFrameBegin()
+{
+	GetGlobalTextures()->GenerateSkyBox(0);
+}
+
+void UniformData::OnPostSceneTraversal()
+{
+	SyncDataBuffer();
 }
 
 void UniformData::SyncDataBuffer()

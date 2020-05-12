@@ -18,7 +18,7 @@ Image::~Image()
 
 bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, const VkImageCreateInfo& info, uint32_t memoryPropertyFlag)
 {
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
+	if (!VKGPUSyncRes::Init(pDevice, pSelf))
 		return false;
 
 	// Skip this for now as it requires to enumerating all usage and pair it with format feature
@@ -38,7 +38,7 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 	m_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 	CHECK_VK_ERROR(vkCreateImage(GetDevice()->GetDeviceHandle(), &m_info, nullptr, &m_image));
-	m_pMemKey = DeviceMemMgr()->AllocateImageMemChunk(GetSelfSharedPtr(), memoryPropertyFlag);
+	m_pMemKey = DeviceMemMgr()->AllocateImageMemChunk(std::dynamic_pointer_cast<Image>(GetSelfSharedPtr()), memoryPropertyFlag);
 
 	m_info.initialLayout = layout;
 	m_memProperty = memoryPropertyFlag;
@@ -61,7 +61,7 @@ bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<I
 
 bool Image::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Image>& pSelf, VkImage img)
 {
-	if (!DeviceObjectBase::Init(pDevice, pSelf))
+	if (!VKGPUSyncRes::Init(pDevice, pSelf))
 		return false;
 
 	m_image = img;
@@ -114,9 +114,11 @@ void Image::EnsureImageLayout()
 	imgBarrier.image = GetDeviceHandle();
 	imgBarrier.subresourceRange = subresourceRange;
 	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imgBarrier.srcAccessMask = 0;
 	imgBarrier.newLayout = m_info.initialLayout;
 	imgBarrier.dstAccessMask = 0;
+	imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
 	pCmdBuffer->AttachBarriers
 	(
@@ -273,7 +275,12 @@ std::shared_ptr<Sampler> Image::CreateLinearClampToEdgeSampler() const
 	return Sampler::Create(GetDevice(), samplerCreateInfo);
 }
 
-std::shared_ptr<ImageView> Image::CreateDefaultImageView() const
+std::shared_ptr<ImageView> Image::CreateDefaultImageView(bool isStorage) const
+{
+	return CreateImageView(0, isStorage);
+}
+
+std::shared_ptr<ImageView> Image::CreateImageView(uint32_t mipLevel, bool isStorage) const
 {
 	VkImageViewCreateInfo imgViewCreateInfo = {};
 	imgViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -283,8 +290,8 @@ std::shared_ptr<ImageView> Image::CreateDefaultImageView() const
 	imgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	imgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 	imgViewCreateInfo.subresourceRange.layerCount = m_info.arrayLayers;
-	imgViewCreateInfo.subresourceRange.baseMipLevel = 0;
-	imgViewCreateInfo.subresourceRange.levelCount = m_info.mipLevels;
+	imgViewCreateInfo.subresourceRange.baseMipLevel = mipLevel;
+	imgViewCreateInfo.subresourceRange.levelCount = m_info.mipLevels - mipLevel;
 
 	if (m_info.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 	{
@@ -295,7 +302,10 @@ std::shared_ptr<ImageView> Image::CreateDefaultImageView() const
 
 	if (m_info.flags == VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
 	{
-		imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+		if (isStorage)
+			imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+		else
+			imgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
 	}
 	else if (m_info.arrayLayers > 1)
 	{
@@ -423,7 +433,7 @@ uint32_t Image::ExecuteCopy(const GliImageWrapper& gliTex, uint32_t layer, const
 		bufferCopyRegions.push_back(bufferCopyRegion);
 	}
 
-	pCmdBuffer->CopyBufferImage(pStagingBuffer, GetSelfSharedPtr(), bufferCopyRegions);
+	pCmdBuffer->CopyBufferImage(pStagingBuffer, std::dynamic_pointer_cast<Image>(GetSelfSharedPtr()), bufferCopyRegions);
 	return offset;
 }
 
@@ -737,6 +747,27 @@ std::shared_ptr<Image> Image::CreateEmptyCubeTexture(const std::shared_ptr<Devic
 		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		VK_ACCESS_SHADER_READ_BIT,
+		VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT
+	);
+}
+
+std::shared_ptr<Image> Image::CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, VkFormat format, VkImageLayout layout, VkImageUsageFlagBits extraUsage)
+{
+	uint32_t extraStageFlags = 0;
+	if (extraUsage | VK_IMAGE_USAGE_STORAGE_BIT)
+		extraStageFlags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+	return CreateEmptyTexture
+	(
+		pDevice,
+		{ size.x, size.y, 1 },
+		mipLevels,
+		6,
+		format,
+		layout,
+		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | extraUsage,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | extraStageFlags,
 		VK_ACCESS_SHADER_READ_BIT,
 		VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT
 	);

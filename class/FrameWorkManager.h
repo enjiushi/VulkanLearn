@@ -1,11 +1,12 @@
 #pragma once
 
-#include "DeviceObjectBase.h"
+#include "../vulkan/DeviceObjectBase.h"
+#include "../common/Singleton.h"
+#include "../thread/ThreadWorker.hpp"
 #include <map>
 #include <functional>
 #include <mutex>
 #include <deque>
-#include "../thread/ThreadWorker.hpp"
 
 class CommandBuffer;
 class Fence;
@@ -15,8 +16,7 @@ class Semaphore;
 class Queue;
 class ThreadTaskQueue;
 
-// FIXME: Rename to FrameWorkManager
-class FrameManager : public DeviceObjectBase<FrameManager>
+class FrameWorkManager : public Singleton<FrameWorkManager>
 {
 	typedef struct _SubmissionInfo
 	{
@@ -33,35 +33,42 @@ class FrameManager : public DeviceObjectBase<FrameManager>
 	typedef std::map<uint32_t, std::vector<SubmissionInfo>> SubmissionInfoTable;
 
 public:
+	bool Init();
+
+public:
 	std::shared_ptr<PerFrameResource> AllocatePerFrameResource(uint32_t frameIndex);
 	uint32_t FrameIndex() const { return m_currentFrameIndex; }
 	uint32_t MaxFrameCount() const { return m_maxFrameCount; }
 
-	void CacheSubmissioninfo(
+	void SubmitCommandBuffers(
 		const std::shared_ptr<Queue>& pQueue,
 		const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 		const std::vector<VkPipelineStageFlags>& waitStages,
-		bool waitUtilQueueIdle);
+		bool waitUtilQueueIdle,
+		bool cache = true);
 
-	void CacheSubmissioninfo(
+	void SubmitCommandBuffers(
 		const std::shared_ptr<Queue>& pQueue,
 		const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 		const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
 		const std::vector<VkPipelineStageFlags>& waitStages,
 		const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
-		bool waitUtilQueueIdle);
+		bool waitUtilQueueIdle,
+		bool cache = true);
 
 	// Thread related
 	void AddJobToFrame(ThreadJobFunc jobFunc);
 	void BeforeAcquire();
 	void AfterAcquire(uint32_t index);
 
+	void AcquireNextImage();
+	void QueuePresentImage();
+
 	void WaitForAllJobsDone();
 
-protected:
-	bool Init(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount, const std::shared_ptr<FrameManager>& pSelf);
-	static std::shared_ptr<FrameManager> Create(const std::shared_ptr<Device>& pDevice, uint32_t maxFrameCount);
+	const std::shared_ptr<PerFrameResource> GetMainThreadPerFrameRes() const;
 
+protected:
 	std::shared_ptr<Fence> GetCurrentFrameFence() const { return m_frameFences[m_currentFrameIndex]; }
 	std::shared_ptr<Fence> GetFrameFence(uint32_t frameIndex) const { return m_frameFences[frameIndex]; }
 	void WaitForFence();
@@ -77,21 +84,45 @@ protected:
 	std::shared_ptr<Semaphore> GetRenderDoneSemaphore();
 	std::vector<std::shared_ptr<Semaphore>> GetRenderDoneSemaphores();
 
-	void CacheSubmissioninfoInternal(
+	void SubmitCommandBuffersInternal(
 		const std::shared_ptr<Queue>& pQueue,
 		const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffer,
 		const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
 		const std::vector<VkPipelineStageFlags>& waitStages,
 		const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
-		bool waitUtilQueueIdle);
+		bool waitUtilQueueIdle,
+		bool cache);
 
 private:
-	FrameResourceTable						m_frameResTable;
-	std::vector<std::shared_ptr<Fence>>		m_frameFences;
-	std::vector<std::shared_ptr<Semaphore>>	m_acquireDoneSemaphores;
+	class ExtraFences : public SelfRefBase<ExtraFences>
+	{
+	public:
+		static std::shared_ptr<ExtraFences> Create();
+
+	public:
+		std::shared_ptr<Fence> GetCurrentFence();
+		std::shared_ptr<Fence> GetNewFence();
+
+		void Wait();
+		void Reset();
+
+	protected:
+		bool Init(const std::shared_ptr<ExtraFences>& pExtraFences);
+
+	private:
+		std::vector<std::shared_ptr<Fence>>		m_fences;
+		int32_t									m_currIndex;
+	};
+
+	FrameResourceTable							m_frameResTable;
+	std::vector<std::shared_ptr<Fence>>			m_frameFences;
+	std::vector<std::shared_ptr<ExtraFences>>	m_extraFrameFences;	// For those CBs submitting immediately
+	std::vector<std::shared_ptr<Semaphore>>		m_acquireDoneSemaphores;
 
 	std::vector<std::vector<std::shared_ptr<Semaphore>>>	m_renderDoneSemaphores;
 	uint32_t												m_renderDoneSemaphoreIndex;
+
+	std::vector<std::shared_ptr<PerFrameResource>>			m_mainThreadPerFrameRes;
 
 	uint32_t								m_currentFrameIndex;
 	std::deque<uint32_t>					m_frameIndexQueue;

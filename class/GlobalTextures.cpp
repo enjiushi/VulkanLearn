@@ -8,6 +8,12 @@
 #include "../vulkan/Queue.h"
 #include "../vulkan/StagingBufferManager.h"
 #include "../vulkan/Framebuffer.h"
+#include "../vulkan/Fence.h"
+#include "../vulkan/SwapChainImage.h"
+#include "../vulkan/SwapChain.h"
+#include "../vulkan/PerFrameResource.h"
+#include "../vulkan/Semaphore.h"
+#include "FrameWorkManager.h"
 #include "../class/RenderWorkManager.h"
 #include "../class/Mesh.h"
 #include "../component/MeshRenderer.h"
@@ -15,10 +21,12 @@
 #include "../scene/SceneGenerator.h"
 #include "../class/RenderPassDiction.h"
 #include "../vulkan/DescriptorSet.h"
+#include "../thread/ThreadTaskQueue.hpp"
 #include "ForwardRenderPass.h"
 #include "GlobalTextures.h"
 #include "Material.h"
 #include "ForwardMaterial.h"
+#include "ComputeMaterialFactory.h"
 #include "../Maths/Vector.h"
 #include "FrameBufferDiction.h"
 #include <random>
@@ -26,6 +34,7 @@
 
 // FIXME: Refactor
 static uint32_t PLANET_COUNT = 4;
+static uint32_t GROUP_SIZE = 16;
 
 bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 {
@@ -37,6 +46,7 @@ bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 	InitIBLTextures();
 	InitSSAORandomRotationTexture();
 	InitTransmittanceTextureDiction();
+	InitSkyboxGenParameters();
 
 	return true;
 }
@@ -87,6 +97,391 @@ void GlobalTextures::InitIBLTextures()
 		(uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().y,
 	};
 	m_IBL2DTextures[RGBA16_512_BRDFLut] = Image::CreateEmptyTexture2D(GetDevice(), size, FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT);
+
+	for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
+	{
+		switch ((IBLTextureType)i)
+		{
+		case RGBA16_1024_SkyBox:
+			for (uint32_t j = 0; j < 2; j++)
+				m_IBLCubeTextures1[RGBA16_1024_SkyBox].push_back
+				(
+					Image::CreateEmptyCubeTexture(
+						GetDevice(),
+						{ ENV_MAP_SIZE, ENV_MAP_SIZE },
+						1,
+						FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT,
+						VK_IMAGE_LAYOUT_GENERAL,
+						VK_IMAGE_USAGE_STORAGE_BIT)
+				);
+			break;
+		case RGBA16_512_SkyBoxIrradiance:
+			for (uint32_t j = 0; j < 2; j++)
+				m_IBLCubeTextures1[RGBA16_512_SkyBoxIrradiance].push_back
+				(
+					Image::CreateEmptyCubeTexture(
+						GetDevice(),
+						{ ENV_MAP_SIZE, ENV_MAP_SIZE },
+						1,
+						FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT,
+						VK_IMAGE_LAYOUT_GENERAL,
+						VK_IMAGE_USAGE_STORAGE_BIT)
+				);
+			break;
+
+		case RGBA16_512_SkyBoxPrefilterEnv:
+			for (uint32_t j = 0; j < 2; j++)
+				m_IBLCubeTextures1[RGBA16_512_SkyBoxPrefilterEnv].push_back
+				(
+					Image::CreateEmptyCubeTexture(
+						GetDevice(),
+						{ ENV_MAP_SIZE, ENV_MAP_SIZE },
+						(uint32_t)std::log2(512) + 1,
+						FrameBufferDiction::OFFSCREEN_HDR_COLOR_FORMAT,
+						VK_IMAGE_LAYOUT_GENERAL,
+						VK_IMAGE_USAGE_STORAGE_BIT)
+				);
+			break;
+		default:
+			ASSERTION(false);
+			break;
+		}
+	}
+}
+
+void GlobalTextures::InitSkyboxGenParameters()
+{
+	enum CubeCorner
+	{
+		BOTTOM_LEFT_FRONT,
+		BOTTOM_RIGHT_FRONT,
+		TOP_LEFT_FRONT,
+		TOP_RIGHT_FRONT,
+		BOTTOM_LEFT_BACK,
+		BOTTOM_RIGHT_BACK,
+		TOP_LEFT_BACK,
+		TOP_RIGHT_BACK,
+		CUBE_CORNER_COUNT
+	};
+
+	enum CubeFace
+	{
+		RIGHT,
+		LEFT,
+		TOP,
+		BOTTOM,
+		BACK,
+		FRONT,
+		CUBE_FACE_COUNT
+	};
+
+	Vector4f cubeCorners[] =
+	{
+		{ -1, -1,  1, 0 },
+		{  1, -1,  1, 0 },
+		{ -1,  1,  1, 0 },
+		{  1,  1,  1, 0 },
+		{ -1, -1, -1, 0 },
+		{  1, -1, -1, 0 },
+		{ -1,  1, -1, 0 },
+		{  1,  1, -1, 0 }
+	};
+
+	m_cubeFaces[RIGHT][0] = cubeCorners[BOTTOM_RIGHT_BACK];
+	m_cubeFaces[RIGHT][1] = cubeCorners[BOTTOM_RIGHT_FRONT];
+	m_cubeFaces[RIGHT][2] = cubeCorners[TOP_RIGHT_BACK];
+	m_cubeFaces[RIGHT][3] = cubeCorners[TOP_RIGHT_FRONT];
+
+	m_cubeFaces[LEFT][0] = cubeCorners[BOTTOM_LEFT_FRONT];
+	m_cubeFaces[LEFT][1] = cubeCorners[BOTTOM_LEFT_BACK];
+	m_cubeFaces[LEFT][2] = cubeCorners[TOP_LEFT_FRONT];
+	m_cubeFaces[LEFT][3] = cubeCorners[TOP_LEFT_BACK];
+
+	m_cubeFaces[TOP][0] = cubeCorners[TOP_LEFT_BACK];
+	m_cubeFaces[TOP][1] = cubeCorners[TOP_RIGHT_BACK];
+	m_cubeFaces[TOP][2] = cubeCorners[TOP_LEFT_FRONT];
+	m_cubeFaces[TOP][3] = cubeCorners[TOP_RIGHT_FRONT];
+
+	m_cubeFaces[BOTTOM][0] = cubeCorners[BOTTOM_LEFT_FRONT];
+	m_cubeFaces[BOTTOM][1] = cubeCorners[BOTTOM_RIGHT_FRONT];
+	m_cubeFaces[BOTTOM][2] = cubeCorners[BOTTOM_LEFT_BACK];
+	m_cubeFaces[BOTTOM][3] = cubeCorners[BOTTOM_RIGHT_BACK];
+
+	// Note: our coordinate system is right-hand based, however, cube map is left-hand based
+	// So here BACK = positive z and FRONT = negative z
+	m_cubeFaces[BACK][0] = cubeCorners[BOTTOM_LEFT_BACK];
+	m_cubeFaces[BACK][1] = cubeCorners[BOTTOM_RIGHT_BACK];
+	m_cubeFaces[BACK][2] = cubeCorners[TOP_LEFT_BACK];
+	m_cubeFaces[BACK][3] = cubeCorners[TOP_RIGHT_BACK];
+
+	m_cubeFaces[FRONT][0] = cubeCorners[BOTTOM_RIGHT_FRONT];
+	m_cubeFaces[FRONT][1] = cubeCorners[BOTTOM_LEFT_FRONT];
+	m_cubeFaces[FRONT][2] = cubeCorners[TOP_RIGHT_FRONT];
+	m_cubeFaces[FRONT][3] = cubeCorners[TOP_LEFT_FRONT];
+
+	for (uint32_t i = 0; i < (uint32_t)CubeFace::CUBE_FACE_COUNT; i++)
+		for (uint32_t j = 0; j < 4; j++)
+			m_cubeFaces[i][j].Normalize();
+
+	m_envJobCounter = 0;
+	m_envTexturePingpongIndex = 0;
+	m_envGenState = EnvGenState::SKYBOX_GEN;
+	m_lastEnvGenState = EnvGenState::SKYBOX_GEN;
+}
+
+void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
+{
+	if (m_pIBLGenCmdBuffer != nullptr && m_lastEnvGenState != EnvGenState::WAITING_FOR_COMPLETE)
+	{
+		FrameWorkManager::GetInstance()->SubmitCommandBuffers
+		(
+			GlobalObjects()->GetComputeQueue(), 
+			{ m_pIBLGenCmdBuffer }, 
+			{}, 
+			{}, 
+			{},
+			false, false
+		);
+	}
+
+	GlobalObjects()->GetThreadTaskQueue()->AddJobA(
+	[this, chunkIndex](const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+	{
+		if (m_envGenState != EnvGenState::WAITING_FOR_COMPLETE)
+		{
+			m_pIBLGenCmdBuffer = pPerFrameRes->AllocateTransientComputeCommandBuffer();
+			m_pIBLGenCmdBuffer->StartPrimaryRecording();
+		}
+
+		if (m_envGenState == EnvGenState::SKYBOX_GEN)
+		{
+			m_lastEnvGenState = m_envGenState;
+			// Record world space camera and main ligh direction
+			// This info remains unchanged until next round of skybox gen
+			if (m_envJobCounter == 0)
+			{
+				m_wsCameraPosition = UniformData::GetInstance()->GetPerFrameUniforms()->GetCameraPosition().SinglePrecision();
+				m_wsMainLightDir = UniformData::GetInstance()->GetPerFrameUniforms()->GetWorldSpaceMainLightDir().SinglePrecision();
+			}
+
+			if (m_pSkyboxGenMaterial == nullptr)
+			{
+				m_pSkyboxGenMaterial = CreateSkyboxGenMaterial
+				(
+					m_IBLCubeTextures1[RGBA16_1024_SkyBox]
+				);
+			}
+
+			m_cubeFaces[m_envJobCounter][0].w = (float)m_envJobCounter;
+			m_cubeFaces[m_envJobCounter][1].w = (float)chunkIndex;
+			m_cubeFaces[m_envJobCounter][3].w = (float)m_envTexturePingpongIndex;
+
+			m_pSkyboxGenMaterial->UpdatePushConstantData(&m_cubeFaces[m_envJobCounter][0], 0, sizeof(m_cubeFaces[m_envJobCounter]));
+			m_pSkyboxGenMaterial->UpdatePushConstantData
+			(
+				&m_wsCameraPosition,
+				sizeof(m_cubeFaces[m_envJobCounter]), 
+				sizeof(m_wsCameraPosition)
+			);
+			m_pSkyboxGenMaterial->UpdatePushConstantData
+			(
+				&m_wsMainLightDir,
+				sizeof(m_cubeFaces[m_envJobCounter]) + sizeof(Vector4f),
+				sizeof(m_wsMainLightDir)
+			);
+			m_pSkyboxGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer);
+			m_pSkyboxGenMaterial->Dispatch(m_pIBLGenCmdBuffer);
+			m_pSkyboxGenMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
+
+			m_envJobCounter++;
+
+			if (m_envJobCounter == 6)
+			{
+				m_envGenState = EnvGenState::IRRADIANCE_GEN;
+				m_envJobCounter = 0;
+			}
+		}
+		else if (m_envGenState == EnvGenState::IRRADIANCE_GEN)
+		{
+			m_lastEnvGenState = m_envGenState;
+
+			static uint32_t groupCountOneDispatchBorder = 8;
+			static uint32_t groupCountOneDispatch = groupCountOneDispatchBorder * groupCountOneDispatchBorder;
+			static uint32_t dispatchCountPerBorder = ENV_MAP_SIZE / GROUP_SIZE / groupCountOneDispatchBorder;
+			static uint32_t dispatchCountPerFace = dispatchCountPerBorder * dispatchCountPerBorder;
+
+			uint32_t faceID = m_envJobCounter / dispatchCountPerFace;
+			uint32_t groupOffset = m_envJobCounter % dispatchCountPerFace;
+			uint32_t groupOffsetX = groupOffset % dispatchCountPerBorder;
+			uint32_t groupOffsetY = groupOffset / dispatchCountPerBorder;
+
+			if (m_pIrradianceGenMaterial == nullptr)
+			{
+				m_pIrradianceGenMaterial = CreateIrradianceGenMaterial
+				(
+					m_IBLCubeTextures1[RGBA16_1024_SkyBox],
+					m_IBLCubeTextures1[RGBA16_512_SkyBoxIrradiance]
+				);
+			}
+
+			m_cubeFaces[faceID][0].w = (float)faceID;
+			m_cubeFaces[faceID][1].w = (float)groupOffsetX * groupCountOneDispatchBorder * GROUP_SIZE;
+			m_cubeFaces[faceID][2].w = (float)groupOffsetY * groupCountOneDispatchBorder * GROUP_SIZE;
+			m_cubeFaces[faceID][3].w = (float)m_envTexturePingpongIndex;
+			m_pIrradianceGenMaterial->UpdatePushConstantData(&m_cubeFaces[faceID][0], 0, sizeof(m_cubeFaces[faceID]));
+			m_pIrradianceGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer);
+			m_pIrradianceGenMaterial->Dispatch(m_pIBLGenCmdBuffer);
+			m_pIrradianceGenMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
+
+			m_envJobCounter++;
+
+			if (m_envJobCounter == dispatchCountPerFace * 6)
+			{
+				m_envGenState = EnvGenState::REFLECTION_GEN;
+				m_envJobCounter = 0;
+			}
+		}
+		else if (m_envGenState == EnvGenState::REFLECTION_GEN)
+		{
+			m_lastEnvGenState = m_envGenState;
+
+			static uint32_t mipLevels = (uint32_t)std::log2((double)ENV_MAP_SIZE) + 1;
+			for (uint32_t i = 0; i < mipLevels; i++)
+			{
+				if (i == m_reflectionGenMaterials.size())
+				{
+					m_reflectionGenMaterials.push_back
+					(
+						CreateReflectionGenMaterial
+						(
+							m_IBLCubeTextures1[RGBA16_1024_SkyBox],
+							m_IBLCubeTextures1[RGBA16_512_SkyBoxPrefilterEnv],
+							i
+						)
+					);
+				}
+
+				std::shared_ptr<Material> pMaterial = m_reflectionGenMaterials[i];
+
+				m_cubeFaces[m_envJobCounter][0].w = (float)m_envJobCounter;
+				m_cubeFaces[m_envJobCounter][1].w = i / (float)(mipLevels - 1);	// Roughness
+				m_cubeFaces[m_envJobCounter][3].w = (float)m_envTexturePingpongIndex;
+				pMaterial->UpdatePushConstantData(&m_cubeFaces[m_envJobCounter][0], 0, sizeof(m_cubeFaces[m_envJobCounter]));
+				pMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer);
+				pMaterial->Dispatch(m_pIBLGenCmdBuffer);
+				pMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
+			}
+
+			m_envJobCounter++;
+
+			if (m_envJobCounter == 6)
+			{
+				m_envGenState = EnvGenState::WAITING_FOR_COMPLETE;
+				m_envJobCounter = 0;
+
+				std::vector<VkImageMemoryBarrier> queueReleaseBarrier(IBLCubeTextureTypeCount);
+				for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
+				{
+					queueReleaseBarrier[i] = {};
+					queueReleaseBarrier[i].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+					queueReleaseBarrier[i].image = m_IBLCubeTextures1[i][m_envTexturePingpongIndex]->GetDeviceHandle();
+
+					queueReleaseBarrier[i].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+					queueReleaseBarrier[i].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+					queueReleaseBarrier[i].srcQueueFamilyIndex = GlobalObjects()->GetComputeQueue()->GetQueueFamilyIndex();
+
+					queueReleaseBarrier[i].dstAccessMask = 0;
+					queueReleaseBarrier[i].newLayout = VK_IMAGE_LAYOUT_GENERAL;
+					queueReleaseBarrier[i].dstQueueFamilyIndex = GlobalObjects()->GetGraphicQueue()->GetQueueFamilyIndex();
+
+					queueReleaseBarrier[i].subresourceRange =
+					{
+						VK_IMAGE_ASPECT_COLOR_BIT,
+						0, m_IBLCubeTextures1[i][m_envTexturePingpongIndex]->GetImageInfo().mipLevels,
+						0, m_IBLCubeTextures1[i][m_envTexturePingpongIndex]->GetImageInfo().arrayLayers
+					};
+				}
+
+				m_pIBLGenCmdBuffer->AttachBarriers
+				(
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+					{},
+					{},
+					queueReleaseBarrier
+				);
+			}
+		}
+		// Wait for another circle to ensure last batch of generating work is done
+		// This is ensured by mechanism of FrameManager
+		// FIXME: However, I think I should create another mechanism to handle all of this kind of async resource preparation
+		else if (m_envGenState == EnvGenState::WAITING_FOR_COMPLETE)
+		{
+			m_lastEnvGenState = m_envGenState;
+
+			m_envJobCounter++;
+			if (m_envJobCounter == GetSwapChain()->GetSwapChainImageCount())
+			{
+				m_lastEnvGenState = m_envGenState;
+				m_envGenState = EnvGenState::SKYBOX_GEN;
+				m_envJobCounter = 0;
+
+				std::shared_ptr<CommandBuffer> pCmd = pPerFrameRes->AllocateTransientPrimaryCommandBuffer();
+				pCmd->StartPrimaryRecording();
+				std::vector<VkImageMemoryBarrier> queueAcquireBarrier(IBLCubeTextureTypeCount);
+				for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
+				{
+					queueAcquireBarrier[i] = {};
+					queueAcquireBarrier[i].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+					queueAcquireBarrier[i].image = m_IBLCubeTextures1[i][m_envTexturePingpongIndex]->GetDeviceHandle();
+
+					queueAcquireBarrier[i].srcAccessMask = 0;
+					queueAcquireBarrier[i].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+					queueAcquireBarrier[i].srcQueueFamilyIndex = GlobalObjects()->GetComputeQueue()->GetQueueFamilyIndex();
+
+					queueAcquireBarrier[i].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+					queueAcquireBarrier[i].newLayout = VK_IMAGE_LAYOUT_GENERAL;
+					queueAcquireBarrier[i].dstQueueFamilyIndex = GlobalObjects()->GetGraphicQueue()->GetQueueFamilyIndex();
+
+					queueAcquireBarrier[i].subresourceRange =
+					{
+						VK_IMAGE_ASPECT_COLOR_BIT,
+						0, m_IBLCubeTextures1[i][m_envTexturePingpongIndex]->GetImageInfo().mipLevels,
+						0, m_IBLCubeTextures1[i][m_envTexturePingpongIndex]->GetImageInfo().arrayLayers
+					};
+				}
+
+				pCmd->AttachBarriers
+				(
+					VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					{},
+					{},
+					queueAcquireBarrier
+				);
+				pCmd->EndPrimaryRecording();
+
+				FrameWorkManager::GetInstance()->SubmitCommandBuffers
+				(
+					GlobalObjects()->GetGraphicQueue(), 
+					{ pCmd }, 
+					{}, 
+					{ VK_PIPELINE_STAGE_ALL_COMMANDS_BIT }, 
+					{}, 
+					false, false
+				);
+
+				// Set ping pong index of the completed
+				UniformData::GetInstance()->GetPerFrameUniforms()->SetEnvPingpongIndex(m_envTexturePingpongIndex);
+
+				// Start next ping pong
+				m_envTexturePingpongIndex = (m_envTexturePingpongIndex + 1) % 2;
+			}
+		}
+
+		if (m_lastEnvGenState != EnvGenState::WAITING_FOR_COMPLETE)
+			m_pIBLGenCmdBuffer->EndPrimaryRecording();
+	}, FrameWorkManager::GetInstance()->FrameIndex());
 }
 
 void GlobalTextures::InitIBLTextures(const gli::texture_cube& skyBoxTex)
@@ -229,7 +624,7 @@ void GlobalTextures::InitPrefilterEnvTexture()
 	uint32_t mipLevels = (uint32_t)std::log2(UniformData::GetInstance()->GetGlobalUniforms()->GetEnvGenWindowSize().x);
 	for (uint32_t mipLevel = 0; mipLevel < mipLevels + 1; mipLevel++)
 	{
-		UniformData::GetInstance()->GetPerFrameUniforms()->SetPadding0(mipLevel / (float)mipLevels);
+		UniformData::GetInstance()->GetPerFrameUniforms()->SetEnvPingpongIndex(mipLevel / (float)mipLevels);
 		uint32_t size = (uint32_t)std::pow(2, mipLevels - mipLevel);
 		for (uint32_t i = 0; i < 6; i++)
 		{
@@ -442,6 +837,24 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 			CombinedSampler,
 			"RGBA32 w:256, h:128, d:32, delta multi scatter",
 			{},
+		},
+		{
+			CombinedSampler,
+			"Skybox",
+			{},
+			2
+		},
+		{
+			CombinedSampler,
+			"irradiance",
+			{},
+			2
+		},
+		{
+			CombinedSampler,
+			"reflection",
+			{},
+			2
 		}
 	};
 }
@@ -566,6 +979,51 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaMie, m_pDeltaMie->CreateLinearClampToEdgeSampler(), m_pDeltaMie->CreateDefaultImageView() });
 	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaScatterDensity, m_pDeltaScatterDensity->CreateLinearClampToEdgeSampler(), m_pDeltaScatterDensity->CreateDefaultImageView() });
 	pDescriptorSet->UpdateImage(bindingIndex++, { m_pDeltaMultiScatter, m_pDeltaMultiScatter->CreateLinearClampToEdgeSampler(), m_pDeltaMultiScatter->CreateDefaultImageView() });
+
+	std::vector<CombinedImage> skybox;
+	std::vector<CombinedImage> irradiance;
+	std::vector<CombinedImage> reflection;
+
+	for (uint32_t i = 0; i < 2; i++)
+	{
+		skybox.push_back
+		(
+			{
+				m_IBLCubeTextures1[RGBA16_1024_SkyBox][i],
+				m_IBLCubeTextures1[RGBA16_1024_SkyBox][i]->CreateLinearClampToEdgeSampler(),
+				m_IBLCubeTextures1[RGBA16_1024_SkyBox][i]->CreateDefaultImageView()
+			}
+		);
+	}
+
+	for (uint32_t i = 0; i < 2; i++)
+	{
+		irradiance.push_back
+		(
+			{
+				m_IBLCubeTextures1[RGBA16_512_SkyBoxIrradiance][i],
+				m_IBLCubeTextures1[RGBA16_512_SkyBoxIrradiance][i]->CreateLinearClampToEdgeSampler(),
+				m_IBLCubeTextures1[RGBA16_512_SkyBoxIrradiance][i]->CreateDefaultImageView()
+			}
+		);
+	}
+
+	for (uint32_t i = 0; i < 2; i++)
+	{
+		reflection.push_back
+		(
+			{
+				m_IBLCubeTextures1[RGBA16_512_SkyBoxPrefilterEnv][i],
+				m_IBLCubeTextures1[RGBA16_512_SkyBoxPrefilterEnv][i]->CreateLinearClampToEdgeSampler(),
+				m_IBLCubeTextures1[RGBA16_512_SkyBoxPrefilterEnv][i]->CreateDefaultImageView()
+			}
+		);
+	}
+
+	pDescriptorSet->UpdateImages(bindingIndex++, skybox);
+	pDescriptorSet->UpdateImages(bindingIndex++, irradiance);
+	pDescriptorSet->UpdateImages(bindingIndex++, reflection);
+
 	return bindingIndex;
 }
 

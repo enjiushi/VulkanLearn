@@ -11,6 +11,7 @@ public:
 	virtual bool Init() { return true; }
 
 	void AddToReferenceTable(const std::shared_ptr<Base>& pObj) { m_referenceTable.push_back(pObj); }
+	void ClearReferenceTable() { m_referenceTable.clear(); }
 	void SetName(const std::wstring& name) { m_name = name; m_nameHashCode = std::hash<std::wstring>()(m_name); }
 	const std::wstring& GetName() const { return m_name; }
 	std::size_t GetNameHashCode() const { return m_nameHashCode; }

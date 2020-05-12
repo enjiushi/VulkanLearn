@@ -37,6 +37,7 @@ struct GlobalData
 	vec4 SSAOSettings;
 	vec4 PlanetRenderingSettings0;
 	vec4 PlanetRenderingSettings1;
+	vec4 PlanetRenderingSettings2;
 	vec4 SSAOSamples[64];
 };
 
@@ -114,6 +115,7 @@ struct PerFrameData
 	vec4 wsCameraDirection;
 	vec4 cameraSpaceSize;
 	vec4 nearFarAB;
+	vec4 wsMainLightDir;
 	vec4 mainLightDir;
 	vec4 mainLightColor;
 	vec2 cameraJitterOffset;
@@ -124,7 +126,7 @@ struct PerFrameData
 	vec2 haltonX256Jitter;
 	float frameIndex;
 	float pingpongIndex;
-	float reservedPadding0;
+	float envPingpongIndex;
 	float reservedPadding1;
 };
 
@@ -197,12 +199,15 @@ layout(set = 0, binding = 13) uniform sampler2D RGBA16_512_2D_BRDFLUT;
 layout(set = 0, binding = 14) uniform sampler2D SSAO_RANDOM_ROTATIONS;
 layout(set = 0, binding = 15) uniform sampler2D TRANSMITTANCE_DICTION[4];
 layout(set = 0, binding = 16) uniform sampler3D SCATTER_DICTION[4];
-layout(set = 0, binding = 17) uniform sampler3D IRRADIANCE_DICTION[4];
+layout(set = 0, binding = 17) uniform sampler2D IRRADIANCE_DICTION[4];
 layout(set = 0, binding = 18) uniform sampler2D DELTA_IRRADIANCE;
 layout(set = 0, binding = 19) uniform sampler3D DELTA_RAYLEIGH;
 layout(set = 0, binding = 20) uniform sampler3D DELTA_MIE;
 layout(set = 0, binding = 21) uniform sampler3D DELTA_SCATTER_DENSITY;
 layout(set = 0, binding = 22) uniform sampler3D DELTA_MULTI_SCATTER;
+layout(set = 0, binding = 23) uniform samplerCube RGBA16_512_CUBE_SKYBOX1[2];
+layout(set = 0, binding = 24) uniform samplerCube RGBA16_512_CUBE_IRRADIANCE1[2];
+layout(set = 0, binding = 25) uniform samplerCube RGBA16_512_CUBE_PREFILTERENV1[2];
 
 layout(std430, set = 1, binding = 0) uniform PerFrameUniforms
 {

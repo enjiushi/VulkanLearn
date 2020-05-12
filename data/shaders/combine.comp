@@ -27,5 +27,5 @@ void main()
 	vec3 bloom = pow(texelFetch(BloomTextures[frameIndex], texCoord, 0).rgb * globalData.BloomSettings1.x * camDirt, vec3(globalData.BloomSettings1.y));
 	vec3 temporal = texelFetch(DOFResults[frameIndex], texCoord, 0).rgb;
 
-	imageStore(CombinedResults[frameIndex], ivec2(gl_GlobalInvocationID.xy), vec4(bloom + temporal, 1.0f));
+	imageStore(CombinedResults[frameIndex], ivec2(gl_GlobalInvocationID.xy), vec4(temporal + bloom, 1.0f));
 }

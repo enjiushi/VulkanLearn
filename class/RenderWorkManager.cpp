@@ -15,11 +15,14 @@
 #include "PostProcessingMaterial.h"
 #include "GBufferPlanetMaterial.h"
 #include "MaterialInstance.h"
+#include "FrameEventManager.h"
 
 bool RenderWorkManager::Init()
 {
 	if (!Singleton<RenderWorkManager>::Init())
 		return false;
+
+	FrameEventManager::GetInstance()->Register(m_pInstance);
 
 	m_materials.resize(MaterialEnumCount);
 	for (uint32_t i = 0; i < MaterialEnumCount; i++)
@@ -118,7 +121,7 @@ bool RenderWorkManager::Init()
 		}break;
 		case Combine:			m_materials[i] = { { CreateCombineMaterial() } }; break;
 		case PostProcess:		m_materials[i] = { { PostProcessingMaterial::CreateDefaultMaterial() } }; break;
-						 
+		
 		default:
 			ASSERTION(false);
 			break;
@@ -274,6 +277,16 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 
 void RenderWorkManager::OnFrameBegin()
 {
+	SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
+}
+
+void RenderWorkManager::OnPostSceneTraversal()
+{
+	SyncMaterialData();
+}
+
+void RenderWorkManager::OnPreCmdPreparation()
+{
 	for (auto& materialSet : m_materials)
 	{
 		for (auto pMaterial : materialSet.materialSet)
@@ -283,7 +296,7 @@ void RenderWorkManager::OnFrameBegin()
 	}
 }
 
-void RenderWorkManager::OnFrameEnd()
+void RenderWorkManager::OnPreCmdSubmission()
 {
 	for (auto& materialSet : m_materials)
 	{

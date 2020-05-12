@@ -1,4 +1,4 @@
-#include "VulkanGlobal.h"
+#include "AppEntry.h"
 #include "../common/Macros.h"
 #include <iostream>
 #include <chrono>
@@ -10,21 +10,21 @@
 #include "Importer.hpp"
 #include "scene.h"
 #include "postprocess.h"
-#include "Buffer.h"
-#include "StagingBuffer.h"
-#include "Queue.h"
-#include "StagingBufferManager.h"
-#include "FrameManager.h"
+#include "../vulkan/Buffer.h"
+#include "../vulkan/StagingBuffer.h"
+#include "../vulkan/Queue.h"
+#include "../vulkan/StagingBufferManager.h"
+#include "../class/FrameWorkManager.h"
 #include "../thread/ThreadWorker.hpp"
 #include <gli\gli.hpp>
-#include "SharedVertexBuffer.h"
-#include "SharedIndexBuffer.h"
+#include "../vulkan/SharedVertexBuffer.h"
+#include "../vulkan/SharedIndexBuffer.h"
 #include "../class/RenderWorkManager.h"
 #include <iostream>
-#include "GlobalVulkanStates.h"
+#include "../vulkan/GlobalVulkanStates.h"
 #include "../class/UniformData.h"
-#include "IndirectBuffer.h"
-#include "SharedIndirectBuffer.h"
+#include "../vulkan/IndirectBuffer.h"
+#include "../vulkan/SharedIndirectBuffer.h"
 #include "../common/Util.h"
 #include "../common/Enums.h"
 #include "../class/GlobalTextures.h"
@@ -43,7 +43,7 @@
 
 bool PREBAKE_CB = true;
 
-void VulkanGlobal::InitVulkanInstance()
+void AppEntry::InitVulkanInstance()
 {
 	VkApplicationInfo appInfo = {};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -72,20 +72,20 @@ void VulkanGlobal::InitVulkanInstance()
 	assert(m_pVulkanInstance != nullptr);
 }
 
-void VulkanGlobal::InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd)
+void AppEntry::InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd)
 {
 	m_pPhysicalDevice = PhysicalDevice::Create(m_pVulkanInstance, hInstance, hWnd);
 	ASSERTION(m_pPhysicalDevice != nullptr);
 }
 
-void VulkanGlobal::InitVulkanDevice()
+void AppEntry::InitVulkanDevice()
 {
 	m_pDevice = Device::Create(m_pVulkanInstance, m_pPhysicalDevice);
 	ASSERTION(m_pDevice != nullptr);
 }
 
 #if defined (_WIN32)
-void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
+void AppEntry::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 {
 	m_hPlatformInst = hinstance;
 
@@ -233,10 +233,16 @@ void VulkanGlobal::SetupWindow(HINSTANCE hinstance, WNDPROC wndproc)
 #define KEY_N 0x4E
 #define KEY_O 0x4F
 #define KEY_T 0x54
+#define KEY_R 0x52
 #endif
 
-void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+void AppEntry::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	Vector2d mouseUV = 
+	{
+		(float)LOWORD(lParam) / FrameBufferDiction::WINDOW_WIDTH, (FrameBufferDiction::WINDOW_HEIGHT - (float)HIWORD(lParam)) / FrameBufferDiction::WINDOW_HEIGHT
+	};
+
 	switch (uMsg)
 	{
 	case WM_CLOSE:
@@ -251,40 +257,34 @@ void VulkanGlobal::HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			break;
 		default:
-			InputHub::GetInstance()->ProcessKey(KEY_DOWN, (uint8_t)wParam);
+			InputHub::GetInstance()->ProcessKey(KeyState::KEY_DOWN, (uint8_t)wParam);
 			break;
 		}
 		break;
 	case WM_KEYUP:
-		InputHub::GetInstance()->ProcessKey(KEY_UP, (uint8_t)wParam);
+		InputHub::GetInstance()->ProcessKey(KeyState::KEY_UP, (uint8_t)wParam);
+		break;
+	case WM_LBUTTONDOWN:
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_DOWN, MouseButton::LEFT, mouseUV);
+		break;
+	case WM_LBUTTONUP:
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_UP, MouseButton::LEFT, mouseUV);
 		break;
 	case WM_RBUTTONDOWN:
-		InputHub::GetInstance()->ProcessMouse(KEY_DOWN, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_DOWN, MouseButton::RIGHT, mouseUV);
 		break;
 	case WM_RBUTTONUP:
-		InputHub::GetInstance()->ProcessMouse(KEY_UP, { (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		InputHub::GetInstance()->ProcessMouse(KeyState::KEY_UP, MouseButton::RIGHT, mouseUV);
 		break;
 	case WM_MOUSEMOVE:
-		InputHub::GetInstance()->ProcessMouse({ (float)LOWORD(lParam), (float)HIWORD(lParam) });
+		InputHub::GetInstance()->ProcessMouse(mouseUV);
 		break;
 	}
 }
 
 #endif
 
-void VulkanGlobal::InitQueue()
-{
-}
-
-void VulkanGlobal::InitSurface()
-{
-}
-
-void VulkanGlobal::InitSwapchain()
-{
-}
-
-void VulkanGlobal::Update()
+void AppEntry::Update()
 {
 #if defined(_WIN32)
 	static uint32_t frameCount = 0;
@@ -304,14 +304,14 @@ void VulkanGlobal::Update()
 			if (msg.message == WM_QUIT)
 			{
 				quitMessageReceived = true;
-				FrameMgr()->WaitForAllJobsDone();
+				FrameWorkManager::GetInstance()->WaitForAllJobsDone();
 				return;
 			}
 		}
 		auto endTime = std::chrono::high_resolution_clock::now();
 		Timer::SetElapsedTime(std::chrono::duration<double, std::milli>(endTime - startTime).count());
 		startTime = endTime;
-		Draw();
+		Tick();
 		frameCount++;
 
 		fpsTimer += (float)Timer::GetElapsedTime();
@@ -328,35 +328,7 @@ void VulkanGlobal::Update()
 #endif
 }
 
-void VulkanGlobal::InitCommandPool()
-{
-}
-
-void VulkanGlobal::InitSetupCommandBuffer()
-{
-}
-
-void VulkanGlobal::InitMemoryMgr()
-{
-}
-
-void VulkanGlobal::InitSwapchainImgs()
-{
-}
-
-void VulkanGlobal::InitDepthStencil()
-{
-}
-
-void VulkanGlobal::InitRenderpass()
-{
-}
-
-void VulkanGlobal::InitFrameBuffer()
-{
-}
-
-void VulkanGlobal::InitVertices()
+void AppEntry::InitVertices()
 {
 	m_LODPatchLevel = 3;
 
@@ -428,7 +400,7 @@ gli::texture2d ExtractAlphaChannel(gli::texture2d rgbaTex)
 	return alphaTex;
 }
 
-void VulkanGlobal::InitUniforms()
+void AppEntry::InitUniforms()
 {
 	gli::texture2d gliAlbedoTex(gli::load("../data/textures/cerberus/albedo_1024.ktx"));
 	gli::texture2d gliRoughnessTex(gli::load("../data/textures/cerberus/roughness_1024.ktx"));
@@ -481,58 +453,13 @@ void VulkanGlobal::InitUniforms()
 	UniformData::GetInstance()->GetGlobalTextures()->InsertScreenSizeTexture({ "MipmapTemporalResult", "", "Mip map temporal result, used for next frame ssr" });
 }
 
-void VulkanGlobal::InitDescriptorSetLayout()
-{
-}
-
-void VulkanGlobal::InitPipelineCache()
-{
-}
-
-void VulkanGlobal::InitPipeline()
-{
-}
-
-void VulkanGlobal::InitShaderModule()
-{
-}
-
-void VulkanGlobal::InitDescriptorPool()
-{
-	std::vector<VkDescriptorPoolSize> descPoolSize =
-	{
-		{
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 10
-		},
-		{
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10
-		}
-	};
-
-	VkDescriptorPoolCreateInfo descPoolInfo = {};
-	descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	descPoolInfo.pPoolSizes = descPoolSize.data();
-	descPoolInfo.poolSizeCount = (uint32_t)descPoolSize.size();
-	descPoolInfo.maxSets = 10;
-
-	m_pDescriptorPool = DescriptorPool::Create(m_pDevice, descPoolInfo);
-}
-
-void VulkanGlobal::InitDescriptorSet()
-{
-}
-
-void VulkanGlobal::InitDrawCmdBuffers()
+void AppEntry::InitDrawCmdBuffers()
 {
 	for (uint32_t i = 0; i < GetSwapChain()->GetSwapChainImageCount(); i++)
-		m_perFrameRes.push_back(FrameMgr()->AllocatePerFrameResource(i));
+		m_perFrameRes.push_back(FrameWorkManager::GetInstance()->AllocatePerFrameResource(i));
 }
 
-void VulkanGlobal::InitSemaphore()
-{
-}
-
-void VulkanGlobal::InitMaterials()
+void AppEntry::InitMaterials()
 {
 	m_pGunMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 	m_pGunMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
@@ -565,6 +492,22 @@ void VulkanGlobal::InitMaterials()
 	m_pSphereMaterialInstance2->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
 	m_pSphereMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pSphereMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+
+	m_pSphereMaterialInstance3 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
+	m_pSphereMaterialInstance3->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pSphereMaterialInstance3->SetParameter("AlbedoRoughness", Vector4f(0.0f, 1.0f, 0.0f, 1.0f));
+	m_pSphereMaterialInstance3->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pSphereMaterialInstance3->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance3->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance3->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+
+	m_pSphereMaterialInstance4 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
+	m_pSphereMaterialInstance4->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pSphereMaterialInstance4->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	m_pSphereMaterialInstance4->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pSphereMaterialInstance4->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance4->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pSphereMaterialInstance4->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
 	for (uint32_t i = 0; i < 2; i++)
 	{
@@ -624,6 +567,22 @@ void VulkanGlobal::InitMaterials()
 	m_pBoxMaterialInstance2->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
 	m_pBoxMaterialInstance2->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
 
+	m_pBoxMaterialInstance3 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
+	m_pBoxMaterialInstance3->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pBoxMaterialInstance3->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 0.0f, 0.9f));
+	m_pBoxMaterialInstance3->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pBoxMaterialInstance3->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance3->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance3->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+
+	m_pBoxMaterialInstance4 = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
+	m_pBoxMaterialInstance4->SetRenderMask(1 << RenderWorkManager::Scene);
+	m_pBoxMaterialInstance4->SetParameter("AlbedoRoughness", Vector4f(1.0f, 0.0f, 0.0f, 0.9f));
+	m_pBoxMaterialInstance4->SetParameter("AOMetalic", Vector2f(1.0f, 0.1f));
+	m_pBoxMaterialInstance4->SetMaterialTexture("AlbedoRoughnessTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance4->SetMaterialTexture("NormalAOTextureIndex", RGBA8_1024, ":)");
+	m_pBoxMaterialInstance4->SetMaterialTexture("MetallicTextureIndex", R8_1024, ":)");
+
 	m_pSophiaMaterialInstance = RenderWorkManager::GetInstance()->AcquirePBRSkinnedMaterialInstance();
 	m_pSophiaMaterialInstance->SetRenderMask(1 << RenderWorkManager::Scene);
 	m_pSophiaMaterialInstance->SetParameter("AlbedoRoughness", Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
@@ -638,7 +597,7 @@ void VulkanGlobal::InitMaterials()
 	m_pSkinnedShadowMapMaterialInstance = RenderWorkManager::GetInstance()->AcquireSkinnedShadowMaterialInstance();
 }
 
-void VulkanGlobal::AddBoneBox(const std::shared_ptr<BaseObject>& pObject)
+void AppEntry::AddBoneBox(const std::shared_ptr<BaseObject>& pObject)
 {
 	std::shared_ptr<MaterialInstance> pInst = RenderWorkManager::GetInstance()->AcquirePBRMaterialInstance();
 	pInst->SetRenderMask(1 << RenderWorkManager::Scene);
@@ -659,7 +618,7 @@ void VulkanGlobal::AddBoneBox(const std::shared_ptr<BaseObject>& pObject)
 	}
 }
 
-void VulkanGlobal::InitScene()
+void AppEntry::InitScene()
 {
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightColor({ 1, 1, 1 });
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetMainLightDir({ 1, 1, -1 });
@@ -676,6 +635,7 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTThickness(0.05);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTBorderFadingDist(0.05);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTStepCountFadingDist(0.1);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSSRTMaxDistance(5000000);
 
 	uint32_t smaller = FrameBufferDiction::WINDOW_HEIGHT < FrameBufferDiction::WINDOW_WIDTH ? FrameBufferDiction::WINDOW_HEIGHT : FrameBufferDiction::WINDOW_WIDTH;
 	UniformData::GetInstance()->GetGlobalUniforms()->SetScreenSizeMipLevel(log2(smaller) + 1);
@@ -684,8 +644,8 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionImpactUpperBound(0.003);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetHighResponseSSRPortion(0.7);
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingLowerBound(0.99);
-	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingUpperBound(1.1);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingLowerBound(1);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomClampingUpperBound(500);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetUpsampleScale(1.0);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomAmplify(1.0);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomSlope(1.0);
@@ -715,6 +675,9 @@ void VulkanGlobal::InitScene()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetPatchEdgeWidth(0.01);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetTriangleEdgeWidth(0.03);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetMorphingRange(0.25f);
+
+	UniformData::GetInstance()->GetGlobalUniforms()->SetSunSizeInCosine(std::cos(0.00935 / 2.0));
+	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetVertexOffset(0.1);
 
 	PhysicalCamera::PhysicalCameraProps props =
 	{
@@ -748,18 +711,24 @@ void VulkanGlobal::InitScene()
 
 	m_pSphere1 = BaseObject::Create();
 	m_pSphere2 = BaseObject::Create();
+	m_pSphere3 = BaseObject::Create();
+	m_pSphere4 = BaseObject::Create();
 
 	m_pQuadObject = BaseObject::Create();
 	m_pBoxObject0 = BaseObject::Create();
 	m_pBoxObject1 = BaseObject::Create();
 	m_pBoxObject2 = BaseObject::Create();
+	m_pBoxObject3 = BaseObject::Create();
+	m_pBoxObject4 = BaseObject::Create();
 
-	m_pQuadRenderer = MeshRenderer::Create(m_pQuadMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
+	m_pQuadRenderer = MeshRenderer::Create(m_pPBRBoxMesh, { m_pQuadMaterialInstance, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer0 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance0, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer1 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance1, m_pShadowMapMaterialInstance });
 	m_pBoxRenderer2 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance2, m_pShadowMapMaterialInstance });
+	m_pBoxRenderer3 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance3 });
+	m_pBoxRenderer4 = MeshRenderer::Create(m_pPBRBoxMesh, { m_pBoxMaterialInstance4 });
 
-	m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp, 6378000);
+	m_pPlanetGenerator = PlanetGenerator::Create(m_pCameraComp, 6360000);
 
 	AssimpSceneReader::SceneInfo sceneInfo;
 
@@ -786,6 +755,16 @@ void VulkanGlobal::InitScene()
 	m_pSphere2->AddComponent(m_pSphereRenderer2);
 	m_pSphere2->SetPos(1, -0.15f, 0.6f);
 	m_pSphere2->SetScale(0.01f);
+
+	m_pSphereRenderer3 = MeshRenderer::Create(sceneInfo.meshLinks[0].first, { m_pSphereMaterialInstance3 });
+	m_pSphere3->AddComponent(m_pSphereRenderer3);
+	m_pSphere3->SetPos(150000, m_pPlanetGenerator->GetPlanetRadius() + 5000, 150000);
+	m_pSphere3->SetScale(1000.0);
+
+	m_pSphereRenderer4 = MeshRenderer::Create(sceneInfo.meshLinks[0].first, { m_pSphereMaterialInstance4 });
+	m_pSphere4->AddComponent(m_pSphereRenderer4);
+	m_pSphere4->SetPos(100000000, m_pPlanetGenerator->GetPlanetRadius() + 9000, 50000000);
+	m_pSphere4->SetScale(2000000.0);
 	sceneInfo.meshLinks.clear();
 
 	m_pInnerBall = AssimpSceneReader::ReadAndAssemblyScene("../data/models/Sample.FBX", { VertexFormatPNTCT }, sceneInfo);
@@ -800,8 +779,8 @@ void VulkanGlobal::InitScene()
 	sceneInfo.meshLinks.clear();
 
 	m_pQuadObject->AddComponent(m_pQuadRenderer);
-	m_pQuadObject->SetPos(-0.5f, -0.4f, 0);
-	m_pQuadObject->SetScale(2);
+	m_pQuadObject->SetPos(-0.5f, -0.43f, 0);
+	m_pQuadObject->SetScale({2, 0.03, 2});
 
 	m_pBoxObject0->AddComponent(m_pBoxRenderer0);
 	m_pBoxObject0->SetScale(0.3f);
@@ -815,8 +794,15 @@ void VulkanGlobal::InitScene()
 	m_pBoxObject2->SetScale(0.15f);
 	m_pBoxObject2->SetPos(-0.2f, -0.25f, 0.5f);
 
-	Quaterniond rot = Quaterniond(Vector3d(1, 0, 0), 0);
-	m_pQuadObject->SetRotation(Quaterniond(Vector3d(1, 0, 0), -1.57));
+	m_pBoxObject3->AddComponent(m_pBoxRenderer3);
+	m_pBoxObject3->SetScale({ 700000, 1000, 1000 });
+	m_pBoxObject3->SetPos(0, m_pPlanetGenerator->GetPlanetRadius() + 3000, 7000);
+	m_pBoxObject3->SetRotation(Matrix3d::EulerAngle(0, -0.61, 0));
+
+	m_pBoxObject4->AddComponent(m_pBoxRenderer4);
+	m_pBoxObject4->SetScale({ 10000, 700000, 10000 });
+	m_pBoxObject4->SetPos(130000, m_pPlanetGenerator->GetPlanetRadius() + 15000, 150000);
+	m_pBoxObject4->SetRotation(Matrix3d::EulerAngle(0, -0.5, 0));
 
 	m_pSophiaObject = AssimpSceneReader::ReadAndAssemblyScene("../data/models/rp_sophia_animated_003_idling.FBX", { VertexFormatPNTCTB }, sceneInfo);
 	m_pSophiaMesh = sceneInfo.meshLinks[0].first;
@@ -852,46 +838,55 @@ void VulkanGlobal::InitScene()
 	m_pSceneRootObject->AddChild(m_pBoxObject2);
 	m_pSceneRootObject->AddChild(m_pSophiaObject);
 	m_pSceneRootObject->AddChild(m_pDirLightObj);
-	m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 0.5);
+	m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 9000);
 
 	m_pRootObject = BaseObject::Create();
 	m_pRootObject->AddChild(m_pSceneRootObject);
 	m_pRootObject->AddChild(m_pPlanetObject);
+	m_pRootObject->AddChild(m_pSphere3);
+	m_pRootObject->AddChild(m_pBoxObject3);
+	m_pRootObject->AddChild(m_pBoxObject4);
+	m_pRootObject->AddChild(m_pSphere4);
 }
 
 class VariableChanger : public IInputListener
 {
 public:
 	void ProcessKey(KeyState keyState, uint8_t keyCode) override;
-	void ProcessMouse(KeyState keyState, const Vector2d& mousePosition) override {}
+	void ProcessMouse(KeyState keyState, MouseButton mouseButton, const Vector2d& mousePosition) override {}
 	void ProcessMouse(const Vector2d& mousePosition) override {}
-	float var = 0.0;
-	bool boolVar = true;
+	double var = 0.08333333;
+	bool updateCameraInfo = true;
+	bool sceneAltitude = true;
 };
 
 void VariableChanger::ProcessKey(KeyState keyState, uint8_t keyCode)
 {
-	static float interval = 0.01f;
-	static float varInterval = 0.005f;
+	static double interval = 0.01;
+	static double varInterval = 0.005;
 	if (keyCode == KEY_F)
 	{
 		var += varInterval;
-		var = var > 1.0f ? 1.0f : var;
+		var = var > 1.0 ? 1.0 : var;
 	}
 	if (keyCode == KEY_L)
 	{
 		var -= varInterval;
 		var = var < 0 ? 0 : var;
 	}
-	if (keyCode == KEY_T && keyState == KEY_UP)
+	if (keyCode == KEY_R && keyState == KeyState::KEY_UP)
 	{
-		boolVar = !boolVar;
+		sceneAltitude = !sceneAltitude;
+	}
+	if (keyCode == KEY_T && keyState == KeyState::KEY_UP)
+	{
+		updateCameraInfo = !updateCameraInfo;
 	}
 }
 
 std::shared_ptr<VariableChanger> c;
 
-void VulkanGlobal::EndSetup()
+void AppEntry::EndSetup()
 {
 	GlobalDeviceObjects::GetInstance()->GetStagingBufferMgr()->FlushDataMainThread();
 	m_commandBufferList.resize(GetSwapChain()->GetSwapChainImageCount() * 2);
@@ -903,15 +898,15 @@ void VulkanGlobal::EndSetup()
 	InputHub::GetInstance()->Register(c);
 }
 
-void VulkanGlobal::Draw()
+void AppEntry::Tick()
 {
 	static uint32_t pingpong = 0;
 	static uint32_t nextPingpong = 1;
 	static uint32_t frameCount = 0;
 
-	GetSwapChain()->AcquireNextImage();
+	FrameWorkManager::GetInstance()->AcquireNextImage();
 
-	uint32_t frameIndex = FrameMgr()->FrameIndex();
+	uint32_t frameIndex = FrameWorkManager::GetInstance()->FrameIndex();
 	uint32_t cbIndex = frameIndex * 2 + pingpong;
 	nextPingpong = (pingpong + 1) % 2;
 
@@ -926,10 +921,17 @@ void VulkanGlobal::Draw()
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX32Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x32, frameCount));
 	UniformData::GetInstance()->GetPerFrameUniforms()->SetHaltonIndexX256Jitter(HaltonSequence::GetHaltonJitter(HaltonSequence::x256, frameCount));
 
-	RenderWorkManager::GetInstance()->SetRenderStateMask((1 << RenderWorkManager::Scene) | (1 << RenderWorkManager::ShadowMapGen));
+	m_pCameraComp->SetFocalLength((1.0 - c->var) * 0.02 + c->var * 0.2);
+	m_pPlanetGenerator->ToggleCameraInfoUpdate(c->updateCameraInfo);
 
-	m_pCameraComp->SetFocalLength((1.0f - c->var) * 0.035f + c->var * 0.2f);
-	m_pPlanetGenerator->ToggleCameraInfoUpdate(c->boolVar);
+	if (c->sceneAltitude)
+	{
+		m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 9000);
+	}
+	else
+	{
+		m_pSceneRootObject->SetPosY(m_pPlanetGenerator->GetPlanetRadius() + 10);
+	}
 
 	m_pRootObject->Update();
 	m_pRootObject->OnAnimationUpdate();
@@ -938,22 +940,19 @@ void VulkanGlobal::Draw()
 	m_pRootObject->OnPreRender();
 	m_pRootObject->OnRenderObject();
 
-	// Sync data for current frame before rendering
-	UniformData::GetInstance()->SyncDataBuffer();
-	RenderWorkManager::GetInstance()->SyncMaterialData();
-	PerFrameData::GetInstance()->SyncDataBuffer();
+	FrameEventManager::GetInstance()->OnPostSceneTraversal();
 
-	RenderWorkManager::GetInstance()->OnFrameBegin();
+	FrameEventManager::GetInstance()->OnPreCmdPreparation();
 
 	static bool newCBCreated = false;
 	if (!PREBAKE_CB)
 	{
-		m_commandBufferList[cbIndex] = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocateTransientPrimaryCommandBuffer();
+		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkManager::GetInstance()->FrameIndex()]->AllocateTransientPrimaryCommandBuffer();
 		newCBCreated = true;
 	}
 	else if (m_commandBufferList[cbIndex] == nullptr)
 	{
-		m_commandBufferList[cbIndex] = m_perFrameRes[FrameMgr()->FrameIndex()]->AllocatePersistantPrimaryCommandBuffer();
+		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkManager::GetInstance()->FrameIndex()]->AllocatePersistantPrimaryCommandBuffer();
 		newCBCreated = true;
 	}
 
@@ -970,46 +969,29 @@ void VulkanGlobal::Draw()
 
 	m_pRootObject->OnPostRender();
 
-	RenderWorkManager::GetInstance()->OnFrameEnd();
+	FrameEventManager::GetInstance()->OnPreCmdSubmission();
 
-	FrameMgr()->CacheSubmissioninfo(GlobalGraphicQueue(), { m_commandBufferList[cbIndex] }, {}, false);
+	FrameWorkManager::GetInstance()->SubmitCommandBuffers(GlobalGraphicQueue(), { m_commandBufferList[cbIndex] }, {}, false);
 	
-	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue());
+	FrameWorkManager::GetInstance()->QueuePresentImage();
+
+	FrameEventManager::GetInstance()->OnFrameEnd();
 
 	pingpong = nextPingpong;
 	frameCount++;
-
-	FrameEventManager::GetInstance()->OnFrameEnd();
 }
 
-void VulkanGlobal::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)
+void AppEntry::InitVulkan(HINSTANCE hInstance, WNDPROC wndproc)
 {
 	SetupWindow(hInstance, wndproc);
 	InitVulkanInstance();
 	InitPhysicalDevice(m_hPlatformInst, m_hWindow);
-	InitSurface();
 	InitVulkanDevice();
 	GlobalDeviceObjects::GetInstance()->InitObjects(m_pDevice);
-	InitSwapchain();
-	InitQueue();
 
-	InitCommandPool();
-	InitSetupCommandBuffer();
-	InitMemoryMgr();
-	InitSwapchainImgs();
-	InitDepthStencil();
-	InitRenderpass();
-	InitFrameBuffer();
 	InitVertices();
 	InitUniforms();
-	InitDescriptorSetLayout();
-	InitShaderModule();
-	InitPipelineCache();
-	InitPipeline();
-	InitDescriptorPool();
-	InitDescriptorSet();
 	InitDrawCmdBuffers();
-	InitSemaphore();
 	InitMaterials();
 	InitScene();
 	EndSetup();

@@ -10,7 +10,6 @@ class DeviceMemoryManager;
 class StagingBufferManager;
 class Buffer;
 class SwapChain;
-class FrameManager;
 class PhysicalDevice;
 class SharedBufferManager;
 class FrameBuffer;
@@ -32,7 +31,6 @@ std::shared_ptr<CommandPool> MainThreadTransferPool();
 std::shared_ptr<DeviceMemoryManager> DeviceMemMgr();
 std::shared_ptr<StagingBufferManager> StagingBufferMgr();
 std::shared_ptr<SwapChain> GetSwapChain();
-std::shared_ptr<FrameManager> FrameMgr();
 std::shared_ptr<Device> GetDevice();
 std::shared_ptr<PhysicalDevice> GetPhysicalDevice();
 std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr(uint32_t vertexFormat);
@@ -72,7 +70,6 @@ public:
 	const std::shared_ptr<SharedBufferManager> GetStreamingBufferMgr() const { return m_pStreamingBufferMgr; }
 	const std::shared_ptr<ThreadTaskQueue> GetThreadTaskQueue() const { return m_pThreadTaskQueue; }
 	const std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates() const { return m_pGlobalVulkanStates; }
-	const std::shared_ptr<PerFrameResource> GetMainThreadPerFrameRes() const;
 
 	//FIXME : remove me
 	bool RequestAttributeBuffer(uint32_t size, uint32_t& offset);
@@ -104,8 +101,6 @@ protected:
 	std::shared_ptr<GlobalVulkanStates>		m_pGlobalVulkanStates;
 
 	std::shared_ptr<ThreadTaskQueue>		m_pThreadTaskQueue;
-
-	std::vector<std::shared_ptr<PerFrameResource>> m_mainThreadPerFrameRes;
 
 	static const uint32_t ATTRIBUTE_BUFFER_SIZE = 1024 * 1024 * 64;
 	static const uint32_t INDEX_BUFFER_SIZE = 1024 * 1024 * 4;

@@ -7,7 +7,6 @@
 #include <memory>
 #include "DeviceObjectBase.h"
 #include "SwapChainImage.h"
-#include "FrameManager.h"
 
 class Semaphore;
 class Queue;
@@ -23,10 +22,9 @@ public:
 	const VkSwapchainKHR GetDeviceHandle() const { return m_swapchain; }
 	const std::shared_ptr<SwapChainImage> GetSwapChainImage(uint32_t index) { assert(index < m_swapchainImages.size()); return m_swapchainImages[index]; }
 	uint32_t GetSwapChainImageCount() const { return (uint32_t)m_swapchainImages.size(); }
-	std::shared_ptr<FrameManager> GetFrameManager() const { return m_pFrameManager; }
 
-	void AcquireNextImage();
-	void QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue);
+	uint32_t AcquireNextImage(const std::shared_ptr<Semaphore>& pAcquireDoneSemaphore);
+	void QueuePresentImage(const std::shared_ptr<Queue>& pPresentQueue, const std::vector<std::shared_ptr<Semaphore>>& pRenderDoneSemaphores, uint32_t frameIndex);
 	
 	void EnsureSwapChainImageLayout();
 
@@ -47,5 +45,4 @@ protected:
 	PFN_vkQueuePresentKHR				m_fpQueuePresentKHR;
 
 	std::vector<std::shared_ptr<SwapChainImage>>	m_swapchainImages;
-	std::shared_ptr<FrameManager>					m_pFrameManager;
 };

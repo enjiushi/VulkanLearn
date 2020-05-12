@@ -30,6 +30,9 @@ typedef struct _GaussianBlurParams
 	float	strength = 1.0f;
 }GaussianBlurParams;
 
+std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::vector<std::shared_ptr<Image>>& outputImages);
+std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages);
+std::shared_ptr<Material> CreateReflectionGenMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages, uint32_t outMipLevel);
 std::shared_ptr<Material> CreateTileMaxMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages);
 std::shared_ptr<Material> CreateNeighborMaxMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages);
 std::shared_ptr<Material> CreateSSAOSSRMaterial();

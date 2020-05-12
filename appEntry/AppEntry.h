@@ -1,31 +1,30 @@
 #pragma once
 #include "../common/Singleton.h"
 #include "vulkan.h"
-#include "Instance.h"
-#include "PhysicalDevice.h"
-#include "Device.h"
-#include "SwapChain.h"
+#include "../vulkan/PhysicalDevice.h"
+#include "../vulkan/Device.h"
+#include "../vulkan/SwapChain.h"
 #include <vector>
 #include <memory>
-#include "DeviceMemoryManager.h"
-#include "Buffer.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "UniformBuffer.h"
-#include "GlobalDeviceObjects.h"
-#include "SwapChainImage.h"
-#include "RenderPass.h"
-#include "DescriptorSetLayout.h"
-#include "PipelineLayout.h"
-#include "DescriptorPool.h"
-#include "DescriptorSet.h"
-#include "ShaderModule.h"
-#include "GraphicPipeline.h"
-#include "Framebuffer.h"
-#include "CommandBuffer.h"
-#include "CommandPool.h"
-#include "Semaphore.h"
-#include "PerFrameResource.h"
+#include "../vulkan/DeviceMemoryManager.h"
+#include "../vulkan/Buffer.h"
+#include "../vulkan/VertexBuffer.h"
+#include "../vulkan/IndexBuffer.h"
+#include "../vulkan/UniformBuffer.h"
+#include "../vulkan/GlobalDeviceObjects.h"
+#include "../vulkan/SwapChainImage.h"
+#include "../vulkan/RenderPass.h"
+#include "../vulkan/DescriptorSetLayout.h"
+#include "../vulkan/PipelineLayout.h"
+#include "../vulkan/DescriptorPool.h"
+#include "../vulkan/DescriptorSet.h"
+#include "../vulkan/ShaderModule.h"
+#include "../vulkan/GraphicPipeline.h"
+#include "../vulkan/Framebuffer.h"
+#include "../vulkan/CommandBuffer.h"
+#include "../vulkan/CommandPool.h"
+#include "../vulkan/Semaphore.h"
+#include "../vulkan/PerFrameResource.h"
 #include "../thread/ThreadTaskQueue.hpp"
 #include "../Base/BaseObject.h"
 #include "../component/Character.h"
@@ -33,8 +32,8 @@
 #include "../component/MeshRenderer.h"
 #include "../class/Material.h"
 #include "../class/MaterialInstance.h"
-#include "ShaderStorageBuffer.h"
-#include "Image.h"
+#include "../vulkan/ShaderStorageBuffer.h"
+#include "../vulkan/Image.h"
 #include "../class/ForwardMaterial.h"
 #include "../class/DeferredMaterial.h"
 #include "../component/DirectionLight.h"
@@ -43,7 +42,7 @@
 #include "../component/PhysicalCamera.h"
 #include "../component/PlanetGenerator.h"
 
-class VulkanGlobal : public Singleton<VulkanGlobal>
+class AppEntry : public Singleton<AppEntry>
 {
 	const static uint32_t OffScreenSize = 512;
 
@@ -54,38 +53,20 @@ public:
 	void InitVulkanInstance();
 	void InitPhysicalDevice(HINSTANCE hInstance, HWND hWnd);
 	void InitVulkanDevice();
-	void InitQueue();
 #if defined(_WIN32)
 	void SetupWindow(HINSTANCE hInstance, WNDPROC wndproc);
 	void HandleMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif
-	void InitSurface();
-	void InitSwapchain();
 
-	void InitCommandPool();
-	void InitSetupCommandBuffer();
-	void InitMemoryMgr();
-	void InitSwapchainImgs();
-	void InitDepthStencil();
-	void InitRenderpass();
-	void InitFrameBuffer();
 	void InitVertices();
 	void InitUniforms();
-	void InitDescriptorSetLayout();
-	void InitPipelineCache();
-	void InitPipeline();
-	void InitDescriptorPool();
-	void InitDescriptorSet();
 	void InitDrawCmdBuffers();
-	void InitSemaphore();
 	void InitMaterials();
 	void InitScene();
 	void EndSetup();
 
-	void Draw();
+	void Tick();
 	void Update();
-
-	void InitShaderModule();
 
 public:
 	std::shared_ptr<Instance>			m_pVulkanInstance;
@@ -135,6 +116,8 @@ public:
 	std::shared_ptr<BaseObject>			m_pSphere0;
 	std::shared_ptr<BaseObject>			m_pSphere1;
 	std::shared_ptr<BaseObject>			m_pSphere2;
+	std::shared_ptr<BaseObject>			m_pSphere3;
+	std::shared_ptr<BaseObject>			m_pSphere4;
 	std::vector<std::shared_ptr<BaseObject>> m_innerBallObjects;
 	std::shared_ptr<BaseObject>			m_pInnerBall;
 	std::vector<std::shared_ptr<BaseObject>> m_bunnyObjects;
@@ -144,11 +127,15 @@ public:
 	std::shared_ptr<BaseObject>			m_pBoxObject0;
 	std::shared_ptr<BaseObject>			m_pBoxObject1;
 	std::shared_ptr<BaseObject>			m_pBoxObject2;
+	std::shared_ptr<BaseObject>			m_pBoxObject3;
+	std::shared_ptr<BaseObject>			m_pBoxObject4;
 	std::shared_ptr<BaseObject>			m_pSophiaObject;
 	std::shared_ptr<MeshRenderer>		m_pGunMeshRenderer;
 	std::shared_ptr<MeshRenderer>		m_pSphereRenderer0;
 	std::shared_ptr<MeshRenderer>		m_pSphereRenderer1;
 	std::shared_ptr<MeshRenderer>		m_pSphereRenderer2;
+	std::shared_ptr<MeshRenderer>		m_pSphereRenderer3;
+	std::shared_ptr<MeshRenderer>		m_pSphereRenderer4;
 	std::vector<std::shared_ptr<MeshRenderer>>	m_innerBallRenderers;
 	std::vector<std::shared_ptr<MeshRenderer>>	m_bunnyRenderers;
 	std::vector<std::shared_ptr<MeshRenderer>>	m_dragonRenderers;
@@ -156,6 +143,8 @@ public:
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer0;
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer1;
 	std::shared_ptr<MeshRenderer>		m_pBoxRenderer2;
+	std::shared_ptr<MeshRenderer>		m_pBoxRenderer3;
+	std::shared_ptr<MeshRenderer>		m_pBoxRenderer4;
 	std::vector<std::shared_ptr<MeshRenderer>> m_boneBoxRenderers;
 	std::vector<std::shared_ptr<MaterialInstance>> m_boneBoxMaterialInstances;
 	std::shared_ptr<MeshRenderer>		m_pSophiaRenderer;
@@ -165,6 +154,8 @@ public:
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance0;
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance1;
 	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance2;
+	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance3;
+	std::shared_ptr<MaterialInstance>	m_pSphereMaterialInstance4;
 	std::vector<std::shared_ptr<MaterialInstance>> m_innerBallMaterialInstances;
 	std::vector<std::shared_ptr<MaterialInstance>> m_bunnyMaterialInstances;
 	std::vector<std::shared_ptr<MaterialInstance>> m_dragonMaterialInstances;
@@ -172,6 +163,8 @@ public:
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance0;
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance1;
 	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance2;
+	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance3;
+	std::shared_ptr<MaterialInstance>	m_pBoxMaterialInstance4;
 	std::shared_ptr<MaterialInstance>	m_pSophiaMaterialInstance;
 	std::shared_ptr<MaterialInstance>   m_pPlanetMaterialInstance;
 

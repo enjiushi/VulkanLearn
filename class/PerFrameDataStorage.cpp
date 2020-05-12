@@ -4,6 +4,7 @@
 #include "../vulkan/ShaderStorageBuffer.h"
 #include "../vulkan/StreamingBuffer.h"
 #include "PerFrameDataStorage.h"
+#include "FrameWorkManager.h"
 
 bool PerFrameDataStorage::Init(const std::shared_ptr<PerFrameDataStorage>& pSelf, uint32_t numBytes, StorageType storageType)
 {
@@ -51,7 +52,7 @@ void PerFrameDataStorage::SyncBufferData()
 
 void PerFrameDataStorage::SyncBufferDataInternal()
 {
-	uint32_t currentFrameIndex = FrameMgr()->FrameIndex();
+	uint32_t currentFrameIndex = FrameWorkManager::GetInstance()->FrameIndex();
 	if (m_pendingSync[currentFrameIndex])
 		return;
 

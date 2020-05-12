@@ -6,6 +6,8 @@
 #include "../vulkan/Sampler.h"
 #include "../vulkan/ImageView.h"
 #include "../vulkan/CommandBuffer.h"
+#include "../common/Util.h"
+#include "FrameWorkManager.h"
 
 std::shared_ptr<CustomizedComputeMaterial> CustomizedComputeMaterial::CreateMaterial(const CustomizedComputeMaterial::Variables& variables)
 {
@@ -105,15 +107,14 @@ void CustomizedComputeMaterial::AssembleBarrier(const TextureUnit& textureUnit, 
 	barrier.subresourceRange	= subresRange;
 	barrier.oldLayout			= textureUnit.textureBarrier[barrierInsertPoint].oldImageLayout;
 	barrier.srcAccessMask		= textureUnit.textureBarrier[barrierInsertPoint].srcAccessFlags;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.newLayout			= textureUnit.textureBarrier[barrierInsertPoint].newImageLayout;
 	barrier.dstAccessMask		= textureUnit.textureBarrier[barrierInsertPoint].dstAccessFlags;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 }
 
 void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong)
 {
-	if (barrierInsertionPoint == Material::BarrierInsertionPoint::AFTER_DISPATCH)
-		return;
-
 	std::vector<VkImageMemoryBarrier> barriers;
 	VkPipelineStageFlags srcStages = 0;
 	VkPipelineStageFlags dstStages = 0;
@@ -128,7 +129,7 @@ void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<Com
 
 		if (textureUnit.textureSelector == TextureUnit::BY_FRAME)
 		{ 
-			AssembleBarrier(textureUnit, FrameMgr()->FrameIndex(), barrierInsertionPoint, imgBarrier, subresourceRange);
+			AssembleBarrier(textureUnit, FrameWorkManager::GetInstance()->FrameIndex(), barrierInsertionPoint, imgBarrier, subresourceRange);
 			barriers.push_back(imgBarrier);
 		}
 		else if (textureUnit.textureSelector == TextureUnit::BY_PINGPONG)
@@ -165,4 +166,9 @@ void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<Com
 		{},
 		barriers
 	);
+}
+
+void CustomizedComputeMaterial::UpdatePushConstantDataInternal(const void* pData, uint32_t offset, uint32_t size)
+{
+	TransferBytesToVector(m_variables.pushConstantData, pData, offset, size);
 }

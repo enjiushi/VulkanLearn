@@ -7,7 +7,7 @@
 
 class Device;
 class ThreadTaskQueue;
-class FrameManager;
+class FrameWorkManager;
 class SwapChain;
 class GlobalDeviceObjects;
 class PerFrameResource;
@@ -25,7 +25,7 @@ public:
 	}ThreadJob;
 
 public:
-	ThreadWorker(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount, const std::shared_ptr<FrameManager>& pFrameMgr);
+	ThreadWorker(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount);
 	~ThreadWorker();
 
 public:

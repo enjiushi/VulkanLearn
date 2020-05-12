@@ -28,7 +28,7 @@ void Character::ProcessKey(KeyState keyState, uint8_t keyCode)
 {
 	switch (keyState)
 	{
-	case KEY_DOWN:
+	case KeyState::KEY_DOWN:
 		switch (keyCode)
 		{
 		case 'W':
@@ -51,7 +51,7 @@ void Character::ProcessKey(KeyState keyState, uint8_t keyCode)
 			break;
 		}
 		break;
-	case KEY_UP:
+	case KeyState::KEY_UP:
 		switch (keyCode)
 		{
 		case 'W':
@@ -77,14 +77,17 @@ void Character::ProcessKey(KeyState keyState, uint8_t keyCode)
 	}
 }
 
-void Character::ProcessMouse(KeyState keyState, const Vector2d& mousePosition)
+void Character::ProcessMouse(KeyState keyState, MouseButton mouseButton, const Vector2d& mousePosition)
 {
+	if (mouseButton != MouseButton::RIGHT)
+		return;
+
 	switch (keyState)
 	{
-	case KEY_DOWN:
+	case KeyState::KEY_DOWN:
 		m_isControlInRotation = true;
 		break;
-	case KEY_UP:
+	case KeyState::KEY_UP:
 		m_isControlInRotation = false;
 		break;
 	default:
@@ -226,7 +229,7 @@ void Character::Rotate(const Vector2d& v)
 
 void Character::Update()
 {
-	OnRotate({ m_lastSampleCursorPosition.x / GetPhysicalDevice()->GetSurfaceCap().currentExtent.width, (GetPhysicalDevice()->GetSurfaceCap().currentExtent.height - m_lastSampleCursorPosition.y) / GetPhysicalDevice()->GetSurfaceCap().currentExtent.height }, m_isControlInRotation);
+	OnRotate(m_lastSampleCursorPosition, m_isControlInRotation);
 
 	Move(m_moveFlag, Timer::GetElapsedTime());
 	OnRotate(m_rotateFlag, Timer::GetElapsedTime());

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DeviceObjectBase.h"
+#include "VKGPUSyncRes.h"
 #include "../Maths/Vector.h"
 #include <gli\gli.hpp>
 
@@ -16,7 +17,7 @@ typedef struct _GliImageWrapper
 	std::vector<gli::texture>	textures;
 }GliImageWrapper;
 
-class Image : public DeviceObjectBase<Image>
+class Image : public VKGPUSyncRes
 {
 public:
 	~Image();
@@ -35,7 +36,8 @@ public:
 	void UpdateByteStream(const GliImageWrapper& gliTex);
 	void UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer);
 
-	virtual std::shared_ptr<ImageView> CreateDefaultImageView() const;
+	virtual std::shared_ptr<ImageView> CreateDefaultImageView(bool isStorage = false) const;
+	virtual std::shared_ptr<ImageView> CreateImageView(uint32_t mipLevel, bool isStorage = false) const;
 	virtual std::shared_ptr<ImageView> CreateDepthSampleImageView() const;
 	virtual std::shared_ptr<Sampler> CreateLinearRepeatSampler() const;
 	virtual std::shared_ptr<Sampler> CreateNearestRepeatSampler() const;
@@ -108,6 +110,7 @@ public:
 	static std::shared_ptr<Image> CreateCubeTexture(const std::shared_ptr<Device>& pDevice, std::string path, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, VkFormat format);
 	static std::shared_ptr<Image> CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, VkFormat format);
+	static std::shared_ptr<Image> CreateEmptyCubeTexture(const std::shared_ptr<Device>& pDevice, const Vector2ui& size, uint32_t mipLevels, VkFormat format, VkImageLayout layout, VkImageUsageFlagBits extraUsage);
 
 	// DepthStencilBuffer:
 	static std::shared_ptr<Image> CreateDepthStencilBuffer(const std::shared_ptr<Device>& pDevice, VkFormat format, const Vector2ui& size);

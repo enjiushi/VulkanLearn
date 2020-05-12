@@ -356,6 +356,13 @@ void GlobalUniforms::SetScreenSizeMipLevel(double mipLevel)
 	SetDirty();
 }
 
+void GlobalUniforms::SetSSRTMaxDistance(double maxDistance)
+{
+	m_globalVariables.SSRSettings2.w = maxDistance;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, SSRSettings2.w);
+	SetDirty();
+}
+
 void GlobalUniforms::SetTemporalSettings0(const Vector4d& setting)
 {
 	m_globalVariables.TemporalSettings0 = setting;
@@ -575,6 +582,19 @@ void GlobalUniforms::SetPlanetMorphingRange(double range)
 	SetDirty();
 }
 
+void GlobalUniforms::SetSunSizeInCosine(double size)
+{
+	m_globalVariables.PlanetRenderingSettings2.x = size;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings2.x);
+	SetDirty();
+}
+
+void GlobalUniforms::SetPlanetVertexOffset(double offset)
+{
+	m_globalVariables.PlanetRenderingSettings2.y = offset;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings2.y);
+	SetDirty();
+}
 
 
 std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
@@ -684,6 +704,10 @@ std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 				{
 					Vec4Unit,
 					"Planet settings1"
+				},
+				{
+					Vec4Unit,
+					"Planet settings2"
 				},
 				{
 					Vec4Unit,

@@ -4,7 +4,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
-#include "../vulkan/FrameManager.h"
+#include "../class/FrameWorkManager.h"
 #include "ThreadWorker.hpp"
 
 class Device;
@@ -13,14 +13,16 @@ class CommandBuffer;
 class ThreadTaskQueue
 {
 public:
-	ThreadTaskQueue(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount, const std::shared_ptr<FrameManager>& pFrameMgr)
+	ThreadTaskQueue(const std::shared_ptr<Device>& pDevice, uint32_t frameRoundBinCount)
 	{
 		m_worker = std::thread(&ThreadTaskQueue::Loop, this);
 
 		int numThreads = std::thread::hardware_concurrency();
-		for (int i = 0; i < numThreads - 1; i++)
+		//for (int i = 0; i < numThreads - 1; i++)
+		// Only 1 thread worker for now
+		for (int i = 0; i < 1; i++)
 		{
-			m_threadWorkers.push_back(std::make_shared<ThreadWorker>(pDevice, frameRoundBinCount, pFrameMgr));
+			m_threadWorkers.push_back(std::make_shared<ThreadWorker>(pDevice, frameRoundBinCount));
 		}
 
 		m_currentWorker = 0;

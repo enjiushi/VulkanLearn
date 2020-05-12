@@ -108,7 +108,7 @@ public:
 	* X: How far a hit to the edge of screen that it needs to be fade, to prevent from hard boundary
 	* Y: How many steps that a hit starts to fade, to prevent from hard boundary
 	* Z: Screen sized mipmap level count
-	* W: Reserved
+	* W: Max distance
 	*/
 	Vector4<T>	SSRSettings2;
 
@@ -193,7 +193,7 @@ public:
 	Vector4<T>	PlanetRenderingSettings0;
 
 	/*******************************************************************
-	* DESCRIPTION: Planet Rendering Settings0
+	* DESCRIPTION: Planet Rendering Settings1
 	*
 	* X: Whether to draw triangle edge
 	* Y: Patch edge width
@@ -201,6 +201,16 @@ public:
 	* W: Morphing range
 	*/
 	Vector4<T>	PlanetRenderingSettings1;
+
+	/*******************************************************************
+	* DESCRIPTION: Planet Rendering Settings2
+	*
+	* X: Sun plate radius in cosine
+	* Y: Planet vertex offset to get rid of nan value produced by altitude below earth surface due to depth precision, in unit km
+	* Z: Reserved
+	* W: Reserved
+	*/
+	Vector4<T>	PlanetRenderingSettings2;
 
 	// SSAO settings
 	Vector4<T>	SSAOSamples[SSAO_SAMPLE_COUNT];
@@ -305,6 +315,8 @@ public:
 	double GetSSRTStepCountFadingDist() const { return m_globalVariables.SSRSettings2.y; }
 	void SetScreenSizeMipLevel(double mipLevel);
 	double GetScreenSizeMipLevel() const { return m_globalVariables.SSRSettings2.z; }
+	void SetSSRTMaxDistance(double maxDistance);
+	double GetSSRTMaxDistance() const { return m_globalVariables.SSRSettings2.w; }
 
 	void SetTemporalSettings0(const Vector4d& setting);
 	Vector4d GetTemporalSettings0() const { return m_globalVariables.TemporalSettings0; }
@@ -375,6 +387,11 @@ public:
 	double GetPlanetTriangleEdgeWidth() const { return m_globalVariables.PlanetRenderingSettings1.z; }
 	void SetPlanetMorphingRange(double range);
 	double SetPlanetMorphingRange() const { return m_globalVariables.PlanetRenderingSettings1.w; }
+
+	void SetSunSizeInCosine(double size);
+	double GetSunSize() const { return m_globalVariables.PlanetRenderingSettings2.x; }
+	void SetPlanetVertexOffset(double offset);
+	double GetPlanetVertexOffset() const { return m_globalVariables.PlanetRenderingSettings2.y; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

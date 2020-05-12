@@ -86,7 +86,12 @@ bool PhysicalDevice::Init(const std::shared_ptr<Instance>& pVulkanInstance, HINS
 	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
 	{
 		// Find a dedicated compute queue
-		if (m_queueProperties[i].queueFlags == VK_QUEUE_COMPUTE_BIT)
+		// Theoractically a dedicated compute queue should have only a compute flag
+		// This is the info that I scavenged across google
+		// But here for my nvidia 1070 there're no such queue family
+		// The nearest compute queue family I got is with compute, transfer and sparse binding
+		// That is, without graphic flag
+		if ((m_queueProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && !(m_queueProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT))
 		{
 			m_computeQueueIndex = i;
 			break;
@@ -113,8 +118,15 @@ bool PhysicalDevice::Init(const std::shared_ptr<Instance>& pVulkanInstance, HINS
 	// Find a dedicated transfer queue
 	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
 	{
-		// Find a dedicated compute queue
-		if (m_queueProperties[i].queueFlags == VK_QUEUE_TRANSFER_BIT)
+		// Find a dedicated transfer queue
+		// Theoractically a dedicated transfer queue should have only a transfer flag
+		// This is the info that I scavenged across google
+		// But here for my nvidia 1070 there're no such queue family
+		// The nearest transfer queue family I got is with transfer and sparse binding
+		// That is, without graphic and compute flags
+		if ((m_queueProperties[i].queueFlags & VK_QUEUE_TRANSFER_BIT) &&
+			!(m_queueProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
+			!(m_queueProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT))
 		{
 			m_transferQueueIndex = i;
 			break;

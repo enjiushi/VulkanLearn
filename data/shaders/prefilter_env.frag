@@ -11,7 +11,7 @@ layout (location = 0) out vec4 outFragColor;
 #include "utilities.sh"
 #include "pbr_functions.sh"
 
-const uint numSamples = 1024;
+const uint numSamples = 16;
 
 void main() 
 {
@@ -25,7 +25,7 @@ void main()
 	for (int samples = 0; samples < numSamples; samples++)
 	{
 		vec2 Xi = Hammersley(samples, numSamples);
-		vec3 L = ImportanceSampleGGX(Xi, N, perFrameData.reservedPadding0);
+		vec3 L = ImportanceSampleGGX(Xi, N, perFrameData.envPingpongIndex);
 
 		float NdotL = dot(N, L);
 		if (NdotL > 0)

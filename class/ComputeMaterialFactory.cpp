@@ -11,6 +11,270 @@
 // FIXME: hard-code
 static uint32_t groupSize = 16;
 
+std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::vector<std::shared_ptr<Image>>& outputImages)
+{
+	std::vector<CombinedImage> _outputImages;
+	for (auto pOutputImage : outputImages)
+		_outputImages.push_back
+		({
+			pOutputImage,
+			pOutputImage->CreateLinearClampToEdgeSampler(),
+			pOutputImage->CreateDefaultImageView(true)
+		});
+
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	textureUnits.push_back
+	(
+		{
+			0,
+
+			_outputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					false
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	Vector3ui groupNum =
+	{
+		(uint32_t)std::ceil((double)_outputImages[0].pImage->GetImageInfo().extent.width / (double)groupSize),
+		(uint32_t)std::ceil((double)_outputImages[0].pImage->GetImageInfo().extent.height / (double)groupSize),
+		1
+	};
+
+	// xyz0: bottom left corner. w0: face id
+	// xyz1: bottom right corner. w1: padding
+	// xyz2: top left corner. w2: padding
+	// xyz3: top right corner. w3: pingpoing index
+	// xyz4: world space camera position
+	// xyz5: world space main light direction
+	std::vector<uint8_t> pushConstantData;
+	pushConstantData.resize(sizeof(Vector4f) * 6);
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		L"../data/shaders/env_skybox_gen.comp.spv",
+		groupNum,
+		textureUnits,
+		pushConstantData
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
+
+std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages)
+{
+	std::vector<CombinedImage> _inputImages;
+	for (auto pInputImage : inputImages)
+		_inputImages.push_back
+		({
+			pInputImage,
+			pInputImage->CreateLinearClampToEdgeSampler(),
+			pInputImage->CreateDefaultImageView()
+		});
+
+	std::vector<CombinedImage> _outputImages;
+	for (auto pOutputImage : outputImages)
+	_outputImages.push_back
+		({
+			pOutputImage,
+			pOutputImage->CreateLinearClampToEdgeSampler(),
+			pOutputImage->CreateDefaultImageView(true)
+		});
+
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	textureUnits.push_back
+	(
+		{
+			0,
+
+			_inputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			1,
+
+			_outputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					false
+				},
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
+				}
+			}
+		}
+	);
+
+	Vector3ui groupNum = { 8, 8, 1 };
+
+	// xyz0: bottom left corner. w0: face id
+	// xyz1: bottom right corner. w1: group offset x
+	// xyz2: top left corner. w2: group offset y
+	// xyz3: top right corner. w3: padding
+	std::vector<uint8_t> pushConstantData;
+	pushConstantData.resize(sizeof(Vector4f) * 4);
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		L"../data/shaders/env_irradiance_gen.comp.spv",
+		groupNum,
+		textureUnits,
+		pushConstantData
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
+
+std::shared_ptr<Material> CreateReflectionGenMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages, uint32_t outMipLevel)
+{
+	std::vector<CombinedImage> _inputImages;
+	for (auto pInputImage : inputImages)
+		_inputImages.push_back
+		({
+			pInputImage,
+			pInputImage->CreateLinearClampToEdgeSampler(),
+			pInputImage->CreateDefaultImageView()
+		});
+
+	std::vector<CombinedImage> _outputImages;
+	for (auto pOutputImage : outputImages)
+		_outputImages.push_back
+		({
+			pOutputImage,
+			pOutputImage->CreateLinearClampToEdgeSampler(),
+			pOutputImage->CreateImageView(outMipLevel, true)
+		});
+
+	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
+	textureUnits.push_back
+	(
+		{
+			0,
+
+			_inputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ 0, 1, 0, 1 },
+			false,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
+				},
+				{
+					false
+				}
+			}
+		}
+	);
+
+	textureUnits.push_back
+	(
+		{
+			1,
+
+			_outputImages,
+			VK_IMAGE_ASPECT_COLOR_BIT,
+			{ outMipLevel, 1, 0, outputImages[0]->GetImageInfo().arrayLayers },
+			true,
+
+			CustomizedComputeMaterial::TextureUnit::ALL,
+
+			{
+				{
+					false
+				},
+				{
+					true,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
+				}
+			}
+		}
+	);
+
+	Vector3ui groupNum = { outputImages[0]->GetImageInfo().extent.width >> outMipLevel, outputImages[0]->GetImageInfo().extent.height >> outMipLevel, 1 };
+
+	// xyz0: bottom left corner. w0: face id
+	// xyz1: bottom right corner. w1: roughness
+	// xyz2: top left corner. w2: padding
+	// xyz3: top right corner. w3: padding
+	std::vector<uint8_t> pushConstantData;
+	pushConstantData.resize(sizeof(Vector4f) * 4);
+
+	CustomizedComputeMaterial::Variables variables =
+	{
+		L"../data/shaders/env_reflection_gen.comp.spv",
+		groupNum,
+		textureUnits,
+		pushConstantData
+	};
+
+	return CustomizedComputeMaterial::CreateMaterial(variables);
+}
+
 std::shared_ptr<Material> CreateTileMaxMaterial(const std::vector<std::shared_ptr<Image>>& inputImages, const std::vector<std::shared_ptr<Image>>& outputImages)
 {
 	std::vector<CombinedImage> _inputImages;
@@ -398,7 +662,7 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 	float floatIndex = (float)index;
 
 	std::vector<uint8_t> pushConstantData;
-	TransferBytesToVector(pushConstantData, &floatIndex, sizeof(floatIndex));
+	TransferBytesToVector(pushConstantData, &floatIndex, 0, sizeof(floatIndex));
 
 	Vector3ui groupNum =
 	{
@@ -409,7 +673,7 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 
 	CustomizedComputeMaterial::Variables variables =
 	{
-		L"../data/shaders/ssao_gen.comp.spv",
+		L"../data/shaders/ssao_ssr_gen.comp.spv",
 		groupNum,
 		textureUnits,
 		pushConstantData
@@ -504,7 +768,7 @@ std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shar
 	};
 
 	std::vector<uint8_t> pushConstantData;
-	TransferBytesToVector(pushConstantData, &params, sizeof(params));
+	TransferBytesToVector(pushConstantData, &params, 0, sizeof(params));
 
 	CustomizedComputeMaterial::Variables variables =
 	{
@@ -2180,7 +2444,7 @@ std::shared_ptr<Material> CreateCombineMaterial()
 
 	std::vector<uint8_t> pushConstantData;
 	uint32_t dirtTextureIndex = -1;
-	TransferBytesToVector(pushConstantData, &dirtTextureIndex, sizeof(dirtTextureIndex));
+	TransferBytesToVector(pushConstantData, &dirtTextureIndex, 0, sizeof(dirtTextureIndex));
 
 	CustomizedComputeMaterial::Variables variables =
 	{

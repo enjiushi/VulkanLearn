@@ -4,7 +4,6 @@
 #include "Fence.h"
 #include "GlobalDeviceObjects.h"
 #include "SwapChain.h"
-#include "FrameManager.h"
 
 Queue::~Queue()
 {
@@ -17,6 +16,7 @@ bool Queue::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Q
 
 	// We only acquire 1st queue in a queue family, for now
 	vkGetDeviceQueue(pDevice->GetDeviceHandle(), queueFamilyIndex, 0, &m_queue);
+	m_queueFamilyIndex = queueFamilyIndex;
 	return true;
 }
 
@@ -28,17 +28,6 @@ std::shared_ptr<Queue> Queue::Create(const std::shared_ptr<Device>& pDevice, uin
 	return nullptr;
 }
 
-void Queue::SubmitPerFrameCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, bool waitUtilQueueIdle)
-{
-	std::vector<std::shared_ptr<CommandBuffer>> v = { pCmdBuffer };
-	SubmitCommandBuffers(v, FrameMgr()->GetCurrentFrameFence(), waitUtilQueueIdle);
-}
-
-void Queue::SubmitPerFrameCommandBuffers(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers, bool waitUtilQueueIdle)
-{
-	SubmitCommandBuffers(cmdBuffers, std::vector<std::shared_ptr<Semaphore>>(), std::vector<VkPipelineStageFlags>(), FrameMgr()->GetCurrentFrameFence(), waitUtilQueueIdle);
-}
-
 void Queue::SubmitCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<Fence>& pFence, bool waitUtilQueueIdle)
 {
 	std::vector<std::shared_ptr<CommandBuffer>> v = { pCmdBuffer };
@@ -48,25 +37,6 @@ void Queue::SubmitCommandBuffer(const std::shared_ptr<CommandBuffer>& pCmdBuffer
 void Queue::SubmitCommandBuffers(const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers, const std::shared_ptr<Fence>& pFence, bool waitUtilQueueIdle)
 {
 	SubmitCommandBuffers(cmdBuffers, std::vector<std::shared_ptr<Semaphore>>(), std::vector<VkPipelineStageFlags>(), pFence, waitUtilQueueIdle);
-}
-
-void Queue::SubmitPerFrameCommandBuffer(
-	const std::shared_ptr<CommandBuffer>& pCmdBuffer,
-	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
-	const std::vector<VkPipelineStageFlags>& waitStages,
-	bool waitUtilQueueIdle)
-{
-	std::vector<std::shared_ptr<CommandBuffer>> v = { pCmdBuffer };
-	SubmitPerFrameCommandBuffers(v, waitSemaphores, waitStages, waitUtilQueueIdle);
-}
-
-void Queue::SubmitPerFrameCommandBuffers(
-	const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers,
-	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
-	const std::vector<VkPipelineStageFlags>& waitStages,
-	bool waitUtilQueueIdle)
-{
-	SubmitPerFrameCommandBuffers(cmdBuffers, std::vector<std::shared_ptr<Semaphore>>(), std::vector<VkPipelineStageFlags>(), std::vector<std::shared_ptr<Semaphore>>(), waitUtilQueueIdle);
 }
 
 void Queue::SubmitCommandBuffer(
@@ -88,27 +58,6 @@ void Queue::SubmitCommandBuffers(
 	bool waitUtilQueueIdle)
 {
 	SubmitCommandBuffers(cmdBuffers, std::vector<std::shared_ptr<Semaphore>>(), std::vector<VkPipelineStageFlags>(), std::vector<std::shared_ptr<Semaphore>>(), pFence, waitUtilQueueIdle);
-}
-
-void Queue::SubmitPerFrameCommandBuffer(
-	const std::shared_ptr<CommandBuffer>& pCmdBuffer,
-	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
-	const std::vector<VkPipelineStageFlags>& waitStages,
-	const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
-	bool waitUtilQueueIdle)
-{
-	std::vector<std::shared_ptr<CommandBuffer>> v = { pCmdBuffer };
-	SubmitPerFrameCommandBuffers(v, waitSemaphores, waitStages, signalSemaphores, waitUtilQueueIdle);
-}
-
-void Queue::SubmitPerFrameCommandBuffers(
-	const std::vector<std::shared_ptr<CommandBuffer>>& cmdBuffers,
-	const std::vector<std::shared_ptr<Semaphore>>& waitSemaphores,
-	const std::vector<VkPipelineStageFlags>& waitStages,
-	const std::vector<std::shared_ptr<Semaphore>>& signalSemaphores,
-	bool waitUtilQueueIdle)
-{
-	FrameMgr()->CacheSubmissioninfo(GetSelfSharedPtr(), cmdBuffers, waitSemaphores, waitStages, signalSemaphores, waitUtilQueueIdle);
 }
 
 void Queue::SubmitCommandBuffer(
@@ -155,12 +104,29 @@ void Queue::SubmitCommandBuffers(
 
 	VkFence fence = 0;
 	if (pFence.get())
+	{
+		ASSERTION(pFence->GetFenceState() == Fence::FenceState::READ_FOR_USE);
 		fence = pFence->GetDeviceHandle();
+	}
 
 	vkQueueSubmit(GetDeviceHandle(), 1, &submitInfo, fence);
+
+	if (pFence.get())
+	{
+		pFence->m_fenceState = Fence::FenceState::READ_FOR_SIGNAL;
+	}
 
 	if (waitUtilQueueIdle)
 	{
 		CHECK_VK_ERROR(vkQueueWaitIdle(GetDeviceHandle()));
+		if (pFence.get())
+		{
+			pFence->m_fenceState = Fence::FenceState::SIGNALED;
+		}
 	}
+}
+
+void Queue::WaitForIdle()
+{
+	CHECK_VK_ERROR(vkQueueWaitIdle(GetDeviceHandle()));
 }

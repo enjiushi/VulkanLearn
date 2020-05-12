@@ -1,7 +1,8 @@
 #pragma once
 #include "DeviceObjectBase.h"
+#include "VKGPUSyncRes.h"
 
-class BufferBase : public DeviceObjectBase<BufferBase>
+class BufferBase : public VKGPUSyncRes
 {
 public:
 	virtual ~BufferBase() = default;

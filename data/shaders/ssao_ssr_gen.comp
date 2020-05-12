@@ -27,6 +27,7 @@ float rayTraceStride = globalData.SSRSettings1.x;
 float rayTraceInitOffset = globalData.SSRSettings1.y;
 float rayTraceMaxStep = globalData.SSRSettings1.z;
 float rayTraceHitThickness = globalData.SSRSettings1.w;
+float maxDistance = globalData.SSRSettings2.w;
 
 void UnpackNormalRoughness(ivec2 coord, out vec3 normal, out float roughness)
 {
@@ -42,7 +43,6 @@ vec4 RayMarch(vec3 sampleCSNormal, vec3 csNormal, vec3 position, vec2 uv, vec3 c
 	if (length(sampleCSNormal) < 0.5f)
 		return vec4(0.0f);
 
-	float maxDistance = 20.0f;
 	float csNearPlane = -perFrameData.nearFarAB.x;
 
 	vec3 csReflectDir = reflect(csViewRay, sampleCSNormal);
@@ -109,15 +109,20 @@ vec4 RayMarch(vec3 sampleCSNormal, vec3 csNormal, vec3 position, vec2 uv, vec3 c
 
 	vec2 hit;
 
-	for (;((P.x * stepDirection) <= end) &&
-			(stepCount <= rayTraceMaxStep - 1) &&
+    for (;(stepCount <= rayTraceMaxStep - 1) &&
 			//(ZMax > (sampleZ - rayTraceHitThickness)) &&
 			((ZMax > sampleZ) || (ZMin < sampleZ - rayTraceHitThickness)) && 
 			sampleZ != 0.0f;
 			P += dP, Q.z += dQ.z, k += dk, stepCount++)
 	{
+		float _P = P.x * stepDirection;
+
 		ZMin = prevZMax;
-		ZMax = (Q.z + dQ.z * 0.5f) / (k + dk * 0.5f);
+		if (_P > end)
+			ZMax = csRayEnd.z;
+		else
+			ZMax = (Q.z + dQ.z * 0.5f) / (k + dk * 0.5f);
+
 		prevZMax = ZMax;
 
 		if (ZMin < ZMax)
@@ -131,6 +136,9 @@ vec4 RayMarch(vec3 sampleCSNormal, vec3 csNormal, vec3 position, vec2 uv, vec3 c
 
 		float window_z = texelFetch(DepthStencilBuffer[frameIndex], ivec2(hit), 0).r;
 		sampleZ = ReconstructLinearDepth(window_z);
+
+		if (_P > end)
+			break;
 	}
 
 	vec4 rayHitInfo;
@@ -143,7 +151,7 @@ vec4 RayMarch(vec3 sampleCSNormal, vec3 csNormal, vec3 position, vec2 uv, vec3 c
 
 	rayHitInfo.b = stepCount;
 	rayHitInfo.a = float((ZMax < sampleZ) && (ZMin > sampleZ - rayTraceHitThickness) && (dot(hitNormal, csReflectDir.xyz) < 0));
-
+	rayHitInfo.a = rayHitInfo.a > 0 ? stepCount : -stepCount;
 
 	return rayHitInfo;
 }
@@ -250,7 +258,6 @@ void main()
 	// z: pdf
 	// sign(w): -1 not hit, 1 hit
 	// w: step count
-	SSRInfo.a = SSRInfo.a > 0.0f ? SSRInfo.b : -SSRInfo.b;
 	SSRInfo.b = H.w;
 
 	imageStore(outSSRInfo[frameIndex],	

@@ -8,6 +8,7 @@
 #include "pbr_functions.sh"
 #include "gbuffer_reconstruction.sh"
 #include "utilities.sh"
+#include "atmosphere/functions.sh"
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
@@ -26,6 +27,9 @@ float rayTraceMaxStep = globalData.SSRSettings1.z;
 float rayTraceBorderFadeDist = globalData.SSRSettings2.x;
 float rayTraceMaxStepFadeDist = globalData.SSRSettings2.y;
 float screenSizeMiplevel = globalData.SSRSettings2.z;
+
+// FIXME: hard-coded, change this when I do multi planets
+uint planetChunkIndex = 0;
 
 const vec2 offset[4] =
 {
@@ -112,20 +116,43 @@ void main()
 	ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
 	ivec2 size = imageSize(outShadingColor[frameIndex]);
 	vec2 uv = vec2(gl_GlobalInvocationID.xy + 0.5f) / vec2(size);
-	vec2 oneNearPosition = AcquireOneNearPosition(uv);
+
+	vec2 oneNearPosition;
+	vec3 CSViewDir;
+	AcquireOneNearPositionAndCSViewDir(uv, oneNearPosition, CSViewDir);
 
 	GBufferVariables vars = UnpackGBuffers(coord, uv, oneNearPosition, GBuffer0[frameIndex], GBuffer1[frameIndex], GBuffer2[frameIndex], DepthStencilBuffer[frameIndex], BlurredSSAOBuffer[frameIndex], ShadowMapDepthBuffer[frameIndex]);
 
 	if (vars.isBackground)
 	{
+		vec3 WSViewDir = mat3(perFrameData.viewCoordSystem) * normalize(CSViewDir);
+	    vec3 skyRadiance;
+		vec3 sunRadiance;
+        GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, WSViewDir, perFrameData.wsMainLightDir.xyz, planetChunkIndex, skyRadiance, sunRadiance);
 		imageStore(outShadingColor[frameIndex],	
 			ivec2(gl_GlobalInvocationID.xy), 
-			vec4(vars.albedoRoughness.rgb, vars.albedoRoughness.a));
+			vec4(skyRadiance + sunRadiance, vars.albedoRoughness.a));
 		imageStore(outSSRColor[frameIndex],	
 			ivec2(gl_GlobalInvocationID.xy), 
 			vec4(0));
 		return;
 	}
+
+	// Here we get sun and sky radiance, and normalize it to acquire the rgb ratio, for later lighting
+	AtmosphereParameters parameters = planetAtmosphereData[planetChunkIndex].atmosphereParameters;
+	float planetRadius = parameters.variables.x;
+
+	vec4 wsPosition = (perFrameData.viewCoordSystem * vars.csPosition);
+	// Make sure nothing is below planet surface due to precision problem
+	// Below planet surface could introduce minus infinite number
+	// Drag world space position a little bit higher(here is 100m) to calculate sun and sky radiance
+	wsPosition.xyz = max((planetRadius + globalData.PlanetRenderingSettings2.y) * 1000, length(wsPosition.xyz)) * normalize(wsPosition.xyz);
+
+	vec3 skyRadiance;
+	vec3 sunRadiance;
+	GetSkyAndSunRadiance(wsPosition.xyz, perFrameData.wsMainLightDir.xyz, perFrameData.wsMainLightDir.xyz, planetChunkIndex, skyRadiance, sunRadiance);
+	sunRadiance += skyRadiance;
+	sunRadiance = normalize(sunRadiance);
 
 	vec3 n = normalize(vars.normalAO.xyz);
 	vec3 v = normalize(-vec3(oneNearPosition, -1));	// Beware, you'll have to multiply camera space linear depth -1(or any depth you want), and view ray goes towards camera
@@ -146,14 +173,17 @@ void main()
 	vec3 fresnel_roughness = Fresnel_Schlick_Roughness(F0, NdotV, vars.albedoRoughness.a);
 	vec3 kD_roughness = (1.0 - vars.metalic) * (vec3(1.0) - fresnel_roughness);
 
-	vec3 irradiance = texture(RGBA16_512_CUBE_IRRADIANCE, vec3(n.x, -n.y, n.z)).rgb * vars.albedoRoughness.rgb / PI;
+	// NOTE: Do remember that cubemap coordinate is left-handed
+	// We record camera +z face to -z face of cubemap and vice versa
+	// So we need to manually nagativate z here
+	vec3 irradiance = texture(RGBA16_512_CUBE_IRRADIANCE1[uint(perFrameData.envPingpongIndex)], vec3(n.x, -n.y, -n.z)).rgb * vars.albedoRoughness.rgb / PI;
 
 	vec3 reflectSampleDir = mat3(perFrameData.viewCoordSystem) * reflect(-v, n);
-	reflectSampleDir.y *= -1.0;
+	reflectSampleDir.z *= -1.0f;	// NOTE: Same goes here
 
 	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
 	float lod = vars.albedoRoughness.a * MAX_REFLECTION_LOD;
-	vec3 reflect = textureLod(RGBA16_512_CUBE_PREFILTERENV, reflectSampleDir, lod).rgb;
+	vec3 reflect = textureLod(RGBA16_512_CUBE_PREFILTERENV1[uint(perFrameData.envPingpongIndex)], reflectSampleDir, lod).rgb;
 
 	vec2 brdf_lut = texture(RGBA16_512_2D_BRDFLUT, vec2(NdotV, vars.albedoRoughness.a)).rg;
 
@@ -172,14 +202,50 @@ void main()
 	vec3 skyBoxAmbient	= (irradiance + skyBoxRadiance) * aoFactor;
 	//----------------------------------------------
 
+	wsPosition /= 1000.0f;	// unit km
+
+	// Acquire squared altitude of current pixel
+	float altitude = dot(wsPosition.xyz, wsPosition.xyz);
+
+	// Acquire the squared projection length between the vector of planet center to pixel and light direction
+	float altitude_lightDir_proj = dot(perFrameData.wsMainLightDir.xyz, wsPosition.xyz);
+	float backSideSign = sign(altitude_lightDir_proj);
+	altitude_lightDir_proj = altitude_lightDir_proj * altitude_lightDir_proj;
+
+	// Acquire the distance from planet center to light direction shooting from current pixel, in squared version
+	float length_planetCenter_to_viewDir = altitude - altitude_lightDir_proj;
+
+	// Transfer back side sign from -1,1(back and front) to 0,1
+	backSideSign = backSideSign * 0.5f + 0.5f;
+
+	planetRadius = parameters.variables.x * parameters.variables.x;
+
+	// Only if the point is located at the back side of the planet compared to light direction
+	// And the distance from planet center to light direction is less than planet radius
+	// This pixel is considered to be blocked by planet
+	if (length_planetCenter_to_viewDir < planetRadius)
+		vars.shadowFactor *= backSideSign;
+
 	vec3 dirLightSpecular = fresnel * G_SchlicksmithGGX(NdotL, NdotV, vars.albedoRoughness.a) * min(1.0f, GGX_D(NdotH, vars.albedoRoughness.a)) / (4.0f * NdotL * NdotV + 0.001f);
 	vec3 dirLightDiffuse = vars.albedoRoughness.rgb * kD / PI;
-	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * perFrameData.mainLightColor.rgb);
+	vec3 punctualRadiance = vars.shadowFactor * ((dirLightSpecular + dirLightDiffuse) * NdotL * perFrameData.mainLightColor.rgb * sunRadiance);
+
+	vec3 aerialPerspectivePunctual;
+	vec3 aerialPerspectiveAmbient;
+	GetRadianceToSurface(perFrameData.wsCameraPosition.xyz, 
+		(perFrameData.viewCoordSystem * vars.csPosition).xyz, 
+		n, 
+		perFrameData.wsMainLightDir.xyz, 
+		punctualRadiance, 
+		skyBoxAmbient,
+		planetChunkIndex,
+		aerialPerspectivePunctual,
+		aerialPerspectiveAmbient);
 
 	imageStore(outShadingColor[frameIndex],	
 		ivec2(gl_GlobalInvocationID.xy), 
-		vec4(punctualRadiance, vars.albedoRoughness.a));
+		vec4(aerialPerspectivePunctual, vars.albedoRoughness.a));
 	imageStore(outSSRColor[frameIndex],	
 		ivec2(gl_GlobalInvocationID.xy), 
-		vec4(skyBoxAmbient, SSRRadiance.a));
+		vec4(aerialPerspectiveAmbient, SSRRadiance.a));
 }
