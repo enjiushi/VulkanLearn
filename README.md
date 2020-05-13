@@ -20,7 +20,7 @@ I placed some extremely huge simple geometries in the scene, to illustrate the s
 What you can do in the scene:
 1. Keep pressing right mouse button and dragging is able to rotate your camera.
 2. Keep pressing left mouse button and dragging is able to change sun position to your screen mouse position.
-3. Buttons "w, s, a, d, q, e" and dragging right mouse button provide the functionality to navigate inside the since
+3. Buttons "w, s, a, d, q, e" and dragging right mouse button provide the functionality to navigate inside the scene.
 4. Button "f" increases camera focus distance which creates a stronger effect of depth of field. Button "l" works exactly the opposite.
 5. Button "t" stops updating camera info to GPU per frame buffer, so you could examine the backface and frustum culling of planet vertices.
 6. Button "r": I added this button to switch the altitude of our scene between 9km and 10m, to observe the different view caused by the thickness of the atmosphere.
