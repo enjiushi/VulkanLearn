@@ -1,7 +1,11 @@
 # Update after ugly covid-19 pandemic 5/12/2020
 Finally I've managed to get runtime atmosphere working(thanks to the great work and detailed doc from https://github.com/ebruneton/precomputed_atmospheric_scattering), along with a runtime IBL images generating scheme.
 
+Youtube Video:
+
 [![Demo](http://img.youtube.com/vi/n4m43njLphU/0.jpg)](https://www.youtube.com/watch?v=n4m43njLphU "VulkanLearn Demo")
+
+Screen Shots:
 
 ![Alt text](assets/img_0.png "screen shot from 5/12/2020")
 ![Alt text](assets/img_1.png "screen shot from 5/12/2020")
