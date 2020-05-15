@@ -121,7 +121,7 @@ void FrameWorkManager::WaitForAllJobsDone()
 	WaitForGPUWork(m_currentFrameIndex);
 }
 
-const std::shared_ptr<PerFrameResource> FrameWorkManager::GetMainThreadPerFrameRes() const
+const std::shared_ptr<PerFrameResource>& FrameWorkManager::GetMainThreadPerFrameRes() const
 {
 	return m_mainThreadPerFrameRes[FrameWorkManager::GetInstance()->FrameIndex()];
 }
