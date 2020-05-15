@@ -2,14 +2,13 @@
 #include "CommandBuffer.h"
 #include "GlobalDeviceObjects.h"
 #include "Fence.h"
-#include "PerFrameResource.h"
 
 CommandPool::~CommandPool()
 {
 	vkDestroyCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, nullptr);
 }
 
-bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex, const std::shared_ptr<PerFrameResource>& pPerFrameRes, const std::shared_ptr<CommandPool>& pSelf, VkCommandPoolCreateFlags flags)
+bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex, const std::shared_ptr<CommandPool>& pSelf, VkCommandPoolCreateFlags flags)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
@@ -19,8 +18,6 @@ bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, uint32_t queueFam
 	m_info.queueFamilyIndex = queueFamilyIndex;
 	m_info.flags = flags;
 	CHECK_VK_ERROR(vkCreateCommandPool(pDevice->GetDeviceHandle(), &m_info, nullptr, &m_commandPool));
-
-	m_pPerFrameRes = pPerFrameRes;
 
 	return true;
 }
@@ -58,7 +55,7 @@ std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocateSecondaryComman
 std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex, const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 {
 	std::shared_ptr<CommandPool> pCommandPool = std::make_shared<CommandPool>();
-	if (pCommandPool.get() && pCommandPool->Init(pDevice, queueFamilyIndex, pPerFrameRes, pCommandPool))
+	if (pCommandPool.get() && pCommandPool->Init(pDevice, queueFamilyIndex, pCommandPool))
 		return pCommandPool;
 	return nullptr;
 }
@@ -66,7 +63,7 @@ std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& 
 std::shared_ptr<CommandPool> CommandPool::CreateTransientCBPool(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex, const std::shared_ptr<PerFrameResource>& pPerFrameRes)
 {
 	std::shared_ptr<CommandPool> pCommandPool = std::make_shared<CommandPool>();
-	if (pCommandPool.get() && pCommandPool->Init(pDevice, queueFamilyIndex, pPerFrameRes, pCommandPool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT))
+	if (pCommandPool.get() && pCommandPool->Init(pDevice, queueFamilyIndex, pCommandPool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT))
 		return pCommandPool;
 	return nullptr;
 }

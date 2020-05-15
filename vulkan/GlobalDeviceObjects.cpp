@@ -11,7 +11,6 @@
 #include "../thread/ThreadTaskQueue.hpp"
 #include "GlobalVulkanStates.h"
 #include "PhysicalDevice.h"
-#include "PerFrameResource.h"
 
 bool GlobalDeviceObjects::InitObjects(const std::shared_ptr<Device>& pDevice)
 {

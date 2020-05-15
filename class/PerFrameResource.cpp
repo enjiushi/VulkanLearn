@@ -1,11 +1,11 @@
 #include "PerFrameResource.h"
-#include "CommandBuffer.h"
-#include "CommandPool.h"
-#include "DescriptorPool.h"
-#include "DescriptorSet.h"
-#include "Fence.h"
-#include "GlobalDeviceObjects.h"
-#include "SwapChain.h"
+#include "../vulkan/CommandBuffer.h"
+#include "../vulkan/CommandPool.h"
+#include "../vulkan/DescriptorPool.h"
+#include "../vulkan/DescriptorSet.h"
+#include "../vulkan/Fence.h"
+#include "../vulkan/GlobalDeviceObjects.h"
+#include "../vulkan/SwapChain.h"
 
 bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t frameIndex, const std::shared_ptr<PerFrameResource>& pSelf)
 {

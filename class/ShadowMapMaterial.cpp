@@ -2,7 +2,6 @@
 #include "../vulkan/RenderPass.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/CommandBuffer.h"
-#include "../vulkan/PerFrameResource.h"
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/GlobalVulkanStates.h"
 #include "../vulkan/SharedIndirectBuffer.h"
@@ -11,6 +10,7 @@
 #include "RenderPassDiction.h"
 #include "ForwardRenderPass.h"
 #include "RenderPassDiction.h"
+#include "PerFrameResource.h"
 #include "../common/Util.h"
 
 std::shared_ptr<ShadowMapMaterial> ShadowMapMaterial::CreateDefaultMaterial(bool skinned)

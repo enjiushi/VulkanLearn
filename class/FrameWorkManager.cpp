@@ -6,7 +6,6 @@
 #include "../vulkan/Fence.h"
 #include "../vulkan/GlobalDeviceObjects.h"
 #include "../vulkan/SwapChain.h"
-#include "../vulkan/PerFrameResource.h"
 #include "../vulkan/Fence.h"
 #include "../vulkan/Semaphore.h"
 #include "../vulkan/CommandBuffer.h"
@@ -14,6 +13,7 @@
 #include "../thread/ThreadTaskQueue.hpp"
 #include <algorithm>
 #include "../vulkan/Semaphore.h"
+#include "PerFrameResource.h"
 #include <stack>
 
 bool FrameWorkManager::Init()
@@ -196,18 +196,6 @@ void FrameWorkManager::SubmitCommandBuffersInternal(
 	bool waitUtilQueueIdle,
 	bool cache)
 {
-#ifdef _DEBUG
-	{
-		ASSERTION(!cmdBuffer[0]->GetCommandPool()->GetPerFrameResource().expired());
-		uint32_t frameIndex = cmdBuffer[0]->GetCommandPool()->GetPerFrameResource().lock()->GetFrameIndex();
-		for (uint32_t i = 1; i < cmdBuffer.size(); i++)
-		{
-			ASSERTION(!cmdBuffer[i]->GetCommandPool()->GetPerFrameResource().expired());
-			ASSERTION(frameIndex = cmdBuffer[i]->GetCommandPool()->GetPerFrameResource().lock()->GetFrameIndex());
-		}
-	}
-#endif //_DEBUG
-
 	if (cache)
 	{
 		// Attach acquire done semaphore to waiting list

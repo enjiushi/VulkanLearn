@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DeviceObjectBase.h"
+#include "../vulkan/DeviceObjectBase.h"
 
 class CommandBuffer;
 class CommandPool;

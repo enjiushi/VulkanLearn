@@ -11,7 +11,6 @@
 #include "../vulkan/Fence.h"
 #include "../vulkan/SwapChainImage.h"
 #include "../vulkan/SwapChain.h"
-#include "../vulkan/PerFrameResource.h"
 #include "../vulkan/Semaphore.h"
 #include "FrameWorkManager.h"
 #include "../class/RenderWorkManager.h"
@@ -27,6 +26,7 @@
 #include "Material.h"
 #include "ForwardMaterial.h"
 #include "ComputeMaterialFactory.h"
+#include "PerFrameResource.h"
 #include "../Maths/Vector.h"
 #include "FrameBufferDiction.h"
 #include <random>

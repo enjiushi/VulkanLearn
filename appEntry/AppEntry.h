@@ -24,7 +24,7 @@
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/CommandPool.h"
 #include "../vulkan/Semaphore.h"
-#include "../vulkan/PerFrameResource.h"
+#include "../class/PerFrameResource.h"
 #include "../thread/ThreadTaskQueue.hpp"
 #include "../Base/BaseObject.h"
 #include "../component/Character.h"
