@@ -244,7 +244,12 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 	{
 		if (m_envGenState != EnvGenState::WAITING_FOR_COMPLETE)
 		{
-			m_pIBLGenCmdBuffer = pPerFrameRes->AllocateTransientComputeCommandBuffer();
+			m_pIBLGenCmdBuffer = pPerFrameRes->AllocateCommandBuffer
+			(
+				PerFrameResource::QueueFamily::COMPUTE, 
+				PerFrameResource::CBPersistancy::TRANSIENT, 
+				PerFrameResource::CBLevel::PRIMARY
+			);
 			m_pIBLGenCmdBuffer->StartPrimaryRecording();
 		}
 
@@ -421,7 +426,12 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				m_envGenState = EnvGenState::SKYBOX_GEN;
 				m_envJobCounter = 0;
 
-				std::shared_ptr<CommandBuffer> pCmd = pPerFrameRes->AllocateTransientPrimaryCommandBuffer();
+				std::shared_ptr<CommandBuffer> pCmd = pPerFrameRes->AllocateCommandBuffer
+				(
+					PerFrameResource::QueueFamily::GRAPHIC,
+					PerFrameResource::CBPersistancy::TRANSIENT,
+					PerFrameResource::CBLevel::PRIMARY
+				);
 				pCmd->StartPrimaryRecording();
 				std::vector<VkImageMemoryBarrier> queueAcquireBarrier(IBLCubeTextureTypeCount);
 				for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)

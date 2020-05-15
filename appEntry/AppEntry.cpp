@@ -946,12 +946,22 @@ void AppEntry::Tick()
 	static bool newCBCreated = false;
 	if (!PREBAKE_CB)
 	{
-		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkManager::GetInstance()->FrameIndex()]->AllocateTransientPrimaryCommandBuffer();
+		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkManager::GetInstance()->FrameIndex()]->AllocateCommandBuffer
+		(
+			PerFrameResource::QueueFamily::GRAPHIC,
+			PerFrameResource::CBPersistancy::TRANSIENT,
+			PerFrameResource::CBLevel::PRIMARY
+		);
 		newCBCreated = true;
 	}
 	else if (m_commandBufferList[cbIndex] == nullptr)
 	{
-		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkManager::GetInstance()->FrameIndex()]->AllocatePersistantPrimaryCommandBuffer();
+		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkManager::GetInstance()->FrameIndex()]->AllocateCommandBuffer
+		(
+			PerFrameResource::QueueFamily::GRAPHIC,
+			PerFrameResource::CBPersistancy::PERSISTANT,
+			PerFrameResource::CBLevel::PRIMARY
+		);
 		newCBCreated = true;
 	}
 

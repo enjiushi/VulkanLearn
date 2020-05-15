@@ -12,20 +12,36 @@ bool PerFrameResource::Init(const std::shared_ptr<Device>& pDevice, uint32_t fra
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
-	m_pPersistantCBPool = CommandPool::Create(pDevice, pDevice->GetPhysicalDevice()->GetGraphicQueueIndex(), pSelf);
-	m_pTransientCBPool = CommandPool::CreateTransientCBPool(pDevice, pDevice->GetPhysicalDevice()->GetGraphicQueueIndex(), pSelf);
-	m_pPersistantComputeCBPool = CommandPool::Create(pDevice, pDevice->GetPhysicalDevice()->GetComputeQueueIndex(), pSelf);
-	m_pTransientComputeCBPool = CommandPool::CreateTransientCBPool(pDevice, pDevice->GetPhysicalDevice()->GetComputeQueueIndex(), pSelf);
-
-	std::vector<VkDescriptorPoolSize> descPoolSize =
+	for (uint32_t i = 0; i < (uint32_t)QueueFamily::COUNT; i++)
 	{
+		for (uint32_t j = 0; j < (uint32_t)CBPersistancy::COUNT; j++)
 		{
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2
-		},
-		{
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 2
+			QueueFamily queueFamily = (QueueFamily)i;
+			CBPersistancy persistancy = (CBPersistancy)j;
+
+			switch (queueFamily)
+			{
+			case PerFrameResource::QueueFamily::GRAPHIC:
+				if (persistancy == CBPersistancy::PERSISTANT)
+					m_commandPools[i][j] = CommandPool::Create(pDevice, pDevice->GetPhysicalDevice()->GetGraphicQueueIndex(), pSelf);
+				else
+					m_commandPools[i][j] = CommandPool::CreateTransientCBPool(pDevice, pDevice->GetPhysicalDevice()->GetGraphicQueueIndex(), pSelf);
+				break;
+			case PerFrameResource::QueueFamily::COMPUTE:
+				if (persistancy == CBPersistancy::PERSISTANT)
+					m_commandPools[i][j] = CommandPool::Create(pDevice, pDevice->GetPhysicalDevice()->GetComputeQueueIndex(), pSelf);
+				else
+					m_commandPools[i][j] = CommandPool::CreateTransientCBPool(pDevice, pDevice->GetPhysicalDevice()->GetComputeQueueIndex(), pSelf);
+				break;
+			case PerFrameResource::QueueFamily::TRASFER:
+				// FIXME: Do dedicated transfer queue later
+				break;
+			default:
+				ASSERTION(false);
+				break;
+			}
 		}
-	};
+	}
 
 	m_frameIndex = frameIndex;
 
@@ -40,32 +56,10 @@ std::shared_ptr<PerFrameResource> PerFrameResource::Create(const std::shared_ptr
 	return nullptr;
 }
 
-std::shared_ptr<CommandBuffer> PerFrameResource::AllocatePersistantPrimaryCommandBuffer()
+std::shared_ptr<CommandBuffer> PerFrameResource::AllocateCommandBuffer(QueueFamily queueFamily, CBPersistancy persistancy, CBLevel level)
 {
-	return m_pPersistantCBPool->AllocatePrimaryCommandBuffer();
-}
-
-std::shared_ptr<CommandBuffer> PerFrameResource::AllocatePersistantSecondaryCommandBuffer()
-{
-	return m_pPersistantCBPool->AllocateSecondaryCommandBuffer();
-}
-
-std::shared_ptr<CommandBuffer> PerFrameResource::AllocateTransientPrimaryCommandBuffer()
-{
-	return m_pTransientCBPool->AllocatePrimaryCommandBuffer();
-}
-
-std::shared_ptr<CommandBuffer> PerFrameResource::AllocateTransientSecondaryCommandBuffer()
-{
-	return m_pTransientCBPool->AllocateSecondaryCommandBuffer();
-}
-
-std::shared_ptr<CommandBuffer> PerFrameResource::AllocatePersistantComputeCommandBuffer()
-{
-	return m_pPersistantComputeCBPool->AllocatePrimaryCommandBuffer();
-}
-
-std::shared_ptr<CommandBuffer> PerFrameResource::AllocateTransientComputeCommandBuffer()
-{
-	return m_pTransientComputeCBPool->AllocatePrimaryCommandBuffer();
+	if (level == CBLevel::PRIMARY)
+		return m_commandPools[(uint32_t)queueFamily][(uint32_t)persistancy]->AllocatePrimaryCommandBuffer();
+	else
+		return m_commandPools[(uint32_t)queueFamily][(uint32_t)persistancy]->AllocateSecondaryCommandBuffer();
 }
