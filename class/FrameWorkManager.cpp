@@ -159,7 +159,7 @@ void FrameWorkManager::QueuePresentImage()
 	// Flush pending submissions before present
 	EndJobSubmission();
 
-	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetPresentQueue(), GetRenderDoneSemaphores(), m_currentFrameIndex);
+	GetSwapChain()->QueuePresentImage(GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::ALL_ROUND), GetRenderDoneSemaphores(), m_currentFrameIndex);
 }
 
 void FrameWorkManager::SubmitCommandBuffers(

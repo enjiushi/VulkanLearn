@@ -33,7 +33,7 @@ bool CommandBuffer::Init(const std::shared_ptr<Device>& pDevice, const std::shar
 	return true;
 }
 
-std::shared_ptr<CommandBuffer> CommandBuffer::Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel)
+std::shared_ptr<CommandBuffer> CommandBuffer::Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, CBLevel level)
 {
 	std::shared_ptr<CommandBuffer> pCommandBuffer = std::make_shared<CommandBuffer>();
 	VkCommandBufferAllocateInfo info = {};
@@ -41,7 +41,18 @@ std::shared_ptr<CommandBuffer> CommandBuffer::Create(const std::shared_ptr<Devic
 	info.commandPool = pCmdPool->GetDeviceHandle();
 	info.commandBufferCount = 1;
 	info.commandPool = pCmdPool->GetDeviceHandle();
-	info.level = cmdBufferLevel;
+	switch (level)
+	{
+	case CBLevel::PRIMARY:
+		info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		break;
+	case CBLevel::SECONDARY:
+		info.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+		break;
+	default:
+		ASSERTION(false);
+		break;
+	}
 	pCommandBuffer->m_pCommandPool = pCmdPool;
 
 	if (pCommandBuffer.get() && pCommandBuffer->Init(pDevice, pCommandBuffer, info))

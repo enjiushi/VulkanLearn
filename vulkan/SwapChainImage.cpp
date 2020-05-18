@@ -52,7 +52,7 @@ std::shared_ptr<SwapChainImage> SwapChainImage::Create(const std::shared_ptr<Dev
 
 void SwapChainImage::EnsureImageLayout()
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = GlobalObjects()->GetMainThreadGraphicCmdPool()->AllocatePrimaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadGraphicPool()->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 
 	pCmdBuffer->StartPrimaryRecording();
 
@@ -84,5 +84,5 @@ void SwapChainImage::EnsureImageLayout()
 
 	pCmdBuffer->EndPrimaryRecording();
 
-	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
+	GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::ALL_ROUND)->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }

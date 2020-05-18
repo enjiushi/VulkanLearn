@@ -568,9 +568,9 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 
 	std::shared_ptr<CommandBuffer> pSecondaryCmd = FrameWorkManager::GetInstance()->GetMainThreadPerFrameRes()->AllocateCommandBuffer
 	(
-		PerFrameResource::QueueFamily::GRAPHIC,
-		PerFrameResource::CBPersistancy::PERSISTANT,
-		PerFrameResource::CBLevel::SECONDARY
+		PhysicalDevice::QueueFamily::ALL_ROUND,
+		CommandPool::CBPersistancy::PERSISTANT,
+		CommandBuffer::CBLevel::SECONDARY
 	);
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);
@@ -588,9 +588,9 @@ void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, con
 {
 	std::shared_ptr<CommandBuffer> pSecondaryCmd = FrameWorkManager::GetInstance()->GetMainThreadPerFrameRes()->AllocateCommandBuffer
 	(
-		PerFrameResource::QueueFamily::GRAPHIC,
-		PerFrameResource::CBPersistancy::PERSISTANT,
-		PerFrameResource::CBLevel::SECONDARY
+		PhysicalDevice::QueueFamily::ALL_ROUND,
+		CommandPool::CBPersistancy::PERSISTANT,
+		CommandBuffer::CBLevel::SECONDARY
 	);;
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);

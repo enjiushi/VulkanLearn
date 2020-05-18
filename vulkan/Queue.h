@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DeviceObjectBase.h"
+#include "PhysicalDevice.h"
 
 class CommandBuffer;
 class Semaphore;
@@ -11,7 +12,7 @@ class Queue : public DeviceObjectBase<Queue>
 public:
 	~Queue();
 
-	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Queue>& pSelf, uint32_t queueFamilyIndex);
+	bool Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<Queue>& pSelf, PhysicalDevice::QueueFamily queueFamily);
 
 public:
 	VkQueue GetDeviceHandle() { return m_queue; }
@@ -50,12 +51,12 @@ public:
 	void WaitForIdle();
 
 public:
-	uint32_t GetQueueFamilyIndex() const { return m_queueFamilyIndex; }
+	PhysicalDevice::QueueFamily GetQueueFamily() const { return m_queueFamily; }
 
 public:
-	static std::shared_ptr<Queue> Create(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex);
+	static std::shared_ptr<Queue> Create(const std::shared_ptr<Device>& pDevice, PhysicalDevice::QueueFamily queueFamily);
 
 protected:
-	VkQueue		m_queue;
-	uint32_t	m_queueFamilyIndex;
+	VkQueue						m_queue;
+	PhysicalDevice::QueueFamily m_queueFamily;
 };

@@ -21,10 +21,6 @@ class RenderPass;
 class GlobalDeviceObjects;
 
 GlobalDeviceObjects* GlobalObjects();
-std::shared_ptr<Queue> GlobalGraphicQueue();
-std::shared_ptr<Queue> GlobalComputeQueue();
-std::shared_ptr<Queue> GlobalTransferQueue();
-std::shared_ptr<Queue> GlobalPresentQueue();
 std::shared_ptr<CommandPool> MainThreadGraphicPool();
 std::shared_ptr<CommandPool> MainThreadComputePool();
 std::shared_ptr<CommandPool> MainThreadTransferPool();
@@ -52,10 +48,7 @@ public:
 
 public:
 	const std::shared_ptr<Device> GetDevice() const { return m_pDevice; }
-	const std::shared_ptr<Queue> GetGraphicQueue() const { return m_pGraphicQueue; }
-	const std::shared_ptr<Queue> GetComputeQueue() const { return m_pComputeQueue; }
-	const std::shared_ptr<Queue> GetTransferQueue() const { return m_pTransferQueue; }
-	const std::shared_ptr<Queue> GetPresentQueue() const { return m_pPresentQueue; }
+	std::shared_ptr<Queue> GetQueue(PhysicalDevice::QueueFamily queueFamily) const { return m_queues[(uint32_t)queueFamily]; }
 	const std::shared_ptr<CommandPool> GetMainThreadGraphicCmdPool() const { return m_pMainThreadGraphicCmdPool; }
 	const std::shared_ptr<CommandPool> GetMainThreadComputeCmdPool() const { return m_pMainThreadComputeCmdPool; }
 	const std::shared_ptr<CommandPool> GetMainThreadTransferCmdPool() const { return m_pMainThreadTransferCmdPool; }
@@ -76,10 +69,7 @@ public:
 
 protected:
 	std::shared_ptr<Device>					m_pDevice;
-	std::shared_ptr<Queue>					m_pGraphicQueue;
-	std::shared_ptr<Queue>					m_pComputeQueue;
-	std::shared_ptr<Queue>					m_pTransferQueue;
-	std::shared_ptr<Queue>					m_pPresentQueue;
+	std::shared_ptr<Queue>					m_queues[(uint32_t)PhysicalDevice::QueueFamily::COUNT];
 	std::shared_ptr<CommandPool>			m_pMainThreadGraphicCmdPool;
 	std::shared_ptr<CommandPool>			m_pMainThreadComputeCmdPool;
 	std::shared_ptr<CommandPool>			m_pMainThreadTransferCmdPool;

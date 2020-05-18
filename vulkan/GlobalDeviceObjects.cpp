@@ -16,14 +16,14 @@ bool GlobalDeviceObjects::InitObjects(const std::shared_ptr<Device>& pDevice)
 {
 	m_pDevice = pDevice;
 
-	m_pGraphicQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetGraphicQueueIndex());
-	m_pComputeQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetComputeQueueIndex());
-	m_pTransferQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetTransferQueueIndex());
-	m_pPresentQueue = Queue::Create(pDevice, pDevice->GetPhysicalDevice()->GetPresentQueueIndex());
+	for (uint32_t i = 0; i < (uint32_t)PhysicalDevice::QueueFamily::COUNT; i++)
+	{
+		m_queues[i] = Queue::Create(pDevice, (PhysicalDevice::QueueFamily)i);
+	}
 
-	m_pMainThreadGraphicCmdPool = CommandPool::Create(pDevice, m_pDevice->GetPhysicalDevice()->GetGraphicQueueIndex());
-	m_pMainThreadComputeCmdPool = CommandPool::Create(pDevice, m_pDevice->GetPhysicalDevice()->GetComputeQueueIndex());
-	m_pMainThreadTransferCmdPool = CommandPool::Create(pDevice, m_pDevice->GetPhysicalDevice()->GetTransferQueueIndex());
+	m_pMainThreadGraphicCmdPool = CommandPool::Create(pDevice, PhysicalDevice::QueueFamily::ALL_ROUND, CommandPool::CBPersistancy::PERSISTANT);
+	m_pMainThreadComputeCmdPool = CommandPool::Create(pDevice, PhysicalDevice::QueueFamily::COMPUTE, CommandPool::CBPersistancy::PERSISTANT);
+	m_pMainThreadTransferCmdPool = CommandPool::Create(pDevice, PhysicalDevice::QueueFamily::TRASFER, CommandPool::CBPersistancy::PERSISTANT);
 
 	if (m_pDeviceMemMgr == nullptr)
 		m_pDeviceMemMgr = DeviceMemoryManager::Create(pDevice);
@@ -89,10 +89,6 @@ const std::shared_ptr<SharedBufferManager> GlobalDeviceObjects::GetVertexAttribB
 	return m_vertexAttribBufferMgrs[vertexFormat];
 }
 
-std::shared_ptr<Queue> GlobalGraphicQueue() { return GlobalObjects()->GetGraphicQueue(); }
-std::shared_ptr<Queue> GlobalComputeQueue() { return GlobalObjects()->GetComputeQueue(); }
-std::shared_ptr<Queue> GlobalTransferQueue() { return GlobalObjects()->GetTransferQueue(); }
-std::shared_ptr<Queue> GlobalPresentQueue() { return GlobalObjects()->GetPresentQueue(); }
 std::shared_ptr<CommandPool> MainThreadGraphicPool() { return GlobalObjects()->GetMainThreadGraphicCmdPool(); }
 std::shared_ptr<CommandPool> MainThreadComputePool() { return GlobalObjects()->GetMainThreadComputeCmdPool(); }
 std::shared_ptr<CommandPool> MainThreadTransferPool() { return GlobalObjects()->GetMainThreadTransferCmdPool(); }

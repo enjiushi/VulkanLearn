@@ -948,9 +948,9 @@ void AppEntry::Tick()
 	{
 		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkManager::GetInstance()->FrameIndex()]->AllocateCommandBuffer
 		(
-			PerFrameResource::QueueFamily::GRAPHIC,
-			PerFrameResource::CBPersistancy::TRANSIENT,
-			PerFrameResource::CBLevel::PRIMARY
+			PhysicalDevice::QueueFamily::ALL_ROUND,
+			CommandPool::CBPersistancy::TRANSIENT,
+			CommandBuffer::CBLevel::PRIMARY
 		);
 		newCBCreated = true;
 	}
@@ -958,9 +958,9 @@ void AppEntry::Tick()
 	{
 		m_commandBufferList[cbIndex] = m_perFrameRes[FrameWorkManager::GetInstance()->FrameIndex()]->AllocateCommandBuffer
 		(
-			PerFrameResource::QueueFamily::GRAPHIC,
-			PerFrameResource::CBPersistancy::PERSISTANT,
-			PerFrameResource::CBLevel::PRIMARY
+			PhysicalDevice::QueueFamily::ALL_ROUND,
+			CommandPool::CBPersistancy::PERSISTANT,
+			CommandBuffer::CBLevel::PRIMARY
 		);
 		newCBCreated = true;
 	}
@@ -980,7 +980,7 @@ void AppEntry::Tick()
 
 	FrameEventManager::GetInstance()->OnPreCmdSubmission();
 
-	FrameWorkManager::GetInstance()->SubmitCommandBuffers(GlobalGraphicQueue(), { m_commandBufferList[cbIndex] }, {}, false);
+	FrameWorkManager::GetInstance()->SubmitCommandBuffers(GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::ALL_ROUND), { m_commandBufferList[cbIndex] }, {}, false);
 	
 	FrameWorkManager::GetInstance()->QueuePresentImage();
 

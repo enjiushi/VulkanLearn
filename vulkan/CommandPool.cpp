@@ -8,69 +8,63 @@ CommandPool::~CommandPool()
 	vkDestroyCommandPool(GetDevice()->GetDeviceHandle(), m_commandPool, nullptr);
 }
 
-bool CommandPool::Init(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex, const std::shared_ptr<CommandPool>& pSelf, VkCommandPoolCreateFlags flags)
+bool CommandPool::Init
+(
+	const std::shared_ptr<Device>& pDevice,
+	PhysicalDevice::QueueFamily queueFamily,
+	CBPersistancy persistancy,
+	const std::shared_ptr<CommandPool>& pSelf
+)
 {
 	if (!DeviceObjectBase::Init(pDevice, pSelf))
 		return false;
 
 	m_info = {};
 	m_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	m_info.queueFamilyIndex = queueFamilyIndex;
-	m_info.flags = flags;
+	m_info.queueFamilyIndex = pDevice->GetPhysicalDevice()->GetQueueFamilyIndex(queueFamily);
+	if (persistancy == CBPersistancy::TRANSIENT)
+		m_info.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 	CHECK_VK_ERROR(vkCreateCommandPool(pDevice->GetDeviceHandle(), &m_info, nullptr, &m_commandPool));
 
 	return true;
 }
 
-std::shared_ptr<CommandBuffer> CommandPool::AllocatePrimaryCommandBuffer()
+std::shared_ptr<CommandBuffer> CommandPool::AllocateCommandBuffer(CommandBuffer::CBLevel level)
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = CommandBuffer::Create(GetDevice(), GetSelfSharedPtr(), VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-	return pCmdBuffer;
+	return CommandBuffer::Create(GetDevice(), GetSelfSharedPtr(), level);
 }
 
-std::shared_ptr<CommandBuffer> CommandPool::AllocateSecondaryCommandBuffer()
-{
-	std::shared_ptr<CommandBuffer> pCmdBuffer = CommandBuffer::Create(GetDevice(), GetSelfSharedPtr(), VK_COMMAND_BUFFER_LEVEL_SECONDARY);
-	return pCmdBuffer;
-}
-
-std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocatePrimaryCommandBuffers(uint32_t count)
+std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocateCommandBuffers(CommandBuffer::CBLevel level, uint32_t count)
 {
 	std::vector<std::shared_ptr<CommandBuffer>> cmdBuffers;
 	for (uint32_t i = 0; i < count; i++)
-		cmdBuffers.push_back(AllocatePrimaryCommandBuffer());
+		cmdBuffers.push_back(AllocateCommandBuffer(level));
 
 	return cmdBuffers;
 }
 
-std::vector<std::shared_ptr<CommandBuffer>> CommandPool::AllocateSecondaryCommandBuffers(uint32_t count)
-{
-	std::vector<std::shared_ptr<CommandBuffer>> cmdBuffers;
-	for (uint32_t i = 0; i < count; i++)
-		cmdBuffers.push_back(AllocateSecondaryCommandBuffer());
-
-	return cmdBuffers;
-}
-
-std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex, const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+std::shared_ptr<CommandPool> CommandPool::Create
+(
+	const std::shared_ptr<Device>& pDevice, 
+	PhysicalDevice::QueueFamily queueFamily, 
+	CBPersistancy persistancy, 
+	const std::shared_ptr<PerFrameResource>& pPerFrameRes
+)
 {
 	std::shared_ptr<CommandPool> pCommandPool = std::make_shared<CommandPool>();
-	if (pCommandPool.get() && pCommandPool->Init(pDevice, queueFamilyIndex, pCommandPool))
+	if (pCommandPool.get() && pCommandPool->Init(pDevice, queueFamily, persistancy, pCommandPool))
 		return pCommandPool;
 	return nullptr;
 }
 
-std::shared_ptr<CommandPool> CommandPool::CreateTransientCBPool(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex, const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+std::shared_ptr<CommandPool> CommandPool::Create
+(
+	const std::shared_ptr<Device>& pDevice,
+	PhysicalDevice::QueueFamily queueFamily,
+	CBPersistancy persistancy
+)
 {
-	std::shared_ptr<CommandPool> pCommandPool = std::make_shared<CommandPool>();
-	if (pCommandPool.get() && pCommandPool->Init(pDevice, queueFamilyIndex, pCommandPool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT))
-		return pCommandPool;
-	return nullptr;
-}
-
-std::shared_ptr<CommandPool> CommandPool::Create(const std::shared_ptr<Device>& pDevice, uint32_t queueFamilyIndex)
-{
-	return Create(pDevice, queueFamilyIndex, nullptr);
+	return Create(pDevice, queueFamily, persistancy, nullptr);
 }
 
 void CommandPool::Reset(const std::shared_ptr<Fence>& pFence)

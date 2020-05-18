@@ -25,9 +25,9 @@ bool Device::Init(const std::shared_ptr<Instance>& pInst, const std::shared_ptr<
 	// One queue could be of multiple usages
 	// Using set to get rid of redundent queue indices
 	std::set<uint32_t> queueIndexSet;
-	queueIndexSet.insert(m_pPhysicalDevice->GetGraphicQueueIndex());
-	queueIndexSet.insert(m_pPhysicalDevice->GetComputeQueueIndex());
-	queueIndexSet.insert(m_pPhysicalDevice->GetTransferQueueIndex());
+	queueIndexSet.insert(m_pPhysicalDevice->GetQueueFamilyIndex(PhysicalDevice::QueueFamily::ALL_ROUND));
+	queueIndexSet.insert(m_pPhysicalDevice->GetQueueFamilyIndex(PhysicalDevice::QueueFamily::COMPUTE));
+	queueIndexSet.insert(m_pPhysicalDevice->GetQueueFamilyIndex(PhysicalDevice::QueueFamily::TRASFER));
 
 	std::array<float, 1> queueProperties = { 0.0f };
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;

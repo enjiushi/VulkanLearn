@@ -25,7 +25,7 @@ std::shared_ptr<StagingBufferManager> StagingBufferManager::Create(const std::sh
 
 void StagingBufferManager::FlushDataMainThread()
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadGraphicPool()->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 
 	pCmdBuffer->StartPrimaryRecording();
 
@@ -41,7 +41,7 @@ void StagingBufferManager::FlushDataMainThread()
 
 	pCmdBuffer->EndPrimaryRecording();
 
-	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
+	GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::ALL_ROUND)->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 
 	m_pendingUpdateBuffer.clear();
 	m_usedNumBytes = 0;
