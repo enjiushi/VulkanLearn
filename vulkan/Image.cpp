@@ -93,7 +93,7 @@ void Image::EnsureImageLayout()
 	if (m_info.initialLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL || m_info.initialLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 		return;
 
-	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadGraphicPool()->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
+	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadCommandPool(PhysicalDevice::QueueFamily::ALL_ROUND)->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 	pCmdBuffer->StartPrimaryRecording();
 
 	VkImageSubresourceRange subresourceRange = {};
@@ -134,7 +134,7 @@ void Image::EnsureImageLayout()
 
 void Image::UpdateByteStream(const GliImageWrapper& gliTex)
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadGraphicPool()->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
+	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadCommandPool(PhysicalDevice::QueueFamily::ALL_ROUND)->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 	pCmdBuffer->StartPrimaryRecording();
 
 	std::shared_ptr<StagingBuffer> pStagingBuffer = PrepareStagingBuffer(gliTex, pCmdBuffer);
@@ -148,7 +148,7 @@ void Image::UpdateByteStream(const GliImageWrapper& gliTex)
 
 void Image::UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer)
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadGraphicPool()->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
+	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadCommandPool(PhysicalDevice::QueueFamily::ALL_ROUND)->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 	pCmdBuffer->StartPrimaryRecording();
 
 	std::shared_ptr<StagingBuffer> pStagingBuffer = PrepareStagingBuffer(gliTex, pCmdBuffer);

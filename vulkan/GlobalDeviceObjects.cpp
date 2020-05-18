@@ -19,11 +19,8 @@ bool GlobalDeviceObjects::InitObjects(const std::shared_ptr<Device>& pDevice)
 	for (uint32_t i = 0; i < (uint32_t)PhysicalDevice::QueueFamily::COUNT; i++)
 	{
 		m_queues[i] = Queue::Create(pDevice, (PhysicalDevice::QueueFamily)i);
+		m_pMainThreadCommandPools[i] = CommandPool::Create(pDevice, PhysicalDevice::QueueFamily::ALL_ROUND, CommandPool::CBPersistancy::PERSISTANT);
 	}
-
-	m_pMainThreadGraphicCmdPool = CommandPool::Create(pDevice, PhysicalDevice::QueueFamily::ALL_ROUND, CommandPool::CBPersistancy::PERSISTANT);
-	m_pMainThreadComputeCmdPool = CommandPool::Create(pDevice, PhysicalDevice::QueueFamily::COMPUTE, CommandPool::CBPersistancy::PERSISTANT);
-	m_pMainThreadTransferCmdPool = CommandPool::Create(pDevice, PhysicalDevice::QueueFamily::TRASFER, CommandPool::CBPersistancy::PERSISTANT);
 
 	if (m_pDeviceMemMgr == nullptr)
 		m_pDeviceMemMgr = DeviceMemoryManager::Create(pDevice);
@@ -81,7 +78,7 @@ bool GlobalDeviceObjects::RequestAttributeBuffer(uint32_t size, uint32_t& offset
 	return true;
 }
 
-const std::shared_ptr<SharedBufferManager> GlobalDeviceObjects::GetVertexAttribBufferMgr(uint32_t vertexFormat) 
+const std::shared_ptr<SharedBufferManager>& GlobalDeviceObjects::GetVertexAttribBufferMgr(uint32_t vertexFormat) 
 { 
 	if (m_vertexAttribBufferMgrs.find(vertexFormat) == m_vertexAttribBufferMgrs.end())
 		m_vertexAttribBufferMgrs[vertexFormat] = SharedBufferManager::Create(m_pDevice, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, ATTRIBUTE_BUFFER_SIZE);
@@ -89,19 +86,17 @@ const std::shared_ptr<SharedBufferManager> GlobalDeviceObjects::GetVertexAttribB
 	return m_vertexAttribBufferMgrs[vertexFormat];
 }
 
-std::shared_ptr<CommandPool> MainThreadGraphicPool() { return GlobalObjects()->GetMainThreadGraphicCmdPool(); }
-std::shared_ptr<CommandPool> MainThreadComputePool() { return GlobalObjects()->GetMainThreadComputeCmdPool(); }
-std::shared_ptr<CommandPool> MainThreadTransferPool() { return GlobalObjects()->GetMainThreadTransferCmdPool(); }
-std::shared_ptr<DeviceMemoryManager> DeviceMemMgr() { return GlobalObjects()->GetDeviceMemMgr(); }
-std::shared_ptr<StagingBufferManager> StagingBufferMgr() { return GlobalObjects()->GetStagingBufferMgr(); }
-std::shared_ptr<SwapChain> GetSwapChain() { return GlobalObjects()->GetSwapChain(); }
-std::shared_ptr<Device> GetDevice() { return GlobalObjects()->GetDevice(); }
+const std::shared_ptr<CommandPool>& MainThreadCommandPool(PhysicalDevice::QueueFamily queueFamily) { return GlobalObjects()->GetMainThreadCommandPool(queueFamily); }
+const std::shared_ptr<DeviceMemoryManager>& DeviceMemMgr() { return GlobalObjects()->GetDeviceMemMgr(); }
+const std::shared_ptr<StagingBufferManager>& StagingBufferMgr() { return GlobalObjects()->GetStagingBufferMgr(); }
+const std::shared_ptr<SwapChain>& GetSwapChain() { return GlobalObjects()->GetSwapChain(); }
+const std::shared_ptr<Device>& GetDevice() { return GlobalObjects()->GetDevice(); }
 std::shared_ptr<PhysicalDevice> GetPhysicalDevice() { return GetDevice()->GetPhysicalDevice(); }
-std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr(uint32_t vertexFormat) { return GlobalObjects()->GetVertexAttribBufferMgr(vertexFormat); }
-std::shared_ptr<SharedBufferManager> IndexBufferMgr() { return GlobalObjects()->GetIndexBufferMgr(); }
-std::shared_ptr<SharedBufferManager> UniformBufferMgr() { return GlobalObjects()->GetUniformBufferMgr(); }
-std::shared_ptr<SharedBufferManager> ShaderStorageBufferMgr() { return GlobalObjects()->GetShaderStorageBufferMgr(); }
-std::shared_ptr<SharedBufferManager> IndirectBufferMgr() { return GlobalObjects()->GetIndirectBufferMgr(); }
-std::shared_ptr<SharedBufferManager> StreamingBufferMgr() { return GlobalObjects()->GetStreamingBufferMgr(); }
-std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue() { return GlobalObjects()->GetThreadTaskQueue(); }
-std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates() { return GlobalObjects()->GetGlobalVulkanStates(); }
+const std::shared_ptr<SharedBufferManager>& VertexAttribBufferMgr(uint32_t vertexFormat) { return GlobalObjects()->GetVertexAttribBufferMgr(vertexFormat); }
+const std::shared_ptr<SharedBufferManager>& IndexBufferMgr() { return GlobalObjects()->GetIndexBufferMgr(); }
+const std::shared_ptr<SharedBufferManager>& UniformBufferMgr() { return GlobalObjects()->GetUniformBufferMgr(); }
+const std::shared_ptr<SharedBufferManager>& ShaderStorageBufferMgr() { return GlobalObjects()->GetShaderStorageBufferMgr(); }
+const std::shared_ptr<SharedBufferManager>& IndirectBufferMgr() { return GlobalObjects()->GetIndirectBufferMgr(); }
+const std::shared_ptr<SharedBufferManager>& StreamingBufferMgr() { return GlobalObjects()->GetStreamingBufferMgr(); }
+const std::shared_ptr<ThreadTaskQueue>& GlobalThreadTaskQueue() { return GlobalObjects()->GetThreadTaskQueue(); }
+const std::shared_ptr<GlobalVulkanStates>& GetGlobalVulkanStates() { return GlobalObjects()->GetGlobalVulkanStates(); }

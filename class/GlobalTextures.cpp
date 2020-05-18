@@ -514,7 +514,7 @@ void GlobalTextures::GenerateBRDFLUTTexture()
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask(RenderWorkManager::BrdfLutGen);
 
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadGraphicPool()->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadCommandPool(PhysicalDevice::QueueFamily::ALL_ROUND)->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 
 	std::vector<VkClearValue> clearValues =
 	{

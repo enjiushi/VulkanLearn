@@ -25,7 +25,7 @@ std::shared_ptr<StagingBufferManager> StagingBufferManager::Create(const std::sh
 
 void StagingBufferManager::FlushDataMainThread()
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadGraphicPool()->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
+	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadCommandPool(PhysicalDevice::QueueFamily::ALL_ROUND)->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 
 	pCmdBuffer->StartPrimaryRecording();
 
