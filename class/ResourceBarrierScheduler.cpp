@@ -31,7 +31,6 @@ void ResourceBarrierScheduler::ClaimResourceUsage
 (
 	const std::shared_ptr<CommandBuffer>& pCmdBuffer,
 	const std::shared_ptr<VKGPUSyncRes>& pResource,
-	PhysicalDevice::QueueFamily	queueFamily,
 	VkPipelineStageFlags pipelineStageFlags,
 	VkImageLayout imageLayout,
 	VkAccessFlags accessFlags
@@ -39,7 +38,7 @@ void ResourceBarrierScheduler::ClaimResourceUsage
 {
 	ResourceUsageRecord& usageRecord = m_claimedResourceUsageList[pResource];
 
-	ClaimedResourceUsage usage = { queueFamily, pipelineStageFlags, accessFlags, imageLayout, IsAccessWrite(accessFlags), (uint32_t)-1 };
+	ClaimedResourceUsage usage = { pipelineStageFlags, accessFlags, imageLayout, IsAccessWrite(accessFlags), (uint32_t)-1 };
 
 	VkImageLayout srcImageLayout;
 	if (usageRecord.size() != 0)

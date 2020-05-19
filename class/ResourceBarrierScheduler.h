@@ -18,7 +18,6 @@ public:
 	(
 		const std::shared_ptr<CommandBuffer>& pCmdBuffer,
 		const std::shared_ptr<VKGPUSyncRes>& pResource,
-		PhysicalDevice::QueueFamily	queueFamily,
 		VkPipelineStageFlags pipelineStageFlags,
 		VkImageLayout imageLayout,
 		VkAccessFlags accessFlags
@@ -52,7 +51,6 @@ protected:
 private:
 	typedef struct
 	{
-		PhysicalDevice::QueueFamily	queueFamily;
 		VkPipelineStageFlags		stagesFlags;
 		VkAccessFlags				accessFlags;
 		VkImageLayout				imageLayout;
