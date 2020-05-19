@@ -97,17 +97,10 @@ void Image::EnsureImageLayout()
 	pCmdBuffer->StartPrimaryRecording();
 
 	VkImageSubresourceRange subresourceRange = {};
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange.aspectMask = AcquireImageAspectFlags(m_info.format);
 	subresourceRange.baseMipLevel = 0;
 	subresourceRange.levelCount = m_info.mipLevels;
 	subresourceRange.layerCount = m_info.arrayLayers;
-
-	if (m_info.format == VK_FORMAT_D24_UNORM_S8_UINT
-		|| m_info.format == VK_FORMAT_D32_SFLOAT_S8_UINT)
-		subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-
-	if (m_info.format == VK_FORMAT_D32_SFLOAT)
-		subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 
 	VkImageMemoryBarrier imgBarrier = {};
 	imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -343,6 +336,68 @@ std::shared_ptr<ImageView> Image::CreateDepthSampleImageView() const
 void Image::InsertTexture(const gli::texture2d& texture, uint32_t layer)
 {
 	UpdateByteStream({ { texture } }, layer);
+}
+
+VkImageAspectFlags Image::AcquireImageAspectFlags(VkFormat format)
+{
+	VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+
+	if (format == VK_FORMAT_D24_UNORM_S8_UINT
+		|| format == VK_FORMAT_D32_SFLOAT_S8_UINT)
+		aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+	if (format == VK_FORMAT_D32_SFLOAT)
+		aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+	return aspectFlags;
+}
+
+void Image::PrepareBarriers
+(
+	VkAccessFlags				srcAccessFlags,
+	VkImageLayout				srcImageLayout,
+	VkAccessFlags				dstAccessFlags,
+	VkImageLayout				dstImageLayout,
+	std::vector<VkMemoryBarrier>&		memBarriers,
+	std::vector<VkBufferMemoryBarrier>&	bufferMemBarriers,
+	std::vector<VkImageMemoryBarrier>&	imageMemBarriers
+)
+{
+	VkImageSubresourceRange subresourceRange = {};
+	VkImageMemoryBarrier imgBarrier = {};
+
+	if (srcImageLayout != dstImageLayout)
+	{
+		subresourceRange.aspectMask = AcquireImageAspectFlags(m_info.format);
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.levelCount = m_info.mipLevels;
+		subresourceRange.layerCount = m_info.arrayLayers;
+
+		imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imgBarrier.image = GetDeviceHandle();
+		imgBarrier.subresourceRange = subresourceRange;
+
+		imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imgBarrier.srcAccessMask = srcAccessFlags;
+		imgBarrier.oldLayout = srcImageLayout;
+
+		imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imgBarrier.dstAccessMask = dstAccessFlags;
+		imgBarrier.newLayout = dstImageLayout;
+
+		imageMemBarriers.push_back(imgBarrier);
+	}
+	// If we don't have to convert layout, we just simply use memory barrier instead
+	// This is recommanded by https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples
+	else
+	{
+		VkMemoryBarrier memBarrier = {};
+		memBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+		memBarrier.srcAccessMask = srcAccessFlags;
+		memBarrier.dstAccessMask = dstAccessFlags;
+
+		memBarriers.push_back(memBarrier);
+	}
 }
 
 std::shared_ptr<StagingBuffer> Image::PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)

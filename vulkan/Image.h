@@ -46,6 +46,18 @@ public:
 
 	virtual void InsertTexture(const gli::texture2d& texture, uint32_t layer);
 
+	static VkImageAspectFlags AcquireImageAspectFlags(VkFormat format);
+	void PrepareBarriers
+	(
+		VkAccessFlags				srcAccessFlags,
+		VkImageLayout				srcImageLayout,
+		VkAccessFlags				dstAccessFlags,
+		VkImageLayout				dstImageLayout,
+		std::vector<VkMemoryBarrier>&		memBarriers,
+		std::vector<VkBufferMemoryBarrier>&	bufferMemBarriers,
+		std::vector<VkImageMemoryBarrier>&	imageMemBarriers
+	) override;
+
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;
 
