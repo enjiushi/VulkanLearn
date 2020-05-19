@@ -54,53 +54,62 @@ void ResourceBarrierScheduler::ClaimResourceUsage
 		srcImageLayout = imageLayout;
 	usageRecord.push_back(usage);
 
-	VkPipelineStageFlags toBeFlushedSrcStageFlags = 0;
-	VkAccessFlags toBeFlushedSrcAccessFlags = 0;
-	VkPipelineStageFlags toBeFlushedDstStageFlags = 0;
-	VkAccessFlags toBeFlushedDstAccessFlags = 0;
-	VkImageLayout dstImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	if (usageRecord.size() != 0)
+	VkPipelineStageFlags srcStageFlags = 0;
+	VkAccessFlags srcAccessFlags = 0;
+
+	VkPipelineStageFlags dstStageFlags = usage.stagesFlags;
+	VkAccessFlags dstAccessFlags = usage.accessFlags;
+	VkImageLayout dstImageLayout = imageLayout;
+
+	// If current access isn't a write, accumulate its own stages, for execution dependency
+	if (!usageRecord[usageRecord.size() - 1].isAccessWrite)
+		usageRecord[usageRecord.size() - 1].accumulatedReadStages = usageRecord[usageRecord.size() - 1].stagesFlags;
+
+	// Accumulate stages for continous read, for execution dependency
+	if (usageRecord.size() >= 2 &&
+		!usageRecord[usageRecord.size() - 1].isAccessWrite &&
+		!usageRecord[usageRecord.size() - 2].isAccessWrite)
+		usageRecord[usageRecord.size() - 1].accumulatedReadStages |= usageRecord[usageRecord.size() - 2].accumulatedReadStages;
+
+	// If there's a write before current access
+	// We need more than just a simple execution dependency
+	if (usageRecord[usageRecord.size() - 1].lastWriteIndex != -1)
 	{
-		uint32_t lastWriteIndex = usage.lastWriteIndex;
-		do
-		{
-			lastWriteIndex = usageRecord[usageRecord.size() - 1].lastWriteIndex;
-			if ((usageRecord[lastWriteIndex].flushedStagesFlags & usage.stagesFlags) != usage.stagesFlags ||
-				(usageRecord[lastWriteIndex].flushedAccessFlags & usage.accessFlags) != usage.accessFlags)
-			{
-				toBeFlushedSrcStageFlags = usageRecord[lastWriteIndex].stagesFlags;
-				toBeFlushedSrcAccessFlags = usageRecord[lastWriteIndex].accessFlags;
-
-				toBeFlushedDstStageFlags |= (usageRecord[lastWriteIndex].flushedStagesFlags & usage.stagesFlags) ^ usage.stagesFlags;
-				toBeFlushedDstAccessFlags |= (usageRecord[lastWriteIndex].flushedAccessFlags & usage.accessFlags) ^ usage.accessFlags;
-
-				usageRecord[lastWriteIndex].flushedStagesFlags |= usage.stagesFlags;
-				usageRecord[lastWriteIndex].flushedAccessFlags |= usage.accessFlags;
-			}
-		} while (lastWriteIndex != -1);
+		// Add current access stages
+		srcStageFlags |= usageRecord[usageRecord[usageRecord.size() - 1].lastWriteIndex].stagesFlags;
+		// Add accumulated stages of previous reads
+		// It'll be current stages if it's a write, so don't worry
+		srcStageFlags |= usageRecord[usageRecord.size() - 1].accumulatedReadStages;
+		srcAccessFlags = usageRecord[usageRecord[usageRecord.size() - 1].lastWriteIndex].accessFlags;
 	}
 
 	// IF there're stages or access flags missing a flush, or image layout is different
 	// We plant a barrier here
-	if (toBeFlushedDstStageFlags != 0 || toBeFlushedDstAccessFlags != 0 || srcImageLayout != dstImageLayout)
+	if (srcStageFlags != 0 ||
+		srcAccessFlags != 0 ||
+		srcImageLayout != dstImageLayout)
 	{
 		std::vector<VkMemoryBarrier> memBarriers;
 		std::vector<VkBufferMemoryBarrier> bufferMemBarriers;
 		std::vector<VkImageMemoryBarrier> imageMemBarriers;
 
-		pResource->PrepareBarriers
-		(
-			toBeFlushedSrcAccessFlags,
-			srcImageLayout,
-			toBeFlushedDstAccessFlags,
-			dstImageLayout,
-			memBarriers, bufferMemBarriers, imageMemBarriers
-		);
+		// Prepare barriers only if previous write is not flushed or layout is different
+		if (srcAccessFlags != 0 || srcImageLayout != dstImageLayout)
+		{
+			pResource->PrepareBarriers
+			(
+				srcAccessFlags,
+				srcImageLayout,
+				dstAccessFlags,
+				dstImageLayout,
+				memBarriers, bufferMemBarriers, imageMemBarriers
+			);
+		}
 
 		pCmdBuffer->AttachBarriers
 		(
-			toBeFlushedSrcStageFlags,
-			toBeFlushedDstStageFlags,
+			srcStageFlags,
+			dstStageFlags,
 			memBarriers,
 			bufferMemBarriers,
 			imageMemBarriers

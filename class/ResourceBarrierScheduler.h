@@ -59,9 +59,9 @@ private:
 		bool						isAccessWrite;
 		uint32_t					lastWriteIndex;
 
-		// Flushed caches
-		VkPipelineStageFlags		flushedStagesFlags = 0;
-		VkAccessFlags				flushedAccessFlags = 0;
+		// If there're one or multiple continuous read accesses, 
+		// accumulate stages here, to make execution dependency
+		VkPipelineStageFlags		accumulatedReadStages = 0;
 	}ClaimedResourceUsage;
 
 	typedef std::vector<ClaimedResourceUsage> ResourceUsageRecord;		// Claimed resources usage in one pass(draw/dispatch/blit/copy)
