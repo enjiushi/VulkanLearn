@@ -98,7 +98,6 @@ void Image::EnsureImageLayout()
 
 	VkImageSubresourceRange subresourceRange = {};
 	subresourceRange.aspectMask = AcquireImageAspectFlags(m_info.format);
-	subresourceRange.baseMipLevel = 0;
 	subresourceRange.levelCount = m_info.mipLevels;
 	subresourceRange.layerCount = m_info.arrayLayers;
 
