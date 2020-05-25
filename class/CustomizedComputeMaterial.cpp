@@ -168,6 +168,51 @@ void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<Com
 	);
 }
 
+void CustomizedComputeMaterial::ClaimResourceUsage(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<ResourceBarrierScheduler>& pScheduler, uint32_t pingpong)
+{
+	if (pScheduler == nullptr)
+		return;
+
+	for (auto textureUnit : m_variables.textureUnits)
+	{
+		if (textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].enableBarrier == false)
+			continue;
+
+		uint32_t textureIndex;
+		if (textureUnit.textureSelector == TextureUnit::BY_FRAME)
+			textureIndex = FrameWorkManager::GetInstance()->FrameIndex();
+		else if (textureUnit.textureSelector == TextureUnit::BY_PINGPONG)
+			textureIndex = pingpong;
+		else if (textureUnit.textureSelector == TextureUnit::BY_NEXTPINGPONG)
+			textureIndex = (pingpong + 1) % 2;
+		else
+		{
+			for (uint32_t i = 0; i < (uint32_t)textureUnit.textures.size(); i++)
+			{
+				pScheduler->ClaimResourceUsage
+				(
+					pCmdBuffer,
+					textureUnit.textures[(pingpong + 1) % 2].pImage,
+					textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstPipelineStages,
+					textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].newImageLayout,
+					textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstAccessFlags
+				);
+			}
+
+			return;
+		}
+
+		pScheduler->ClaimResourceUsage
+		(
+			pCmdBuffer,
+			textureUnit.textures[textureIndex].pImage,
+			textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstPipelineStages,
+			textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].newImageLayout,
+			textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstAccessFlags
+		);
+	}
+}
+
 void CustomizedComputeMaterial::UpdatePushConstantDataInternal(const void* pData, uint32_t offset, uint32_t size)
 {
 	TransferBytesToVector(m_variables.pushConstantData, pData, offset, size);

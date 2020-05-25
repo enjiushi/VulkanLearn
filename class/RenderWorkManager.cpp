@@ -16,6 +16,7 @@
 #include "GBufferPlanetMaterial.h"
 #include "MaterialInstance.h"
 #include "FrameEventManager.h"
+#include "ResourceBarrierScheduler.h"
 
 bool RenderWorkManager::Init()
 {
@@ -179,10 +180,10 @@ void RenderWorkManager::SyncMaterialData()
 
 void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffer, uint32_t pingpong)
 {
-	GetMaterial(PBRGBuffer)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	GetMaterial(PBRSkinnedGBuffer)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	GetMaterial(PBRPlanetGBuffer)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	GetMaterial(BackgroundMotion)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(PBRGBuffer)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
+	GetMaterial(PBRSkinnedGBuffer)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
+	GetMaterial(PBRPlanetGBuffer)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
+	GetMaterial(BackgroundMotion)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassGBuffer)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer));
 	GetMaterial(PBRGBuffer)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer), pingpong);
 	GetMaterial(PBRSkinnedGBuffer)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_GBuffer), pingpong);
@@ -196,18 +197,18 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	GetMaterial(PBRGBuffer)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	GetMaterial(MotionTileMax)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(MotionTileMax)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 	GetMaterial(MotionTileMax)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(MotionTileMax)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	GetMaterial(MotionNeighborMax)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(MotionNeighborMax)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 	GetMaterial(MotionNeighborMax)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(MotionNeighborMax)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	GetMaterial(Shadow)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
-	GetMaterial(SkinnedShadow)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(Shadow)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
+	GetMaterial(SkinnedShadow)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassShadowMap)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_ShadowMap));
 	GetMaterial(Shadow)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_ShadowMap), pingpong);
 	GetMaterial(SkinnedShadow)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_ShadowMap), pingpong);
@@ -216,33 +217,33 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	GetMaterial(Shadow)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	GetMaterial(SSAOSSR)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(SSAOSSR)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 	GetMaterial(SSAOSSR)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(SSAOSSR)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	GetMaterial(SSAOBlurV)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(SSAOBlurV)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 	GetMaterial(SSAOBlurV)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(SSAOBlurV)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	GetMaterial(SSAOBlurH)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(SSAOBlurH)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 	GetMaterial(SSAOBlurH)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(SSAOBlurH)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	GetMaterial(DeferredShading)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(DeferredShading)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 	GetMaterial(DeferredShading)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(DeferredShading)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	GetMaterial(TemporalResolve, pingpong)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(TemporalResolve, pingpong)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 	GetMaterial(TemporalResolve, pingpong)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(TemporalResolve, pingpong)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 	for (uint32_t i = 0; i < (uint32_t)DOFPass::COUNT; i++)
 	{
-		GetMaterial(DepthOfField, i)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+		GetMaterial(DepthOfField, i)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 		GetMaterial(DepthOfField, i)->Dispatch(pDrawCmdBuffer, pingpong);
 		GetMaterial(DepthOfField, i)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 	}
@@ -250,7 +251,7 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	// Downsample first
 	for (uint32_t i = 0; i < BLOOM_ITER_COUNT; i++)
 	{
-		GetMaterial(BloomDownSample, i)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+		GetMaterial(BloomDownSample, i)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 		GetMaterial(BloomDownSample, i)->Dispatch(pDrawCmdBuffer, pingpong);
 		GetMaterial(BloomDownSample, i)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 	}
@@ -258,17 +259,17 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	// Upsample then
 	for (int32_t i = BLOOM_ITER_COUNT - 1; i >= 0; i--)
 	{
-		GetMaterial(BloomUpSample, i)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+		GetMaterial(BloomUpSample, i)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 		GetMaterial(BloomUpSample, i)->Dispatch(pDrawCmdBuffer, pingpong);
 		GetMaterial(BloomUpSample, i)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 	}
 
-	GetMaterial(Combine)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(Combine)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 	GetMaterial(Combine)->Dispatch(pDrawCmdBuffer, pingpong);
 	GetMaterial(Combine)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
 
-	GetMaterial(PostProcess)->BeforeRenderPass(pDrawCmdBuffer, pingpong);
+	GetMaterial(PostProcess)->BeforeRenderPass(pDrawCmdBuffer, nullptr, pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing)->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_PostProcessing));
 	GetMaterial(PostProcess)->Draw(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_PostProcessing), pingpong);
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing)->EndRenderPass(pDrawCmdBuffer);

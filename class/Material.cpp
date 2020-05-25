@@ -512,9 +512,15 @@ void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_
 	renderData.indirectIndices.push_back({ perObjectIndex, perMaterialIndex, perMeshIndex, utilityIndex });
 }
 
-void Material::BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
+void Material::BeforeRenderPass
+(
+	const std::shared_ptr<CommandBuffer>& pCmdBuf, 
+	const std::shared_ptr<ResourceBarrierScheduler>& pScheduler, 
+	uint32_t pingpong
+)
 {
 	AttachResourceBarriers(pCmdBuf, BEFORE_DISPATCH, pingpong);
+	ClaimResourceUsage(pCmdBuf, pScheduler, pingpong);
 }
 
 void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)

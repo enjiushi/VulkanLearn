@@ -289,7 +289,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				sizeof(m_cubeFaces[m_envJobCounter]) + sizeof(Vector4f),
 				sizeof(m_wsMainLightDir)
 			);
-			m_pSkyboxGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer);
+			m_pSkyboxGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, nullptr);
 			m_pSkyboxGenMaterial->Dispatch(m_pIBLGenCmdBuffer);
 			m_pSkyboxGenMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
 
@@ -329,7 +329,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 			m_cubeFaces[faceID][2].w = (float)groupOffsetY * groupCountOneDispatchBorder * GROUP_SIZE;
 			m_cubeFaces[faceID][3].w = (float)m_envTexturePingpongIndex;
 			m_pIrradianceGenMaterial->UpdatePushConstantData(&m_cubeFaces[faceID][0], 0, sizeof(m_cubeFaces[faceID]));
-			m_pIrradianceGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer);
+			m_pIrradianceGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, nullptr);
 			m_pIrradianceGenMaterial->Dispatch(m_pIBLGenCmdBuffer);
 			m_pIrradianceGenMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
 
@@ -367,7 +367,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				m_cubeFaces[m_envJobCounter][1].w = i / (float)(mipLevels - 1);	// Roughness
 				m_cubeFaces[m_envJobCounter][3].w = (float)m_envTexturePingpongIndex;
 				pMaterial->UpdatePushConstantData(&m_cubeFaces[m_envJobCounter][0], 0, sizeof(m_cubeFaces[m_envJobCounter]));
-				pMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer);
+				pMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, nullptr);
 				pMaterial->Dispatch(m_pIBLGenCmdBuffer);
 				pMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
 			}
@@ -547,7 +547,7 @@ void GlobalTextures::GenerateBRDFLUTTexture()
 	SceneGenerator::GetInstance()->GetMaterial0()->OnFrameBegin();
 	pDrawCmdBuffer->StartPrimaryRecording();
 
-	SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer);
+	SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer, nullptr);
 	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]);
 	SceneGenerator::GetInstance()->GetMaterial0()->DrawScreenQuad(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_EnvGenOffScreen));
 	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer);

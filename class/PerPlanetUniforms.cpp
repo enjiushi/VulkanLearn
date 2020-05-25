@@ -296,7 +296,7 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 	std::shared_ptr<CommandBuffer> pCommandBuffer = MainThreadCommandPool(PhysicalDevice::QueueFamily::ALL_ROUND)->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 	pCommandBuffer->StartPrimaryRecording();
 
-	pMaterial->BeforeRenderPass(pCommandBuffer);
+	pMaterial->BeforeRenderPass(pCommandBuffer, nullptr);
 	pMaterial->Dispatch(pCommandBuffer);
 	pMaterial->AfterRenderPass(pCommandBuffer);
 
