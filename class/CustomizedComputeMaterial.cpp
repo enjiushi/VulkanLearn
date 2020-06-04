@@ -175,41 +175,41 @@ void CustomizedComputeMaterial::ClaimResourceUsage(const std::shared_ptr<Command
 
 	for (auto textureUnit : m_variables.textureUnits)
 	{
-		if (textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].enableBarrier == false)
-			continue;
-
-		uint32_t textureIndex;
-		if (textureUnit.textureSelector == TextureUnit::BY_FRAME)
-			textureIndex = FrameWorkManager::GetInstance()->FrameIndex();
-		else if (textureUnit.textureSelector == TextureUnit::BY_PINGPONG)
-			textureIndex = pingpong;
-		else if (textureUnit.textureSelector == TextureUnit::BY_NEXTPINGPONG)
-			textureIndex = (pingpong + 1) % 2;
-		else
+		if (textureUnit.textureSelector == TextureUnit::ALL)
 		{
 			for (uint32_t i = 0; i < (uint32_t)textureUnit.textures.size(); i++)
 			{
 				pScheduler->ClaimResourceUsage
 				(
 					pCmdBuffer,
-					textureUnit.textures[(pingpong + 1) % 2].pImage,
+					textureUnit.textures[i].pImage,
 					textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstPipelineStages,
 					textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].newImageLayout,
 					textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstAccessFlags
 				);
 			}
-
-			return;
 		}
+		else
+		{
+			uint32_t textureIndex;
+			if (textureUnit.textureSelector == TextureUnit::BY_FRAME)
+				textureIndex = FrameWorkManager::GetInstance()->FrameIndex();
+			else if (textureUnit.textureSelector == TextureUnit::BY_PINGPONG)
+				textureIndex = pingpong;
+			else if (textureUnit.textureSelector == TextureUnit::BY_NEXTPINGPONG)
+				textureIndex = (pingpong + 1) % 2;
+			else
+				ASSERTION(false);
 
-		pScheduler->ClaimResourceUsage
-		(
-			pCmdBuffer,
-			textureUnit.textures[textureIndex].pImage,
-			textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstPipelineStages,
-			textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].newImageLayout,
-			textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstAccessFlags
-		);
+			pScheduler->ClaimResourceUsage
+			(
+				pCmdBuffer,
+				textureUnit.textures[textureIndex].pImage,
+				textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstPipelineStages,
+				textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].newImageLayout,
+				textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstAccessFlags
+			);
+		}
 	}
 }
 

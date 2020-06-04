@@ -241,3 +241,27 @@ void PostProcessingMaterial::AttachResourceBarriers(const std::shared_ptr<Comman
 		barriers
 	);
 }
+
+void PostProcessingMaterial::ClaimResourceUsage(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<ResourceBarrierScheduler>& pScheduler, uint32_t pingpong)
+{
+	std::shared_ptr<Image> pCombineResult = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_CombineResult)[FrameWorkManager::GetInstance()->FrameIndex()]->GetColorTarget(0);
+	std::shared_ptr<Image> pMotionNeighborMax = FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_MotionNeighborMax)[FrameWorkManager::GetInstance()->FrameIndex()]->GetColorTarget(0);
+
+	pScheduler->ClaimResourceUsage
+	(
+		pCmdBuffer,
+		pCombineResult,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		VK_IMAGE_LAYOUT_GENERAL,
+		VK_ACCESS_SHADER_READ_BIT
+	);
+
+	pScheduler->ClaimResourceUsage
+	(
+		pCmdBuffer,
+		pMotionNeighborMax,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		VK_IMAGE_LAYOUT_GENERAL,
+		VK_ACCESS_SHADER_READ_BIT
+	);
+}

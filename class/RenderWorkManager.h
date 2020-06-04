@@ -26,6 +26,7 @@ class CommandBuffer;
 class DOFMaterial;
 class GBufferPlanetMaterial;
 class Material;
+class ResourceBarrierScheduler;
 
 class RenderWorkManager : public Singleton<RenderWorkManager>, public IFrameEventListener
 {
@@ -104,4 +105,6 @@ protected:
 
 	std::vector<MaterialSet>	m_materials;
 	uint32_t					m_renderStateMask;
+
+	std::shared_ptr<ResourceBarrierScheduler> m_pResBarrierScheduler;
 };

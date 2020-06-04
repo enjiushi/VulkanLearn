@@ -8,7 +8,7 @@
 class ResourceBarrierScheduler : public SelfRefBase<ResourceBarrierScheduler>
 {
 public:
-	std::shared_ptr<ResourceBarrierScheduler> Create();
+	static std::shared_ptr<ResourceBarrierScheduler> Create();
 
 protected:
 	bool Init(const std::shared_ptr<ResourceBarrierScheduler>& pSchedueler);
