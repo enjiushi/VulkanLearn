@@ -78,7 +78,7 @@ void ResourceBarrierScheduler::ClaimResourceUsage
 		srcStageFlags |= usageRecord[usageRecord[usageRecord.size() - 1].lastWriteIndex].stagesFlags;
 		// Add accumulated stages of previous reads
 		// It'll be current stages if it's a write, so don't worry
-		srcStageFlags |= usageRecord[usageRecord.size() - 1].accumulatedReadStages;
+		srcStageFlags |= usageRecord[usageRecord.size() - 2].accumulatedReadStages;
 		srcAccessFlags = usageRecord[usageRecord[usageRecord.size() - 1].lastWriteIndex].accessFlags;
 	}
 
