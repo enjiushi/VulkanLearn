@@ -145,7 +145,6 @@ protected:
 	virtual void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	virtual void BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
-	virtual void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong = 0) {}
 	virtual void ClaimResourceUsage(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<ResourceBarrierScheduler>& pScheduler, uint32_t pingpong = 0) {}
 
 	virtual void PrepareCommandBuffer(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, bool isCompute, uint32_t pingpong = 0, bool overrideVP = false);

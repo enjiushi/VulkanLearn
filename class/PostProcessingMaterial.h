@@ -17,7 +17,6 @@ protected:
 	void CustomizeMaterialLayout(std::vector<UniformVarList>& materialLayout) override;
 	void CustomizePoolSize(std::vector<uint32_t>& counts) override;
 
-	void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong = 0) override;
 	void ClaimResourceUsage(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<ResourceBarrierScheduler>& pScheduler, uint32_t pingpong = 0) override;
 
 public:
