@@ -105,6 +105,10 @@ void ResourceBarrierScheduler::ClaimResourceUsage
 			);
 		}
 
+		// Don't do anything if barrier is not necessary
+		if (srcStageFlags == 0)
+			return;
+
 		pCmdBuffer->AttachBarriers
 		(
 			srcStageFlags,
