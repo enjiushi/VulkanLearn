@@ -92,6 +92,10 @@ void ResourceBarrierScheduler::ClaimResourceUsage
 		std::vector<VkBufferMemoryBarrier> bufferMemBarriers;
 		std::vector<VkImageMemoryBarrier> imageMemBarriers;
 
+		// Don't do anything if barrier is not necessary
+		if (srcStageFlags == 0)
+			return;
+
 		// Prepare barriers only if previous write is not flushed or layout is different
 		if (srcAccessFlags != 0 || srcImageLayout != dstImageLayout)
 		{
@@ -104,10 +108,6 @@ void ResourceBarrierScheduler::ClaimResourceUsage
 				memBarriers, bufferMemBarriers, imageMemBarriers
 			);
 		}
-
-		// Don't do anything if barrier is not necessary
-		if (srcStageFlags == 0)
-			return;
 
 		pCmdBuffer->AttachBarriers
 		(
