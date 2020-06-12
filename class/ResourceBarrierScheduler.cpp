@@ -96,8 +96,20 @@ void ResourceBarrierScheduler::ClaimResourceUsage
 		if (srcStageFlags == 0)
 			return;
 
+		bool needResourceBarrier = true;
 		// Prepare barriers only if previous write is not flushed or layout is different
 		if (srcAccessFlags != 0 || srcImageLayout != dstImageLayout)
+		{
+			if (srcImageLayout == dstImageLayout)
+			{
+				// To check if there's already a existing barrier for last GPU write
+				needResourceBarrier = (usageRecord[usageRecord[usageRecord.size() - 1].lastWriteIndex].flushedStages[dstAccessFlags] & dstStageFlags) == 0;
+			}
+			// Different layout definitely requires a barrier to change
+			else{}
+		}
+
+		if (needResourceBarrier)
 		{
 			pResource->PrepareBarriers
 			(
@@ -107,8 +119,12 @@ void ResourceBarrierScheduler::ClaimResourceUsage
 				dstImageLayout,
 				memBarriers, bufferMemBarriers, imageMemBarriers
 			);
+
+			// Add current dst stage to flushed stage list
+			usageRecord[usageRecord[usageRecord.size() - 1].lastWriteIndex].flushedStages[dstAccessFlags] |= dstStageFlags;
 		}
 
+		// Attach a barrier, with or without mem/buffer/image barriers
 		pCmdBuffer->AttachBarriers
 		(
 			srcStageFlags,

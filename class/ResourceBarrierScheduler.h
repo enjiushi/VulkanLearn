@@ -4,6 +4,7 @@
 #include "../vulkan/Device.h"
 #include "../vulkan/CommandPool.h"
 #include <map>
+#include <unordered_map>
 
 class ResourceBarrierScheduler : public SelfRefBase<ResourceBarrierScheduler>
 {
@@ -60,6 +61,8 @@ private:
 		// If there're one or multiple continuous read accesses, 
 		// accumulate stages here, to make execution dependency
 		VkPipelineStageFlags		accumulatedReadStages = 0;
+
+		std::unordered_map<VkAccessFlags, VkPipelineStageFlags>	flushedStages;
 	}ClaimedResourceUsage;
 
 	typedef std::vector<ClaimedResourceUsage> ResourceUsageRecord;		// Claimed resources usage in one pass(draw/dispatch/blit/copy)
