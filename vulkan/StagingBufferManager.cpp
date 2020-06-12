@@ -4,7 +4,6 @@
 #include <algorithm>
 #include "Queue.h"
 #include "CommandBuffer.h"
-#include "PerFrameResource.h"
 
 bool StagingBufferManager::Init(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<StagingBufferManager>& pSelf)
 {
@@ -26,7 +25,7 @@ std::shared_ptr<StagingBufferManager> StagingBufferManager::Create(const std::sh
 
 void StagingBufferManager::FlushDataMainThread()
 {
-	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pCmdBuffer = MainThreadCommandPool(PhysicalDevice::QueueFamily::ALL_ROUND)->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 
 	pCmdBuffer->StartPrimaryRecording();
 
@@ -42,7 +41,7 @@ void StagingBufferManager::FlushDataMainThread()
 
 	pCmdBuffer->EndPrimaryRecording();
 
-	GlobalGraphicQueue()->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
+	GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::ALL_ROUND)->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 
 	m_pendingUpdateBuffer.clear();
 	m_usedNumBytes = 0;

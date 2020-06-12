@@ -8,6 +8,15 @@
 class PhysicalDevice
 {
 public:
+	enum class QueueFamily
+	{
+		ALL_ROUND,
+		COMPUTE,
+		TRASFER,
+		COUNT
+	};
+
+public:
 	~PhysicalDevice();
 
 #if defined(_WIN32)
@@ -25,10 +34,7 @@ public:
 	const std::vector<VkQueueFamilyProperties>& GetQueueProperties() const { return m_queueProperties; }
 	const VkFormat GetDepthStencilFormat() const { return m_depthStencilFormat; }
 
-	const uint32_t GetGraphicQueueIndex() const { return m_graphicQueueIndex; }
-	const uint32_t GetComputeQueueIndex() const { return m_computeQueueIndex; }
-	const uint32_t GetTransferQueueIndex() const { return m_transferQueueIndex; }
-	const uint32_t GetPresentQueueIndex() const { return m_presentQueueIndex; }
+	uint32_t GetQueueFamilyIndex(QueueFamily queueFamily) const { return m_queueFamilyIndices[(uint32_t)queueFamily]; }
 
 	const VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surfaceFormats[0]; }
 	const std::vector<VkPresentModeKHR>& GetPresentModes() const { return m_presentModes; }
@@ -47,14 +53,11 @@ private:
 	std::vector<VkQueueFamilyProperties>	m_queueProperties;
 	VkFormat							m_depthStencilFormat;
 
-	uint32_t							m_graphicQueueIndex;
-	uint32_t							m_computeQueueIndex;
-	uint32_t							m_transferQueueIndex;
+	uint32_t							m_queueFamilyIndices[(uint32_t)QueueFamily::COUNT];
 
 	//Surface related
 	VkSurfaceKHR						m_surface;
 
-	uint32_t							m_presentQueueIndex;
 	std::vector<VkSurfaceFormatKHR>		m_surfaceFormats;
 	std::vector<VkPresentModeKHR>		m_presentModes;
 	VkSurfaceCapabilitiesKHR			m_surfaceCap;

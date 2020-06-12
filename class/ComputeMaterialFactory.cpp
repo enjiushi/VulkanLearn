@@ -340,11 +340,20 @@ std::shared_ptr<Material> CreateTileMaxMaterial(const std::vector<std::shared_pt
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
 				{
+					// False means a claim, new mechanism. Old one will be removed later
 					false,
+
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outputImages[0]->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -438,11 +447,18 @@ std::shared_ptr<Material> CreateNeighborMaxMaterial(const std::vector<std::share
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
 				{
 					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outputImages[0]->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -621,11 +637,18 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
 				{
-					false
+					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outSSAOFactor[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -644,11 +667,18 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
 				{
-					false
+					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outSSRInfo[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -747,11 +777,18 @@ std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shar
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
 				{
 					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					_outputImages[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -1033,11 +1070,18 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
 				{
-					false
+					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outShadingResults[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -1056,11 +1100,18 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
 				{
-					false
+					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outSSRResults[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -1504,11 +1555,18 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
 				{
-					false
+					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outTemporalShadingResults[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -1527,11 +1585,18 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
 				{
-					false
+					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outTemporalSSRResults[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -1550,11 +1615,18 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
 				{
-					false
+					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outTemporalResults[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -1573,11 +1645,18 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
 				{
-					false
+					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outTemporalCoC[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -1756,11 +1835,18 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				true,
 
-				CustomizedComputeMaterial::TextureUnit::NONE,
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
 					{
 						false,
+						0,
+						VK_IMAGE_LAYOUT_UNDEFINED,
+						0,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						outputImages[0].pImage->GetImageInfo().initialLayout,
+						VK_ACCESS_SHADER_WRITE_BIT
 					},
 					{
 						false
@@ -1845,11 +1931,18 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				true,
 
-				CustomizedComputeMaterial::TextureUnit::NONE,
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
 					{
 						false,
+						0,
+						VK_IMAGE_LAYOUT_UNDEFINED,
+						0,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						outputImages[0].pImage->GetImageInfo().initialLayout,
+						VK_ACCESS_SHADER_WRITE_BIT
 					},
 					{
 						false
@@ -1933,11 +2026,18 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				true,
 
-				CustomizedComputeMaterial::TextureUnit::NONE,
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
 					{
 						false,
+						0,
+						VK_IMAGE_LAYOUT_UNDEFINED,
+						0,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						outputImages[0].pImage->GetImageInfo().initialLayout,
+						VK_ACCESS_SHADER_WRITE_BIT
 					},
 					{
 						false
@@ -2039,11 +2139,18 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				false,
 
-				CustomizedComputeMaterial::TextureUnit::NONE,
+				CustomizedComputeMaterial::TextureUnit::BY_NEXTPINGPONG,
 
 				{
 					{
 						false,
+						0,
+						VK_IMAGE_LAYOUT_UNDEFINED,
+						0,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						combinedTemporalResult[0].pImage->GetImageInfo().initialLayout,
+						VK_ACCESS_SHADER_WRITE_BIT
 					},
 					{
 						false
@@ -2062,11 +2169,18 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				false,
 
-				CustomizedComputeMaterial::TextureUnit::NONE,
+				CustomizedComputeMaterial::TextureUnit::BY_NEXTPINGPONG,
 
 				{
 					{
 						false,
+						0,
+						VK_IMAGE_LAYOUT_UNDEFINED,
+						0,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						temporalCoCResults[0].pImage->GetImageInfo().initialLayout,
+						VK_ACCESS_SHADER_WRITE_BIT
 					},
 					{
 						false
@@ -2085,11 +2199,18 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{ 0, 1, 0, 1 },
 				true,
 
-				CustomizedComputeMaterial::TextureUnit::NONE,
+				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
 					{
 						false,
+						0,
+						VK_IMAGE_LAYOUT_UNDEFINED,
+						0,
+
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						outputImages[0].pImage->GetImageInfo().initialLayout,
+						VK_ACCESS_SHADER_WRITE_BIT
 					},
 					{
 						false
@@ -2289,11 +2410,18 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
 				{
 					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outputImgs[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false
@@ -2429,11 +2557,18 @@ std::shared_ptr<Material> CreateCombineMaterial()
 			{ 0, 1, 0, 1 },
 			true,
 
-			CustomizedComputeMaterial::TextureUnit::NONE,
+			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
 				{
 					false,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
+
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					combineTextures[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				},
 				{
 					false

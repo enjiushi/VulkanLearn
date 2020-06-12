@@ -1,10 +1,8 @@
 #include <mutex>
 #include "Material.h"
 #include "../vulkan/CommandBuffer.h"
-#include "../vulkan/PerFrameResource.h"
 #include "../vulkan/PhysicalDevice.h"
 #include "../vulkan/GlobalDeviceObjects.h"
-#include "FrameWorkManager.h"
 #include "../vulkan/UniformBuffer.h"
 #include "../vulkan/SharedVertexBuffer.h"
 #include "../vulkan/SharedIndexBuffer.h"
@@ -18,21 +16,23 @@
 #include "../vulkan/ShaderModule.h"
 #include "../vulkan/Framebuffer.h"
 #include "../vulkan/DescriptorPool.h"
-#include "../class/MaterialInstance.h"
+#include "../vulkan/ComputePipeline.h"
 #include "../vulkan/ShaderStorageBuffer.h"
-#include "../class/UniformData.h"
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/Image.h"
 #include "../vulkan/SharedIndirectBuffer.h"
-#include "RenderWorkManager.h"
 #include "../vulkan/GlobalVulkanStates.h"
 #include "../vulkan/GlobalDeviceObjects.h"
-#include "../class/PerMaterialIndirectUniforms.h"
+#include "UniformData.h"
+#include "MaterialInstance.h"
+#include "PerMaterialIndirectUniforms.h"
 #include "GlobalTextures.h"
-#include "../class/PerMaterialUniforms.h"
+#include "PerMaterialUniforms.h"
 #include "RenderPassBase.h"
-#include "../vulkan/ComputePipeline.h"
+#include "PerFrameResource.h"
 #include "Mesh.h"
+#include "RenderWorkManager.h"
+#include "FrameWorkManager.h"
 
 void Material::GeneralInit
 (
@@ -512,14 +512,18 @@ void Material::InsertIntoRenderQueue(const std::shared_ptr<Mesh>& pMesh, uint32_
 	renderData.indirectIndices.push_back({ perObjectIndex, perMaterialIndex, perMeshIndex, utilityIndex });
 }
 
-void Material::BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
+void Material::BeforeRenderPass
+(
+	const std::shared_ptr<CommandBuffer>& pCmdBuf, 
+	const std::shared_ptr<ResourceBarrierScheduler>& pScheduler, 
+	uint32_t pingpong
+)
 {
-	AttachResourceBarriers(pCmdBuf, BEFORE_DISPATCH, pingpong);
+	ClaimResourceUsage(pCmdBuf, pScheduler, pingpong);
 }
 
 void Material::AfterRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong)
 {
-	AttachResourceBarriers(pCmdBuf, AFTER_DISPATCH, pingpong);
 }
 
 void Material::PrepareCommandBuffer(const std::shared_ptr<CommandBuffer>& pCommandBuffer, const std::shared_ptr<FrameBuffer>& pFrameBuffer, bool isCompute, uint32_t pingpong, bool overrideVP)
@@ -566,7 +570,12 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 	if (m_indirectBuffers.size() == 0)
 		return;
 
-	std::shared_ptr<CommandBuffer> pSecondaryCmd = FrameWorkManager::GetInstance()->GetMainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pSecondaryCmd = FrameWorkManager::GetInstance()->GetMainThreadPerFrameRes()->AllocateCommandBuffer
+	(
+		PhysicalDevice::QueueFamily::ALL_ROUND,
+		CommandPool::CBPersistancy::PERSISTANT,
+		CommandBuffer::CBLevel::SECONDARY
+	);
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);
 
@@ -581,7 +590,12 @@ void Material::DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const
 
 void Material::DrawScreenQuad(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong, bool overrideVP)
 {
-	std::shared_ptr<CommandBuffer> pSecondaryCmd = FrameWorkManager::GetInstance()->GetMainThreadPerFrameRes()->AllocatePersistantSecondaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pSecondaryCmd = FrameWorkManager::GetInstance()->GetMainThreadPerFrameRes()->AllocateCommandBuffer
+	(
+		PhysicalDevice::QueueFamily::ALL_ROUND,
+		CommandPool::CBPersistancy::PERSISTANT,
+		CommandBuffer::CBLevel::SECONDARY
+	);;
 
 	pSecondaryCmd->StartSecondaryRecording(m_pRenderPass->GetRenderPass(), m_pPipeline->GetSubpassIndex(), pFrameBuffer);
 

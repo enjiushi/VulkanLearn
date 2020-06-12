@@ -9,6 +9,7 @@
 #include "../common/Enums.h"
 #include "../Maths/Vector3.h"
 #include "PerMaterialIndirectUniforms.h"
+#include "ResourceBarrierScheduler.h"
 
 #include "../vulkan/Buffer.h"
 
@@ -119,7 +120,12 @@ public:
 
 	virtual void SyncBufferData();
 
-	virtual void BeforeRenderPass(const std::shared_ptr<CommandBuffer>& pCmdBuf, uint32_t pingpong = 0);
+	virtual void BeforeRenderPass
+	(
+		const std::shared_ptr<CommandBuffer>& pCmdBuf, 
+		const std::shared_ptr<ResourceBarrierScheduler>& pScheduler, 
+		uint32_t pingpong = 0
+	);
 
 	virtual void Draw(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false) = 0;
 	virtual void DrawIndirect(const std::shared_ptr<CommandBuffer>& pCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0, bool overrideVP = false);
@@ -139,7 +145,7 @@ protected:
 	virtual void BindDescriptorSet(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 	virtual void BindMeshData(const std::shared_ptr<CommandBuffer>& pCmdBuffer);
 
-	virtual void AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong = 0) {}
+	virtual void ClaimResourceUsage(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<ResourceBarrierScheduler>& pScheduler, uint32_t pingpong = 0) {}
 
 	virtual void PrepareCommandBuffer(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, bool isCompute, uint32_t pingpong = 0, bool overrideVP = false);
 	virtual void CustomizeCommandBuffer(const std::shared_ptr<CommandBuffer>& pSecondaryCmdBuf, const std::shared_ptr<FrameBuffer>& pFrameBuffer, uint32_t pingpong = 0) {}

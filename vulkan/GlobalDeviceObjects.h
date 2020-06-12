@@ -21,27 +21,20 @@ class RenderPass;
 class GlobalDeviceObjects;
 
 GlobalDeviceObjects* GlobalObjects();
-std::shared_ptr<Queue> GlobalGraphicQueue();
-std::shared_ptr<Queue> GlobalComputeQueue();
-std::shared_ptr<Queue> GlobalTransferQueue();
-std::shared_ptr<Queue> GlobalPresentQueue();
-std::shared_ptr<CommandPool> MainThreadGraphicPool();
-std::shared_ptr<CommandPool> MainThreadComputePool();
-std::shared_ptr<CommandPool> MainThreadTransferPool();
-std::shared_ptr<DeviceMemoryManager> DeviceMemMgr();
-std::shared_ptr<StagingBufferManager> StagingBufferMgr();
-std::shared_ptr<SwapChain> GetSwapChain();
-std::shared_ptr<Device> GetDevice();
+const std::shared_ptr<CommandPool>& MainThreadCommandPool(PhysicalDevice::QueueFamily queueFamily);
+const std::shared_ptr<DeviceMemoryManager>& DeviceMemMgr();
+const std::shared_ptr<StagingBufferManager>& StagingBufferMgr();
+const std::shared_ptr<SwapChain>& GetSwapChain();
+const std::shared_ptr<Device>& GetDevice();
 std::shared_ptr<PhysicalDevice> GetPhysicalDevice();
-std::shared_ptr<SharedBufferManager> VertexAttribBufferMgr(uint32_t vertexFormat);
-std::shared_ptr<SharedBufferManager> IndexBufferMgr();
-std::shared_ptr<SharedBufferManager> UniformBufferMgr();
-std::shared_ptr<SharedBufferManager> ShaderStorageBufferMgr();
-std::shared_ptr<SharedBufferManager> IndirectBufferMgr();
-std::shared_ptr<SharedBufferManager> StreamingBufferMgr();
-std::shared_ptr<ThreadTaskQueue> GlobalThreadTaskQueue();
-std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates();
-std::shared_ptr<PerFrameResource> MainThreadPerFrameRes();
+const std::shared_ptr<SharedBufferManager>& VertexAttribBufferMgr(uint32_t vertexFormat);
+const std::shared_ptr<SharedBufferManager>& IndexBufferMgr();
+const std::shared_ptr<SharedBufferManager>& UniformBufferMgr();
+const std::shared_ptr<SharedBufferManager>& ShaderStorageBufferMgr();
+const std::shared_ptr<SharedBufferManager>& IndirectBufferMgr();
+const std::shared_ptr<SharedBufferManager>& StreamingBufferMgr();
+const std::shared_ptr<ThreadTaskQueue>& GlobalThreadTaskQueue();
+const std::shared_ptr<GlobalVulkanStates>& GetGlobalVulkanStates();
 
 class GlobalDeviceObjects : public Singleton<GlobalDeviceObjects>
 {
@@ -51,38 +44,28 @@ public:
 	~GlobalDeviceObjects();
 
 public:
-	const std::shared_ptr<Device> GetDevice() const { return m_pDevice; }
-	const std::shared_ptr<Queue> GetGraphicQueue() const { return m_pGraphicQueue; }
-	const std::shared_ptr<Queue> GetComputeQueue() const { return m_pComputeQueue; }
-	const std::shared_ptr<Queue> GetTransferQueue() const { return m_pTransferQueue; }
-	const std::shared_ptr<Queue> GetPresentQueue() const { return m_pPresentQueue; }
-	const std::shared_ptr<CommandPool> GetMainThreadGraphicCmdPool() const { return m_pMainThreadGraphicCmdPool; }
-	const std::shared_ptr<CommandPool> GetMainThreadComputeCmdPool() const { return m_pMainThreadComputeCmdPool; }
-	const std::shared_ptr<CommandPool> GetMainThreadTransferCmdPool() const { return m_pMainThreadTransferCmdPool; }
-	const std::shared_ptr<DeviceMemoryManager> GetDeviceMemMgr() const { return m_pDeviceMemMgr; }
-	const std::shared_ptr<StagingBufferManager> GetStagingBufferMgr() const { return m_pStaingBufferMgr; }
-	const std::shared_ptr<SwapChain> GetSwapChain() const { return m_pSwapChain; }
-	const std::shared_ptr<SharedBufferManager> GetVertexAttribBufferMgr(uint32_t vertexFormat);
-	const std::shared_ptr<SharedBufferManager> GetIndexBufferMgr() const { return m_pIndexBufferMgr; }
-	const std::shared_ptr<SharedBufferManager> GetUniformBufferMgr() const { return m_pUniformBufferMgr; }
-	const std::shared_ptr<SharedBufferManager> GetShaderStorageBufferMgr() const { return m_pShaderStorageBufferMgr; }
-	const std::shared_ptr<SharedBufferManager> GetIndirectBufferMgr() const { return m_pIndirectBufferMgr; }
-	const std::shared_ptr<SharedBufferManager> GetStreamingBufferMgr() const { return m_pStreamingBufferMgr; }
-	const std::shared_ptr<ThreadTaskQueue> GetThreadTaskQueue() const { return m_pThreadTaskQueue; }
-	const std::shared_ptr<GlobalVulkanStates> GetGlobalVulkanStates() const { return m_pGlobalVulkanStates; }
+	const std::shared_ptr<Device>& GetDevice() const { return m_pDevice; }
+	const std::shared_ptr<Queue>& GetQueue(PhysicalDevice::QueueFamily queueFamily) const { return m_queues[(uint32_t)queueFamily]; }
+	const std::shared_ptr<CommandPool>& GetMainThreadCommandPool(PhysicalDevice::QueueFamily queueFamily) { return m_pMainThreadCommandPools[(uint32_t)queueFamily]; }
+	const std::shared_ptr<DeviceMemoryManager>& GetDeviceMemMgr() const { return m_pDeviceMemMgr; }
+	const std::shared_ptr<StagingBufferManager>& GetStagingBufferMgr() const { return m_pStaingBufferMgr; }
+	const std::shared_ptr<SwapChain>& GetSwapChain() const { return m_pSwapChain; }
+	const std::shared_ptr<SharedBufferManager>& GetVertexAttribBufferMgr(uint32_t vertexFormat);
+	const std::shared_ptr<SharedBufferManager>& GetIndexBufferMgr() const { return m_pIndexBufferMgr; }
+	const std::shared_ptr<SharedBufferManager>& GetUniformBufferMgr() const { return m_pUniformBufferMgr; }
+	const std::shared_ptr<SharedBufferManager>& GetShaderStorageBufferMgr() const { return m_pShaderStorageBufferMgr; }
+	const std::shared_ptr<SharedBufferManager>& GetIndirectBufferMgr() const { return m_pIndirectBufferMgr; }
+	const std::shared_ptr<SharedBufferManager>& GetStreamingBufferMgr() const { return m_pStreamingBufferMgr; }
+	const std::shared_ptr<ThreadTaskQueue>& GetThreadTaskQueue() const { return m_pThreadTaskQueue; }
+	const std::shared_ptr<GlobalVulkanStates>& GetGlobalVulkanStates() const { return m_pGlobalVulkanStates; }
 
 	//FIXME : remove me
 	bool RequestAttributeBuffer(uint32_t size, uint32_t& offset);
 
 protected:
 	std::shared_ptr<Device>					m_pDevice;
-	std::shared_ptr<Queue>					m_pGraphicQueue;
-	std::shared_ptr<Queue>					m_pComputeQueue;
-	std::shared_ptr<Queue>					m_pTransferQueue;
-	std::shared_ptr<Queue>					m_pPresentQueue;
-	std::shared_ptr<CommandPool>			m_pMainThreadGraphicCmdPool;
-	std::shared_ptr<CommandPool>			m_pMainThreadComputeCmdPool;
-	std::shared_ptr<CommandPool>			m_pMainThreadTransferCmdPool;
+	std::shared_ptr<Queue>					m_queues[(uint32_t)PhysicalDevice::QueueFamily::COUNT];
+	std::shared_ptr<CommandPool>			m_pMainThreadCommandPools[(uint32_t)PhysicalDevice::QueueFamily::COUNT];
 	std::shared_ptr<DeviceMemoryManager>	m_pDeviceMemMgr;
 
 	std::shared_ptr<StagingBufferManager>	m_pStaingBufferMgr;

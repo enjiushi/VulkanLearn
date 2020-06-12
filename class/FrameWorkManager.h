@@ -66,7 +66,7 @@ public:
 
 	void WaitForAllJobsDone();
 
-	const std::shared_ptr<PerFrameResource> GetMainThreadPerFrameRes() const;
+	const std::shared_ptr<PerFrameResource>& GetMainThreadPerFrameRes() const;
 
 protected:
 	std::shared_ptr<Fence> GetCurrentFrameFence() const { return m_frameFences[m_currentFrameIndex]; }

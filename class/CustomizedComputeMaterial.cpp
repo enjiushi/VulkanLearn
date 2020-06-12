@@ -92,80 +92,49 @@ void CustomizedComputeMaterial::AfterRenderPass(const std::shared_ptr<CommandBuf
 	m_variables.customFunctionAfterDispatch(pCmdBuf, pingpong);
 }
 
-void CustomizedComputeMaterial::AssembleBarrier(const TextureUnit& textureUnit, uint32_t textureIndex, BarrierInsertionPoint barrierInsertPoint, VkImageMemoryBarrier& barrier, VkImageSubresourceRange& subresRange)
+void CustomizedComputeMaterial::ClaimResourceUsage(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<ResourceBarrierScheduler>& pScheduler, uint32_t pingpong)
 {
-	subresRange = {};
-	subresRange.aspectMask		= textureUnit.aspectMask;
-	subresRange.baseMipLevel	= textureUnit.textureSubresRange.x;
-	subresRange.levelCount		= textureUnit.textureSubresRange.y;
-	subresRange.baseArrayLayer	= textureUnit.textureSubresRange.z;
-	subresRange.layerCount		= textureUnit.textureSubresRange.w;
-
-	barrier = {};
-	barrier.sType				= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barrier.image				= textureUnit.textures[textureIndex].pImage->GetDeviceHandle();
-	barrier.subresourceRange	= subresRange;
-	barrier.oldLayout			= textureUnit.textureBarrier[barrierInsertPoint].oldImageLayout;
-	barrier.srcAccessMask		= textureUnit.textureBarrier[barrierInsertPoint].srcAccessFlags;
-	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.newLayout			= textureUnit.textureBarrier[barrierInsertPoint].newImageLayout;
-	barrier.dstAccessMask		= textureUnit.textureBarrier[barrierInsertPoint].dstAccessFlags;
-	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-}
-
-void CustomizedComputeMaterial::AttachResourceBarriers(const std::shared_ptr<CommandBuffer>& pCmdBuffer, BarrierInsertionPoint barrierInsertionPoint, uint32_t pingpong)
-{
-	std::vector<VkImageMemoryBarrier> barriers;
-	VkPipelineStageFlags srcStages = 0;
-	VkPipelineStageFlags dstStages = 0;
-	VkImageMemoryBarrier imgBarrier;
-	VkImageSubresourceRange subresourceRange;
+	if (pScheduler == nullptr)
+		return;
 
 	for (auto textureUnit : m_variables.textureUnits)
 	{
-		// Skip barrier construction if current texture unit don't want one
-		if (textureUnit.textureBarrier[barrierInsertionPoint].enableBarrier == false)
-			continue;
-
-		if (textureUnit.textureSelector == TextureUnit::BY_FRAME)
-		{ 
-			AssembleBarrier(textureUnit, FrameWorkManager::GetInstance()->FrameIndex(), barrierInsertionPoint, imgBarrier, subresourceRange);
-			barriers.push_back(imgBarrier);
-		}
-		else if (textureUnit.textureSelector == TextureUnit::BY_PINGPONG)
-		{
-			AssembleBarrier(textureUnit, pingpong, barrierInsertionPoint, imgBarrier, subresourceRange);
-			barriers.push_back(imgBarrier);
-		}
-		else if (textureUnit.textureSelector == TextureUnit::BY_NEXTPINGPONG)
-		{
-			AssembleBarrier(textureUnit, (pingpong + 1) % 2, barrierInsertionPoint, imgBarrier, subresourceRange);
-			barriers.push_back(imgBarrier);
-		}
-		else if (textureUnit.textureSelector == TextureUnit::ALL)
+		if (textureUnit.textureSelector == TextureUnit::ALL)
 		{
 			for (uint32_t i = 0; i < (uint32_t)textureUnit.textures.size(); i++)
 			{
-				AssembleBarrier(textureUnit, i, barrierInsertionPoint, imgBarrier, subresourceRange);
-				barriers.push_back(imgBarrier);
+				pScheduler->ClaimResourceUsage
+				(
+					pCmdBuffer,
+					textureUnit.textures[i].pImage,
+					textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstPipelineStages,
+					textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].newImageLayout,
+					textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstAccessFlags
+				);
 			}
 		}
+		else
+		{
+			uint32_t textureIndex;
+			if (textureUnit.textureSelector == TextureUnit::BY_FRAME)
+				textureIndex = FrameWorkManager::GetInstance()->FrameIndex();
+			else if (textureUnit.textureSelector == TextureUnit::BY_PINGPONG)
+				textureIndex = pingpong;
+			else if (textureUnit.textureSelector == TextureUnit::BY_NEXTPINGPONG)
+				textureIndex = (pingpong + 1) % 2;
+			else
+				ASSERTION(false);
 
-		srcStages |= textureUnit.textureBarrier[barrierInsertionPoint].srcPipelineStages;
-		dstStages |= textureUnit.textureBarrier[barrierInsertionPoint].dstPipelineStages;
+			pScheduler->ClaimResourceUsage
+			(
+				pCmdBuffer,
+				textureUnit.textures[textureIndex].pImage,
+				textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstPipelineStages,
+				textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].newImageLayout,
+				textureUnit.textureBarrier[BarrierInsertionPoint::BEFORE_DISPATCH].dstAccessFlags
+			);
+		}
 	}
-
-	if (barriers.size() == 0)
-		return;
-
-	pCmdBuffer->AttachBarriers
-	(
-		srcStages,
-		dstStages,
-		{},
-		{},
-		barriers
-	);
 }
 
 void CustomizedComputeMaterial::UpdatePushConstantDataInternal(const void* pData, uint32_t offset, uint32_t size)

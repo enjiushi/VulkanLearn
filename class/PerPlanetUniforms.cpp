@@ -293,17 +293,17 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 	std::shared_ptr<Material> pMaterial = CustomizedComputeMaterial::CreateMaterial(vars);
 
 	// Recording
-	std::shared_ptr<CommandBuffer> pCommandBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();;
+	std::shared_ptr<CommandBuffer> pCommandBuffer = MainThreadCommandPool(PhysicalDevice::QueueFamily::ALL_ROUND)->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 	pCommandBuffer->StartPrimaryRecording();
 
-	pMaterial->BeforeRenderPass(pCommandBuffer);
+	pMaterial->BeforeRenderPass(pCommandBuffer, nullptr);
 	pMaterial->Dispatch(pCommandBuffer);
 	pMaterial->AfterRenderPass(pCommandBuffer);
 
 	pCommandBuffer->EndPrimaryRecording();
 
 	// Do the job
-	GlobalGraphicQueue()->SubmitCommandBuffer(pCommandBuffer, nullptr, true);
+	GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::ALL_ROUND)->SubmitCommandBuffer(pCommandBuffer, nullptr, true);
 }
 
 std::vector<UniformVarList> PerPlanetUniforms::PrepareUniformVarList() const

@@ -68,19 +68,24 @@ bool PhysicalDevice::Init(const std::shared_ptr<Instance>& pVulkanInstance, HINS
 		}
 	}
 
-	m_graphicQueueIndex = -1;
+	m_queueFamilyIndices[(uint32_t)QueueFamily::ALL_ROUND] = -1;
 	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
 	{
-		if (m_queueProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		// I assume default graphic queue provides present, compute and transfer too
+		// Maybe this needs to change in future
+		// I'll leave it for now
+		if ((m_queueProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
+			(m_queueProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) &&
+			(m_queueProperties[i].queueFlags & VK_QUEUE_TRANSFER_BIT))
 		{
-			m_graphicQueueIndex = i;
+			m_queueFamilyIndices[(uint32_t)QueueFamily::ALL_ROUND] = i;
 			break;
 		}
 	}
 
-	ASSERTION(m_graphicQueueIndex != -1);
+	ASSERTION(m_queueFamilyIndices[(uint32_t)QueueFamily::ALL_ROUND] != -1);
 
-	m_computeQueueIndex = -1;
+	m_queueFamilyIndices[(uint32_t)QueueFamily::COMPUTE] = -1;
 
 	// Find a dedicated compute queue
 	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
@@ -93,27 +98,27 @@ bool PhysicalDevice::Init(const std::shared_ptr<Instance>& pVulkanInstance, HINS
 		// That is, without graphic flag
 		if ((m_queueProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && !(m_queueProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT))
 		{
-			m_computeQueueIndex = i;
+			m_queueFamilyIndices[(uint32_t)QueueFamily::COMPUTE] = i;
 			break;
 		}
 	}
 
 	// No dedicated compute queue? Alright then, get one family that is capable of dealing with compute
-	if (m_computeQueueIndex == -1)
+	if (m_queueFamilyIndices[(uint32_t)QueueFamily::COMPUTE] == -1)
 	{
 		for (uint32_t i = 0; i < m_queueProperties.size(); i++)
 		{
 			if (m_queueProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
 			{
-				m_computeQueueIndex = i;
+				m_queueFamilyIndices[(uint32_t)QueueFamily::COMPUTE] = i;
 				break;
 			}
 		}
 	}
 
-	ASSERTION(m_computeQueueIndex != -1);
+	ASSERTION(m_queueFamilyIndices[(uint32_t)QueueFamily::COMPUTE] != -1);
 
-	m_transferQueueIndex = -1;
+	m_queueFamilyIndices[(uint32_t)QueueFamily::TRASFER] = -1;
 
 	// Find a dedicated transfer queue
 	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
@@ -128,25 +133,25 @@ bool PhysicalDevice::Init(const std::shared_ptr<Instance>& pVulkanInstance, HINS
 			!(m_queueProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
 			!(m_queueProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT))
 		{
-			m_transferQueueIndex = i;
+			m_queueFamilyIndices[(uint32_t)QueueFamily::TRASFER] = i;
 			break;
 		}
 	}
 
 	// No dedicated transfer queue? Alright then, get one family that is capable of dealing with transfer
-	if (m_transferQueueIndex == -1)
+	if (m_queueFamilyIndices[(uint32_t)QueueFamily::TRASFER] == -1)
 	{
 		for (uint32_t i = 0; i < m_queueProperties.size(); i++)
 		{
 			if (m_queueProperties[i].queueFlags & VK_QUEUE_TRANSFER_BIT)
 			{
-				m_transferQueueIndex = i;
+				m_queueFamilyIndices[(uint32_t)QueueFamily::TRASFER] = i;
 				break;
 			}
 		}
 	}
 
-	ASSERTION(m_transferQueueIndex != -1);
+	ASSERTION(m_queueFamilyIndices[(uint32_t)QueueFamily::TRASFER] != -1);
 
 	GET_INSTANCE_PROC_ADDR(pVulkanInstance->GetDeviceHandle(), GetPhysicalDeviceSurfaceCapabilitiesKHR);
 	GET_INSTANCE_PROC_ADDR(pVulkanInstance->GetDeviceHandle(), GetPhysicalDeviceSurfaceFormatsKHR);
@@ -177,17 +182,21 @@ bool PhysicalDevice::Init(const std::shared_ptr<Instance>& pVulkanInstance, HINS
 		RETURN_FALSE_VK_RESULT(m_fpGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice, i, m_surface, &supports[i]));
 	}
 
-	m_presentQueueIndex = -1;
+	// Assume all-round queue family is capable of present
+#if defined(_DEBUG)
+	uint32_t presentQueueIndex = -1;
 	for (uint32_t i = 0; i < m_queueProperties.size(); i++)
 	{
 		if (supports[i])
 		{
-			m_presentQueueIndex = i;
+			presentQueueIndex = i;
 			break;
 		}
 	}
+#endif
 
-	ASSERTION(m_presentQueueIndex != -1);
+	ASSERTION(presentQueueIndex != -1);
+	ASSERTION(presentQueueIndex == m_queueFamilyIndices[(uint32_t)QueueFamily::ALL_ROUND]);
 
 	uint32_t formatCount;
 	RETURN_FALSE_VK_RESULT(m_fpGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, nullptr));

@@ -20,6 +20,13 @@ class CommandBuffer : public DeviceObjectBase<CommandBuffer>
 public:
 	static const uint32_t MAX_INDIRECT_DRAW_COUNT = 256;
 
+	enum class CBLevel
+	{
+		PRIMARY,
+		SECONDARY,
+		COUNT
+	};
+
 public:
 	typedef struct _DrawCmdData
 	{
@@ -68,6 +75,8 @@ public:
 	VkCommandBuffer GetDeviceHandle() const { return m_commandBuffer; }
 	VkCommandBufferAllocateInfo GetAllocateInfo() const { return m_info; }
 	std::shared_ptr<CommandPool> GetCommandPool() const { return m_pCommandPool; }
+
+	CBLevel GetCommandBufferLevel() const { return m_level; }
 
 	void StartPrimaryRecording();
 	void EndPrimaryRecording();
@@ -119,7 +128,7 @@ public:
 	void Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 
 protected:
-	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, VkCommandBufferLevel cmdBufferLevel);
+	static std::shared_ptr<CommandBuffer> Create(const std::shared_ptr<Device>& pDevice, const std::shared_ptr<CommandPool>& pCmdPool, CBLevel level);
 
 protected:
 	bool IsValide() const { m_isValide; }
@@ -138,14 +147,16 @@ protected:
 	void IssueBarriersAfterCopy(const std::shared_ptr<Image>& pSrc, const std::shared_ptr<Image>& pDst, const VkImageSubresourceLayers& srcLayers, const VkImageSubresourceLayers& dstLayers, VkPipelineStageFlags extraDstStages = 0);
 
 private:
-	VkCommandBuffer									m_commandBuffer;
-	VkCommandBufferAllocateInfo						m_info;
-	bool											m_isValide;
+	VkCommandBuffer					m_commandBuffer;
+	VkCommandBufferAllocateInfo		m_info;
+	bool							m_isValide;
 
-	std::shared_ptr<CommandPool>					m_pCommandPool;
+	std::shared_ptr<CommandPool>	m_pCommandPool;
 
-	DrawCmdData										m_drawCmdData;
-	BufferCopyCmdData								m_bufferCopyCmdData;
+	DrawCmdData						m_drawCmdData;
+	BufferCopyCmdData				m_bufferCopyCmdData;
+
+	CBLevel							m_level;
 
 	friend class CommandPool;
 };

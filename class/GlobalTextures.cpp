@@ -11,7 +11,6 @@
 #include "../vulkan/Fence.h"
 #include "../vulkan/SwapChainImage.h"
 #include "../vulkan/SwapChain.h"
-#include "../vulkan/PerFrameResource.h"
 #include "../vulkan/Semaphore.h"
 #include "FrameWorkManager.h"
 #include "../class/RenderWorkManager.h"
@@ -27,6 +26,7 @@
 #include "Material.h"
 #include "ForwardMaterial.h"
 #include "ComputeMaterialFactory.h"
+#include "PerFrameResource.h"
 #include "../Maths/Vector.h"
 #include "FrameBufferDiction.h"
 #include <random>
@@ -230,7 +230,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 	{
 		FrameWorkManager::GetInstance()->SubmitCommandBuffers
 		(
-			GlobalObjects()->GetComputeQueue(), 
+			GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::COMPUTE), 
 			{ m_pIBLGenCmdBuffer }, 
 			{}, 
 			{}, 
@@ -244,7 +244,12 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 	{
 		if (m_envGenState != EnvGenState::WAITING_FOR_COMPLETE)
 		{
-			m_pIBLGenCmdBuffer = pPerFrameRes->AllocateTransientComputeCommandBuffer();
+			m_pIBLGenCmdBuffer = pPerFrameRes->AllocateCommandBuffer
+			(
+				PhysicalDevice::QueueFamily::COMPUTE, 
+				CommandPool::CBPersistancy::TRANSIENT, 
+				CommandBuffer::CBLevel::PRIMARY
+			);
 			m_pIBLGenCmdBuffer->StartPrimaryRecording();
 		}
 
@@ -284,7 +289,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				sizeof(m_cubeFaces[m_envJobCounter]) + sizeof(Vector4f),
 				sizeof(m_wsMainLightDir)
 			);
-			m_pSkyboxGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer);
+			m_pSkyboxGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, nullptr);
 			m_pSkyboxGenMaterial->Dispatch(m_pIBLGenCmdBuffer);
 			m_pSkyboxGenMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
 
@@ -324,7 +329,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 			m_cubeFaces[faceID][2].w = (float)groupOffsetY * groupCountOneDispatchBorder * GROUP_SIZE;
 			m_cubeFaces[faceID][3].w = (float)m_envTexturePingpongIndex;
 			m_pIrradianceGenMaterial->UpdatePushConstantData(&m_cubeFaces[faceID][0], 0, sizeof(m_cubeFaces[faceID]));
-			m_pIrradianceGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer);
+			m_pIrradianceGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, nullptr);
 			m_pIrradianceGenMaterial->Dispatch(m_pIBLGenCmdBuffer);
 			m_pIrradianceGenMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
 
@@ -362,7 +367,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				m_cubeFaces[m_envJobCounter][1].w = i / (float)(mipLevels - 1);	// Roughness
 				m_cubeFaces[m_envJobCounter][3].w = (float)m_envTexturePingpongIndex;
 				pMaterial->UpdatePushConstantData(&m_cubeFaces[m_envJobCounter][0], 0, sizeof(m_cubeFaces[m_envJobCounter]));
-				pMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer);
+				pMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, nullptr);
 				pMaterial->Dispatch(m_pIBLGenCmdBuffer);
 				pMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
 			}
@@ -383,11 +388,11 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 
 					queueReleaseBarrier[i].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 					queueReleaseBarrier[i].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-					queueReleaseBarrier[i].srcQueueFamilyIndex = GlobalObjects()->GetComputeQueue()->GetQueueFamilyIndex();
+					queueReleaseBarrier[i].srcQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(PhysicalDevice::QueueFamily::COMPUTE);
 
 					queueReleaseBarrier[i].dstAccessMask = 0;
 					queueReleaseBarrier[i].newLayout = VK_IMAGE_LAYOUT_GENERAL;
-					queueReleaseBarrier[i].dstQueueFamilyIndex = GlobalObjects()->GetGraphicQueue()->GetQueueFamilyIndex();
+					queueReleaseBarrier[i].dstQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(PhysicalDevice::QueueFamily::ALL_ROUND);
 
 					queueReleaseBarrier[i].subresourceRange =
 					{
@@ -421,7 +426,12 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				m_envGenState = EnvGenState::SKYBOX_GEN;
 				m_envJobCounter = 0;
 
-				std::shared_ptr<CommandBuffer> pCmd = pPerFrameRes->AllocateTransientPrimaryCommandBuffer();
+				std::shared_ptr<CommandBuffer> pCmd = pPerFrameRes->AllocateCommandBuffer
+				(
+					PhysicalDevice::QueueFamily::ALL_ROUND,
+					CommandPool::CBPersistancy::TRANSIENT,
+					CommandBuffer::CBLevel::PRIMARY
+				);
 				pCmd->StartPrimaryRecording();
 				std::vector<VkImageMemoryBarrier> queueAcquireBarrier(IBLCubeTextureTypeCount);
 				for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
@@ -432,11 +442,11 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 
 					queueAcquireBarrier[i].srcAccessMask = 0;
 					queueAcquireBarrier[i].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-					queueAcquireBarrier[i].srcQueueFamilyIndex = GlobalObjects()->GetComputeQueue()->GetQueueFamilyIndex();
+					queueAcquireBarrier[i].srcQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(PhysicalDevice::QueueFamily::COMPUTE);
 
 					queueAcquireBarrier[i].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 					queueAcquireBarrier[i].newLayout = VK_IMAGE_LAYOUT_GENERAL;
-					queueAcquireBarrier[i].dstQueueFamilyIndex = GlobalObjects()->GetGraphicQueue()->GetQueueFamilyIndex();
+					queueAcquireBarrier[i].dstQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(PhysicalDevice::QueueFamily::ALL_ROUND);
 
 					queueAcquireBarrier[i].subresourceRange =
 					{
@@ -458,7 +468,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 
 				FrameWorkManager::GetInstance()->SubmitCommandBuffers
 				(
-					GlobalObjects()->GetGraphicQueue(), 
+					GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::ALL_ROUND), 
 					{ pCmd }, 
 					{}, 
 					{ VK_PIPELINE_STAGE_ALL_COMMANDS_BIT }, 
@@ -504,7 +514,7 @@ void GlobalTextures::GenerateBRDFLUTTexture()
 
 	RenderWorkManager::GetInstance()->SetRenderStateMask(RenderWorkManager::BrdfLutGen);
 
-	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadGraphicPool()->AllocatePrimaryCommandBuffer();
+	std::shared_ptr<CommandBuffer> pDrawCmdBuffer = MainThreadCommandPool(PhysicalDevice::QueueFamily::ALL_ROUND)->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 
 	std::vector<VkClearValue> clearValues =
 	{
@@ -537,7 +547,7 @@ void GlobalTextures::GenerateBRDFLUTTexture()
 	SceneGenerator::GetInstance()->GetMaterial0()->OnFrameBegin();
 	pDrawCmdBuffer->StartPrimaryRecording();
 
-	SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer);
+	SceneGenerator::GetInstance()->GetMaterial0()->BeforeRenderPass(pDrawCmdBuffer, nullptr);
 	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->BeginRenderPass(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]);
 	SceneGenerator::GetInstance()->GetMaterial0()->DrawScreenQuad(pDrawCmdBuffer, FrameBufferDiction::GetInstance()->GetFrameBuffer(FrameBufferDiction::FrameBufferType_EnvGenOffScreen));
 	RenderPassDiction::GetInstance()->GetForwardRenderPassOffScreen()->EndRenderPass(pDrawCmdBuffer);
@@ -546,7 +556,7 @@ void GlobalTextures::GenerateBRDFLUTTexture()
 	pDrawCmdBuffer->EndPrimaryRecording();
 	SceneGenerator::GetInstance()->GetMaterial0()->OnFrameEnd();
 
-	GlobalGraphicQueue()->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
+	GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::ALL_ROUND)->SubmitCommandBuffer(pDrawCmdBuffer, nullptr, true);
 
 	FrameBufferDiction::GetInstance()->GetFrameBuffers(FrameBufferDiction::FrameBufferType_EnvGenOffScreen)[0]->ExtractContent(m_IBL2DTextures[RGBA16_512_BRDFLut]);
 }
