@@ -399,6 +399,74 @@ void Image::PrepareBarriers
 	}
 }
 
+void Image::PrepareQueueReleaseBarrier
+(
+	VkAccessFlags				srcAccessFlags,
+	VkImageLayout				srcImageLayout,
+	PhysicalDevice::QueueFamily	srcQueueFamily,
+	PhysicalDevice::QueueFamily	dstQueueFamily,
+	std::vector<VkMemoryBarrier>&		memBarriers,
+	std::vector<VkBufferMemoryBarrier>&	bufferMemBarriers,
+	std::vector<VkImageMemoryBarrier>&	imageMemBarriers
+)
+{
+	VkImageMemoryBarrier queueReleaseBarrier;
+	queueReleaseBarrier = {};
+	queueReleaseBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	queueReleaseBarrier.image = GetDeviceHandle();
+
+	queueReleaseBarrier.srcAccessMask = srcAccessFlags;
+	queueReleaseBarrier.oldLayout = srcImageLayout;
+	queueReleaseBarrier.srcQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(srcQueueFamily);
+
+	queueReleaseBarrier.dstAccessMask = 0;
+	queueReleaseBarrier.newLayout = srcImageLayout;
+	queueReleaseBarrier.dstQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(dstQueueFamily);
+
+	queueReleaseBarrier.subresourceRange =
+	{
+		VK_IMAGE_ASPECT_COLOR_BIT,
+		0, m_info.mipLevels,
+		0, m_info.arrayLayers
+	};
+
+	imageMemBarriers.push_back(queueReleaseBarrier);
+}
+
+void Image::PrepareQueueAcquireBarrier
+(
+	VkAccessFlags				dstAccessFlags,
+	VkImageLayout				dstImageLayout,
+	PhysicalDevice::QueueFamily	srcQueueFamily,
+	PhysicalDevice::QueueFamily	dstQueueFamily,
+	std::vector<VkMemoryBarrier>&		memBarriers,
+	std::vector<VkBufferMemoryBarrier>&	bufferMemBarriers,
+	std::vector<VkImageMemoryBarrier>&	imageMemBarriers
+)
+{
+	VkImageMemoryBarrier queueAcquireBarrier;
+	queueAcquireBarrier = {};
+	queueAcquireBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	queueAcquireBarrier.image = GetDeviceHandle();
+
+	queueAcquireBarrier.srcAccessMask = 0;
+	queueAcquireBarrier.oldLayout = dstImageLayout;
+	queueAcquireBarrier.srcQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(srcQueueFamily);
+
+	queueAcquireBarrier.dstAccessMask = dstAccessFlags;
+	queueAcquireBarrier.newLayout = dstImageLayout;
+	queueAcquireBarrier.dstQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(dstQueueFamily);
+
+	queueAcquireBarrier.subresourceRange =
+	{
+		VK_IMAGE_ASPECT_COLOR_BIT,
+		0, m_info.mipLevels,
+		0, m_info.arrayLayers
+	};
+
+	imageMemBarriers.push_back(queueAcquireBarrier);
+}
+
 std::shared_ptr<StagingBuffer> Image::PrepareStagingBuffer(const GliImageWrapper& gliTex, const std::shared_ptr<CommandBuffer>& pCmdBuffer)
 {
 	// Get total bytes of texture vector

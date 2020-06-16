@@ -7,6 +7,7 @@
 #include "../vulkan/Queue.h"
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/Image.h"
+#include "ResourceBarrierScheduler.h"
 #include "GlobalTextures.h"
 #include "UniformData.h"
 #include "Material.h"
@@ -132,12 +133,19 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 	data.push_back(*((uint8_t*)&chunkIndex + 2));
 	data.push_back(*((uint8_t*)&chunkIndex + 3));
 
+	std::shared_ptr<ResourceBarrierScheduler> pScheduler = ResourceBarrierScheduler::Create();
+
 	// Precompute required data for atmosphere rendering
 	// 1. Transmittance
 	PreComputeAtmosphereData
 	(
 		L"../data/shaders/transmittance_gen.comp.spv", 
+		pScheduler,
 		{ 16, 4, 1 }, 
+
+		{
+		},
+
 		{
 			UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex)
 		},
@@ -149,7 +157,11 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 	PreComputeAtmosphereData
 	(
 		L"../data/shaders/single_scatter_gen.comp.spv",
-		{ 16, 8, 8 },
+		pScheduler,
+		{ 16, 8, 8 }, 
+		{
+			UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex)
+		},
 		{
 			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaRayleigh(),
 			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaMie(),
@@ -163,7 +175,11 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 	PreComputeAtmosphereData
 	(
 		L"../data/shaders/direct_irradiance.comp.spv", 
-		{ 4, 1, 1 },
+		pScheduler,
+		{ 4, 1, 1 }, 
+		{
+			UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex)
+		},
 		{
 			UniformData::GetInstance()->GetGlobalTextures()->GetDeltaIrradiance(),
 			UniformData::GetInstance()->GetGlobalTextures()->GetIrradianceTextureDiction(chunkIndex)
@@ -185,7 +201,15 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		PreComputeAtmosphereData
 		(
 			L"../data/shaders/delta_rayleigh_mie_gen.comp.spv",
-			{ 16, 8, 8 },
+			pScheduler,
+			{ 16, 8, 8 }, 
+			{
+				UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex),
+				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaRayleigh(),
+				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaMie(),
+				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaMultiScatter(),
+				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaIrradiance()
+			},
 			{
 				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaScatterDensity()
 			},
@@ -203,7 +227,13 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		PreComputeAtmosphereData
 		(
 			L"../data/shaders/indirect_irradiance_gen.comp.spv",
-			{ 4, 1, 1 },
+			pScheduler,
+			{ 4, 1, 1 }, 
+			{
+				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaRayleigh(),
+				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaMie(),
+				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaMultiScatter()
+			},
 			{
 				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaIrradiance(),
 				UniformData::GetInstance()->GetGlobalTextures()->GetIrradianceTextureDiction(chunkIndex)
@@ -221,7 +251,12 @@ uint32_t PerPlanetUniforms::AllocatePlanetChunk()
 		PreComputeAtmosphereData
 		(
 			L"../data/shaders/multi_scatter_gen.comp.spv",
-			{ 16, 8, 8 },
+			pScheduler,
+			{ 16, 8, 8 }, 
+			{
+				UniformData::GetInstance()->GetGlobalTextures()->GetTransmittanceTextureDiction(chunkIndex),
+				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaScatterDensity()
+			},
 			{
 				UniformData::GetInstance()->GetGlobalTextures()->GetDeltaMultiScatter(),
 				UniformData::GetInstance()->GetGlobalTextures()->GetScatterTextureDiction(chunkIndex)
@@ -240,17 +275,26 @@ void PerPlanetUniforms::UpdateDirtyChunkInternal(uint32_t index)
 {
 }
 
-void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::vector<std::shared_ptr<Image>>& textures, const std::vector<uint8_t>& data, uint32_t chunkIndex)
+void PerPlanetUniforms::PreComputeAtmosphereData
+(
+	const std::wstring& shaderPath,
+	const std::shared_ptr<ResourceBarrierScheduler>& pScheduler,
+	const Vector3ui& groupSize,
+	const std::vector<std::shared_ptr<Image>>& inputTextures,
+	const std::vector<std::shared_ptr<Image>>& outputTextures,
+	const std::vector<uint8_t>& data,
+	uint32_t chunkIndex
+)
 {
 	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
-	for (uint32_t i = 0; i < (uint32_t)textures.size(); i++)
+	for (uint32_t i = 0; i < (uint32_t)outputTextures.size(); i++)
 	{
 		textureUnits.push_back
 		(
 			{
 				i,
 
-				{ {textures[i], textures[i]->CreateLinearClampToEdgeSampler(), textures[i]->CreateDefaultImageView()} },
+				{ { outputTextures[i], outputTextures[i]->CreateLinearClampToEdgeSampler(), outputTextures[i]->CreateDefaultImageView()} },
 				VK_IMAGE_ASPECT_COLOR_BIT,
 				{ 0, 1, chunkIndex, 1 },
 				true,
@@ -258,26 +302,9 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 				CustomizedComputeMaterial::TextureUnit::ALL,
 
 				{
-					{
-						true,
-						VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-						textures[i]->GetImageInfo().initialLayout,
-						VK_ACCESS_SHADER_READ_BIT,
-
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_WRITE_BIT
-					},
-					{
-						true,
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_WRITE_BIT,
-
-						VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-						textures[i]->GetImageInfo().initialLayout,
-						VK_ACCESS_SHADER_READ_BIT
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT
 				}
 			}
 		);
@@ -296,7 +323,19 @@ void PerPlanetUniforms::PreComputeAtmosphereData(const std::wstring& shaderPath,
 	std::shared_ptr<CommandBuffer> pCommandBuffer = MainThreadCommandPool(PhysicalDevice::QueueFamily::ALL_ROUND)->AllocateCommandBuffer(CommandBuffer::CBLevel::PRIMARY);
 	pCommandBuffer->StartPrimaryRecording();
 
-	pMaterial->BeforeRenderPass(pCommandBuffer, nullptr);
+	for (uint32_t i = 0; i < (uint32_t)inputTextures.size(); i++)
+	{
+		pScheduler->ClaimResourceUsage
+		(
+			pCommandBuffer,
+			inputTextures[i],
+			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+			VK_IMAGE_LAYOUT_GENERAL,
+			VK_ACCESS_SHADER_READ_BIT
+		);
+	}
+
+	pMaterial->BeforeRenderPass(pCommandBuffer, pScheduler);
 	pMaterial->Dispatch(pCommandBuffer);
 	pMaterial->AfterRenderPass(pCommandBuffer);
 

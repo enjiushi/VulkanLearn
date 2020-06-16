@@ -12,14 +12,9 @@ class CustomizedComputeMaterial : public Material
 public:
 	typedef struct _TextureBarrier
 	{
-		bool								enableBarrier;
-		VkPipelineStageFlags				srcPipelineStages;
-		VkImageLayout						oldImageLayout;
-		VkAccessFlags						srcAccessFlags;
-
-		VkPipelineStageFlags				dstPipelineStages;
-		VkImageLayout						newImageLayout;
-		VkAccessFlags						dstAccessFlags;
+		VkPipelineStageFlags				pipelineStages;
+		VkImageLayout						imageLayout;
+		VkAccessFlags						accessFlags;
 	}TextureBarrier;
 
 	typedef struct _TextureUnit
@@ -42,7 +37,7 @@ public:
 			COUNT
 		}textureSelector;
 
-		TextureBarrier						textureBarrier[Material::BarrierInsertionPoint::COUNT];
+		TextureBarrier						textureBarrier;
 
 	}TextureUnit;
 
@@ -77,8 +72,6 @@ protected:
 	void ClaimResourceUsage(const std::shared_ptr<CommandBuffer>& pCmdBuffer, const std::shared_ptr<ResourceBarrierScheduler>& pScheduler, uint32_t pingpong = 0) override;
 
 	void UpdatePushConstantDataInternal(const void* pData, uint32_t offset, uint32_t size) override;
-
-	static void AssembleBarrier(const TextureUnit& textureUnit, uint32_t textureIndex, BarrierInsertionPoint barrierInsertPoint, VkImageMemoryBarrier& barrier, VkImageSubresourceRange& subresRange);
 
 private:
 	Variables	m_variables;

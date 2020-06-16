@@ -15,6 +15,7 @@
 #include "FrameWorkManager.h"
 #include "../class/RenderWorkManager.h"
 #include "../class/Mesh.h"
+#include "ResourceBarrierScheduler.h"
 #include "../component/MeshRenderer.h"
 #include "../Base/BaseObject.h"
 #include "../scene/SceneGenerator.h"
@@ -222,6 +223,7 @@ void GlobalTextures::InitSkyboxGenParameters()
 	m_envTexturePingpongIndex = 0;
 	m_envGenState = EnvGenState::SKYBOX_GEN;
 	m_lastEnvGenState = EnvGenState::SKYBOX_GEN;
+	m_pScheduler = ResourceBarrierScheduler::Create();
 }
 
 void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
@@ -289,7 +291,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				sizeof(m_cubeFaces[m_envJobCounter]) + sizeof(Vector4f),
 				sizeof(m_wsMainLightDir)
 			);
-			m_pSkyboxGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, nullptr);
+			m_pSkyboxGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, m_pScheduler);
 			m_pSkyboxGenMaterial->Dispatch(m_pIBLGenCmdBuffer);
 			m_pSkyboxGenMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
 
@@ -329,7 +331,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 			m_cubeFaces[faceID][2].w = (float)groupOffsetY * groupCountOneDispatchBorder * GROUP_SIZE;
 			m_cubeFaces[faceID][3].w = (float)m_envTexturePingpongIndex;
 			m_pIrradianceGenMaterial->UpdatePushConstantData(&m_cubeFaces[faceID][0], 0, sizeof(m_cubeFaces[faceID]));
-			m_pIrradianceGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, nullptr);
+			m_pIrradianceGenMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, m_pScheduler);
 			m_pIrradianceGenMaterial->Dispatch(m_pIBLGenCmdBuffer);
 			m_pIrradianceGenMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
 
@@ -367,7 +369,7 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				m_cubeFaces[m_envJobCounter][1].w = i / (float)(mipLevels - 1);	// Roughness
 				m_cubeFaces[m_envJobCounter][3].w = (float)m_envTexturePingpongIndex;
 				pMaterial->UpdatePushConstantData(&m_cubeFaces[m_envJobCounter][0], 0, sizeof(m_cubeFaces[m_envJobCounter]));
-				pMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, nullptr);
+				pMaterial->BeforeRenderPass(m_pIBLGenCmdBuffer, m_pScheduler);
 				pMaterial->Dispatch(m_pIBLGenCmdBuffer);
 				pMaterial->AfterRenderPass(m_pIBLGenCmdBuffer);
 			}
@@ -379,37 +381,16 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 				m_envGenState = EnvGenState::WAITING_FOR_COMPLETE;
 				m_envJobCounter = 0;
 
-				std::vector<VkImageMemoryBarrier> queueReleaseBarrier(IBLCubeTextureTypeCount);
 				for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
 				{
-					queueReleaseBarrier[i] = {};
-					queueReleaseBarrier[i].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-					queueReleaseBarrier[i].image = m_IBLCubeTextures[i][m_envTexturePingpongIndex]->GetDeviceHandle();
-
-					queueReleaseBarrier[i].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-					queueReleaseBarrier[i].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-					queueReleaseBarrier[i].srcQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(PhysicalDevice::QueueFamily::COMPUTE);
-
-					queueReleaseBarrier[i].dstAccessMask = 0;
-					queueReleaseBarrier[i].newLayout = VK_IMAGE_LAYOUT_GENERAL;
-					queueReleaseBarrier[i].dstQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(PhysicalDevice::QueueFamily::ALL_ROUND);
-
-					queueReleaseBarrier[i].subresourceRange =
-					{
-						VK_IMAGE_ASPECT_COLOR_BIT,
-						0, m_IBLCubeTextures[i][m_envTexturePingpongIndex]->GetImageInfo().mipLevels,
-						0, m_IBLCubeTextures[i][m_envTexturePingpongIndex]->GetImageInfo().arrayLayers
-					};
+					m_pScheduler->ReleaseQueueOwnership
+					(
+						m_pIBLGenCmdBuffer,
+						m_IBLCubeTextures[i][m_envTexturePingpongIndex],
+						PhysicalDevice::QueueFamily::COMPUTE,
+						PhysicalDevice::QueueFamily::ALL_ROUND
+					);
 				}
-
-				m_pIBLGenCmdBuffer->AttachBarriers
-				(
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-					{},
-					{},
-					queueReleaseBarrier
-				);
 			}
 		}
 		// Wait for another circle to ensure last batch of generating work is done
@@ -432,38 +413,23 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 					CommandPool::CBPersistancy::TRANSIENT,
 					CommandBuffer::CBLevel::PRIMARY
 				);
+
 				pCmd->StartPrimaryRecording();
-				std::vector<VkImageMemoryBarrier> queueAcquireBarrier(IBLCubeTextureTypeCount);
+
 				for (uint32_t i = 0; i < IBLCubeTextureTypeCount; i++)
 				{
-					queueAcquireBarrier[i] = {};
-					queueAcquireBarrier[i].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-					queueAcquireBarrier[i].image = m_IBLCubeTextures[i][m_envTexturePingpongIndex]->GetDeviceHandle();
-
-					queueAcquireBarrier[i].srcAccessMask = 0;
-					queueAcquireBarrier[i].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-					queueAcquireBarrier[i].srcQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(PhysicalDevice::QueueFamily::COMPUTE);
-
-					queueAcquireBarrier[i].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-					queueAcquireBarrier[i].newLayout = VK_IMAGE_LAYOUT_GENERAL;
-					queueAcquireBarrier[i].dstQueueFamilyIndex = GetDevice()->GetPhysicalDevice()->GetQueueFamilyIndex(PhysicalDevice::QueueFamily::ALL_ROUND);
-
-					queueAcquireBarrier[i].subresourceRange =
-					{
-						VK_IMAGE_ASPECT_COLOR_BIT,
-						0, m_IBLCubeTextures[i][m_envTexturePingpongIndex]->GetImageInfo().mipLevels,
-						0, m_IBLCubeTextures[i][m_envTexturePingpongIndex]->GetImageInfo().arrayLayers
-					};
+					m_pScheduler->AcquireQueueOwnership
+					(
+						pCmd,
+						m_IBLCubeTextures[i][m_envTexturePingpongIndex],
+						PhysicalDevice::QueueFamily::COMPUTE,
+						PhysicalDevice::QueueFamily::ALL_ROUND,
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_IMAGE_LAYOUT_GENERAL,
+						VK_ACCESS_SHADER_READ_BIT
+					);
 				}
 
-				pCmd->AttachBarriers
-				(
-					VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					{},
-					{},
-					queueAcquireBarrier
-				);
 				pCmd->EndPrimaryRecording();
 
 				FrameWorkManager::GetInstance()->SubmitCommandBuffers

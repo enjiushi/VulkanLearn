@@ -4,6 +4,7 @@
 
 class CommandBuffer;
 class Image;
+class ResourceBarrierScheduler;
 
 const static uint32_t PLANET_LOD_MAX_LEVEL = 32;
 
@@ -100,7 +101,16 @@ protected:
 	uint32_t AcquireDataSize() const override { return sizeof(m_singlePrecisionPerPlanetVariables); }
 
 protected:
-	static void PreComputeAtmosphereData(const std::wstring& shaderPath, const Vector3ui& groupSize, const std::vector<std::shared_ptr<Image>>& textures, const std::vector<uint8_t>& data, uint32_t chunkIndex);
+	static void PreComputeAtmosphereData
+	(
+		const std::wstring& shaderPath, 
+		const std::shared_ptr<ResourceBarrierScheduler>& pScheduler, 
+		const Vector3ui& groupSize, 
+		const std::vector<std::shared_ptr<Image>>& inputTextures, 
+		const std::vector<std::shared_ptr<Image>>& outputTextures, 
+		const std::vector<uint8_t>& data, 
+		uint32_t chunkIndex
+	);
 
 protected:
 	PerPlanetVariablesd		m_perPlanetVariables[MAXIMUM_OBJECTS];

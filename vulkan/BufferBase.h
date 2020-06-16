@@ -26,6 +26,28 @@ public:
 		std::vector<VkImageMemoryBarrier>&	imageMemBarriers
 	) override;
 
+	void PrepareQueueReleaseBarrier
+	(
+		VkAccessFlags				srcAccessFlags,
+		VkImageLayout				srcImageLayout,
+		PhysicalDevice::QueueFamily	srcQueueFamily,
+		PhysicalDevice::QueueFamily	dstQueueFamily,
+		std::vector<VkMemoryBarrier>&		memBarriers,
+		std::vector<VkBufferMemoryBarrier>&	bufferMemBarriers,
+		std::vector<VkImageMemoryBarrier>&	imageMemBarriers
+	) override;
+
+	void PrepareQueueAcquireBarrier
+	(
+		VkAccessFlags				dstAccessFlags,
+		VkImageLayout				dstImageLayout,
+		PhysicalDevice::QueueFamily	srcQueueFamily,
+		PhysicalDevice::QueueFamily	dstQueueFamily,
+		std::vector<VkMemoryBarrier>&		memBarriers,
+		std::vector<VkBufferMemoryBarrier>&	bufferMemBarriers,
+		std::vector<VkImageMemoryBarrier>&	imageMemBarriers
+	) override;
+
 	virtual uint32_t GetBufferOffset() const = 0;
 	virtual bool IsHostVisible() const = 0;
 	virtual VkBuffer GetDeviceHandle() const = 0;
