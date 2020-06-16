@@ -29,9 +29,6 @@ public:
 		const std::shared_ptr<CommandBuffer>& pCmdBuffer,
 		const std::shared_ptr<VKGPUSyncRes>& pResource,
 		PhysicalDevice::QueueFamily	srcQueueFamily,
-		VkPipelineStageFlags srcPipelineStageFlags,
-		VkImageLayout srcImageLayout,
-		VkAccessFlags srcAccessFlags,
 		PhysicalDevice::QueueFamily	dstQueueFamily
 	);
 
@@ -63,6 +60,10 @@ private:
 		VkPipelineStageFlags		accumulatedReadStages = 0;
 
 		std::unordered_map<VkAccessFlags, VkPipelineStageFlags>	flushedStages;
+
+		bool						isQueueReleaseIssued;
+		PhysicalDevice::QueueFamily	srcQueueFamily;
+		PhysicalDevice::QueueFamily	dstQueueFamily;
 	}ClaimedResourceUsage;
 
 	typedef std::vector<ClaimedResourceUsage> ResourceUsageRecord;		// Claimed resources usage in one pass(draw/dispatch/blit/copy)

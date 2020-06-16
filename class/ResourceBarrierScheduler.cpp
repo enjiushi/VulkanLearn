@@ -141,13 +141,57 @@ void ResourceBarrierScheduler::ReleaseQueueOwnership
 	const std::shared_ptr<CommandBuffer>& pCmdBuffer,
 	const std::shared_ptr<VKGPUSyncRes>& pResource,
 	PhysicalDevice::QueueFamily	srcQueueFamily,
-	VkPipelineStageFlags srcPipelineStageFlags,
-	VkImageLayout srcImageLayout,
-	VkAccessFlags srcAccessFlags,
 	PhysicalDevice::QueueFamily	dstQueueFamily
 )
 {
-	
+	ResourceUsageRecord& usageRecord = m_claimedResourceUsageList[pResource];
+
+	ClaimedResourceUsage usage;
+	usage.lastWriteIndex = -1;
+
+	if (usageRecord.size() != 0)
+	{
+		if (usageRecord[usageRecord.size() - 1].isAccessWrite)
+			usage.lastWriteIndex = (uint32_t)usageRecord.size() - 1;
+		else
+			usage.lastWriteIndex = usageRecord[usageRecord.size() - 1].lastWriteIndex;
+	}
+
+	if (usage.lastWriteIndex != -1)
+	{
+		std::vector<VkMemoryBarrier> memBarriers;
+		std::vector<VkBufferMemoryBarrier> bufferMemBarriers;
+		std::vector<VkImageMemoryBarrier> imageMemBarriers;
+
+		pResource->PrepareQueueReleaseBarrier
+		(
+			usageRecord[usage.lastWriteIndex].accessFlags,
+			usageRecord[usage.lastWriteIndex].imageLayout,
+			srcQueueFamily,
+			dstQueueFamily,
+			memBarriers,
+			bufferMemBarriers,
+			imageMemBarriers
+		);
+
+		// Only attach barrier if there's a write for queue release/acquire
+		pCmdBuffer->AttachBarriers
+		(
+			usageRecord[usage.lastWriteIndex].stagesFlags,
+			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+			memBarriers,
+			bufferMemBarriers,
+			imageMemBarriers
+		);
+
+		usage.isQueueReleaseIssued = true;
+		usage.srcQueueFamily = srcQueueFamily;
+		usage.dstQueueFamily = dstQueueFamily;
+
+		usage.imageLayout = usageRecord[usage.lastWriteIndex].imageLayout;
+
+		usageRecord.push_back(usage);
+	}
 }
 
 void ResourceBarrierScheduler::AcquireQueueOwnership
@@ -161,5 +205,51 @@ void ResourceBarrierScheduler::AcquireQueueOwnership
 	VkAccessFlags dstAccessFlags
 )
 {
+	ResourceUsageRecord& usageRecord = m_claimedResourceUsageList[pResource];
 
+	ClaimedResourceUsage usage;
+	usage.lastWriteIndex = -1;
+
+	// No need for ownership acquire
+	if (usageRecord.size() == 0)
+		return;
+
+	// No previous ownership release, then no need for acquire
+	if (!usageRecord[usageRecord.size() - 1].isQueueReleaseIssued)
+		return;
+
+	ASSERTION
+	(
+		usageRecord[usageRecord.size() - 1].srcQueueFamily == srcQueueFamily 
+		&& usageRecord[usageRecord.size() - 1].dstQueueFamily == dstQueueFamily
+		&& usageRecord[usageRecord.size() - 1].imageLayout == dstImageLayout
+	);
+
+	std::vector<VkMemoryBarrier> memBarriers;
+	std::vector<VkBufferMemoryBarrier> bufferMemBarriers;
+	std::vector<VkImageMemoryBarrier> imageMemBarriers;
+
+	pResource->PrepareQueueAcquireBarrier
+	(
+		dstAccessFlags,
+		dstImageLayout,
+		srcQueueFamily,
+		dstQueueFamily,
+		memBarriers,
+		bufferMemBarriers,
+		imageMemBarriers
+	);
+
+	// Only attach barrier if there's a write for queue release/acquire
+	pCmdBuffer->AttachBarriers
+	(
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		dstPipelineStageFlags,
+		memBarriers,
+		bufferMemBarriers,
+		imageMemBarriers
+	);
+
+	// Clear previous queue usage record for new queue
+	usageRecord.clear();
 }

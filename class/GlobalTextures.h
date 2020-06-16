@@ -14,6 +14,7 @@ class Semaphore;
 class Material;
 class CommandBuffer;
 class DescriptorSet;
+class ResourceBarrierScheduler;
 
 enum InGameTextureType
 {
@@ -130,6 +131,7 @@ protected:
 	std::shared_ptr<Material>					m_pSkyboxGenMaterial;
 	std::shared_ptr<Material>					m_pIrradianceGenMaterial;
 	std::vector<std::shared_ptr<Material>>		m_reflectionGenMaterials;
+	std::shared_ptr<ResourceBarrierScheduler>	m_pScheduler;
 	// Record world space camera position and main ligh direction
 	// as soon as skybox gen starts
 	Vector3f									m_wsCameraPosition;

@@ -58,6 +58,28 @@ public:
 		std::vector<VkImageMemoryBarrier>&	imageMemBarriers
 	) override;
 
+	void PrepareQueueReleaseBarrier
+	(
+		VkAccessFlags				srcAccessFlags,
+		VkImageLayout				srcImageLayout,
+		PhysicalDevice::QueueFamily	srcQueueFamily,
+		PhysicalDevice::QueueFamily	dstQueueFamily,
+		std::vector<VkMemoryBarrier>&		memBarriers,
+		std::vector<VkBufferMemoryBarrier>&	bufferMemBarriers,
+		std::vector<VkImageMemoryBarrier>&	imageMemBarriers
+	) override;
+
+	void PrepareQueueAcquireBarrier
+	(
+		VkAccessFlags				dstAccessFlags,
+		VkImageLayout				dstImageLayout,
+		PhysicalDevice::QueueFamily	srcQueueFamily,
+		PhysicalDevice::QueueFamily	dstQueueFamily,
+		std::vector<VkMemoryBarrier>&		memBarriers,
+		std::vector<VkBufferMemoryBarrier>&	bufferMemBarriers,
+		std::vector<VkImageMemoryBarrier>&	imageMemBarriers
+	) override;
+
 protected:
 	virtual void BindMemory(VkDeviceMemory memory, uint32_t offset) const;
 
