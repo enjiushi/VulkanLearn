@@ -12,13 +12,9 @@ class CustomizedComputeMaterial : public Material
 public:
 	typedef struct _TextureBarrier
 	{
-		VkPipelineStageFlags				srcPipelineStages;
-		VkImageLayout						oldImageLayout;
-		VkAccessFlags						srcAccessFlags;
-
-		VkPipelineStageFlags				dstPipelineStages;
-		VkImageLayout						newImageLayout;
-		VkAccessFlags						dstAccessFlags;
+		VkPipelineStageFlags				pipelineStages;
+		VkImageLayout						imageLayout;
+		VkAccessFlags						accessFlags;
 	}TextureBarrier;
 
 	typedef struct _TextureUnit

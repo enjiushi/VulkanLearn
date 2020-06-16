@@ -107,9 +107,9 @@ void CustomizedComputeMaterial::ClaimResourceUsage(const std::shared_ptr<Command
 				(
 					pCmdBuffer,
 					textureUnit.textures[i].pImage,
-					textureUnit.textureBarrier.dstPipelineStages,
-					textureUnit.textureBarrier.newImageLayout,
-					textureUnit.textureBarrier.dstAccessFlags
+					textureUnit.textureBarrier.pipelineStages,
+					textureUnit.textureBarrier.imageLayout,
+					textureUnit.textureBarrier.accessFlags
 				);
 			}
 		}
@@ -129,9 +129,9 @@ void CustomizedComputeMaterial::ClaimResourceUsage(const std::shared_ptr<Command
 			(
 				pCmdBuffer,
 				textureUnit.textures[textureIndex].pImage,
-				textureUnit.textureBarrier.dstPipelineStages,
-				textureUnit.textureBarrier.newImageLayout,
-				textureUnit.textureBarrier.dstAccessFlags
+				textureUnit.textureBarrier.pipelineStages,
+				textureUnit.textureBarrier.imageLayout,
+				textureUnit.textureBarrier.accessFlags
 			);
 		}
 	}

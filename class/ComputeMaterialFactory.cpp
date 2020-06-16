@@ -36,10 +36,6 @@ std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::vector<std::shared_
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -110,10 +106,6 @@ std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::vector<std::sha
 			{
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
@@ -132,10 +124,6 @@ std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::vector<std::sha
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -199,10 +187,6 @@ std::shared_ptr<Material> CreateReflectionGenMaterial(const std::vector<std::sha
 			{
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
@@ -221,10 +205,6 @@ std::shared_ptr<Material> CreateReflectionGenMaterial(const std::vector<std::sha
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -290,10 +270,6 @@ std::shared_ptr<Material> CreateTileMaxMaterial(const std::vector<std::shared_pt
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				inputImages[0]->GetImageInfo().initialLayout,
-				VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				inputImages[0]->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_READ_BIT
@@ -314,10 +290,6 @@ std::shared_ptr<Material> CreateTileMaxMaterial(const std::vector<std::shared_pt
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				outputImages[0]->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -383,10 +355,6 @@ std::shared_ptr<Material> CreateNeighborMaxMaterial(const std::vector<std::share
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				inputImages[0]->GetImageInfo().initialLayout,
-				VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				inputImages[0]->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_READ_BIT
@@ -407,10 +375,6 @@ std::shared_ptr<Material> CreateNeighborMaxMaterial(const std::vector<std::share
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				outputImages[0]->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -501,10 +465,6 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VK_ACCESS_SHADER_READ_BIT
@@ -525,10 +485,6 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VK_ACCESS_SHADER_READ_BIT
@@ -549,10 +505,6 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VK_ACCESS_SHADER_READ_BIT
@@ -573,10 +525,6 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				outSSAOFactor[0].pImage->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -597,10 +545,6 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				outSSRInfo[0].pImage->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -671,10 +615,6 @@ std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shar
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				inputImages[0]->GetImageInfo().initialLayout,
-				VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				inputImages[0]->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_READ_BIT
@@ -695,10 +635,6 @@ std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shar
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				_outputImages[0].pImage->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -758,10 +694,6 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 					VK_ACCESS_SHADER_READ_BIT
@@ -795,10 +727,6 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VK_ACCESS_SHADER_READ_BIT
@@ -831,10 +759,6 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VK_ACCESS_SHADER_READ_BIT
@@ -869,10 +793,6 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			{
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
@@ -904,10 +824,6 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
@@ -952,10 +868,6 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				outShadingResults[0].pImage->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -976,10 +888,6 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				outSSRResults[0].pImage->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -1155,10 +1063,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VK_ACCESS_SHADER_READ_BIT
@@ -1181,10 +1085,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			{
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
@@ -1205,10 +1105,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			{
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
@@ -1227,10 +1123,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VK_ACCESS_SHADER_READ_BIT
@@ -1253,10 +1145,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			{
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
@@ -1275,10 +1163,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
@@ -1301,10 +1185,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			{
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
@@ -1323,10 +1203,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
@@ -1349,10 +1225,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			{
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
@@ -1371,10 +1243,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				outTemporalShadingResults[0].pImage->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -1395,10 +1263,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				outTemporalSSRResults[0].pImage->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -1419,10 +1283,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				outTemporalResults[0].pImage->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -1443,10 +1303,6 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				outTemporalCoC[0].pImage->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -1569,10 +1425,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
-
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
 					VK_ACCESS_SHADER_READ_BIT
 				}
 			}
@@ -1593,10 +1445,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
-
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
 					VK_ACCESS_SHADER_READ_BIT
 				}
 			}
@@ -1615,10 +1463,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
-
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					outputImages[0].pImage->GetImageInfo().initialLayout,
 					VK_ACCESS_SHADER_WRITE_BIT
@@ -1677,10 +1521,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
-
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
 					VK_ACCESS_SHADER_READ_BIT
 				}
 			}
@@ -1699,10 +1539,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
-
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					outputImages[0].pImage->GetImageInfo().initialLayout,
 					VK_ACCESS_SHADER_WRITE_BIT
@@ -1760,10 +1596,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
-
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
 					VK_ACCESS_SHADER_READ_BIT
 				}
 			}
@@ -1782,13 +1614,9 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-						0,
-						VK_IMAGE_LAYOUT_UNDEFINED,
-						0,
-
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						outputImages[0].pImage->GetImageInfo().initialLayout,
-						VK_ACCESS_SHADER_WRITE_BIT
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outputImages[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				}
 			}
 		);
@@ -1861,10 +1689,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				{
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
-
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
 					VK_ACCESS_SHADER_READ_BIT
 				}
 			}
@@ -1883,10 +1707,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_NEXTPINGPONG,
 
 				{
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
-
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					combinedTemporalResult[0].pImage->GetImageInfo().initialLayout,
 					VK_ACCESS_SHADER_WRITE_BIT
@@ -1907,10 +1727,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_NEXTPINGPONG,
 
 				{
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
-
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					temporalCoCResults[0].pImage->GetImageInfo().initialLayout,
 					VK_ACCESS_SHADER_WRITE_BIT
@@ -1931,10 +1747,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
-
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					outputImages[0].pImage->GetImageInfo().initialLayout,
 					VK_ACCESS_SHADER_WRITE_BIT
@@ -2051,10 +1863,6 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 
 	std::vector<CustomizedComputeMaterial::TextureUnit> textureUnits;
 
-	VkPipelineStageFlags srcStageFlags;
-	VkImageLayout srcLayout;
-	VkAccessFlags srcAccessFlags;
-
 	VkPipelineStageFlags dstStageFlags;
 	VkImageLayout dstLayout;
 	VkAccessFlags dstAccessFlags;
@@ -2062,28 +1870,16 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 	switch (bloomPass)
 	{
 	case BloomPass::PREFILTER:
-		srcStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-		srcLayout = VK_IMAGE_LAYOUT_GENERAL;
-		srcAccessFlags = VK_ACCESS_SHADER_WRITE_BIT;
-
 		dstStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 		dstLayout = VK_IMAGE_LAYOUT_GENERAL;
 		dstAccessFlags = VK_ACCESS_SHADER_READ_BIT;
 		break;
 	case BloomPass::DOWNSAMPLE:
-		srcStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-		srcLayout = VK_IMAGE_LAYOUT_GENERAL;
-		srcAccessFlags = VK_ACCESS_SHADER_WRITE_BIT;
-
 		dstStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 		dstLayout = VK_IMAGE_LAYOUT_GENERAL;
 		dstAccessFlags = VK_ACCESS_SHADER_READ_BIT;
 		break;
 	case BloomPass::UPSAMPLE:
-		srcStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-		srcLayout = VK_IMAGE_LAYOUT_GENERAL;
-		srcAccessFlags = VK_ACCESS_SHADER_WRITE_BIT;
-
 		dstStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 		dstLayout = VK_IMAGE_LAYOUT_GENERAL;
 		dstAccessFlags = VK_ACCESS_SHADER_READ_BIT;
@@ -2106,10 +1902,6 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				srcStageFlags,
-				srcLayout,
-				srcAccessFlags,
-
 				dstStageFlags,
 				dstLayout,
 				dstAccessFlags
@@ -2130,10 +1922,6 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				outputImgs[0].pImage->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT
@@ -2213,10 +2001,6 @@ std::shared_ptr<Material> CreateCombineMaterial()
 			{
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
@@ -2237,10 +2021,6 @@ std::shared_ptr<Material> CreateCombineMaterial()
 			{
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_IMAGE_LAYOUT_GENERAL,
-				VK_ACCESS_SHADER_WRITE_BIT,
-
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_IMAGE_LAYOUT_GENERAL,
 				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
@@ -2259,10 +2039,6 @@ std::shared_ptr<Material> CreateCombineMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				0,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				0,
-
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				combineTextures[0].pImage->GetImageInfo().initialLayout,
 				VK_ACCESS_SHADER_WRITE_BIT

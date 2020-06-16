@@ -302,10 +302,6 @@ void PerPlanetUniforms::PreComputeAtmosphereData
 				CustomizedComputeMaterial::TextureUnit::ALL,
 
 				{
-					VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-					outputTextures[i]->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_READ_BIT,
-
 					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 					VK_IMAGE_LAYOUT_GENERAL,
 					VK_ACCESS_SHADER_WRITE_BIT
