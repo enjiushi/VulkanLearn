@@ -36,12 +36,13 @@ std::shared_ptr<Material> CreateSkyboxGenMaterial(const std::vector<std::shared_
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					false
-				},
-				{
-					false
-				}
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
+
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -107,19 +108,13 @@ std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::vector<std::sha
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -137,19 +132,13 @@ std::shared_ptr<Material> CreateIrradianceGenMaterial(const std::vector<std::sha
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					false
-				},
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -208,19 +197,13 @@ std::shared_ptr<Material> CreateReflectionGenMaterial(const std::vector<std::sha
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -238,19 +221,13 @@ std::shared_ptr<Material> CreateReflectionGenMaterial(const std::vector<std::sha
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					false
-				},
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -313,19 +290,13 @@ std::shared_ptr<Material> CreateTileMaxMaterial(const std::vector<std::shared_pt
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					inputImages[0]->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				inputImages[0]->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					inputImages[0]->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				inputImages[0]->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -343,21 +314,13 @@ std::shared_ptr<Material> CreateTileMaxMaterial(const std::vector<std::shared_pt
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					// False means a claim, new mechanism. Old one will be removed later
-					false,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
-
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					outputImages[0]->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				outputImages[0]->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -420,19 +383,13 @@ std::shared_ptr<Material> CreateNeighborMaxMaterial(const std::vector<std::share
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					inputImages[0]->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				inputImages[0]->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					inputImages[0]->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				inputImages[0]->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -450,19 +407,13 @@ std::shared_ptr<Material> CreateNeighborMaxMaterial(const std::vector<std::share
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					outputImages[0]->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				outputImages[0]->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -550,19 +501,13 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -580,19 +525,13 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -610,19 +549,13 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+				VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -640,19 +573,13 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					outSSAOFactor[0].pImage->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				outSSAOFactor[0].pImage->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -670,19 +597,13 @@ std::shared_ptr<Material> CreateSSAOSSRMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					outSSRInfo[0].pImage->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				outSSRInfo[0].pImage->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -750,19 +671,13 @@ std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shar
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					inputImages[0]->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				inputImages[0]->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					inputImages[0]->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				inputImages[0]->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -780,19 +695,13 @@ std::shared_ptr<Material> CreateGaussianBlurMaterial(const std::vector<std::shar
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					_outputImages[0].pImage->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				_outputImages[0].pImage->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -849,19 +758,13 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					{
-						true,
-						VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-						VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-						VK_ACCESS_SHADER_READ_BIT
-					},
-					{
-						false
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					VK_ACCESS_SHADER_READ_BIT
 				}
 			}
 		);
@@ -892,19 +795,13 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -934,19 +831,13 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -976,19 +867,13 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -1019,19 +904,13 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -1073,19 +952,13 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					outShadingResults[0].pImage->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				outShadingResults[0].pImage->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -1103,19 +976,13 @@ std::shared_ptr<Material> CreateDeferredShadingMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					outSSRResults[0].pImage->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				outSSRResults[0].pImage->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -1288,19 +1155,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -1318,19 +1179,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -1348,19 +1203,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -1378,19 +1227,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -1408,19 +1251,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -1438,19 +1275,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -1468,19 +1299,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -1498,19 +1323,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -1528,19 +1347,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -1558,19 +1371,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					outTemporalShadingResults[0].pImage->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				outTemporalShadingResults[0].pImage->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -1588,19 +1395,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					outTemporalSSRResults[0].pImage->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				outTemporalSSRResults[0].pImage->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -1618,19 +1419,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					outTemporalResults[0].pImage->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				outTemporalResults[0].pImage->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -1648,19 +1443,13 @@ std::shared_ptr<Material> CreateTemporalResolveMaterial(uint32_t pingpong)
 			CustomizedComputeMaterial::TextureUnit::ALL,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					outTemporalCoC[0].pImage->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				outTemporalCoC[0].pImage->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -1778,19 +1567,13 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_NEXTPINGPONG,
 
 				{
-					{
-						true,
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_WRITE_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
 
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_READ_BIT
-					},
-					{
-						false
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
 				}
 			}
 		);
@@ -1808,19 +1591,13 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_NEXTPINGPONG,
 
 				{
-					{
-						true,
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_WRITE_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
 
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_READ_BIT
-					},
-					{
-						false
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
 				}
 			}
 		);
@@ -1838,19 +1615,13 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					{
-						false,
-						0,
-						VK_IMAGE_LAYOUT_UNDEFINED,
-						0,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
 
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						outputImages[0].pImage->GetImageInfo().initialLayout,
-						VK_ACCESS_SHADER_WRITE_BIT
-					},
-					{
-						false
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outputImages[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				}
 			}
 		);
@@ -1904,19 +1675,13 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					{
-						true,
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_WRITE_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
 
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_READ_BIT
-					},
-					{
-						false
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
 				}
 			}
 		);
@@ -1934,19 +1699,13 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					{
-						false,
-						0,
-						VK_IMAGE_LAYOUT_UNDEFINED,
-						0,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
 
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						outputImages[0].pImage->GetImageInfo().initialLayout,
-						VK_ACCESS_SHADER_WRITE_BIT
-					},
-					{
-						false
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outputImages[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				}
 			}
 		);
@@ -1999,19 +1758,13 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					{
-						true,
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_WRITE_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
 
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_READ_BIT
-					},
-					{
-						false
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
 				}
 			}
 		);
@@ -2029,8 +1782,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					{
-						false,
 						0,
 						VK_IMAGE_LAYOUT_UNDEFINED,
 						0,
@@ -2038,10 +1789,6 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 						outputImages[0].pImage->GetImageInfo().initialLayout,
 						VK_ACCESS_SHADER_WRITE_BIT
-					},
-					{
-						false
-					}
 				}
 			}
 		);
@@ -2112,19 +1859,13 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					{
-						true,
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_WRITE_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_WRITE_BIT,
 
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_IMAGE_LAYOUT_GENERAL,
-						VK_ACCESS_SHADER_READ_BIT
-					},
-					{
-						false
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_IMAGE_LAYOUT_GENERAL,
+					VK_ACCESS_SHADER_READ_BIT
 				}
 			}
 		);
@@ -2142,19 +1883,13 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_NEXTPINGPONG,
 
 				{
-					{
-						false,
-						0,
-						VK_IMAGE_LAYOUT_UNDEFINED,
-						0,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
 
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						combinedTemporalResult[0].pImage->GetImageInfo().initialLayout,
-						VK_ACCESS_SHADER_WRITE_BIT
-					},
-					{
-						false
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					combinedTemporalResult[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				}
 			}
 		);
@@ -2172,19 +1907,13 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_NEXTPINGPONG,
 
 				{
-					{
-						false,
-						0,
-						VK_IMAGE_LAYOUT_UNDEFINED,
-						0,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
 
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						temporalCoCResults[0].pImage->GetImageInfo().initialLayout,
-						VK_ACCESS_SHADER_WRITE_BIT
-					},
-					{
-						false
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					temporalCoCResults[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				}
 			}
 		);
@@ -2202,19 +1931,13 @@ std::shared_ptr<Material> CreateDOFMaterial(DOFPass dofPass)
 				CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 				{
-					{
-						false,
-						0,
-						VK_IMAGE_LAYOUT_UNDEFINED,
-						0,
+					0,
+					VK_IMAGE_LAYOUT_UNDEFINED,
+					0,
 
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						outputImages[0].pImage->GetImageInfo().initialLayout,
-						VK_ACCESS_SHADER_WRITE_BIT
-					},
-					{
-						false
-					}
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					outputImages[0].pImage->GetImageInfo().initialLayout,
+					VK_ACCESS_SHADER_WRITE_BIT
 				}
 			}
 		);
@@ -2383,19 +2106,13 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					srcStageFlags,
-					srcLayout,
-					srcAccessFlags,
+				srcStageFlags,
+				srcLayout,
+				srcAccessFlags,
 
-					dstStageFlags,
-					dstLayout,
-					dstAccessFlags
-				},
-				{
-					false
-				}
+				dstStageFlags,
+				dstLayout,
+				dstAccessFlags
 			}
 		}
 	);
@@ -2413,19 +2130,13 @@ std::shared_ptr<Material> CreateBloomMaterial(BloomPass bloomPass, uint32_t iter
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					outputImgs[0].pImage->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				outputImgs[0].pImage->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);
@@ -2500,19 +2211,13 @@ std::shared_ptr<Material> CreateCombineMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -2530,19 +2235,13 @@ std::shared_ptr<Material> CreateCombineMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					true,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_WRITE_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_WRITE_BIT,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_IMAGE_LAYOUT_GENERAL,
-					VK_ACCESS_SHADER_READ_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_ACCESS_SHADER_READ_BIT
 			}
 		}
 	);
@@ -2560,19 +2259,13 @@ std::shared_ptr<Material> CreateCombineMaterial()
 			CustomizedComputeMaterial::TextureUnit::BY_FRAME,
 
 			{
-				{
-					false,
-					0,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					0,
+				0,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				0,
 
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					combineTextures[0].pImage->GetImageInfo().initialLayout,
-					VK_ACCESS_SHADER_WRITE_BIT
-				},
-				{
-					false
-				}
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				combineTextures[0].pImage->GetImageInfo().initialLayout,
+				VK_ACCESS_SHADER_WRITE_BIT
 			}
 		}
 	);

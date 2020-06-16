@@ -67,13 +67,6 @@ public:
 		MaterialUniformStorageTypeCount
 	};
 
-	enum BarrierInsertionPoint
-	{
-		BEFORE_DISPATCH,
-		AFTER_DISPATCH,
-		COUNT
-	};
-
 public:
 	std::shared_ptr<RenderPassBase> GetRenderPass() const { return m_pRenderPass; }
 	std::shared_ptr<PipelineLayout> GetPipelineLayout() const { return m_pPipelineLayout; }
