@@ -388,7 +388,7 @@ public:
 	void SetPlanetTriangleEdgeWidth(double width);
 	double GetPlanetTriangleEdgeWidth() const { return m_globalVariables.PlanetRenderingSettings1.z; }
 	void SetPlanetMorphingRange(double range);
-	double SetPlanetMorphingRange() const { return m_globalVariables.PlanetRenderingSettings1.w; }
+	double GetPlanetMorphingRange() const { return m_globalVariables.PlanetRenderingSettings1.w; }
 
 	void SetSunSizeInCosine(double size);
 	double GetSunSize() const { return m_globalVariables.PlanetRenderingSettings2.x; }
