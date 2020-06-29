@@ -131,7 +131,7 @@ void main()
         GetSkyAndSunRadiance(perFrameData.wsCameraPosition.xyz, WSViewDir, perFrameData.wsMainLightDir.xyz, planetChunkIndex, skyRadiance, sunRadiance);
 		imageStore(outShadingColor[frameIndex],	
 			ivec2(gl_GlobalInvocationID.xy), 
-			vec4(skyRadiance + sunRadiance, vars.albedoRoughness.a));
+			vec4(max(skyRadiance + sunRadiance, vec3(0)), vars.albedoRoughness.a));
 		imageStore(outSSRColor[frameIndex],	
 			ivec2(gl_GlobalInvocationID.xy), 
 			vec4(0));
