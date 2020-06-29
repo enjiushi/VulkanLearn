@@ -87,4 +87,7 @@ private:
 
 	uint32_t		m_chunkIndex;
 
+	// To record last frame's vertex data offset and size
+	uint32_t		m_lastFrameVerticesOffset;
+	uint32_t		m_lastFrameVerticesSize;
 };
