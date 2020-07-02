@@ -8,8 +8,6 @@
 #include "../class/UniformData.h"
 #include "PhysicalCamera.h"
 #include "../class/PerPlanetUniforms.h"
-#include "../thread/ThreadTaskQueue.hpp"
-#include "../vulkan/GlobalDeviceObjects.h"
 
 DEFINITE_CLASS_RTTI(PlanetGenerator, BaseComponent);
 
@@ -59,9 +57,6 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 
 	m_chunkIndex = UniformData::GetInstance()->GetPerPerPlanetUniforms()->AllocatePlanetChunk();
 	UniformData::GetInstance()->GetPerPerPlanetUniforms()->SetPlanetRadius(m_chunkIndex, m_planetRadius);
-
-	m_lastFrameVerticesOffset = 0;
-	m_lastFrameVerticesSize = sizeof(Triangle);
 
 	return true;
 }
@@ -448,47 +443,45 @@ void PlanetGenerator::SubDivideQuad(uint32_t currentLevel, CullState state, cons
 
 void PlanetGenerator::OnPreRender()
 {
-	if (m_pMeshRenderer != nullptr)
+	// Transform from world space to planet local space
+	m_utilityTransfrom = GetBaseObject()->GetCachedWorldTransform();
+	m_utilityTransfrom.Inverse();
+
+	m_planetSpaceCameraPosition = m_utilityTransfrom.TransformAsPoint(m_pCamera->GetBaseObject()->GetCachedWorldPosition());
+
+	// Transfrom from camera local space to world space, and then to planet local space
+	m_utilityTransfrom *= m_pCamera->GetBaseObject()->GetCachedWorldTransform();	// from camera local 2 world
+
+	if (m_toggleCameraInfoUpdate)
 	{
-		m_pMeshRenderer->SetStartInstance(m_lastFrameVerticesOffset / sizeof(Triangle));
-		m_pMeshRenderer->SetInstanceCount(m_lastFrameVerticesSize / sizeof(Triangle));
-		m_pMeshRenderer->SetUtilityIndex(m_chunkIndex);
+		m_lockedPlanetSpaceCameraPosition = m_planetSpaceCameraPosition;
+
+		m_cameraFrustumLocal = m_pCamera->GetCameraFrustum();
+		m_cameraFrustumLocal.Transform(m_utilityTransfrom);
 	}
 
-	GlobalObjects()->GetThreadTaskQueue()->AddJobA(
-	[this](const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+	uint32_t offsetInBytes;
+
+	Triangle* pTriangles = (Triangle*)PlanetGeoDataManager::GetInstance()->AcquireDataPtr(offsetInBytes);
+	uint8_t* startPtr = (uint8_t*)pTriangles;
+
+	for (uint32_t i = 0; i < 6; i++)
 	{
-		// Transform from world space to planet local space
-		m_utilityTransfrom = GetBaseObject()->GetCachedWorldTransform();
-		m_utilityTransfrom.Inverse();
+		SubDivideQuad(0, CullState::CULL_DIVIDE,
+			m_pVertices[m_pIndices[i * 6 + 0]],	// a
+			m_pVertices[m_pIndices[i * 6 + 1]],	// b
+			m_pVertices[m_pIndices[i * 6 + 2]],	// c
+			m_pVertices[m_pIndices[i * 6 + 5]],	// d
+			pTriangles);
+	}
+	uint32_t updatedSize = (uint32_t)((uint8_t*)pTriangles - startPtr);
 
-		m_planetSpaceCameraPosition = m_utilityTransfrom.TransformAsPoint(m_pCamera->GetBaseObject()->GetCachedWorldPosition());
-
-		// Transfrom from camera local space to world space, and then to planet local space
-		m_utilityTransfrom *= m_pCamera->GetBaseObject()->GetCachedWorldTransform();	// from camera local 2 world
-
-		if (m_toggleCameraInfoUpdate)
-		{
-			m_lockedPlanetSpaceCameraPosition = m_planetSpaceCameraPosition;
-
-			m_cameraFrustumLocal = m_pCamera->GetCameraFrustum();
-			m_cameraFrustumLocal.Transform(m_utilityTransfrom);
-		}
-
-		Triangle* pTriangles = (Triangle*)PlanetGeoDataManager::GetInstance()->AcquireDataPtr(m_lastFrameVerticesOffset);
-		uint8_t* startPtr = (uint8_t*)pTriangles;
-
-		for (uint32_t i = 0; i < 6; i++)
-		{
-			SubDivideQuad(0, CullState::CULL_DIVIDE,
-				m_pVertices[m_pIndices[i * 6 + 0]],	// a
-				m_pVertices[m_pIndices[i * 6 + 1]],	// b
-				m_pVertices[m_pIndices[i * 6 + 2]],	// c
-				m_pVertices[m_pIndices[i * 6 + 5]],	// d
-				pTriangles);
-		}
-		m_lastFrameVerticesSize = (uint32_t)((uint8_t*)pTriangles - startPtr);
-
-		PlanetGeoDataManager::GetInstance()->FinishDataUpdate(m_lastFrameVerticesSize);
-	}, FrameWorkManager::GetInstance()->FrameIndex());
+	PlanetGeoDataManager::GetInstance()->FinishDataUpdate(updatedSize);
+	
+	if (m_pMeshRenderer != nullptr)
+	{
+		m_pMeshRenderer->SetStartInstance(offsetInBytes / sizeof(Triangle));
+		m_pMeshRenderer->SetInstanceCount(updatedSize / sizeof(Triangle));
+		m_pMeshRenderer->SetUtilityIndex(m_chunkIndex);
+	}
 }
