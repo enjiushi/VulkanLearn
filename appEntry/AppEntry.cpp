@@ -48,7 +48,7 @@ void AppEntry::InitVulkanInstance()
 	VkApplicationInfo appInfo = {};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.pApplicationName = "VulkanLearn";
-	appInfo.apiVersion = (((1) << 22) | ((0) << 12) | (0));
+	appInfo.apiVersion = (((1) << 22) | ((2) << 12) | (154));
 
 	//Need surface extension to create surface from device
 	std::vector<const char*> extensions = { EXTENSION_VULKAN_SURFACE };
