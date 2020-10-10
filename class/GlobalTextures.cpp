@@ -32,6 +32,7 @@
 #include "FrameBufferDiction.h"
 #include <random>
 #include <gli\gli.hpp>
+#include "../vulkan/StagingBuffer.h"
 
 // FIXME: Refactor
 static uint32_t PLANET_COUNT = 4;
@@ -47,6 +48,7 @@ bool GlobalTextures::Init(const std::shared_ptr<GlobalTextures>& pSelf)
 	InitIBLTextures();
 	InitSSAORandomRotationTexture();
 	InitTransmittanceTextureDiction();
+	InitTerrainTexture();
 	InitSkyboxGenParameters();
 
 	return true;
@@ -455,6 +457,112 @@ void GlobalTextures::GenerateSkyBox(uint32_t chunkIndex)
 	}, FrameWorkManager::GetInstance()->FrameIndex());
 }
 
+void ProcessDiamond(float *pTerrainData, const uint32_t& posX, const uint32_t& posY, const uint32_t& step, const float& altitude, const uint32_t& size)
+{
+	if (posX == 0 || posX == size)
+		pTerrainData[posY * (size + 1) + posX] =
+		(pTerrainData[(posY - step) * (size + 1) + (posX)] +
+			pTerrainData[(posY + step) * (size + 1) + (posX)]) / 2.0f +
+		altitude;
+	else if (posY == 0 || posY == size)
+		pTerrainData[posY * (size + 1) + posX] =
+		(pTerrainData[(posY) * (size + 1) + (posX - step)] +
+			pTerrainData[(posY) * (size + 1) + (posX + step)]) / 2.0f +
+		altitude;
+	else
+		pTerrainData[posY * (size + 1) + posX] =
+		(pTerrainData[(posY - step) * (size + 1) + (posX)] +
+			pTerrainData[(posY + step) * (size + 1) + (posX)] +
+			pTerrainData[(posY) * (size + 1) + (posX - step)] +
+			pTerrainData[(posY) * (size + 1) + (posX + step)]) / 4.0f +
+		altitude;
+}
+
+void GlobalTextures::GenerateTerrainTexture(uint32_t level)
+{
+	GlobalObjects()->GetThreadTaskQueue()->AddJobA([this, level](const std::shared_ptr<PerFrameResource>& pPerFrameRes)
+	{
+		float* pTerrainData = (float*)m_pTestTerrainStagingBuffer->GetDataPtr();
+		float(*pTerrainImageData)[513] = (float(*)[513])pTerrainData;
+
+		uint32_t size = (uint32_t)std::pow(2, (double)level);
+
+		// Initialize corner value
+		std::random_device rd;
+		std::mt19937 mt(rd());
+		std::uniform_real_distribution<float> dist(-1, 1);
+
+		pTerrainData[0] = dist(mt);
+		pTerrainData[size] = dist(mt);
+		pTerrainData[size * (size + 1)] = dist(mt);
+		pTerrainData[(size + 1) * (size + 1) - 1] = dist(mt);
+
+		uint32_t step = size / 2;
+		uint32_t numSquares = 1;
+		uint32_t posX, posY;
+		for (uint32_t i = 1; i < level + 1; i++)
+		{
+			// Square
+			for (uint32_t squarePosX = 0; squarePosX < numSquares; squarePosX++)
+				for (uint32_t squarePosY = 0; squarePosY < numSquares; squarePosY++)
+				{
+					posX = squarePosX * step * 2 + step;
+					posY = squarePosY * step * 2 + step;
+					pTerrainData[posY * (size + 1) + posX] =
+						(pTerrainData[(posY - step) * (size + 1) + (posX - step)] +
+							pTerrainData[(posY + step) * (size + 1) + (posX - step)] +
+							pTerrainData[(posY - step) * (size + 1) + (posX + step)] +
+							pTerrainData[(posY + step) * (size + 1) + (posX + step)]) / 4.0f +
+						dist(mt) * powf(0.5f, (float)i);
+				}
+
+			// Diamond
+			for (uint32_t squarePosX = 0; squarePosX < numSquares; squarePosX++)
+				for (uint32_t squarePosY = 0; squarePosY < numSquares; squarePosY++)
+				{
+					posX = squarePosX * step * 2 + step;
+					posY = squarePosY * step * 2;
+					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * powf(0.5f, (float)i), size);
+
+					posX = squarePosX * step * 2;
+					posY = squarePosY * step * 2 + step;
+					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * powf(0.5f, (float)i), size);
+
+					posX = squarePosX * step * 2 + step * 2;
+					posY = squarePosY * step * 2 + step;
+					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * powf(0.5f, (float)i), size);
+
+					posX = squarePosX * step * 2 + step;
+					posY = squarePosY * step * 2 + step * 2;
+					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * powf(0.5f, (float)i), size);
+				}
+
+			numSquares *= 2;
+			step /= 2;
+		}
+
+		std::shared_ptr<CommandBuffer> pCommandBuffer = pPerFrameRes->AllocateCommandBuffer
+		(
+			PhysicalDevice::QueueFamily::ALL_ROUND,
+			CommandPool::CBPersistancy::TRANSIENT,
+			CommandBuffer::CBLevel::PRIMARY
+		);
+		pCommandBuffer->StartPrimaryRecording();
+		m_pTestTerrainTexture->CopyFromBuffer(m_pTestTerrainStagingBuffer, pCommandBuffer);
+		pCommandBuffer->EndPrimaryRecording();
+
+		FrameWorkManager::GetInstance()->SubmitCommandBuffers
+		(
+			GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::ALL_ROUND),
+			{ pCommandBuffer },
+			{},
+			{},
+			{},
+			false, false
+		);
+	}, FrameWorkManager::GetInstance()->FrameIndex());
+}
+
 void GlobalTextures::InitSSAORandomRotationTexture()
 {
 	std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
@@ -541,6 +649,13 @@ void GlobalTextures::InitTransmittanceTextureDiction()
 		m_pDeltaScatterDensity = Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 		m_pDeltaMultiScatter = Image::CreateEmptyTexture3D(GetDevice(), { 256, 128, 32 }, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_GENERAL);
 	}
+}
+
+void GlobalTextures::InitTerrainTexture()
+{
+	m_pTestTerrainTexture = Image::CreateEmptyTexture2D(GetDevice(), { 513, 513 }, VK_FORMAT_R32_SFLOAT);
+	m_pTestTerrainStagingBuffer = StagingBuffer::CreateReadableStagingBuffer(GetDevice(), 513 * 513 * sizeof(float));
+	GenerateTerrainTexture(9);
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()
@@ -636,6 +751,11 @@ std::vector<UniformVarList> GlobalTextures::PrepareUniformVarList() const
 			"Runtime generated reflection cube texture",
 			{},
 			2
+		},
+		{
+			CombinedSampler,
+			"Runtime generated reflection cube texture",
+			{}
 		}
 	};
 }
@@ -797,6 +917,8 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	pDescriptorSet->UpdateImages(bindingIndex++, skybox);
 	pDescriptorSet->UpdateImages(bindingIndex++, irradiance);
 	pDescriptorSet->UpdateImages(bindingIndex++, reflection);
+
+	pDescriptorSet->UpdateImage(bindingIndex++, { m_pTestTerrainTexture, m_pTestTerrainTexture->CreateLinearClampToEdgeSampler(), m_pTestTerrainTexture->CreateDefaultImageView() });
 
 	return bindingIndex;
 }
