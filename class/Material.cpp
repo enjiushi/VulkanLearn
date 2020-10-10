@@ -167,7 +167,7 @@ void Material::GeneralInit
 
 
 	// Prepare descriptor pool size according to resources used by this material
-	std::vector<uint32_t> counts(VK_DESCRIPTOR_TYPE_RANGE_SIZE);
+	std::vector<uint32_t> counts(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT + 1);	// FIXME: not good
 	for (auto & binding : bindings)
 	{
 		counts[binding.descriptorType]++;

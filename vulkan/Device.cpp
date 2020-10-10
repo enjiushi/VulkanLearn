@@ -58,6 +58,13 @@ bool Device::Init(const std::shared_ptr<Instance>& pInst, const std::shared_ptr<
 	enabledFeatures.depthBiasClamp = 1;
 	deviceCreateInfo.pEnabledFeatures = &enabledFeatures;
 
+	// Vulkan 1.2 feature
+	VkPhysicalDeviceVulkan12Features vulkan12Features = {};
+	vulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+	vulkan12Features.drawIndirectCount = true;
+	deviceCreateInfo.pNext = (void*)&vulkan12Features;
+
+
 	RETURN_FALSE_VK_RESULT(vkCreateDevice(m_pPhysicalDevice->GetDeviceHandle(), &deviceCreateInfo, nullptr, &m_device));
 
 	GET_DEVICE_PROC_ADDR(m_device, CmdDrawIndexedIndirectCountKHR);
