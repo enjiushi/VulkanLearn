@@ -330,7 +330,7 @@ void AppEntry::Update()
 
 void AppEntry::InitVertices()
 {
-	m_LODPatchLevel = 3;
+	m_LODPatchLevel = 7;
 
 	m_pLODTriangleMesh = SceneGenerator::GenerateLODTriangleMesh(m_LODPatchLevel, true);
 

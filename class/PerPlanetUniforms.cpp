@@ -39,17 +39,29 @@ void PerPlanetUniforms::SetPlanetRadius(uint32_t index, double radius)
 
 	double size = (UniformData::GetInstance()->GetGlobalUniforms()->CubeVertices[index0] - UniformData::GetInstance()->GetGlobalUniforms()->CubeVertices[index1]).Length();
 	double frac = std::tan(UniformData::GetInstance()->GetGlobalUniforms()->GetMainCameraHorizontalFOV() * UniformData::GetInstance()->GetGlobalUniforms()->GetPlanetTriangleScreenSize() / UniformData::GetInstance()->GetGlobalUniforms()->GetGameWindowSize().x);
+	double patchLength = UniformData::GetInstance()->GetGlobalUniforms()->GetPlanetPatchSubdivideCount();
 	for (uint32_t i = 0; i < UniformData::GetInstance()->GetGlobalUniforms()->GetMaxPlanetLODLevel() + 1; i++)
 	{
-		m_perPlanetVariables[index].PlanetLODDistanceLUT[i] = size / frac * radius;
+		// We need to take patch length into consideration
+		// Patch length gives a patch size measured by meter
+		// Larger the patch is, less distance for each lod level
+		m_perPlanetVariables[index].PlanetLODDistanceLUT[i] = size / frac * radius / patchLength;
 		CONVERT2SINGLEVAL(m_perPlanetVariables[index], m_singlePrecisionPerPlanetVariables[index], PlanetLODDistanceLUT[i]);
 		size *= 0.5;
 	}
 
+	// Here we calculate max lod level for each planet, roughly
+	// We can have cube's edge length through planet radius
+	// And then the max subdivide level required for meter level accuracy can be duduced
+	// Do remember we have to take patch length into consideration
+	// Last "6" is an empirical value given due the non-uniform distributed patch unit caused by curvature distortion of a cube, make it more accurate in the center of a cube face
+	double maxLODLevel = std::log(std::sqrt(2.0) * radius) - std::log(patchLength) + 6;
+	SetPlanetMAXLODLevel(index, (uint32_t)maxLODLevel);
+
 	SetChunkDirty(index);
 }
 
-void PerPlanetUniforms::SetPlanetTriangleSubdivideLevel(uint32_t index, uint32_t level)
+void PerPlanetUniforms::SetPlanetMAXLODLevel(uint32_t index, uint32_t level)
 {
 	m_perPlanetVariables[index].PlanetDescriptor0.y = level;
 	CONVERT2SINGLEVAL(m_perPlanetVariables[index], m_singlePrecisionPerPlanetVariables[index], PlanetDescriptor0.y);

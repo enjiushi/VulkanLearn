@@ -38,13 +38,29 @@ protected:
 	bool Init(const std::shared_ptr<PlanetGenerator>& pSelf, const std::shared_ptr<PhysicalCamera>& pCamera, float planetRadius);
 
 protected:
+	double ComputeDistanceToTile
+	(
+		const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d,
+		const Vector3d& realSizeA, const Vector3d& realSizeB, const Vector3d& realSizeC, const Vector3d& realSizeD,
+		const Vector3d& faceNormal, const double currentTileLength, uint32_t currentFaceID
+	);
+
 	CullState FrustumCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, double height);
 	CullState FrustumCull(const Vector3d& p0, const Vector3d& p1, const Vector3d& p2, const Vector3d& p3, double height);
 	bool BackFaceCull(const Vector3d& a, const Vector3d& b, const Vector3d& c);
 	// Though we can do it with simply 2 triangle back face cullings, this function could potentially reduce some calculation
 	bool BackFaceCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d);
 	void SubDivideTriangle(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, bool reversed, Triangle*& pOutputTriangles);
-	void SubDivideQuad(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d, Triangle*& pOutputTriangles);
+	void SubDivideQuad
+	(
+		uint32_t currentLevel, 
+		uint32_t currentFaceID,
+		double currentTileLength, 
+		CullState state, 
+		const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d, 
+		const Vector3d& faceNormal, 
+		Triangle*& pOutputTriangles
+	);
 
 public:
 	void Start() override;
@@ -74,6 +90,10 @@ private:
 	Vector3d		m_utilityVector2;
 	Vector3d		m_utilityVector3;
 	Vector3d		m_utilityVector4;
+	Vector3d		m_lockedNormalizedPlanetSpaceCameraPosition;
+	double			m_lockedPlanetSpaceCameraHeight;
+	double			m_squareLockedPlanetSpaceCameraHeight;
+	double			m_squarePlanetRadius;
 
 	// Camera infor in planet local space
 	PyramidFrustumd	m_cameraFrustumLocal;

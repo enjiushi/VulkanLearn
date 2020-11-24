@@ -58,6 +58,8 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 	m_chunkIndex = UniformData::GetInstance()->GetPerPerPlanetUniforms()->AllocatePlanetChunk();
 	UniformData::GetInstance()->GetPerPerPlanetUniforms()->SetPlanetRadius(m_chunkIndex, m_planetRadius);
 
+	m_squarePlanetRadius = m_planetRadius * m_planetRadius;
+
 	return true;
 }
 
@@ -65,7 +67,7 @@ void PlanetGenerator::Start()
 {
 	m_pMeshRenderer = GetComponent<MeshRenderer>();
 
-	m_maxLODLevel = (uint32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetMaxPlanetLODLevel();
+	m_maxLODLevel = (uint32_t)UniformData::GetInstance()->GetPerPerPlanetUniforms()->GetPlanetMAXLODLevel(m_chunkIndex);
 
 	// Make a copy here
 	for (uint32_t i = 0; i < m_maxLODLevel; i++)
@@ -329,7 +331,152 @@ void PlanetGenerator::SubDivideTriangle(uint32_t currentLevel, CullState state, 
 	SubDivideTriangle(currentLevel + 1, state, A, B, C, reversed, pOutputTriangles);
 }
 
-void PlanetGenerator::SubDivideQuad(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d, Triangle*& pOutputTriangles)
+double PlanetGenerator::ComputeDistanceToTile
+(
+	const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d,
+	const Vector3d& realSizeA, const Vector3d& realSizeB, const Vector3d& realSizeC, const Vector3d& realSizeD, 
+	const Vector3d& faceNormal, const double currentTileLength, uint32_t currentFaceID
+)
+{
+	// Step 2
+	double cosineTheta = faceNormal * m_lockedNormalizedPlanetSpaceCameraPosition;
+
+	// Step 3
+	static double asdf = std::sqrt(3.0) / 3.0;
+	Vector3d camVecInsideCube = m_lockedNormalizedPlanetSpaceCameraPosition;
+	camVecInsideCube *= (asdf / cosineTheta);
+
+	// Step 4
+	uint32_t axisX, axisY;
+	if (currentFaceID == 0 || currentFaceID == 1)
+	{
+		axisX = 0; axisY = 2;
+	}
+	else if (currentFaceID == 2 || currentFaceID == 3)
+	{
+		axisX = 0, axisY = 1;
+	}
+	else
+	{
+		axisX = 1, axisY = 2;
+	}
+
+	double lowerX, higherX, lowerY, higherY;
+	if (a[axisX] <= d[axisX])
+	{
+		lowerX = a[axisX];
+		higherX = d[axisX];
+	}
+	else
+	{
+		lowerX = d[axisX];
+		higherX = a[axisX];
+	}
+
+	if (a[axisY] <= d[axisY])
+	{
+		lowerY = a[axisY];
+		higherY = d[axisY];
+	}
+	else
+	{
+		lowerY = d[axisY];
+		higherY = a[axisY];
+	}
+
+	bool lowerThanXRange = lowerX > camVecInsideCube[axisX];
+	bool higherThanXRange = higherX < camVecInsideCube[axisX];
+	bool lowerThanYRange = lowerY > camVecInsideCube[axisY];
+	bool higherThanYRange = higherY < camVecInsideCube[axisY];
+	bool withinXRange = !lowerThanXRange && !higherThanXRange;
+	bool withinYRange = !lowerThanYRange && !higherThanYRange;
+
+	auto GetDistance = [&](const Vector3d& targetPointVector)
+	{
+		double cosineTheta = targetPointVector * m_lockedNormalizedPlanetSpaceCameraPosition;
+
+		// Triangle: c ^ 2 = a ^ 2 + b ^ 2 - 2 * a * b * cosineTheta
+		// For earth: x ^ 2 = r ^ 2 + (r + h) ^ 2 + 2 * r * (r + h) * consineTheta
+		return std::sqrt(
+			m_squareLockedPlanetSpaceCameraHeight
+			+ m_squarePlanetRadius
+			- 2.0 * m_planetRadius * m_lockedPlanetSpaceCameraHeight * cosineTheta
+			);
+	};
+
+	if (withinXRange && withinYRange)
+	{
+		return m_lockedPlanetSpaceCameraHeight - m_planetRadius;
+	}
+	else if (withinXRange || withinYRange)
+	{
+		double* pLower, *pHigher, *pVal, *pTheOtherAxis;
+		if (withinXRange)
+		{
+			pLower = &lowerX;
+			pHigher = &higherX;
+			pVal = &camVecInsideCube[axisX];
+			pTheOtherAxis = lowerThanYRange ? &lowerY : &higherY;
+		}
+		else
+		{
+			pLower = &lowerY;
+			pHigher = &higherY;
+			pVal = &camVecInsideCube[axisY];
+			pTheOtherAxis = lowerThanXRange ? &lowerX : &higherX;
+		}
+
+		double length = *pVal - *pLower;
+		double ratio = length / currentTileLength;
+
+		// Interpolation
+		double interpolated = (1.0 - ratio) * *pLower + ratio * *pHigher;
+		Vector3d nearestPoint(a);
+		if (withinXRange)
+		{
+			nearestPoint[axisX] = interpolated;
+			nearestPoint[axisY] = *pTheOtherAxis;
+		}
+		else
+		{
+			nearestPoint[axisX] = *pTheOtherAxis;
+			nearestPoint[axisY] = interpolated;
+		}
+
+		nearestPoint.Normalize();
+
+		double d = GetDistance(nearestPoint);
+		return d;
+	}
+	else
+	{
+		double* pBoundaryX[2] = { &lowerX, &higherX };
+		double* pBoundaryY[2] = { &lowerY, &higherY };
+
+		uint32_t indexX = lowerThanXRange ? 0 : 1;
+		uint32_t indexY = lowerThanYRange ? 0 : 1;
+
+		Vector3d nearestPoint(a);
+		nearestPoint[axisX] = *pBoundaryX[indexX];
+		nearestPoint[axisY] = *pBoundaryY[indexY];
+
+		nearestPoint.Normalize();
+
+		double d = GetDistance(nearestPoint);
+		return d;
+	}
+}
+
+void PlanetGenerator::SubDivideQuad
+(
+	uint32_t currentLevel,
+	uint32_t currentFaceID,
+	double currentTileLength,
+	CullState state,
+	const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d,
+	const Vector3d& faceNormal,
+	Triangle*& pOutputTriangles
+)
 {
 	Vector3d realSizeA = a;
 	Vector3d realSizeB = b;
@@ -340,6 +487,25 @@ void PlanetGenerator::SubDivideQuad(uint32_t currentLevel, CullState state, cons
 	realSizeB.Normalize();
 	realSizeC.Normalize();
 	realSizeD.Normalize();
+
+	bool useVertexMinDist = true;
+	if (currentLevel == 0)
+	{
+		Vector3d center = realSizeA;
+		center += realSizeB;
+		center += realSizeC;
+		center += realSizeD;
+
+		center.Normalize();
+
+		double dot = std::abs(m_lockedPlanetSpaceCameraPosition.Normal() * center);
+		double dotA = realSizeA * center;
+		double dotB = realSizeB * center;
+		double dotC = realSizeC * center;
+		double dotD = realSizeD * center;
+
+		useVertexMinDist = (dot < dotA && dot < dotB && dot < dotC && dot < dotD);
+	}
 
 	realSizeA *= m_planetRadius;
 	realSizeB *= m_planetRadius;
@@ -368,14 +534,20 @@ void PlanetGenerator::SubDivideQuad(uint32_t currentLevel, CullState state, cons
 	Vector3d camera_relative_c = realSizeC - m_lockedPlanetSpaceCameraPosition;
 	Vector3d camera_relative_d = realSizeD - m_lockedPlanetSpaceCameraPosition;
 
+	//double dist = m_lockedPlanetSpaceCameraPosition.Length() - GetPlanetRadius();
+	/*Vector3d normal = (camera_relative_a - camera_relative_b) ^ (camera_relative_a - camera_relative_c);
+	normal.Normalize();
+	double dist = std::abs(normal * camera_relative_a);
 	double distA = camera_relative_a.Length();
 	double distB = camera_relative_b.Length();
 	double distC = camera_relative_c.Length();
 	double distD = camera_relative_d.Length();
 
-	double minDist = std::fmin(std::fmin(std::fmin(distA, distB), distC), distD);
+	double minDist = useVertexMinDist ? (std::fmin(std::fmin(std::fmin(distA, distB), distC), distD)) : m_lockedPlanetSpaceCameraPosition.Length() - GetPlanetRadius();*/
 
-	if (m_distanceLUT[currentLevel] <= minDist || currentLevel == m_maxLODLevel)
+	double minDist = ComputeDistanceToTile(a, b, c, d, realSizeA, realSizeB, realSizeC, realSizeD, faceNormal, currentTileLength, currentFaceID);
+
+	if (currentLevel + 1 == m_maxLODLevel || m_distanceLUT[currentLevel] <= minDist)
 	{
 		if (!m_toggleCameraInfoUpdate)
 		{
@@ -420,25 +592,27 @@ void PlanetGenerator::SubDivideQuad(uint32_t currentLevel, CullState state, cons
 	Vector3d cd = c;
 
 	ab += b;
-	ab *= 0.5f;
+	ab *= 0.5;
 
 	ac += c;
-	ac *= 0.5f;
+	ac *= 0.5;
 
 	bd += d;
-	bd *= 0.5f;
+	bd *= 0.5;
 
 	cd += d;
-	cd *= 0.5f;
+	cd *= 0.5;
 
 	Vector3d center = ab;
 	center += cd;
-	center *= 0.5f;
+	center *= 0.5;
 
-	SubDivideQuad(currentLevel + 1, state, a, ab, ac, center, pOutputTriangles);
-	SubDivideQuad(currentLevel + 1, state, ab, b, center, bd, pOutputTriangles);
-	SubDivideQuad(currentLevel + 1, state, ac, center, c, cd, pOutputTriangles);
-	SubDivideQuad(currentLevel + 1, state, center, bd, cd, d, pOutputTriangles);
+	currentTileLength *= 0.5;
+
+	SubDivideQuad(currentLevel + 1, currentFaceID, currentTileLength, state, a, ab, ac, center, faceNormal, pOutputTriangles);
+	SubDivideQuad(currentLevel + 1, currentFaceID, currentTileLength, state, ab, b, center, bd, faceNormal, pOutputTriangles);
+	SubDivideQuad(currentLevel + 1, currentFaceID, currentTileLength, state, ac, center, c, cd, faceNormal, pOutputTriangles);
+	SubDivideQuad(currentLevel + 1, currentFaceID, currentTileLength, state, center, bd, cd, d, faceNormal, pOutputTriangles);
 }
 
 void PlanetGenerator::OnPreRender()
@@ -455,6 +629,10 @@ void PlanetGenerator::OnPreRender()
 	if (m_toggleCameraInfoUpdate)
 	{
 		m_lockedPlanetSpaceCameraPosition = m_planetSpaceCameraPosition;
+		m_lockedNormalizedPlanetSpaceCameraPosition = m_lockedPlanetSpaceCameraPosition;
+		m_lockedNormalizedPlanetSpaceCameraPosition.Normalize();
+		m_lockedPlanetSpaceCameraHeight = m_lockedPlanetSpaceCameraPosition.Length();
+		m_squareLockedPlanetSpaceCameraHeight = m_lockedPlanetSpaceCameraHeight * m_lockedPlanetSpaceCameraHeight;
 
 		m_cameraFrustumLocal = m_pCamera->GetCameraFrustum();
 		m_cameraFrustumLocal.Transform(m_utilityTransfrom);
@@ -467,11 +645,25 @@ void PlanetGenerator::OnPreRender()
 
 	for (uint32_t i = 0; i < 6; i++)
 	{
-		SubDivideQuad(0, CullState::CULL_DIVIDE,
+		Vector3d faceNormal;
+		switch (i)
+		{
+		case 0: faceNormal = { 0, -1, 0 }; break;
+		case 1: faceNormal = { 0, 1, 0 }; break;
+		case 2: faceNormal = { 0, 0, 1 }; break;
+		case 3: faceNormal = { 0, 0, -1 }; break;
+		case 4: faceNormal = { -1, 0, 0 }; break;
+		case 5: faceNormal = { 1, 0, 0 }; break;
+		}
+		SubDivideQuad(0, 
+			i,
+			(m_pVertices[m_pIndices[i * 6 + 0]] - m_pVertices[m_pIndices[i * 6 + 1]]).Length(), 
+			CullState::CULL_DIVIDE,
 			m_pVertices[m_pIndices[i * 6 + 0]],	// a
 			m_pVertices[m_pIndices[i * 6 + 1]],	// b
 			m_pVertices[m_pIndices[i * 6 + 2]],	// c
 			m_pVertices[m_pIndices[i * 6 + 5]],	// d
+			faceNormal,
 			pTriangles);
 	}
 	uint32_t updatedSize = (uint32_t)((uint8_t*)pTriangles - startPtr);
