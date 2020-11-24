@@ -36,18 +36,18 @@ bool SwapChain::Init(const std::shared_ptr<Device>& pDevice, const std::shared_p
 
 	//Prefer mailbox mode if present, it's the lowest latency non-tearing present  mode
 	VkPresentModeKHR swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
-	for (size_t i = 0; i < m_pDevice->GetPhysicalDevice()->GetPresentModes().size(); i++)
-	{
-		if (m_pDevice->GetPhysicalDevice()->GetPresentModes()[i] == VK_PRESENT_MODE_MAILBOX_KHR)
-		{
-			swapchainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-			break;
-		}
-		if ((swapchainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR) && (m_pDevice->GetPhysicalDevice()->GetPresentModes()[i] == VK_PRESENT_MODE_IMMEDIATE_KHR))
-		{
-			swapchainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-		}
-	}
+	//for (size_t i = 0; i < m_pDevice->GetPhysicalDevice()->GetPresentModes().size(); i++)
+	//{
+	//	if (m_pDevice->GetPhysicalDevice()->GetPresentModes()[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+	//	{
+	//		swapchainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+	//		break;
+	//	}
+	//	if ((swapchainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR) && (m_pDevice->GetPhysicalDevice()->GetPresentModes()[i] == VK_PRESENT_MODE_IMMEDIATE_KHR))
+	//	{
+	//		swapchainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+	//	}
+	//}
 
 	//Don't know what's this
 	VkSurfaceTransformFlagsKHR preTransform;
