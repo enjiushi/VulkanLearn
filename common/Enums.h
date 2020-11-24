@@ -1,5 +1,16 @@
 #pragma once
 
+enum CubeFace
+{
+	RIGHT,
+	LEFT,
+	TOP,
+	BOTTOM,
+	FRONT,
+	BACK,
+	CUBE_FACE_COUNT
+};
+
 enum VertexAttribFlag
 {
 	VAFPosition,

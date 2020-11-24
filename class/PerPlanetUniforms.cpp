@@ -34,6 +34,7 @@ void PerPlanetUniforms::SetPlanetRadius(uint32_t index, double radius)
 	m_perPlanetVariables[index].PlanetDescriptor0.x = radius;
 	CONVERT2SINGLEVAL(m_perPlanetVariables[index], m_singlePrecisionPerPlanetVariables[index], PlanetDescriptor0.x);
 
+	// Get indices of 2 diagnal points of a cube face
 	uint32_t index0 = UniformData::GetInstance()->GetGlobalUniforms()->CubeIndices[1];
 	uint32_t index1 = UniformData::GetInstance()->GetGlobalUniforms()->CubeIndices[2];
 

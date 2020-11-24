@@ -3,6 +3,7 @@
 #include "../Maths/Matrix.h"
 #include "../Maths/PyramidFrustum.h"
 #include "../class/PerFrameData.h"
+#include "../common/Enums.h"
 
 class MeshRenderer;
 class PhysicalCamera;
@@ -42,7 +43,7 @@ protected:
 	(
 		const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d,
 		const Vector3d& realSizeA, const Vector3d& realSizeB, const Vector3d& realSizeC, const Vector3d& realSizeD,
-		const Vector3d& faceNormal, const double currentTileLength, uint32_t currentFaceID
+		const Vector3d& faceNormal, const double currentTileLength, CubeFace cubeFace
 	);
 
 	CullState FrustumCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, double height);
@@ -54,7 +55,7 @@ protected:
 	void SubDivideQuad
 	(
 		uint32_t currentLevel, 
-		uint32_t currentFaceID,
+		CubeFace cubeFace,
 		double currentTileLength, 
 		CullState state, 
 		const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d, 

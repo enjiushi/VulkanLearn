@@ -64,53 +64,53 @@ void SceneGenerator::GenerateCube(Vector3d vertices[], uint32_t indices[])
 	for (uint32_t i = 0; i < 8; i++)
 		vertices[i].Normalize();
 
-	// Bottom
+	// Right
 	indices[0] = 1;
-	indices[1] = 0;
-	indices[2] = 3;
-	indices[3] = 3;
-	indices[4] = 0;
-	indices[5] = 2;
-
-	// Top
-	indices[6] = 4;
-	indices[7] = 5;
-	indices[8] = 6;
-	indices[9] = 6;
-	indices[10] = 5;
-	indices[11] = 7;
-
-	// Front
-	indices[12] = 0;
-	indices[13] = 1;
-	indices[14] = 4;
-	indices[15] = 4;
-	indices[16] = 1;
-	indices[17] = 5;
-
-	// Back
-	indices[18] = 3;
-	indices[19] = 2;
-	indices[20] = 7;
-	indices[21] = 7;
-	indices[22] = 2;
-	indices[23] = 6;
+	indices[1] = 3;
+	indices[2] = 5;
+	indices[3] = 5;
+	indices[4] = 3;
+	indices[5] = 7;
 
 	// Left
-	indices[24] = 2;
-	indices[25] = 0;
-	indices[26] = 6;
-	indices[27] = 6;
-	indices[28] = 0;
-	indices[29] = 4;
+	indices[6] = 2;
+	indices[7] = 0;
+	indices[8] = 6;
+	indices[9] = 6;
+	indices[10] = 0;
+	indices[11] = 4;
 
-	// Right
-	indices[30] = 1;
-	indices[31] = 3;
-	indices[32] = 5;
-	indices[33] = 5;
-	indices[34] = 3;
-	indices[35] = 7;
+	// Top
+	indices[12] = 4;
+	indices[13] = 5;
+	indices[14] = 6;
+	indices[15] = 6;
+	indices[16] = 5;
+	indices[17] = 7;
+
+	// Bottom
+	indices[18] = 1;
+	indices[19] = 0;
+	indices[20] = 3;
+	indices[21] = 3;
+	indices[22] = 0;
+	indices[23] = 2;
+
+	// Front
+	indices[24] = 0;
+	indices[25] = 1;
+	indices[26] = 4;
+	indices[27] = 4;
+	indices[28] = 1;
+	indices[29] = 5;
+
+	// Back
+	indices[30] = 3;
+	indices[31] = 2;
+	indices[32] = 7;
+	indices[33] = 7;
+	indices[34] = 2;
+	indices[35] = 6;
 }
 
 std::shared_ptr<Mesh> SceneGenerator::GenerateLODTriangleMesh(uint32_t level, bool forQuad)

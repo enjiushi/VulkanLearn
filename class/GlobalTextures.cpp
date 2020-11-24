@@ -162,17 +162,6 @@ void GlobalTextures::InitSkyboxGenParameters()
 		CUBE_CORNER_COUNT
 	};
 
-	enum CubeFace
-	{
-		RIGHT,
-		LEFT,
-		TOP,
-		BOTTOM,
-		BACK,
-		FRONT,
-		CUBE_FACE_COUNT
-	};
-
 	Vector4f cubeCorners[] =
 	{
 		{ -1, -1,  1, 0 },
@@ -207,15 +196,15 @@ void GlobalTextures::InitSkyboxGenParameters()
 
 	// Note: our coordinate system is right-hand based, however, cube map is left-hand based
 	// So here BACK = positive z and FRONT = negative z
-	m_cubeFaces[BACK][0] = cubeCorners[BOTTOM_LEFT_BACK];
-	m_cubeFaces[BACK][1] = cubeCorners[BOTTOM_RIGHT_BACK];
-	m_cubeFaces[BACK][2] = cubeCorners[TOP_LEFT_BACK];
-	m_cubeFaces[BACK][3] = cubeCorners[TOP_RIGHT_BACK];
+	m_cubeFaces[FRONT][0] = cubeCorners[BOTTOM_LEFT_BACK];
+	m_cubeFaces[FRONT][1] = cubeCorners[BOTTOM_RIGHT_BACK];
+	m_cubeFaces[FRONT][2] = cubeCorners[TOP_LEFT_BACK];
+	m_cubeFaces[FRONT][3] = cubeCorners[TOP_RIGHT_BACK];
 
-	m_cubeFaces[FRONT][0] = cubeCorners[BOTTOM_RIGHT_FRONT];
-	m_cubeFaces[FRONT][1] = cubeCorners[BOTTOM_LEFT_FRONT];
-	m_cubeFaces[FRONT][2] = cubeCorners[TOP_RIGHT_FRONT];
-	m_cubeFaces[FRONT][3] = cubeCorners[TOP_LEFT_FRONT];
+	m_cubeFaces[BACK][0] = cubeCorners[BOTTOM_RIGHT_FRONT];
+	m_cubeFaces[BACK][1] = cubeCorners[BOTTOM_LEFT_FRONT];
+	m_cubeFaces[BACK][2] = cubeCorners[TOP_RIGHT_FRONT];
+	m_cubeFaces[BACK][3] = cubeCorners[TOP_LEFT_FRONT];
 
 	for (uint32_t i = 0; i < (uint32_t)CubeFace::CUBE_FACE_COUNT; i++)
 		for (uint32_t j = 0; j < 4; j++)
@@ -653,9 +642,12 @@ void GlobalTextures::InitTransmittanceTextureDiction()
 
 void GlobalTextures::InitTerrainTexture()
 {
-	m_pTestTerrainTexture = Image::CreateEmptyTexture2D(GetDevice(), { 513, 513 }, VK_FORMAT_R32_SFLOAT);
-	m_pTestTerrainStagingBuffer = StagingBuffer::CreateReadableStagingBuffer(GetDevice(), 513 * 513 * sizeof(float));
-	GenerateTerrainTexture(9);
+	// FIXME: Hard-code, need a big refactor for class "UniformData" to resolve initialization order issue
+	uint32_t subdivideLevel = 7;
+	uint32_t size = (uint32_t)std::pow(2.0, subdivideLevel) + 1;
+	m_pTestTerrainTexture = Image::CreateEmptyTexture2D(GetDevice(), { size, size }, VK_FORMAT_R32_SFLOAT);
+	m_pTestTerrainStagingBuffer = StagingBuffer::CreateReadableStagingBuffer(GetDevice(), size * size * sizeof(float));
+	GenerateTerrainTexture(subdivideLevel);
 }
 
 std::shared_ptr<GlobalTextures> GlobalTextures::Create()

@@ -335,24 +335,24 @@ double PlanetGenerator::ComputeDistanceToTile
 (
 	const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d,
 	const Vector3d& realSizeA, const Vector3d& realSizeB, const Vector3d& realSizeC, const Vector3d& realSizeD, 
-	const Vector3d& faceNormal, const double currentTileLength, uint32_t currentFaceID
+	const Vector3d& faceNormal, const double currentTileLength, CubeFace cubeFace
 )
 {
 	// Step 2
 	double cosineTheta = faceNormal * m_lockedNormalizedPlanetSpaceCameraPosition;
 
 	// Step 3
-	static double asdf = std::sqrt(3.0) / 3.0;
+	static double halfCubeEdgeLength = std::sqrt(3.0) / 3.0 * m_pVertices[0].Length();
 	Vector3d camVecInsideCube = m_lockedNormalizedPlanetSpaceCameraPosition;
-	camVecInsideCube *= (asdf / cosineTheta);
+	camVecInsideCube *= (halfCubeEdgeLength / cosineTheta);
 
 	// Step 4
 	uint32_t axisX, axisY;
-	if (currentFaceID == 0 || currentFaceID == 1)
+	if (cubeFace == CubeFace::BOTTOM || cubeFace == CubeFace::TOP)
 	{
 		axisX = 0; axisY = 2;
 	}
-	else if (currentFaceID == 2 || currentFaceID == 3)
+	else if (cubeFace == CubeFace::FRONT || cubeFace == CubeFace::BACK)
 	{
 		axisX = 0, axisY = 1;
 	}
@@ -470,7 +470,7 @@ double PlanetGenerator::ComputeDistanceToTile
 void PlanetGenerator::SubDivideQuad
 (
 	uint32_t currentLevel,
-	uint32_t currentFaceID,
+	CubeFace cubeFace,
 	double currentTileLength,
 	CullState state,
 	const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d,
@@ -545,7 +545,7 @@ void PlanetGenerator::SubDivideQuad
 
 	double minDist = useVertexMinDist ? (std::fmin(std::fmin(std::fmin(distA, distB), distC), distD)) : m_lockedPlanetSpaceCameraPosition.Length() - GetPlanetRadius();*/
 
-	double minDist = ComputeDistanceToTile(a, b, c, d, realSizeA, realSizeB, realSizeC, realSizeD, faceNormal, currentTileLength, currentFaceID);
+	double minDist = ComputeDistanceToTile(a, b, c, d, realSizeA, realSizeB, realSizeC, realSizeD, faceNormal, currentTileLength, cubeFace);
 
 	if (currentLevel + 1 == m_maxLODLevel || m_distanceLUT[currentLevel] <= minDist)
 	{
@@ -609,10 +609,10 @@ void PlanetGenerator::SubDivideQuad
 
 	currentTileLength *= 0.5;
 
-	SubDivideQuad(currentLevel + 1, currentFaceID, currentTileLength, state, a, ab, ac, center, faceNormal, pOutputTriangles);
-	SubDivideQuad(currentLevel + 1, currentFaceID, currentTileLength, state, ab, b, center, bd, faceNormal, pOutputTriangles);
-	SubDivideQuad(currentLevel + 1, currentFaceID, currentTileLength, state, ac, center, c, cd, faceNormal, pOutputTriangles);
-	SubDivideQuad(currentLevel + 1, currentFaceID, currentTileLength, state, center, bd, cd, d, faceNormal, pOutputTriangles);
+	SubDivideQuad(currentLevel + 1, cubeFace, currentTileLength, state, a, ab, ac, center, faceNormal, pOutputTriangles);
+	SubDivideQuad(currentLevel + 1, cubeFace, currentTileLength, state, ab, b, center, bd, faceNormal, pOutputTriangles);
+	SubDivideQuad(currentLevel + 1, cubeFace, currentTileLength, state, ac, center, c, cd, faceNormal, pOutputTriangles);
+	SubDivideQuad(currentLevel + 1, cubeFace, currentTileLength, state, center, bd, cd, d, faceNormal, pOutputTriangles);
 }
 
 void PlanetGenerator::OnPreRender()
@@ -643,20 +643,20 @@ void PlanetGenerator::OnPreRender()
 	Triangle* pTriangles = (Triangle*)PlanetGeoDataManager::GetInstance()->AcquireDataPtr(offsetInBytes);
 	uint8_t* startPtr = (uint8_t*)pTriangles;
 
-	for (uint32_t i = 0; i < 6; i++)
+	for (uint32_t i = 0; i < CubeFace::CUBE_FACE_COUNT; i++)
 	{
 		Vector3d faceNormal;
 		switch (i)
 		{
-		case 0: faceNormal = { 0, -1, 0 }; break;
-		case 1: faceNormal = { 0, 1, 0 }; break;
-		case 2: faceNormal = { 0, 0, 1 }; break;
-		case 3: faceNormal = { 0, 0, -1 }; break;
-		case 4: faceNormal = { -1, 0, 0 }; break;
-		case 5: faceNormal = { 1, 0, 0 }; break;
+		case 0: faceNormal = { 1, 0, 0 }; break;
+		case 1: faceNormal = { -1, 0, 0 }; break;
+		case 2: faceNormal = { 0, 1, 0 }; break;
+		case 3: faceNormal = { 0, -1, 0 }; break;
+		case 4: faceNormal = { 0, 0, 1 }; break;
+		case 5: faceNormal = { 0, 0, -1 }; break;
 		}
 		SubDivideQuad(0, 
-			i,
+			(CubeFace)i,
 			(m_pVertices[m_pIndices[i * 6 + 0]] - m_pVertices[m_pIndices[i * 6 + 1]]).Length(), 
 			CullState::CULL_DIVIDE,
 			m_pVertices[m_pIndices[i * 6 + 0]],	// a
