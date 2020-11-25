@@ -489,8 +489,11 @@ void GlobalTextures::GenerateTerrainTexture(uint32_t level)
 		uint32_t step = size / 2;
 		uint32_t numSquares = 1;
 		uint32_t posX, posY;
+		float height;
 		for (uint32_t i = 1; i < level + 1; i++)
 		{
+			height = powf(0.5f, (float)i);
+
 			// Square
 			for (uint32_t squarePosX = 0; squarePosX < numSquares; squarePosX++)
 				for (uint32_t squarePosY = 0; squarePosY < numSquares; squarePosY++)
@@ -502,7 +505,7 @@ void GlobalTextures::GenerateTerrainTexture(uint32_t level)
 							pTerrainData[(posY + step) * (size + 1) + (posX - step)] +
 							pTerrainData[(posY - step) * (size + 1) + (posX + step)] +
 							pTerrainData[(posY + step) * (size + 1) + (posX + step)]) / 4.0f +
-						dist(mt) * powf(0.5f, (float)i);
+						dist(mt) * height;
 				}
 
 			// Diamond
@@ -511,19 +514,19 @@ void GlobalTextures::GenerateTerrainTexture(uint32_t level)
 				{
 					posX = squarePosX * step * 2 + step;
 					posY = squarePosY * step * 2;
-					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * powf(0.5f, (float)i), size);
+					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * height, size);
 
 					posX = squarePosX * step * 2;
 					posY = squarePosY * step * 2 + step;
-					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * powf(0.5f, (float)i), size);
+					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * height, size);
 
 					posX = squarePosX * step * 2 + step * 2;
 					posY = squarePosY * step * 2 + step;
-					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * powf(0.5f, (float)i), size);
+					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * height, size);
 
 					posX = squarePosX * step * 2 + step;
 					posY = squarePosY * step * 2 + step * 2;
-					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * powf(0.5f, (float)i), size);
+					ProcessDiamond(pTerrainData, posX, posY, step, dist(mt) * height, size);
 				}
 
 			numSquares *= 2;
