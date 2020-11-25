@@ -43,6 +43,8 @@ public:
 		VkAccessFlags dstAccessFlags
 	);
 
+	void ClearResUsageRecord() { m_claimedResourceUsageList.clear(); }
+
 protected:
 	static bool IsAccessWrite(VkAccessFlags accessFlags);
 
