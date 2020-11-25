@@ -15,7 +15,7 @@
 #include "FrameWorkManager.h"
 #include "../class/RenderWorkManager.h"
 #include "../class/Mesh.h"
-#include "ResourceBarrierScheduler.h"
+#include "../vulkan/ResourceBarrierScheduler.h"
 #include "../component/MeshRenderer.h"
 #include "../Base/BaseObject.h"
 #include "../scene/SceneGenerator.h"
@@ -540,7 +540,7 @@ void GlobalTextures::GenerateTerrainTexture(uint32_t level)
 			CommandBuffer::CBLevel::PRIMARY
 		);
 		pCommandBuffer->StartPrimaryRecording();
-		m_pTestTerrainTexture->CopyFromBuffer(m_pTestTerrainStagingBuffer, pCommandBuffer);
+		m_pTestTerrainHeightTexture->CopyFromBuffer(m_pTestTerrainStagingBuffer, pCommandBuffer);
 		pCommandBuffer->EndPrimaryRecording();
 
 		FrameWorkManager::GetInstance()->SubmitCommandBuffers
@@ -648,7 +648,8 @@ void GlobalTextures::InitTerrainTexture()
 	// FIXME: Hard-code, need a big refactor for class "UniformData" to resolve initialization order issue
 	uint32_t subdivideLevel = 7;
 	uint32_t size = (uint32_t)std::pow(2.0, subdivideLevel) + 1;
-	m_pTestTerrainTexture = Image::CreateEmptyTexture2D(GetDevice(), { size, size }, VK_FORMAT_R32_SFLOAT);
+	m_pTestTerrainHeightTexture = Image::CreateEmptyTexture2D(GetDevice(), { size, size }, VK_FORMAT_R32_SFLOAT);
+	//m_pTestTerrainNormalTexture = Image::CreateEmptyTexture2D(GetDevice(), { size, size }, VK_FORMAT_R16G16B16A16_SNORM);
 	m_pTestTerrainStagingBuffer = StagingBuffer::CreateReadableStagingBuffer(GetDevice(), size * size * sizeof(float));
 	GenerateTerrainTexture(subdivideLevel);
 }
@@ -913,7 +914,7 @@ uint32_t GlobalTextures::SetupDescriptorSet(const std::shared_ptr<DescriptorSet>
 	pDescriptorSet->UpdateImages(bindingIndex++, irradiance);
 	pDescriptorSet->UpdateImages(bindingIndex++, reflection);
 
-	pDescriptorSet->UpdateImage(bindingIndex++, { m_pTestTerrainTexture, m_pTestTerrainTexture->CreateLinearClampToEdgeSampler(), m_pTestTerrainTexture->CreateDefaultImageView() });
+	pDescriptorSet->UpdateImage(bindingIndex++, { m_pTestTerrainHeightTexture, m_pTestTerrainHeightTexture->CreateLinearClampToEdgeSampler(), m_pTestTerrainHeightTexture->CreateDefaultImageView() });
 
 	return bindingIndex;
 }

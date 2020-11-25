@@ -109,7 +109,8 @@ protected:
 	std::vector<std::shared_ptr<Image>>			m_scatterTextureDiction;
 	std::vector<std::shared_ptr<Image>>			m_irradianceTextureDiction;
 
-	std::shared_ptr<Image>						m_pTestTerrainTexture;
+	std::shared_ptr<Image>						m_pTestTerrainHeightTexture;
+	std::shared_ptr<Image>						m_pTestTerrainNormalTexture;
 	std::shared_ptr<StagingBuffer>				m_pTestTerrainStagingBuffer;
 
 	// FIXME: Remove this later

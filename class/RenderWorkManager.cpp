@@ -16,7 +16,7 @@
 #include "GBufferPlanetMaterial.h"
 #include "MaterialInstance.h"
 #include "FrameEventManager.h"
-#include "ResourceBarrierScheduler.h"
+#include "../vulkan/ResourceBarrierScheduler.h"
 
 bool RenderWorkManager::Init()
 {

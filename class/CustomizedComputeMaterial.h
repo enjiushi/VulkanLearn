@@ -2,7 +2,7 @@
 #include "Material.h"
 #include "FrameBufferDiction.h"
 #include "RenderPassDiction.h"
-#include "ResourceBarrierScheduler.h"
+#include "../vulkan/ResourceBarrierScheduler.h"
 #include "../vulkan/DescriptorSet.h"
 
 class Image;

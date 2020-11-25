@@ -7,7 +7,7 @@
 #include "../vulkan/Queue.h"
 #include "../vulkan/CommandBuffer.h"
 #include "../vulkan/Image.h"
-#include "ResourceBarrierScheduler.h"
+#include "../vulkan/ResourceBarrierScheduler.h"
 #include "GlobalTextures.h"
 #include "UniformData.h"
 #include "Material.h"

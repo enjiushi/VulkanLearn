@@ -152,7 +152,7 @@ void Image::UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer)
 	GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::ALL_ROUND)->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }
 
-void Image::CopyFromBuffer(const std::shared_ptr<Buffer>& pBuffer, const std::shared_ptr<CommandBuffer>& pCommandBuffer, bool waitUntilComplete)
+void Image::CopyFromBuffer(const std::shared_ptr<Buffer>& pBuffer, const std::shared_ptr<CommandBuffer>& pCommandBuffer)
 {
 	std::vector<VkBufferImageCopy> bufferCopyRegions;
 	for (uint32_t level = 0; level < m_info.mipLevels; level++)
