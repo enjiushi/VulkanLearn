@@ -60,6 +60,14 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 
 	m_squarePlanetRadius = m_planetRadius * m_planetRadius;
 
+	m_tileMask = 0;
+	m_cubeFaceNormals[CubeFace::RIGHT]	= {  1,  0,  0 };
+	m_cubeFaceNormals[CubeFace::LEFT]	= { -1,  0,  0 };
+	m_cubeFaceNormals[CubeFace::TOP]	= {  0,  1,  0 };
+	m_cubeFaceNormals[CubeFace::BOTTOM] = {  0, -1,  0 };
+	m_cubeFaceNormals[CubeFace::FRONT]	= {  0,  0,  1 };
+	m_cubeFaceNormals[CubeFace::BACK]	= {  0,  0, -1 };
+
 	return true;
 }
 
@@ -615,6 +623,83 @@ void PlanetGenerator::SubDivideQuad
 	SubDivideQuad(currentLevel + 1, cubeFace, currentTileLength, state, center, bd, cd, d, faceNormal, pOutputTriangles);
 }
 
+void PlanetGenerator::NewPlanetLODMethod()
+{
+	static double halfCubeEdgeLength = std::sqrt(3.0) / 3.0 * m_pVertices[0].Length();
+	std::pair<double, CubeFace> cameraVecDotCubeFaceNormal[3];
+
+	// Step1: find a rough cube face range that normalized camera position could lies in
+	cameraVecDotCubeFaceNormal[0].second = m_lockedNormalizedPlanetSpaceCameraPosition.x < 0 ? CubeFace::LEFT : CubeFace::RIGHT;
+	cameraVecDotCubeFaceNormal[1].second = m_lockedNormalizedPlanetSpaceCameraPosition.y < 0 ? CubeFace::BOTTOM : CubeFace::TOP;
+	cameraVecDotCubeFaceNormal[2].second = m_lockedNormalizedPlanetSpaceCameraPosition.z < 0 ? CubeFace::BACK : CubeFace::FRONT;
+
+	// Step2: Acquire maximum value of the 3 axis of normalized camera position
+	cameraVecDotCubeFaceNormal[0].first = std::abs(m_lockedNormalizedPlanetSpaceCameraPosition.x);
+	cameraVecDotCubeFaceNormal[1].first = std::abs(m_lockedNormalizedPlanetSpaceCameraPosition.y);
+	cameraVecDotCubeFaceNormal[2].first = std::abs(m_lockedNormalizedPlanetSpaceCameraPosition.z);
+
+	// Step3: The one with maximum axis value shall be the cube face
+	uint32_t maxIndex = cameraVecDotCubeFaceNormal[0].first > cameraVecDotCubeFaceNormal[1].first ? 0 : 1;
+	maxIndex = cameraVecDotCubeFaceNormal[maxIndex].first > cameraVecDotCubeFaceNormal[2].first ? maxIndex : 2;
+
+	// Step4: Acquire cosine between normalized camera position and chosen cube face normal
+	double cosineTheta = m_cubeFaceNormals[cameraVecDotCubeFaceNormal[maxIndex].second] * m_lockedNormalizedPlanetSpaceCameraPosition;
+
+	// Step5: Acquire the cropped vector within this cube
+	Vector3d camVecInsideCube = m_lockedNormalizedPlanetSpaceCameraPosition;
+	camVecInsideCube *= (halfCubeEdgeLength / cosineTheta);
+
+	// Step6: Acquire axis index according to cube face
+	uint32_t axisU, axisV;
+	if (cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::BOTTOM || cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::TOP)
+	{
+		axisU = 0; axisV = 2;	// x and z
+	}
+	else if (cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::FRONT || cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::BACK)
+	{
+		axisU = 0, axisV = 1;	// x and y
+	}
+	else
+	{
+		axisU = 1, axisV = 2;	// y and z
+	}
+
+	// Step6: Acquire the normalized position(0-1) of the intersection between normalized camera position and chosen cube face
+	double normU = (camVecInsideCube[axisU] - m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 0]][axisU]) /
+		(m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 5]][axisU] - m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 0]][axisU]);
+
+	double normV = (camVecInsideCube[axisV] - m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 0]][axisV]) /
+		(m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 5]][axisV] - m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 0]][axisV]);
+
+	// 1023 is the bias of exponent bits
+	static uint64_t zeroExponent = 1023;
+	// 52 is the count of fraction bits of double
+	static uint64_t fractionBits = 52;
+	// 11 is the count of exponent bits of double
+	static uint64_t exponentBits = 11;
+	// Extra one is the invisible one of double that is not in fraction bits for normal double
+	static uint64_t extraOne = (1ull << fractionBits);
+	// Fraction mask is used to extract only fraction bits of a double
+	static uint64_t fractionMask = (1ull << fractionBits) - 1;
+	// Exponent mask is used to extract only exponent bits of a double(You have to do right shift of "fractionBits" after)
+	static uint64_t exponentMask = ((1ull << exponentBits) - 1) << fractionBits;
+
+	// Prepare
+	uint64_t *pU, *pV;
+	pU = (uint64_t*)&normU;
+	pV = (uint64_t*)&normV;
+
+	// Step7: Acquire binary position of the intersection
+	// 1. (*pU) & fractionMask:	Acquire only fraction bits
+	// 2. (1) + extraOne:		Acquire actual fraction bits by adding an invisible bit
+	// 3. (*pU) & exponentMask:	Acquire only exponent bits
+	// 4. (3) >> fractionBits:	Acquire readable exponent by shifting it right of 52 bits	
+	// 5. zeroExponent - (3):	We need to right shift fraction part using exponent value, to make same levels pair with same bits(floating format trait)
+	// 6. (2) >> (5):			Right shift 
+	uint64_t binaryU = (((*pU) & fractionMask) + extraOne) >> (zeroExponent - (((*pU) & exponentMask) >> fractionBits));
+	uint64_t binaryV = (((*pV) & fractionMask) + extraOne) >> (zeroExponent - (((*pV) & exponentMask) >> fractionBits));
+}
+
 void PlanetGenerator::OnPreRender()
 {
 	// Transform from world space to planet local space
@@ -669,7 +754,7 @@ void PlanetGenerator::OnPreRender()
 	uint32_t updatedSize = (uint32_t)((uint8_t*)pTriangles - startPtr);
 
 	PlanetGeoDataManager::GetInstance()->FinishDataUpdate(updatedSize);
-	
+
 	if (m_pMeshRenderer != nullptr)
 	{
 		m_pMeshRenderer->SetStartInstance(offsetInBytes / sizeof(Triangle));

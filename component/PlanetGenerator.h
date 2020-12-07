@@ -63,6 +63,9 @@ protected:
 		Triangle*& pOutputTriangles
 	);
 
+	// New planet lod method test function, not named yet
+	void NewPlanetLODMethod();
+
 public:
 	void Start() override;
 	void OnPreRender() override;
@@ -95,6 +98,9 @@ private:
 	double			m_lockedPlanetSpaceCameraHeight;
 	double			m_squareLockedPlanetSpaceCameraHeight;
 	double			m_squarePlanetRadius;
+
+	uint64_t		m_tileMask;
+	Vector3d		m_cubeFaceNormals[CubeFace::CUBE_FACE_COUNT];
 
 	// Camera infor in planet local space
 	PyramidFrustumd	m_cameraFrustumLocal;
