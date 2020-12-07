@@ -668,6 +668,13 @@ void PlanetGenerator::NewPlanetLODMethod()
 	double normU = (camVecInsideCube[axisU] + 1) / 2.0;
 	double normV = (camVecInsideCube[axisV] + 1) / 2.0;
 
+	// Reverse U if a cube face lies on the negative side of our right-hand axis
+	// Do this to align UV with cube face winding order(also reversed)
+	if (cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::BACK ||
+		cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::LEFT ||
+		cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::BOTTOM)
+		normU = 1.0 - normU;
+
 	// 1023 is the bias of exponent bits
 	static uint64_t zeroExponent = 1023;
 	// 52 is the count of fraction bits of double
