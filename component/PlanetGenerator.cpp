@@ -623,9 +623,9 @@ void PlanetGenerator::SubDivideQuad
 	SubDivideQuad(currentLevel + 1, cubeFace, currentTileLength, state, center, bd, cd, d, faceNormal, pOutputTriangles);
 }
 
+// Here we assume cube consists of 8 vertices with various -1 and 1
 void PlanetGenerator::NewPlanetLODMethod()
 {
-	static double halfCubeEdgeLength = std::sqrt(3.0) / 3.0 * m_pVertices[0].Length();
 	std::pair<double, CubeFace> cameraVecDotCubeFaceNormal[3];
 
 	// Step1: find a rough cube face range that normalized camera position could lies in
@@ -647,13 +647,13 @@ void PlanetGenerator::NewPlanetLODMethod()
 
 	// Step5: Acquire the cropped vector within this cube
 	Vector3d camVecInsideCube = m_lockedNormalizedPlanetSpaceCameraPosition;
-	camVecInsideCube *= (halfCubeEdgeLength / cosineTheta);
+	camVecInsideCube *= (1 / cosineTheta);
 
 	// Step6: Acquire axis index according to cube face
 	uint32_t axisU, axisV;
 	if (cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::BOTTOM || cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::TOP)
 	{
-		axisU = 0; axisV = 2;	// x and z
+		axisU = 2; axisV = 0;	// z and x
 	}
 	else if (cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::FRONT || cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::BACK)
 	{
@@ -665,11 +665,8 @@ void PlanetGenerator::NewPlanetLODMethod()
 	}
 
 	// Step6: Acquire the normalized position(0-1) of the intersection between normalized camera position and chosen cube face
-	double normU = (camVecInsideCube[axisU] - m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 0]][axisU]) /
-		(m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 5]][axisU] - m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 0]][axisU]);
-
-	double normV = (camVecInsideCube[axisV] - m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 0]][axisV]) /
-		(m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 5]][axisV] - m_pVertices[m_pIndices[cameraVecDotCubeFaceNormal[maxIndex].second * 6 + 0]][axisV]);
+	double normU = (camVecInsideCube[axisU] + 1) / 2.0;
+	double normV = (camVecInsideCube[axisV] + 1) / 2.0;
 
 	// 1023 is the bias of exponent bits
 	static uint64_t zeroExponent = 1023;
