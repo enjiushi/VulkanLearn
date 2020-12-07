@@ -81,20 +81,20 @@ void SceneGenerator::GenerateCube(Vector3d vertices[], uint32_t indices[])
 	indices[11] = 4;
 
 	// Top
-	indices[12] = 4;
-	indices[13] = 5;
-	indices[14] = 6;
-	indices[15] = 6;
-	indices[16] = 5;
-	indices[17] = 7;
+	indices[12] = 6;
+	indices[13] = 4;
+	indices[14] = 7;
+	indices[15] = 7;
+	indices[16] = 4;
+	indices[17] = 5;
 
 	// Bottom
-	indices[18] = 1;
-	indices[19] = 0;
-	indices[20] = 3;
-	indices[21] = 3;
-	indices[22] = 0;
-	indices[23] = 2;
+	indices[18] = 0;
+	indices[19] = 2;
+	indices[20] = 1;
+	indices[21] = 1;
+	indices[22] = 2;
+	indices[23] = 3;
 
 	// Front
 	indices[24] = 0;
