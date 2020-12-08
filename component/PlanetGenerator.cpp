@@ -702,6 +702,33 @@ void PlanetGenerator::NewPlanetLODMethod()
 	// 6. (2) >> (5):			Right shift 
 	uint64_t binaryU = (((*pU) & fractionMask) + extraOne) >> (zeroExponent - (((*pU) & exponentMask) >> fractionBits));
 	uint64_t binaryV = (((*pV) & fractionMask) + extraOne) >> (zeroExponent - (((*pV) & exponentMask) >> fractionBits));
+
+	// Locate LOD level
+	uint32_t level, i;
+	double distToGround = m_lockedPlanetSpaceCameraHeight - m_planetRadius;
+	for (i = 0; i < (uint32_t)m_distanceLUT.size(); i++)
+	{
+		if (i == 0)
+		{
+			if (distToGround > m_distanceLUT[i])
+			{
+				// Todo: Handle level 0
+				level = 0;
+				break;
+			}
+		}
+		else if (m_distanceLUT[i - 1] > distToGround && m_distanceLUT[i] < distToGround)
+		{
+			// Todo: Handle specific level
+			level = i;
+			break;
+		}
+
+		// Todo: Prepare for next iteration
+	}
+
+	if (i == (uint32_t)m_distanceLUT.size())
+		level = i + 1;
 }
 
 void PlanetGenerator::OnPreRender()
@@ -765,4 +792,6 @@ void PlanetGenerator::OnPreRender()
 		m_pMeshRenderer->SetInstanceCount(updatedSize / sizeof(Triangle));
 		m_pMeshRenderer->SetUtilityIndex(m_chunkIndex);
 	}
+
+	NewPlanetLODMethod();
 }
