@@ -4,6 +4,8 @@
 #include "../Maths/PyramidFrustum.h"
 #include "../class/PerFrameData.h"
 #include "../common/Enums.h"
+#include "../planet/PlanetTile.h"
+#include "../planet/PlanetLODLayer.h"
 
 class MeshRenderer;
 class PhysicalCamera;
@@ -107,6 +109,8 @@ private:
 	uint64_t		m_tileMask;
 	Vector3d		m_cubeFaceNormals[(uint32_t)CubeFace::COUNT];
 
+	std::vector<std::shared_ptr<PlanetLODLayer>>	m_planetLODLayers;
+
 	// To handle adjacent tile folding due to cube nature
 	typedef struct _TileAdjInfo
 	{
@@ -130,5 +134,4 @@ private:
 	bool			m_toggleCameraInfoUpdate = true;
 
 	uint32_t		m_chunkIndex;
-
 };

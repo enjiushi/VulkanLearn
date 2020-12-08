@@ -904,7 +904,6 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 	uint64_t binaryV = (((*pV) & fractionMask) + extraOne) >> (zeroExponent - (((*pV) & exponentMask) >> fractionBits));
 
 	// Locate LOD level
-	uint32_t level, i;
 	double distToGround = m_lockedPlanetSpaceCameraHeight - m_planetRadius;
 	Vector3d a, b, c, d;
 	a = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 0]];
@@ -912,27 +911,35 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 	c = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 2]];
 	d = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 5]];
 
-	for (i = 0; i < (uint32_t)m_distanceLUT.size(); i++)
+	for (uint32_t i = 0; i < (uint32_t)m_distanceLUT.size(); i++)
 	{
 		if (i == 0)
 		{
 			if (distToGround > m_distanceLUT[i])
 			{
-				PrepareGeometry(a, b, c, d, pOutputTriangles);
+				m_planetLODLayers.push_back(PlanetLODLayer::Create());
+				m_planetLODLayers[i]->SetTileAvailable(TileAdjacency::MIDDLE, true);
+
+				std::shared_ptr<PlanetTile> pTile = m_planetLODLayers[i]->GetTile(TileAdjacency::MIDDLE);
+				pTile->SetCubeFace(cubeFace);
+				pTile->GetVertexRef(0) = a;
+				pTile->GetVertexRef(1) = b;
+				pTile->GetVertexRef(2) = c;
+				pTile->GetVertexRef(3) = d;
 
 				// 4 adjacent tiles in level 0(root level)
 				TileAdjacency adj[] = { TileAdjacency::TOP, TileAdjacency::MIDDLE_LEFT, TileAdjacency::MIDDLE_RIGHT, TileAdjacency::BOTTOM };
 				for (uint32_t j = 0; j < 4; j++)
 				{
+					m_planetLODLayers[i]->SetTileAvailable(adj[j], true);
+
 					TileAdjInfo& tileAdjInfo = m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)adj[j]];
-					PrepareGeometry
-					(
-						m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 0]],
-						m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 1]],
-						m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 2]],
-						m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 5]],
-						pOutputTriangles
-					);
+					pTile = m_planetLODLayers[i]->GetTile(adj[j]);
+					pTile->SetCubeFace(tileAdjInfo.cubeFace);
+					pTile->GetVertexRef(0) = m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 0]];
+					pTile->GetVertexRef(1) = m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 1]];
+					pTile->GetVertexRef(2) = m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 2]];
+					pTile->GetVertexRef(3) = m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 5]];
 				}
 				break;
 			}
@@ -940,15 +947,33 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 		else if (m_distanceLUT[i - 1] > distToGround && m_distanceLUT[i] < distToGround)
 		{
 			// Todo: Handle specific level
-			level = i;
 			break;
 		}
 
 		// Todo: Prepare for next iteration
 	}
 
-	if (i == (uint32_t)m_distanceLUT.size())
-		level = i + 1;
+	std::shared_ptr<PlanetTile> pTile;
+	for (uint32_t i = 0; i < (uint32_t)m_planetLODLayers.size(); i++)
+	{
+		for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
+		{
+			if (!m_planetLODLayers[i]->IsTileAvailable((TileAdjacency)j))
+				continue;
+
+			pTile = m_planetLODLayers[i]->GetTile((TileAdjacency)j);
+			PrepareGeometry
+			(
+				pTile->GetVertexRef(0),
+				pTile->GetVertexRef(1),
+				pTile->GetVertexRef(2),
+				pTile->GetVertexRef(3),
+				pOutputTriangles
+			);
+		}
+	}
+
+	m_planetLODLayers.clear();
 }
 
 void PlanetGenerator::OnPreRender()
@@ -980,28 +1005,31 @@ void PlanetGenerator::OnPreRender()
 	uint8_t* startPtr = (uint8_t*)pTriangles;
 
 	for (uint32_t i = 0; i < (uint32_t)CubeFace::COUNT; i++)
-	{
-		Vector3d faceNormal;
-		switch (i)
-		{
-		case 0: faceNormal = { 1, 0, 0 }; break;
-		case 1: faceNormal = { -1, 0, 0 }; break;
-		case 2: faceNormal = { 0, 1, 0 }; break;
-		case 3: faceNormal = { 0, -1, 0 }; break;
-		case 4: faceNormal = { 0, 0, 1 }; break;
-		case 5: faceNormal = { 0, 0, -1 }; break;
-		}
-		SubDivideQuad(0, 
-			(CubeFace)i,
-			(m_pVertices[m_pIndices[i * 6 + 0]] - m_pVertices[m_pIndices[i * 6 + 1]]).Length(), 
-			CullState::CULL_DIVIDE,
-			m_pVertices[m_pIndices[i * 6 + 0]],	// a
-			m_pVertices[m_pIndices[i * 6 + 1]],	// b
-			m_pVertices[m_pIndices[i * 6 + 2]],	// c
-			m_pVertices[m_pIndices[i * 6 + 5]],	// d
-			faceNormal,
-			pTriangles);
-	}
+	//for (uint32_t i = 0; i < (uint32_t)CubeFace::COUNT; i++)
+	//{
+	//	Vector3d faceNormal;
+	//	switch (i)
+	//	{
+	//	case 0: faceNormal = { 1, 0, 0 }; break;
+	//	case 1: faceNormal = { -1, 0, 0 }; break;
+	//	case 2: faceNormal = { 0, 1, 0 }; break;
+	//	case 3: faceNormal = { 0, -1, 0 }; break;
+	//	case 4: faceNormal = { 0, 0, 1 }; break;
+	//	case 5: faceNormal = { 0, 0, -1 }; break;
+	//	}
+	//	SubDivideQuad(0, 
+	//		(CubeFace)i,
+	//		(m_pVertices[m_pIndices[i * 6 + 0]] - m_pVertices[m_pIndices[i * 6 + 1]]).Length(), 
+	//		CullState::CULL_DIVIDE,
+	//		m_pVertices[m_pIndices[i * 6 + 0]],	// a
+	//		m_pVertices[m_pIndices[i * 6 + 1]],	// b
+	//		m_pVertices[m_pIndices[i * 6 + 2]],	// c
+	//		m_pVertices[m_pIndices[i * 6 + 5]],	// d
+	//		faceNormal,
+	//		pTriangles);
+	//}
+
+	NewPlanetLODMethod(pTriangles);
 	uint32_t updatedSize = (uint32_t)((uint8_t*)pTriangles - startPtr);
 
 	PlanetGeoDataManager::GetInstance()->FinishDataUpdate(updatedSize);
