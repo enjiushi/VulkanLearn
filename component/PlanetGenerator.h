@@ -101,7 +101,18 @@ private:
 
 	uint64_t		m_tileMask;
 	Vector3d		m_cubeFaceNormals[(uint32_t)CubeFace::COUNT];
-	TileAdjacency	m_tileAdjacency[(uint32_t)TileAdjacency::COUNT][(uint32_t)CubeFace::COUNT];
+
+	// To handle adjacent tile folding due to cube nature
+	typedef struct _TileAdjInfo
+	{
+		// Adjacent cube face
+		CubeFace	cubeFace;
+		// The axis that adjacent cube face folds towards, in normlized coordinate axis
+		NormCoordAxis	foldingAxis;
+		// The folding direction
+		Sign		foldingDirection;
+	}TileAdjInfo;
+	TileAdjInfo		m_cubeTileFolding[(uint32_t)CubeFace::COUNT][(uint32_t)TileAdjacency::COUNT];
 
 	// Camera infor in planet local space
 	PyramidFrustumd	m_cameraFrustumLocal;

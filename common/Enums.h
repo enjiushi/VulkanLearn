@@ -24,6 +24,29 @@ enum class CubeVertex
 	COUNT
 };
 
+enum class Axis
+{
+	X,
+	Y,
+	Z,
+	COUNT,
+};
+
+enum class NormCoordAxis
+{
+	U,
+	V,
+	W,
+	COUNT,
+};
+
+enum class Sign
+{
+	POSITIVE = 1,
+	NEGATIVE = -1,
+	COUNT
+};
+
 enum class TileAdjacency
 {
 	TOP_LEFT,

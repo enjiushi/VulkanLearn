@@ -68,6 +68,156 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 	m_cubeFaceNormals[(uint32_t)CubeFace::FRONT]	= {  0,  0,  1 };
 	m_cubeFaceNormals[(uint32_t)CubeFace::BACK]		= {  0,  0, -1 };
 
+	// Define adjacent cube tile folding info
+	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::TOP] = 
+	{
+		CubeFace::FRONT,
+		NormCoordAxis::U,
+		Sign::POSITIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	{
+		CubeFace::BOTTOM,
+		NormCoordAxis::V,
+		Sign::POSITIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	{
+		CubeFace::TOP,
+		NormCoordAxis::V,
+		Sign::POSITIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::BOTTOM] =
+	{
+		CubeFace::BACK,
+		NormCoordAxis::U,
+		Sign::NEGATIVE
+	};
+
+	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::TOP] =
+	{
+		CubeFace::FRONT,
+		NormCoordAxis::U,
+		Sign::NEGATIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	{
+		CubeFace::TOP,
+		NormCoordAxis::V,
+		Sign::NEGATIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	{
+		CubeFace::BOTTOM,
+		NormCoordAxis::V,
+		Sign::NEGATIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::BOTTOM] =
+	{
+		CubeFace::BACK,
+		NormCoordAxis::U,
+		Sign::POSITIVE
+	};
+
+	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::TOP] =
+	{
+		CubeFace::RIGHT,
+		NormCoordAxis::U,
+		Sign::POSITIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	{
+		CubeFace::BACK,
+		NormCoordAxis::V,
+		Sign::POSITIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	{
+		CubeFace::FRONT,
+		NormCoordAxis::V,
+		Sign::POSITIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::BOTTOM] =
+	{
+		CubeFace::LEFT,
+		NormCoordAxis::U,
+		Sign::NEGATIVE
+	};
+
+	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::TOP] =
+	{
+		CubeFace::RIGHT,
+		NormCoordAxis::U,
+		Sign::NEGATIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	{
+		CubeFace::FRONT,
+		NormCoordAxis::V,
+		Sign::NEGATIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	{
+		CubeFace::BACK,
+		NormCoordAxis::V,
+		Sign::NEGATIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::BOTTOM] =
+	{
+		CubeFace::LEFT,
+		NormCoordAxis::U,
+		Sign::POSITIVE
+	};
+
+	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::TOP] =
+	{
+		CubeFace::TOP,
+		NormCoordAxis::U,
+		Sign::POSITIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	{
+		CubeFace::LEFT,
+		NormCoordAxis::V,
+		Sign::POSITIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	{
+		CubeFace::RIGHT,
+		NormCoordAxis::V,
+		Sign::POSITIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::BOTTOM] =
+	{
+		CubeFace::BOTTOM,
+		NormCoordAxis::U,
+		Sign::NEGATIVE
+	};
+
+	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::TOP] =
+	{
+		CubeFace::TOP,
+		NormCoordAxis::U,
+		Sign::NEGATIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	{
+		CubeFace::RIGHT,
+		NormCoordAxis::V,
+		Sign::NEGATIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	{
+		CubeFace::LEFT,
+		NormCoordAxis::V,
+		Sign::POSITIVE
+	};
+	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::BOTTOM] =
+	{
+		CubeFace::BOTTOM,
+		NormCoordAxis::U,
+		Sign::POSITIVE
+	};
 	return true;
 }
 
