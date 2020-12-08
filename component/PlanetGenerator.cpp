@@ -773,8 +773,56 @@ void PlanetGenerator::SubDivideQuad
 	SubDivideQuad(currentLevel + 1, cubeFace, currentTileLength, state, center, bd, cd, d, faceNormal, pOutputTriangles);
 }
 
+void PlanetGenerator::PrepareGeometry
+(
+	const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d,
+	Triangle*& pOutputTriangles
+)
+{
+	Vector3d cameraRelativeA = a;
+	Vector3d cameraRelativeB = b;
+	Vector3d cameraRelativeC = c;
+	Vector3d cameraRelativeD = d;
+
+	cameraRelativeA *= m_planetRadius;
+	cameraRelativeB *= m_planetRadius;
+	cameraRelativeC *= m_planetRadius;
+	cameraRelativeD *= m_planetRadius;
+
+	cameraRelativeA -= m_planetSpaceCameraPosition;
+	cameraRelativeB -= m_planetSpaceCameraPosition;
+	cameraRelativeC -= m_planetSpaceCameraPosition;
+	cameraRelativeD -= m_planetSpaceCameraPosition;
+
+	// Triangle abc
+	pOutputTriangles->p = cameraRelativeC.SinglePrecision();
+	pOutputTriangles->edge0 = cameraRelativeA.SinglePrecision();
+	pOutputTriangles->edge1 = cameraRelativeB.SinglePrecision();
+
+	pOutputTriangles->edge0 -= pOutputTriangles->p;
+	pOutputTriangles->edge1 -= pOutputTriangles->p;
+
+	// Level + 1 to avoid zero
+	pOutputTriangles->level = (float)0 + 1.0f;
+
+	pOutputTriangles++;
+
+	// Triangle cbd
+	pOutputTriangles->p = cameraRelativeB.SinglePrecision();
+	pOutputTriangles->edge0 = cameraRelativeD.SinglePrecision();
+	pOutputTriangles->edge1 = cameraRelativeC.SinglePrecision();
+
+	pOutputTriangles->edge0 -= pOutputTriangles->p;
+	pOutputTriangles->edge1 -= pOutputTriangles->p;
+
+	// Minus gives a sign whether to reverse morphing in vertex shader
+	pOutputTriangles->level = ((float)0 + 1.0f) * -1.0f;
+
+	pOutputTriangles++;
+}
+
 // Here we assume cube consists of 8 vertices with various -1 and 1
-void PlanetGenerator::NewPlanetLODMethod()
+void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 {
 	std::pair<double, CubeFace> cameraVecDotCubeFaceNormal[3];
 
@@ -799,13 +847,15 @@ void PlanetGenerator::NewPlanetLODMethod()
 	Vector3d camVecInsideCube = m_lockedNormalizedPlanetSpaceCameraPosition;
 	camVecInsideCube *= (1 / cosineTheta);
 
+	CubeFace cubeFace = cameraVecDotCubeFaceNormal[maxIndex].second;
+
 	// Step6: Acquire axis index according to cube face
 	uint32_t axisU, axisV;
-	if (cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::BOTTOM || cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::TOP)
+	if (cubeFace == CubeFace::BOTTOM || cubeFace == CubeFace::TOP)
 	{
 		axisU = 2; axisV = 0;	// z and x
 	}
-	else if (cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::FRONT || cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::BACK)
+	else if (cubeFace == CubeFace::FRONT || cubeFace == CubeFace::BACK)
 	{
 		axisU = 0, axisV = 1;	// x and y
 	}
@@ -820,9 +870,9 @@ void PlanetGenerator::NewPlanetLODMethod()
 
 	// Reverse U if a cube face lies on the negative side of our right-hand axis
 	// Do this to align UV with cube face winding order(also reversed)
-	if (cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::BACK ||
-		cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::LEFT ||
-		cameraVecDotCubeFaceNormal[maxIndex].second == CubeFace::BOTTOM)
+	if (cubeFace == CubeFace::BACK ||
+		cubeFace == CubeFace::LEFT ||
+		cubeFace == CubeFace::BOTTOM)
 		normU = 1.0 - normU;
 
 	// 1023 is the bias of exponent bits
@@ -856,14 +906,34 @@ void PlanetGenerator::NewPlanetLODMethod()
 	// Locate LOD level
 	uint32_t level, i;
 	double distToGround = m_lockedPlanetSpaceCameraHeight - m_planetRadius;
+	Vector3d a, b, c, d;
+	a = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 0]];
+	b = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 1]];
+	c = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 2]];
+	d = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 5]];
+
 	for (i = 0; i < (uint32_t)m_distanceLUT.size(); i++)
 	{
 		if (i == 0)
 		{
 			if (distToGround > m_distanceLUT[i])
 			{
-				// Todo: Handle level 0
-				level = 0;
+				PrepareGeometry(a, b, c, d, pOutputTriangles);
+
+				// 4 adjacent tiles in level 0(root level)
+				TileAdjacency adj[] = { TileAdjacency::TOP, TileAdjacency::MIDDLE_LEFT, TileAdjacency::MIDDLE_RIGHT, TileAdjacency::BOTTOM };
+				for (uint32_t j = 0; j < 4; j++)
+				{
+					TileAdjInfo& tileAdjInfo = m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)adj[j]];
+					PrepareGeometry
+					(
+						m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 0]],
+						m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 1]],
+						m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 2]],
+						m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 5]],
+						pOutputTriangles
+					);
+				}
 				break;
 			}
 		}
@@ -942,6 +1012,4 @@ void PlanetGenerator::OnPreRender()
 		m_pMeshRenderer->SetInstanceCount(updatedSize / sizeof(Triangle));
 		m_pMeshRenderer->SetUtilityIndex(m_chunkIndex);
 	}
-
-	NewPlanetLODMethod();
 }

@@ -64,7 +64,12 @@ protected:
 	);
 
 	// New planet lod method test function, not named yet
-	void NewPlanetLODMethod();
+	void PrepareGeometry
+	(
+		const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d,
+		Triangle*& pOutputTriangles
+	);
+	void NewPlanetLODMethod(Triangle*& pOutputTriangles);
 
 public:
 	void Start() override;
