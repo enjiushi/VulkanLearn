@@ -61,12 +61,12 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 	m_squarePlanetRadius = m_planetRadius * m_planetRadius;
 
 	m_tileMask = 0;
-	m_cubeFaceNormals[CubeFace::RIGHT]	= {  1,  0,  0 };
-	m_cubeFaceNormals[CubeFace::LEFT]	= { -1,  0,  0 };
-	m_cubeFaceNormals[CubeFace::TOP]	= {  0,  1,  0 };
-	m_cubeFaceNormals[CubeFace::BOTTOM] = {  0, -1,  0 };
-	m_cubeFaceNormals[CubeFace::FRONT]	= {  0,  0,  1 };
-	m_cubeFaceNormals[CubeFace::BACK]	= {  0,  0, -1 };
+	m_cubeFaceNormals[(uint32_t)CubeFace::RIGHT]	= {  1,  0,  0 };
+	m_cubeFaceNormals[(uint32_t)CubeFace::LEFT]		= { -1,  0,  0 };
+	m_cubeFaceNormals[(uint32_t)CubeFace::TOP]		= {  0,  1,  0 };
+	m_cubeFaceNormals[(uint32_t)CubeFace::BOTTOM]	= {  0, -1,  0 };
+	m_cubeFaceNormals[(uint32_t)CubeFace::FRONT]	= {  0,  0,  1 };
+	m_cubeFaceNormals[(uint32_t)CubeFace::BACK]		= {  0,  0, -1 };
 
 	return true;
 }
@@ -643,7 +643,7 @@ void PlanetGenerator::NewPlanetLODMethod()
 	maxIndex = cameraVecDotCubeFaceNormal[maxIndex].first > cameraVecDotCubeFaceNormal[2].first ? maxIndex : 2;
 
 	// Step4: Acquire cosine between normalized camera position and chosen cube face normal
-	double cosineTheta = m_cubeFaceNormals[cameraVecDotCubeFaceNormal[maxIndex].second] * m_lockedNormalizedPlanetSpaceCameraPosition;
+	double cosineTheta = m_cubeFaceNormals[(uint32_t)cameraVecDotCubeFaceNormal[maxIndex].second] * m_lockedNormalizedPlanetSpaceCameraPosition;
 
 	// Step5: Acquire the cropped vector within this cube
 	Vector3d camVecInsideCube = m_lockedNormalizedPlanetSpaceCameraPosition;
@@ -759,7 +759,7 @@ void PlanetGenerator::OnPreRender()
 	Triangle* pTriangles = (Triangle*)PlanetGeoDataManager::GetInstance()->AcquireDataPtr(offsetInBytes);
 	uint8_t* startPtr = (uint8_t*)pTriangles;
 
-	for (uint32_t i = 0; i < CubeFace::CUBE_FACE_COUNT; i++)
+	for (uint32_t i = 0; i < (uint32_t)CubeFace::COUNT; i++)
 	{
 		Vector3d faceNormal;
 		switch (i)

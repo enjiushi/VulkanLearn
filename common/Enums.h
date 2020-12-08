@@ -1,6 +1,6 @@
 #pragma once
 
-enum CubeFace
+enum class CubeFace
 {
 	RIGHT,
 	LEFT,
@@ -8,7 +8,34 @@ enum CubeFace
 	BOTTOM,
 	FRONT,
 	BACK,
-	CUBE_FACE_COUNT
+	COUNT
+};
+
+enum class CubeVertex
+{
+	BOTTOM_LEFT_FRONT,
+	BOTTOM_RIGHT_FRONT,
+	TOP_LEFT_FRONT,
+	TOP_RIGHT_FRONT,
+	BOTTOM_LEFT_BACK,
+	BOTTOM_RIGHT_BACK,
+	TOP_LEFT_BACK,
+	TOP_RIGHT_BACK,
+	COUNT
+};
+
+enum class TileAdjacency
+{
+	TOP_LEFT,
+	TOP,
+	TOP_RIGHT,
+	MIDDLE_LEFT,
+	MIDDLE,
+	MIDDLE_RIGHT,
+	BOTTOM_LEFT,
+	BOTTOM,
+	BOTTOM_RIGHT,
+	COUNT
 };
 
 enum VertexAttribFlag

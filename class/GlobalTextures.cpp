@@ -149,19 +149,6 @@ void GlobalTextures::InitIBLTextures()
 
 void GlobalTextures::InitSkyboxGenParameters()
 {
-	enum CubeCorner
-	{
-		BOTTOM_LEFT_FRONT,
-		BOTTOM_RIGHT_FRONT,
-		TOP_LEFT_FRONT,
-		TOP_RIGHT_FRONT,
-		BOTTOM_LEFT_BACK,
-		BOTTOM_RIGHT_BACK,
-		TOP_LEFT_BACK,
-		TOP_RIGHT_BACK,
-		CUBE_CORNER_COUNT
-	};
-
 	Vector4f cubeCorners[] =
 	{
 		{ -1, -1,  1, 0 },
@@ -174,39 +161,39 @@ void GlobalTextures::InitSkyboxGenParameters()
 		{  1,  1, -1, 0 }
 	};
 
-	m_cubeFaces[RIGHT][0] = cubeCorners[BOTTOM_RIGHT_BACK];
-	m_cubeFaces[RIGHT][1] = cubeCorners[BOTTOM_RIGHT_FRONT];
-	m_cubeFaces[RIGHT][2] = cubeCorners[TOP_RIGHT_BACK];
-	m_cubeFaces[RIGHT][3] = cubeCorners[TOP_RIGHT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::RIGHT][0] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_RIGHT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::RIGHT][1] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_RIGHT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::RIGHT][2] = cubeCorners[(uint32_t)CubeVertex::TOP_RIGHT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::RIGHT][3] = cubeCorners[(uint32_t)CubeVertex::TOP_RIGHT_FRONT];
 
-	m_cubeFaces[LEFT][0] = cubeCorners[BOTTOM_LEFT_FRONT];
-	m_cubeFaces[LEFT][1] = cubeCorners[BOTTOM_LEFT_BACK];
-	m_cubeFaces[LEFT][2] = cubeCorners[TOP_LEFT_FRONT];
-	m_cubeFaces[LEFT][3] = cubeCorners[TOP_LEFT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::LEFT][0] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_LEFT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::LEFT][1] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_LEFT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::LEFT][2] = cubeCorners[(uint32_t)CubeVertex::TOP_LEFT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::LEFT][3] = cubeCorners[(uint32_t)CubeVertex::TOP_LEFT_BACK];
 
-	m_cubeFaces[TOP][0] = cubeCorners[TOP_LEFT_BACK];
-	m_cubeFaces[TOP][1] = cubeCorners[TOP_RIGHT_BACK];
-	m_cubeFaces[TOP][2] = cubeCorners[TOP_LEFT_FRONT];
-	m_cubeFaces[TOP][3] = cubeCorners[TOP_RIGHT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::TOP][0] = cubeCorners[(uint32_t)CubeVertex::TOP_LEFT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::TOP][1] = cubeCorners[(uint32_t)CubeVertex::TOP_RIGHT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::TOP][2] = cubeCorners[(uint32_t)CubeVertex::TOP_LEFT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::TOP][3] = cubeCorners[(uint32_t)CubeVertex::TOP_RIGHT_FRONT];
 
-	m_cubeFaces[BOTTOM][0] = cubeCorners[BOTTOM_LEFT_FRONT];
-	m_cubeFaces[BOTTOM][1] = cubeCorners[BOTTOM_RIGHT_FRONT];
-	m_cubeFaces[BOTTOM][2] = cubeCorners[BOTTOM_LEFT_BACK];
-	m_cubeFaces[BOTTOM][3] = cubeCorners[BOTTOM_RIGHT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::BOTTOM][0] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_LEFT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::BOTTOM][1] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_RIGHT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::BOTTOM][2] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_LEFT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::BOTTOM][3] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_RIGHT_BACK];
 
 	// Note: our coordinate system is right-hand based, however, cube map is left-hand based
 	// So here BACK = positive z and FRONT = negative z
-	m_cubeFaces[FRONT][0] = cubeCorners[BOTTOM_LEFT_BACK];
-	m_cubeFaces[FRONT][1] = cubeCorners[BOTTOM_RIGHT_BACK];
-	m_cubeFaces[FRONT][2] = cubeCorners[TOP_LEFT_BACK];
-	m_cubeFaces[FRONT][3] = cubeCorners[TOP_RIGHT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::FRONT][0] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_LEFT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::FRONT][1] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_RIGHT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::FRONT][2] = cubeCorners[(uint32_t)CubeVertex::TOP_LEFT_BACK];
+	m_cubeFaces[(uint32_t)CubeFace::FRONT][3] = cubeCorners[(uint32_t)CubeVertex::TOP_RIGHT_BACK];
 
-	m_cubeFaces[BACK][0] = cubeCorners[BOTTOM_RIGHT_FRONT];
-	m_cubeFaces[BACK][1] = cubeCorners[BOTTOM_LEFT_FRONT];
-	m_cubeFaces[BACK][2] = cubeCorners[TOP_RIGHT_FRONT];
-	m_cubeFaces[BACK][3] = cubeCorners[TOP_LEFT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::BACK][0] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_RIGHT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::BACK][1] = cubeCorners[(uint32_t)CubeVertex::BOTTOM_LEFT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::BACK][2] = cubeCorners[(uint32_t)CubeVertex::TOP_RIGHT_FRONT];
+	m_cubeFaces[(uint32_t)CubeFace::BACK][3] = cubeCorners[(uint32_t)CubeVertex::TOP_LEFT_FRONT];
 
-	for (uint32_t i = 0; i < (uint32_t)CubeFace::CUBE_FACE_COUNT; i++)
+	for (uint32_t i = 0; i < (uint32_t)CubeFace::COUNT; i++)
 		for (uint32_t j = 0; j < 4; j++)
 			m_cubeFaces[i][j].Normalize();
 

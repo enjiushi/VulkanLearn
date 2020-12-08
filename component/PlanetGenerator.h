@@ -100,7 +100,8 @@ private:
 	double			m_squarePlanetRadius;
 
 	uint64_t		m_tileMask;
-	Vector3d		m_cubeFaceNormals[CubeFace::CUBE_FACE_COUNT];
+	Vector3d		m_cubeFaceNormals[(uint32_t)CubeFace::COUNT];
+	TileAdjacency	m_tileAdjacency[(uint32_t)TileAdjacency::COUNT][(uint32_t)CubeFace::COUNT];
 
 	// Camera infor in planet local space
 	PyramidFrustumd	m_cameraFrustumLocal;
