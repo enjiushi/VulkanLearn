@@ -874,52 +874,10 @@ void PlanetGenerator::PrepareGeometry
 	Triangle*& pOutputTriangles
 )
 {
-	CubeFace cubeFace = pTile->GetCubeFace();
-	double tileSize = pTile->GetTileSize();
-
-	m_utilityVector0 = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 0]];
-	m_utilityVector1 = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 5]];
-	m_utilityVector5 = pTile->GetTileOffset();
-	m_utilityVector6 = m_utilityVector5;
-	m_utilityVector6 += tileSize;
-
-	uint32_t axisU, axisV, axisW;
-	double signOnAxisW = 1;
-	if (cubeFace == CubeFace::BOTTOM || cubeFace == CubeFace::TOP)
-	{
-		axisU = 2; axisV = 0; axisW = 1;	// z and x
-	}
-	else if (cubeFace == CubeFace::FRONT || cubeFace == CubeFace::BACK)
-	{
-		axisU = 0, axisV = 1; axisW = 2;	// x and y
-	}
-	else
-	{
-		axisU = 1, axisV = 2; axisW = 0;	// y and z
-	}
-
-	if (cubeFace == CubeFace::BOTTOM ||
-		cubeFace == CubeFace::LEFT ||
-		cubeFace == CubeFace::BACK)
-		signOnAxisW = -1;
-
-	double x0, x1, y0, y1;
-	x0 = m_utilityVector0[axisU] * (1.0 - m_utilityVector5.x) + m_utilityVector1[axisU] * m_utilityVector5.x;
-	x1 = m_utilityVector0[axisU] * (1.0 - m_utilityVector6.x) + m_utilityVector1[axisU] * m_utilityVector6.x;
-	y0 = m_utilityVector0[axisV] * (1.0 - m_utilityVector5.y) + m_utilityVector1[axisV] * m_utilityVector5.y;
-	y1 = m_utilityVector0[axisV] * (1.0 - m_utilityVector6.y) + m_utilityVector1[axisV] * m_utilityVector6.y;
-
-	static double halfCubeEdgeLength = std::sqrt(3.0) / 3.0 * m_pVertices[0].Length();
-
-	m_utilityVector0[axisU] = x0; m_utilityVector0[axisV] = y0; m_utilityVector0[axisW] = halfCubeEdgeLength * signOnAxisW;
-	m_utilityVector1[axisU] = x1; m_utilityVector1[axisV] = y0; m_utilityVector1[axisW] = halfCubeEdgeLength * signOnAxisW;
-	m_utilityVector2[axisU] = x0; m_utilityVector2[axisV] = y1; m_utilityVector2[axisW] = halfCubeEdgeLength * signOnAxisW;
-	m_utilityVector3[axisU] = x1; m_utilityVector3[axisV] = y1; m_utilityVector3[axisW] = halfCubeEdgeLength * signOnAxisW;
-
-	m_utilityVector0.Normalize();
-	m_utilityVector1.Normalize();
-	m_utilityVector2.Normalize();
-	m_utilityVector3.Normalize();
+	m_utilityVector0 = pTile->GetNormalizedVertex(0);
+	m_utilityVector1 = pTile->GetNormalizedVertex(1);
+	m_utilityVector2 = pTile->GetNormalizedVertex(2);
+	m_utilityVector3 = pTile->GetNormalizedVertex(3);
 
 	m_utilityVector0 *= m_planetRadius;
 	m_utilityVector1 *= m_planetRadius;
@@ -1252,31 +1210,31 @@ void PlanetGenerator::OnPreRender()
 	Triangle* pTriangles = (Triangle*)PlanetGeoDataManager::GetInstance()->AcquireDataPtr(offsetInBytes);
 	uint8_t* startPtr = (uint8_t*)pTriangles;
 
-	for (uint32_t i = 0; i < (uint32_t)CubeFace::COUNT; i++)
-	{
-		Vector3d faceNormal;
-		switch (i)
-		{
-		case 0: faceNormal = { 1, 0, 0 }; break;
-		case 1: faceNormal = { -1, 0, 0 }; break;
-		case 2: faceNormal = { 0, 1, 0 }; break;
-		case 3: faceNormal = { 0, -1, 0 }; break;
-		case 4: faceNormal = { 0, 0, 1 }; break;
-		case 5: faceNormal = { 0, 0, -1 }; break;
-		}
-		SubDivideQuad(0, 
-			(CubeFace)i,
-			(m_pVertices[m_pIndices[i * 6 + 0]] - m_pVertices[m_pIndices[i * 6 + 1]]).Length(), 
-			CullState::CULL_DIVIDE,
-			m_pVertices[m_pIndices[i * 6 + 0]],	// a
-			m_pVertices[m_pIndices[i * 6 + 1]],	// b
-			m_pVertices[m_pIndices[i * 6 + 2]],	// c
-			m_pVertices[m_pIndices[i * 6 + 5]],	// d
-			faceNormal,
-			pTriangles);
-	}
+	//for (uint32_t i = 0; i < (uint32_t)CubeFace::COUNT; i++)
+	//{
+	//	Vector3d faceNormal;
+	//	switch (i)
+	//	{
+	//	case 0: faceNormal = { 1, 0, 0 }; break;
+	//	case 1: faceNormal = { -1, 0, 0 }; break;
+	//	case 2: faceNormal = { 0, 1, 0 }; break;
+	//	case 3: faceNormal = { 0, -1, 0 }; break;
+	//	case 4: faceNormal = { 0, 0, 1 }; break;
+	//	case 5: faceNormal = { 0, 0, -1 }; break;
+	//	}
+	//	SubDivideQuad(0, 
+	//		(CubeFace)i,
+	//		(m_pVertices[m_pIndices[i * 6 + 0]] - m_pVertices[m_pIndices[i * 6 + 1]]).Length(), 
+	//		CullState::CULL_DIVIDE,
+	//		m_pVertices[m_pIndices[i * 6 + 0]],	// a
+	//		m_pVertices[m_pIndices[i * 6 + 1]],	// b
+	//		m_pVertices[m_pIndices[i * 6 + 2]],	// c
+	//		m_pVertices[m_pIndices[i * 6 + 5]],	// d
+	//		faceNormal,
+	//		pTriangles);
+	//}
 
-	//NewPlanetLODMethod(pTriangles);
+	NewPlanetLODMethod(pTriangles);
 	uint32_t updatedSize = (uint32_t)((uint8_t*)pTriangles - startPtr);
 
 	PlanetGeoDataManager::GetInstance()->FinishDataUpdate(updatedSize);
