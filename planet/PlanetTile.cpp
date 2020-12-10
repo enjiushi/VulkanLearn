@@ -17,11 +17,28 @@ std::shared_ptr<PlanetTile> PlanetTile::Create()
 	return nullptr;
 }
 
-const Vector3d& PlanetTile::GetNormalizedVertex(uint32_t index)
+void PlanetTile::InitTile(const TileInfo& tileInfo)
 {
-	if (!m_offsetDirty)
-		return m_normalizedVertices[index];
+	m_cubeFace = tileInfo.cubeFace;
+	m_binaryTreeID = tileInfo.binaryTreeID;
+	m_tileOffset = tileInfo.tileOffset;
+	m_tileSize = tileInfo.tileSize;
+	m_tileLevel = tileInfo.tileLevel;
+	
+	// Acquire binary tree ID of current tile level
+	// 0 for root level
+	m_binaryTreeID.x >>= (53 - m_tileLevel);
+	m_binaryTreeID.y >>= (53 - m_tileLevel);
 
+	// Add cube face to binary tree id on first 3 bits(up to 6 cube faces, i.e. 110)
+	m_binaryTreeID.x += (uint64_t)m_cubeFace << 61;
+	m_binaryTreeID.y += (uint64_t)m_cubeFace << 61;
+
+	RegenerateVertices();
+}
+
+void PlanetTile::RegenerateVertices()
+{
 	Vector3d* pCubeVertices = &(UniformData::GetInstance()->GetGlobalUniforms()->CubeVertices[0]);
 	uint32_t* pCubeIndices = &(UniformData::GetInstance()->GetGlobalUniforms()->CubeIndices[0]);
 
@@ -70,8 +87,4 @@ const Vector3d& PlanetTile::GetNormalizedVertex(uint32_t index)
 	m_normalizedVertices[1].Normalize();
 	m_normalizedVertices[2].Normalize();
 	m_normalizedVertices[3].Normalize();
-
-	m_offsetDirty = false;
-
-	return m_normalizedVertices[index];
 }

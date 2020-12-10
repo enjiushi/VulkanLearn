@@ -1084,9 +1084,9 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 			if (currentLayerBinaryCoord.x == 0 && currentLayerBinaryCoord.y == 0)
 				adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_LEFT] = false;
 			else if (currentLayerBinaryCoord.x == 0 && currentLayerBinaryCoord.y == maxBinary)
-				adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_RIGHT] = false;
-			else if (currentLayerBinaryCoord.x == maxBinary && currentLayerBinaryCoord.y == 0)
 				adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_LEFT] = false;
+			else if (currentLayerBinaryCoord.x == maxBinary && currentLayerBinaryCoord.y == 0)
+				adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_RIGHT] = false;
 			else if (currentLayerBinaryCoord.x == maxBinary && currentLayerBinaryCoord.y == maxBinary)
 				adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_RIGHT] = false;
 		}
@@ -1094,7 +1094,6 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 		m_planetLODLayers.push_back(PlanetLODLayer::Create());
 		m_planetLODLayers[i]->SetTileAvailable(TileAdjacency::MIDDLE, true);
 
-		std::shared_ptr<PlanetTile> pTile;
 		for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
 		{
 			if (!adjacentTileAvailable[j])
@@ -1145,20 +1144,11 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 			}
 
 			CubeFace _cubeFace = adjacentTileDifferentFace[j] ? m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].cubeFace : cubeFace;
-			pTile = m_planetLODLayers[i]->GetTile((TileAdjacency)j);
-			pTile->SetCubeFace(_cubeFace);
-			pTile->SetTileSize(currentLayerTileSize);
-			pTile->SetTileLevel(i);
 
-			
 			if (adjacentTileDifferentFace[j])
-			{
-				pTile->SetTileOffset(m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].transform(utilityVec, currentLayerTileSize));
-			}
-			else
-			{
-				pTile->SetTileOffset(utilityVec);
-			}
+				utilityVec = m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].transform(utilityVec, currentLayerTileSize);
+
+			m_planetLODLayers[i]->GetTile((TileAdjacency)j)->InitTile({ utilityVec, currentLayerBinaryCoord, currentLayerTileSize, i, _cubeFace });
 		}
 
 		if (distToGround > m_distanceLUT[i])
@@ -1210,31 +1200,31 @@ void PlanetGenerator::OnPreRender()
 	Triangle* pTriangles = (Triangle*)PlanetGeoDataManager::GetInstance()->AcquireDataPtr(offsetInBytes);
 	uint8_t* startPtr = (uint8_t*)pTriangles;
 
-	//for (uint32_t i = 0; i < (uint32_t)CubeFace::COUNT; i++)
-	//{
-	//	Vector3d faceNormal;
-	//	switch (i)
-	//	{
-	//	case 0: faceNormal = { 1, 0, 0 }; break;
-	//	case 1: faceNormal = { -1, 0, 0 }; break;
-	//	case 2: faceNormal = { 0, 1, 0 }; break;
-	//	case 3: faceNormal = { 0, -1, 0 }; break;
-	//	case 4: faceNormal = { 0, 0, 1 }; break;
-	//	case 5: faceNormal = { 0, 0, -1 }; break;
-	//	}
-	//	SubDivideQuad(0, 
-	//		(CubeFace)i,
-	//		(m_pVertices[m_pIndices[i * 6 + 0]] - m_pVertices[m_pIndices[i * 6 + 1]]).Length(), 
-	//		CullState::CULL_DIVIDE,
-	//		m_pVertices[m_pIndices[i * 6 + 0]],	// a
-	//		m_pVertices[m_pIndices[i * 6 + 1]],	// b
-	//		m_pVertices[m_pIndices[i * 6 + 2]],	// c
-	//		m_pVertices[m_pIndices[i * 6 + 5]],	// d
-	//		faceNormal,
-	//		pTriangles);
-	//}
+	for (uint32_t i = 0; i < (uint32_t)CubeFace::COUNT; i++)
+	{
+		Vector3d faceNormal;
+		switch (i)
+		{
+		case 0: faceNormal = { 1, 0, 0 }; break;
+		case 1: faceNormal = { -1, 0, 0 }; break;
+		case 2: faceNormal = { 0, 1, 0 }; break;
+		case 3: faceNormal = { 0, -1, 0 }; break;
+		case 4: faceNormal = { 0, 0, 1 }; break;
+		case 5: faceNormal = { 0, 0, -1 }; break;
+		}
+		SubDivideQuad(0, 
+			(CubeFace)i,
+			(m_pVertices[m_pIndices[i * 6 + 0]] - m_pVertices[m_pIndices[i * 6 + 1]]).Length(), 
+			CullState::CULL_DIVIDE,
+			m_pVertices[m_pIndices[i * 6 + 0]],	// a
+			m_pVertices[m_pIndices[i * 6 + 1]],	// b
+			m_pVertices[m_pIndices[i * 6 + 2]],	// c
+			m_pVertices[m_pIndices[i * 6 + 5]],	// d
+			faceNormal,
+			pTriangles);
+	}
 
-	NewPlanetLODMethod(pTriangles);
+	//NewPlanetLODMethod(pTriangles);
 	uint32_t updatedSize = (uint32_t)((uint8_t*)pTriangles - startPtr);
 
 	PlanetGeoDataManager::GetInstance()->FinishDataUpdate(updatedSize);
