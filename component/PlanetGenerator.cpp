@@ -73,150 +73,245 @@ bool PlanetGenerator::Init(const std::shared_ptr<PlanetGenerator>& pSelf, const 
 	{
 		CubeFace::FRONT,
 		NormCoordAxis::U,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - tileSize, input.x };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::BOTTOM,
 		NormCoordAxis::V,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - input.y - tileSize, 1.0 - tileSize };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::TOP,
 		NormCoordAxis::V,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ input.y, 1.0 - tileSize };
+		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::BACK,
 		NormCoordAxis::U,
-		Sign::NEGATIVE
+		Sign::NEGATIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 0, input.x };
+		}
 	};
 
 	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::TOP] =
 	{
 		CubeFace::FRONT,
 		NormCoordAxis::U,
-		Sign::NEGATIVE
+		Sign::NEGATIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 0, 1.0 - input.x - tileSize };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::TOP,
 		NormCoordAxis::V,
-		Sign::NEGATIVE
+		Sign::NEGATIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ input.y, 0 };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::BOTTOM,
 		NormCoordAxis::V,
-		Sign::NEGATIVE
+		Sign::NEGATIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - input.y - tileSize, 0 };
+		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::BACK,
 		NormCoordAxis::U,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - tileSize, 1.0 - input.x - tileSize };
+		}
 	};
 
 	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::TOP] =
 	{
 		CubeFace::RIGHT,
 		NormCoordAxis::U,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - tileSize, input.x };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::BACK,
 		NormCoordAxis::V,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - input.y - tileSize, 1.0 - tileSize };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::FRONT,
 		NormCoordAxis::V,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ input.y, 1.0 - tileSize };
+		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::LEFT,
 		NormCoordAxis::U,
-		Sign::NEGATIVE
+		Sign::NEGATIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 0, input.x };
+		}
 	};
 
 	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::TOP] =
 	{
 		CubeFace::RIGHT,
 		NormCoordAxis::U,
-		Sign::NEGATIVE
+		Sign::NEGATIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 0, 1.0 - input.x - tileSize };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::FRONT,
 		NormCoordAxis::V,
-		Sign::NEGATIVE
+		Sign::NEGATIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ input.y, 0 };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::BACK,
 		NormCoordAxis::V,
-		Sign::NEGATIVE
+		Sign::NEGATIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - input.y - tileSize, 0 };
+		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::LEFT,
 		NormCoordAxis::U,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - tileSize, 1.0 - input.x - tileSize };
+		}
 	};
 
 	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::TOP] =
 	{
 		CubeFace::TOP,
 		NormCoordAxis::U,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - tileSize, input.x };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::LEFT,
 		NormCoordAxis::V,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - input.y - tileSize, 1.0 - tileSize };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::RIGHT,
 		NormCoordAxis::V,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ input.y, 1.0 - tileSize };
+		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::BOTTOM,
 		NormCoordAxis::U,
-		Sign::NEGATIVE
+		Sign::NEGATIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 0, input.x };
+		}
 	};
 
 	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::TOP] =
 	{
 		CubeFace::TOP,
 		NormCoordAxis::U,
-		Sign::NEGATIVE
+		Sign::NEGATIVE,[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 0, 1.0 - input.x - tileSize };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::MIDDLE_LEFT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::RIGHT,
 		NormCoordAxis::V,
-		Sign::NEGATIVE
+		Sign::NEGATIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ input.y, 0 };
+		}
 	};
-	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::MIDDLE_RIGHT] =
+	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::LEFT,
 		NormCoordAxis::V,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - input.y - tileSize, 0 };
+		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::BOTTOM,
 		NormCoordAxis::U,
-		Sign::POSITIVE
+		Sign::POSITIVE,
+		[](const Vector2d& input, const double& tileSize)
+		{
+			return Vector2d{ 1.0 - tileSize, 1.0 - input.x - tileSize };
+		}
 	};
 	return true;
 }
@@ -775,29 +870,71 @@ void PlanetGenerator::SubDivideQuad
 
 void PlanetGenerator::PrepareGeometry
 (
-	const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d,
+	const std::shared_ptr<PlanetTile>& pTile,
 	Triangle*& pOutputTriangles
 )
 {
-	Vector3d cameraRelativeA = a;
-	Vector3d cameraRelativeB = b;
-	Vector3d cameraRelativeC = c;
-	Vector3d cameraRelativeD = d;
+	CubeFace cubeFace = pTile->GetCubeFace();
+	double tileSize = pTile->GetTileSize();
 
-	cameraRelativeA *= m_planetRadius;
-	cameraRelativeB *= m_planetRadius;
-	cameraRelativeC *= m_planetRadius;
-	cameraRelativeD *= m_planetRadius;
+	m_utilityVector0 = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 0]];
+	m_utilityVector1 = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 5]];
+	m_utilityVector5 = pTile->GetTileOffset();
+	m_utilityVector6 = m_utilityVector5;
+	m_utilityVector6 += tileSize;
 
-	cameraRelativeA -= m_planetSpaceCameraPosition;
-	cameraRelativeB -= m_planetSpaceCameraPosition;
-	cameraRelativeC -= m_planetSpaceCameraPosition;
-	cameraRelativeD -= m_planetSpaceCameraPosition;
+	uint32_t axisU, axisV, axisW;
+	double signOnAxisW = 1;
+	if (cubeFace == CubeFace::BOTTOM || cubeFace == CubeFace::TOP)
+	{
+		axisU = 2; axisV = 0; axisW = 1;	// z and x
+	}
+	else if (cubeFace == CubeFace::FRONT || cubeFace == CubeFace::BACK)
+	{
+		axisU = 0, axisV = 1; axisW = 2;	// x and y
+	}
+	else
+	{
+		axisU = 1, axisV = 2; axisW = 0;	// y and z
+	}
+
+	if (cubeFace == CubeFace::BOTTOM ||
+		cubeFace == CubeFace::LEFT ||
+		cubeFace == CubeFace::BACK)
+		signOnAxisW = -1;
+
+	double x0, x1, y0, y1;
+	x0 = m_utilityVector0[axisU] * (1.0 - m_utilityVector5.x) + m_utilityVector1[axisU] * m_utilityVector5.x;
+	x1 = m_utilityVector0[axisU] * (1.0 - m_utilityVector6.x) + m_utilityVector1[axisU] * m_utilityVector6.x;
+	y0 = m_utilityVector0[axisV] * (1.0 - m_utilityVector5.y) + m_utilityVector1[axisV] * m_utilityVector5.y;
+	y1 = m_utilityVector0[axisV] * (1.0 - m_utilityVector6.y) + m_utilityVector1[axisV] * m_utilityVector6.y;
+
+	static double halfCubeEdgeLength = std::sqrt(3.0) / 3.0 * m_pVertices[0].Length();
+
+	m_utilityVector0[axisU] = x0; m_utilityVector0[axisV] = y0; m_utilityVector0[axisW] = halfCubeEdgeLength * signOnAxisW;
+	m_utilityVector1[axisU] = x1; m_utilityVector1[axisV] = y0; m_utilityVector1[axisW] = halfCubeEdgeLength * signOnAxisW;
+	m_utilityVector2[axisU] = x0; m_utilityVector2[axisV] = y1; m_utilityVector2[axisW] = halfCubeEdgeLength * signOnAxisW;
+	m_utilityVector3[axisU] = x1; m_utilityVector3[axisV] = y1; m_utilityVector3[axisW] = halfCubeEdgeLength * signOnAxisW;
+
+	m_utilityVector0.Normalize();
+	m_utilityVector1.Normalize();
+	m_utilityVector2.Normalize();
+	m_utilityVector3.Normalize();
+
+	m_utilityVector0 *= m_planetRadius;
+	m_utilityVector1 *= m_planetRadius;
+	m_utilityVector2 *= m_planetRadius;
+	m_utilityVector3 *= m_planetRadius;
+
+	m_utilityVector0 -= m_planetSpaceCameraPosition;
+	m_utilityVector1 -= m_planetSpaceCameraPosition;
+	m_utilityVector2 -= m_planetSpaceCameraPosition;
+	m_utilityVector3 -= m_planetSpaceCameraPosition;
 
 	// Triangle abc
-	pOutputTriangles->p = cameraRelativeC.SinglePrecision();
-	pOutputTriangles->edge0 = cameraRelativeA.SinglePrecision();
-	pOutputTriangles->edge1 = cameraRelativeB.SinglePrecision();
+	pOutputTriangles->p = m_utilityVector2.SinglePrecision();
+	pOutputTriangles->edge0 = m_utilityVector0.SinglePrecision();
+	pOutputTriangles->edge1 = m_utilityVector1.SinglePrecision();
 
 	pOutputTriangles->edge0 -= pOutputTriangles->p;
 	pOutputTriangles->edge1 -= pOutputTriangles->p;
@@ -808,9 +945,9 @@ void PlanetGenerator::PrepareGeometry
 	pOutputTriangles++;
 
 	// Triangle cbd
-	pOutputTriangles->p = cameraRelativeB.SinglePrecision();
-	pOutputTriangles->edge0 = cameraRelativeD.SinglePrecision();
-	pOutputTriangles->edge1 = cameraRelativeC.SinglePrecision();
+	pOutputTriangles->p = m_utilityVector1.SinglePrecision();
+	pOutputTriangles->edge0 = m_utilityVector3.SinglePrecision();
+	pOutputTriangles->edge1 = m_utilityVector2.SinglePrecision();
 
 	pOutputTriangles->edge0 -= pOutputTriangles->p;
 	pOutputTriangles->edge1 -= pOutputTriangles->p;
@@ -865,15 +1002,14 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 	}
 
 	// Step6: Acquire the normalized position(0-1) of the intersection between normalized camera position and chosen cube face
-	double normU = (camVecInsideCube[axisU] + 1) / 2.0;
-	double normV = (camVecInsideCube[axisV] + 1) / 2.0;
+	Vector2d normCoord{( camVecInsideCube[axisU] + 1) / 2.0, (camVecInsideCube[axisV] + 1) / 2.0 };
 
 	// Reverse U if a cube face lies on the negative side of our right-hand axis
 	// Do this to align UV with cube face winding order(also reversed)
 	if (cubeFace == CubeFace::BACK ||
 		cubeFace == CubeFace::LEFT ||
 		cubeFace == CubeFace::BOTTOM)
-		normU = 1.0 - normU;
+		normCoord.x = 1.0 - normCoord.x;
 
 	// 1023 is the bias of exponent bits
 	static uint64_t zeroExponent = 1023;
@@ -890,8 +1026,8 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 
 	// Prepare
 	uint64_t *pU, *pV;
-	pU = (uint64_t*)&normU;
-	pV = (uint64_t*)&normV;
+	pU = (uint64_t*)&normCoord.x;
+	pV = (uint64_t*)&normCoord.y;
 
 	// Step7: Acquire binary position of the intersection
 	// 1. (*pU) & fractionMask:	Acquire only fraction bits
@@ -900,76 +1036,188 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 	// 4. (3) >> fractionBits:	Acquire readable exponent by shifting it right of 52 bits	
 	// 5. zeroExponent - (3):	We need to right shift fraction part using exponent value, to make same levels pair with same bits(floating format trait)
 	// 6. (2) >> (5):			Right shift 
-	uint64_t binaryU = (((*pU) & fractionMask) + extraOne) >> (zeroExponent - (((*pU) & exponentMask) >> fractionBits));
-	uint64_t binaryV = (((*pV) & fractionMask) + extraOne) >> (zeroExponent - (((*pV) & exponentMask) >> fractionBits));
+	Vector2<uint64_t> binaryCoord
+	{
+		(((*pU) & fractionMask) + extraOne) >> (zeroExponent - (((*pU) & exponentMask) >> fractionBits)),
+		(((*pV) & fractionMask) + extraOne) >> (zeroExponent - (((*pV) & exponentMask) >> fractionBits))
+	};
 
 	// Locate LOD level
 	double distToGround = m_lockedPlanetSpaceCameraHeight - m_planetRadius;
-	Vector3d a, b, c, d;
-	a = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 0]];
-	b = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 1]];
-	c = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 2]];
-	d = m_pVertices[m_pIndices[(uint32_t)cubeFace * 6 + 5]];
+	Vector2<uint64_t> currentLayerBinaryCoord;
+	Vector2<uint8_t> subdivideCoord;
+	Vector2d currentLayerNormCoord{ 0.0, 0.0 };
+	Vector2d utilityVec{ 0.0, 0.0 };
+	double currentLayerTileSize = 1.0;
+	uint64_t maxBinary;
+
+	bool adjacentTileAvailable[(uint32_t)TileAdjacency::COUNT];
+	bool adjacentTileDifferentFace[(uint32_t)TileAdjacency::COUNT];
 
 	for (uint32_t i = 0; i < (uint32_t)m_distanceLUT.size(); i++)
 	{
+		memset(adjacentTileAvailable, true, sizeof(bool) * (uint32_t)TileAdjacency::COUNT);
+		memset(adjacentTileDifferentFace, false, sizeof(bool) * (uint32_t)TileAdjacency::COUNT);
+		currentLayerTileSize = std::pow(0.5, (double)i);
+
 		if (i == 0)
 		{
-			if (distToGround > m_distanceLUT[i])
-			{
-				m_planetLODLayers.push_back(PlanetLODLayer::Create());
-				m_planetLODLayers[i]->SetTileAvailable(TileAdjacency::MIDDLE, true);
+			adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_LEFT] 
+				= adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_RIGHT]
+				= adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_LEFT]
+				= adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_RIGHT] 
+				= false;
 
-				std::shared_ptr<PlanetTile> pTile = m_planetLODLayers[i]->GetTile(TileAdjacency::MIDDLE);
-				pTile->SetCubeFace(cubeFace);
-				pTile->GetVertexRef(0) = a;
-				pTile->GetVertexRef(1) = b;
-				pTile->GetVertexRef(2) = c;
-				pTile->GetVertexRef(3) = d;
-
-				// 4 adjacent tiles in level 0(root level)
-				TileAdjacency adj[] = { TileAdjacency::TOP, TileAdjacency::MIDDLE_LEFT, TileAdjacency::MIDDLE_RIGHT, TileAdjacency::BOTTOM };
-				for (uint32_t j = 0; j < 4; j++)
-				{
-					m_planetLODLayers[i]->SetTileAvailable(adj[j], true);
-
-					TileAdjInfo& tileAdjInfo = m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)adj[j]];
-					pTile = m_planetLODLayers[i]->GetTile(adj[j]);
-					pTile->SetCubeFace(tileAdjInfo.cubeFace);
-					pTile->GetVertexRef(0) = m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 0]];
-					pTile->GetVertexRef(1) = m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 1]];
-					pTile->GetVertexRef(2) = m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 2]];
-					pTile->GetVertexRef(3) = m_pVertices[m_pIndices[(uint32_t)tileAdjInfo.cubeFace * 6 + 5]];
-				}
-				break;
-			}
+			adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP]
+				= adjacentTileDifferentFace[(uint32_t)TileAdjacency::LEFT]
+				= adjacentTileDifferentFace[(uint32_t)TileAdjacency::RIGHT]
+				= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM]
+				= true;
 		}
-		else if (m_distanceLUT[i - 1] > distToGround && m_distanceLUT[i] < distToGround)
+		else
 		{
-			// Todo: Handle specific level
-			break;
+			// Binary coordinate of current layer
+			currentLayerBinaryCoord.x = (binaryCoord.x >> (fractionBits - i));
+			currentLayerBinaryCoord.y = (binaryCoord.y >> (fractionBits - i));
+
+			subdivideCoord.x = (currentLayerBinaryCoord.x & 1);
+			subdivideCoord.y = (currentLayerBinaryCoord.y & 1);
+
+			// Normalized coordinate of current layer
+			currentLayerNormCoord.x += (currentLayerTileSize * subdivideCoord.x);
+			currentLayerNormCoord.y += (currentLayerTileSize * subdivideCoord.y);
+
+			maxBinary = (1 << i) - 1;
+
+			// Handle edge case
+			if (currentLayerBinaryCoord.x == 0)
+			{
+				adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_LEFT]
+					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::LEFT]
+					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_LEFT]
+					= true;
+			}
+
+			if (currentLayerBinaryCoord.x == maxBinary)
+			{
+				adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_RIGHT]
+					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::RIGHT]
+					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_RIGHT]
+					= true;
+			}
+
+			if (currentLayerBinaryCoord.y == 0)
+			{
+				adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_LEFT]
+					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM]
+					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_RIGHT]
+					= true;
+			}
+
+			if (currentLayerBinaryCoord.y == maxBinary)
+			{
+				adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_LEFT]
+					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP]
+					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_RIGHT]
+					= true;
+			}
+
+			// Handle corner case
+			if (currentLayerBinaryCoord.x == 0 && currentLayerBinaryCoord.y == 0)
+				adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_LEFT] = false;
+			else if (currentLayerBinaryCoord.x == 0 && currentLayerBinaryCoord.y == maxBinary)
+				adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_RIGHT] = false;
+			else if (currentLayerBinaryCoord.x == maxBinary && currentLayerBinaryCoord.y == 0)
+				adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_LEFT] = false;
+			else if (currentLayerBinaryCoord.x == maxBinary && currentLayerBinaryCoord.y == maxBinary)
+				adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_RIGHT] = false;
 		}
 
-		// Todo: Prepare for next iteration
-	}
+		m_planetLODLayers.push_back(PlanetLODLayer::Create());
+		m_planetLODLayers[i]->SetTileAvailable(TileAdjacency::MIDDLE, true);
 
-	std::shared_ptr<PlanetTile> pTile;
-	for (uint32_t i = 0; i < (uint32_t)m_planetLODLayers.size(); i++)
-	{
+		std::shared_ptr<PlanetTile> pTile;
 		for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
 		{
-			if (!m_planetLODLayers[i]->IsTileAvailable((TileAdjacency)j))
+			if (!adjacentTileAvailable[j])
 				continue;
 
+			m_planetLODLayers[i]->SetTileAvailable((TileAdjacency)j, true);
+
+			TileAdjacency mappingAdjacency = (TileAdjacency)j;
+			utilityVec = currentLayerNormCoord;
+			if ((TileAdjacency)j == TileAdjacency::TOP_RIGHT ||
+				(TileAdjacency)j == TileAdjacency::TOP ||
+				(TileAdjacency)j == TileAdjacency::TOP_LEFT)
+			{
+				if (currentLayerBinaryCoord.y != maxBinary)
+					utilityVec.y += currentLayerTileSize;
+				else
+					mappingAdjacency = TileAdjacency::TOP;
+			}
+
+			if ((TileAdjacency)j == TileAdjacency::BOTTOM_RIGHT ||
+				(TileAdjacency)j == TileAdjacency::BOTTOM ||
+				(TileAdjacency)j == TileAdjacency::BOTTOM_LEFT)
+			{
+				if (currentLayerBinaryCoord.y != 0)
+					utilityVec.y -= currentLayerTileSize;
+				else
+					mappingAdjacency = TileAdjacency::BOTTOM;
+			}
+
+			if ((TileAdjacency)j == TileAdjacency::TOP_RIGHT ||
+				(TileAdjacency)j == TileAdjacency::RIGHT ||
+				(TileAdjacency)j == TileAdjacency::BOTTOM_RIGHT)
+			{
+				if (currentLayerBinaryCoord.x != maxBinary)
+					utilityVec.x += currentLayerTileSize;
+				else
+					mappingAdjacency = TileAdjacency::RIGHT;
+			}
+
+			if ((TileAdjacency)j == TileAdjacency::TOP_LEFT ||
+				(TileAdjacency)j == TileAdjacency::LEFT ||
+				(TileAdjacency)j == TileAdjacency::BOTTOM_LEFT)
+			{
+				if (currentLayerBinaryCoord.x != 0)
+					utilityVec.x -= currentLayerTileSize;
+				else
+					mappingAdjacency = TileAdjacency::LEFT;
+			}
+
+			CubeFace _cubeFace = adjacentTileDifferentFace[j] ? m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].cubeFace : cubeFace;
 			pTile = m_planetLODLayers[i]->GetTile((TileAdjacency)j);
-			PrepareGeometry
-			(
-				pTile->GetVertexRef(0),
-				pTile->GetVertexRef(1),
-				pTile->GetVertexRef(2),
-				pTile->GetVertexRef(3),
-				pOutputTriangles
-			);
+			pTile->SetCubeFace(_cubeFace);
+			pTile->SetTileSize(currentLayerTileSize);
+			pTile->SetTileLevel(i);
+
+			
+			if (adjacentTileDifferentFace[j])
+			{
+				pTile->SetTileOffset(m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].transform(utilityVec, currentLayerTileSize));
+			}
+			else
+			{
+				pTile->SetTileOffset(utilityVec);
+			}
+		}
+
+		if (distToGround > m_distanceLUT[i])
+			break;
+	}
+
+	for (int32_t i = 0; i < 3; i++)
+	{
+		int32_t layer = (int32_t)m_planetLODLayers.size() - 1 - i;
+		if (layer < 0)
+			break;
+		for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
+		{
+			if (!m_planetLODLayers[layer]->IsTileAvailable((TileAdjacency)j))
+				continue;
+
+			PrepareGeometry(m_planetLODLayers[layer]->GetTile((TileAdjacency)j), pOutputTriangles);
 		}
 	}
 

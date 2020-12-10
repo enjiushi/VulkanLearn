@@ -65,20 +65,20 @@ void SceneGenerator::GenerateCube(Vector3d vertices[], uint32_t indices[])
 		vertices[i].Normalize();
 
 	// Right
-	indices[0] = 1;
-	indices[1] = 3;
-	indices[2] = 5;
-	indices[3] = 5;
-	indices[4] = 3;
-	indices[5] = 7;
+	indices[0] = 3;
+	indices[1] = 7;
+	indices[2] = 1;
+	indices[3] = 1;
+	indices[4] = 7;
+	indices[5] = 5;
 
 	// Left
-	indices[6] = 2;
-	indices[7] = 0;
-	indices[8] = 6;
-	indices[9] = 6;
-	indices[10] = 0;
-	indices[11] = 4;
+	indices[6] = 6;
+	indices[7] = 2;
+	indices[8] = 4;
+	indices[9] = 4;
+	indices[10] = 2;
+	indices[11] = 0;
 
 	// Top
 	indices[12] = 6;

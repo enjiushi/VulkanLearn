@@ -68,7 +68,7 @@ protected:
 	// New planet lod method test function, not named yet
 	void PrepareGeometry
 	(
-		const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d,
+		const std::shared_ptr<PlanetTile>& pTile,
 		Triangle*& pOutputTriangles
 	);
 	void NewPlanetLODMethod(Triangle*& pOutputTriangles);
@@ -101,6 +101,9 @@ private:
 	Vector3d		m_utilityVector2;
 	Vector3d		m_utilityVector3;
 	Vector3d		m_utilityVector4;
+	Vector2d		m_utilityVector5;
+	Vector2d		m_utilityVector6;
+
 	Vector3d		m_lockedNormalizedPlanetSpaceCameraPosition;
 	double			m_lockedPlanetSpaceCameraHeight;
 	double			m_squareLockedPlanetSpaceCameraHeight;
@@ -110,6 +113,7 @@ private:
 	Vector3d		m_cubeFaceNormals[(uint32_t)CubeFace::COUNT];
 
 	std::vector<std::shared_ptr<PlanetLODLayer>>	m_planetLODLayers;
+	Vector3d		m_layerVertices[16];
 
 	// To handle adjacent tile folding due to cube nature
 	typedef struct _TileAdjInfo
@@ -120,6 +124,8 @@ private:
 		NormCoordAxis	foldingAxis;
 		// The folding direction
 		Sign		foldingDirection;
+		// Transform normalized coordinate at edge to adjacent tile
+		std::function<Vector2d(const Vector2d&, const double&)> transform;
 	}TileAdjInfo;
 	TileAdjInfo		m_cubeTileFolding[(uint32_t)CubeFace::COUNT][(uint32_t)TileAdjacency::COUNT];
 
