@@ -1103,45 +1103,25 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 
 			TileAdjacency mappingAdjacency = (TileAdjacency)j;
 			utilityVec = currentLayerNormCoord;
-			if ((TileAdjacency)j == TileAdjacency::TOP_RIGHT ||
-				(TileAdjacency)j == TileAdjacency::TOP ||
-				(TileAdjacency)j == TileAdjacency::TOP_LEFT)
-			{
-				if (currentLayerBinaryCoord.y != maxBinary)
-					utilityVec.y += currentLayerTileSize;
-				else
-					mappingAdjacency = TileAdjacency::TOP;
-			}
 
-			if ((TileAdjacency)j == TileAdjacency::BOTTOM_RIGHT ||
-				(TileAdjacency)j == TileAdjacency::BOTTOM ||
-				(TileAdjacency)j == TileAdjacency::BOTTOM_LEFT)
-			{
-				if (currentLayerBinaryCoord.y != 0)
-					utilityVec.y -= currentLayerTileSize;
-				else
-					mappingAdjacency = TileAdjacency::BOTTOM;
-			}
+			// Transform adjacent enums into 2 dimensions
+			int32_t adjU = j % 3;
+			int32_t adjV = j / 3;
 
-			if ((TileAdjacency)j == TileAdjacency::TOP_RIGHT ||
-				(TileAdjacency)j == TileAdjacency::RIGHT ||
-				(TileAdjacency)j == TileAdjacency::BOTTOM_RIGHT)
-			{
-				if (currentLayerBinaryCoord.x != maxBinary)
-					utilityVec.x += currentLayerTileSize;
-				else
-					mappingAdjacency = TileAdjacency::RIGHT;
-			}
+			// If a tile is located on a border in axis U, and its adjacent tile is outside of current face,
+			// then we remove the other axis from corner case.
+			// E.g. bottom left, bottom right, top left, top right will be transformed into left, right, left, right
+			// The reason to do this is that we only have transforms of different face in 4 adjacent directions, left, right, bottom, top
+			if ((currentLayerBinaryCoord.x == 0 && adjU == 0) || (currentLayerBinaryCoord.x == maxBinary && adjU == 2))
+				mappingAdjacency = (TileAdjacency)(adjU + 3);
+			else
+				utilityVec.x += ((adjU - 1) * currentLayerTileSize);
 
-			if ((TileAdjacency)j == TileAdjacency::TOP_LEFT ||
-				(TileAdjacency)j == TileAdjacency::LEFT ||
-				(TileAdjacency)j == TileAdjacency::BOTTOM_LEFT)
-			{
-				if (currentLayerBinaryCoord.x != 0)
-					utilityVec.x -= currentLayerTileSize;
-				else
-					mappingAdjacency = TileAdjacency::LEFT;
-			}
+			// Same applies axis V
+			if ((currentLayerBinaryCoord.y == 0 && adjV == 0) || (currentLayerBinaryCoord.y == maxBinary && adjV == 2))
+				mappingAdjacency = (TileAdjacency)(adjV * 3 + 1);
+			else
+				utilityVec.y += ((adjV - 1) * currentLayerTileSize);
 
 			CubeFace _cubeFace = adjacentTileDifferentFace[j] ? m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].cubeFace : cubeFace;
 

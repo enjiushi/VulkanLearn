@@ -49,16 +49,32 @@ enum class Sign
 
 enum class TileAdjacency
 {
-	TOP_LEFT,
-	TOP,
-	TOP_RIGHT,
-	LEFT,
-	MIDDLE,
-	RIGHT,
 	BOTTOM_LEFT,
 	BOTTOM,
 	BOTTOM_RIGHT,
+	LEFT,
+	MIDDLE,
+	RIGHT,
+	TOP_LEFT,
+	TOP,
+	TOP_RIGHT,
 	COUNT
+};
+
+enum class AdjacentTileOffsetU
+{
+	LEFT = -1,
+	MIDDLE = 0,
+	RIGHT = 1,
+	COUNT = 3
+};
+
+enum class AdjacentTileOffsetV
+{
+	BOTTOM = -1,
+	MIDDLE = 0,
+	TOP = 1,
+	COUNT = 3
 };
 
 enum VertexAttribFlag
