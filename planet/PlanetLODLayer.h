@@ -3,6 +3,7 @@
 #include "../common/Enums.h"
 #include "../Maths/Vector.h"
 #include "PlanetTile.h"
+#include <functional>
 
 class PlanetLODLayer : public SelfRefBase<PlanetLODLayer>
 {
@@ -25,10 +26,31 @@ public:
 	const Vector2d& GetNormalizedCoord() const { return m_normalizedCoord; }
 	void SetNormalizedCoord(const Vector2d& normalizedCoord) { m_normalizedCoord = normalizedCoord; }
 
+	void BuildupLayer(CubeFace cubeFace, uint32_t level, const Vector2<uint64_t>& binaryCoord, const std::shared_ptr<PlanetLODLayer>& pParentLayer);
 	void PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, Triangle*& pOutputTriangles);
 
 private:
 	std::shared_ptr<PlanetTile>	m_tiles[(uint32_t)TileAdjacency::COUNT];
+	// Indicates which adjacent tile is available
 	bool						m_tileAvailable[(uint32_t)TileAdjacency::COUNT];
+	// Indicates which adjacent tile is located on a different cube face
+	bool						m_adjacentTileDifferentFace[(uint32_t)TileAdjacency::COUNT];
+	// Normalized coordinate of current layer, i.e. the offset coordinate of the bottom left corner of the center tile in this layer
 	Vector2d					m_normalizedCoord;
+	// Current layer's binary coordinate, indicating a binary tree position on both axis Uand V
+	Vector2<uint64_t>			m_currentLayerBinaryCoord;
+
+	// To handle adjacent tile folding due to cube nature
+	typedef struct _TileAdjInfo
+	{
+		// Adjacent cube face
+		CubeFace	cubeFace;
+		// The axis that adjacent cube face folds towards, in normlized coordinate axis
+		NormCoordAxis	foldingAxis;
+		// The folding direction
+		Sign		foldingDirection;
+		// Transform normalized coordinate at edge to adjacent tile
+		std::function<Vector2d(const Vector2d&, const double&)> transform;
+	}TileAdjInfo;
+	TileAdjInfo		m_cubeTileFolding[(uint32_t)CubeFace::COUNT][(uint32_t)TileAdjacency::COUNT];
 };

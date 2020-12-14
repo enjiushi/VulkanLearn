@@ -101,20 +101,6 @@ private:
 	std::vector<std::shared_ptr<PlanetLODLayer>>	m_planetLODLayers;
 	Vector3d		m_layerVertices[16];
 
-	// To handle adjacent tile folding due to cube nature
-	typedef struct _TileAdjInfo
-	{
-		// Adjacent cube face
-		CubeFace	cubeFace;
-		// The axis that adjacent cube face folds towards, in normlized coordinate axis
-		NormCoordAxis	foldingAxis;
-		// The folding direction
-		Sign		foldingDirection;
-		// Transform normalized coordinate at edge to adjacent tile
-		std::function<Vector2d(const Vector2d&, const double&)> transform;
-	}TileAdjInfo;
-	TileAdjInfo		m_cubeTileFolding[(uint32_t)CubeFace::COUNT][(uint32_t)TileAdjacency::COUNT];
-
 	Vector2<uint64_t>	m_prevBinaryCoord;
 	CubeFace			m_prevCubeFace;
 	uint32_t			m_prevLevel;
