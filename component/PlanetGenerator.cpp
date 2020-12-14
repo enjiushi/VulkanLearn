@@ -705,7 +705,7 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 
 	// Rebuild LOD layers
 	bool rebuildLODLayers = false;
-	uint32_t rebuildStartIndex = 0;
+	uint32_t rebuildStartIndex = 255;
 
 	// If layers are not built, or cube face changes, rebuild starting from root level
 	if (m_planetLODLayers.size() == 0 || m_prevCubeFace != cubeFace)
@@ -734,7 +734,7 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 			{
 				if ((prevValidBinaryU & (1ull << (level - 1 - i))) != (currValidBinaryU & (1ull << (level - 1 - i))))
 				{
-					rebuildStartIndex = (i < rebuildStartIndex) ? i : rebuildStartIndex;
+					rebuildStartIndex = ((i + 1) < rebuildStartIndex) ? (i + 1) : rebuildStartIndex;
 					break;
 				}
 			}
@@ -746,7 +746,7 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 			{
 				if ((prevValidBinaryV & (1ull << (level - 1 - i))) != (currValidBinaryV & (1ull << (level - 1 - i))))
 				{
-					rebuildStartIndex = (i < rebuildStartIndex) ? i : rebuildStartIndex;
+					rebuildStartIndex = ((i + 1) < rebuildStartIndex) ? (i + 1) : rebuildStartIndex;
 					break;
 				}
 			}
