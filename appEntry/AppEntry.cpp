@@ -332,7 +332,10 @@ void AppEntry::InitVertices()
 {
 	m_LODPatchLevel = 7;
 
-	m_pLODTriangleMesh = SceneGenerator::GenerateLODTriangleMesh(m_LODPatchLevel, true);
+	// Since the triangles of the next level is gonna over-lapping on part of triangles of current level
+	// We need to subdivide one tile into 4 sub-tiles, and the edges of which are cut in half
+	// Therefore, we reduce patch subdivide level by 1 here to achieve that goal
+	m_pLODTriangleMesh = SceneGenerator::GenerateLODTriangleMesh(m_LODPatchLevel - 1, true);
 
 	m_pQuadMesh = SceneGenerator::GeneratePBRQuadMesh();
 

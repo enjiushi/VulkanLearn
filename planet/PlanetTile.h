@@ -38,7 +38,12 @@ public:
 	double GetTileSize() const { return m_tileSize; }
 	const Vector3d& GetNormalizedVertex(uint32_t index) { return m_normalizedVertices[index]; }
 
-	void PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, Triangle*& pOutputTriangles);
+	// 4 bits mask order: bottom left, bottom right, top left, top right
+	// 0: don't render, 1: render
+	// One tile is divided into 4 sub-tiles of the same geometry. Since each one of them might be covered by tiles of the next level,
+	// we only render those necessary sub-tiles.
+	// Those sub-tiles covered by next level will be marked as 0 in the mask
+	void PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, uint8_t mask, Triangle*& pOutputTriangles);
 
 protected:
 	void RegenerateVertices();
@@ -54,8 +59,9 @@ private:
 	double				m_tileSize;
 	// LOD level this tile resides
 	uint32_t			m_tileLevel;
-	// 4 vertices of this tile, normalized
-	Vector3d			m_normalizedVertices[4];
+	// 9 vertices of this tile, normalized
+	// 4 vertices for a sub-tile
+	Vector3d			m_normalizedVertices[9];
 	// Parent tile
 	std::weak_ptr<PlanetTile>	m_pParentTile;
 

@@ -703,9 +703,6 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 		if (distToGround > m_distanceLUT[level])
 			break;
 
-	//binaryCoord.x >>= (fractionBits - level);
-	//binaryCoord.y >>= (fractionBits - level);
-
 	// Rebuild LOD layers
 	bool rebuildLODLayers = false;
 	uint32_t rebuildStartIndex = 0;
@@ -757,18 +754,18 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 		}
 	}
 
+	std::shared_ptr<PlanetLODLayer> pLayer = nullptr;
 	if (rebuildLODLayers)
 	{
-		std::shared_ptr<PlanetLODLayer> pParentLayer = nullptr;
 		for (uint32_t i = rebuildStartIndex; i <= level; i++)
 		{
 			if ((uint32_t)m_planetLODLayers.size() == i)
 				m_planetLODLayers.push_back(PlanetLODLayer::Create());
 
 			if (i != 0)
-				pParentLayer = m_planetLODLayers[i - 1];
+				pLayer = m_planetLODLayers[i - 1];
 
-			m_planetLODLayers[i]->BuildupLayer(cubeFace, i, binaryCoord, pParentLayer);
+			m_planetLODLayers[i]->BuildupLayer(cubeFace, i, binaryCoord, pLayer);
 		}
 	}
 
@@ -776,12 +773,17 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 	m_prevCubeFace = cubeFace;
 	m_prevLevel = level;
 
+	pLayer = nullptr;
 	for (int32_t i = 0; i < 3; i++)
 	{
 		int32_t layer = (int32_t)level - i;
 		if (layer < 0)
 			break;
-		m_planetLODLayers[layer]->PrepareGeometry(m_planetSpaceCameraPosition, m_planetRadius, layer, pOutputTriangles);
+
+		if (layer != level)
+			pLayer = m_planetLODLayers[layer + 1];
+
+		m_planetLODLayers[layer]->PrepareGeometry(m_planetSpaceCameraPosition, m_planetRadius, layer, pLayer, pOutputTriangles);
 	}
 }
 

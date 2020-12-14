@@ -386,13 +386,54 @@ void PlanetLODLayer::BuildupLayer(CubeFace cubeFace, uint32_t level, const Vecto
 	}
 }
 
-void PlanetLODLayer::PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, Triangle*& pOutputTriangles)
+void PlanetLODLayer::PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, const std::shared_ptr<PlanetLODLayer>& pChildLayer, Triangle*& pOutputTriangles)
 {
+	memset(m_adjacentTileMasks, -1, sizeof(m_adjacentTileMasks));
+	if (pChildLayer != nullptr)
+	{
+		uint8_t lastBitU = pChildLayer->m_currentLayerBinaryCoord.x & 1;
+		uint8_t lastBitV = pChildLayer->m_currentLayerBinaryCoord.y & 1;
+
+		// Acquire adjacent tile in axis U and V which needs to mask out some sub-tiles
+		uint8_t adjU = (lastBitU & 1) * 2 + 3;
+		uint8_t adjV = (lastBitV & 1) * 6 + 1;
+
+		// 10 is the mask 1010(order: 0-1-0-1) for left adjacent tile
+		// 10 >> 1 is the mask 0101(order: 1-0-1-0) for right adjacent tile
+		m_adjacentTileMasks[adjU] = (10 >> lastBitU);
+
+		// 12 is the mask 1100(order: 0-0-1-1) for bottom adjacent tile
+		// 12 >> 2 is the mask 0011(order: 1-1-0-0) for top adjacent tile
+		m_adjacentTileMasks[adjV] = (12 >> (lastBitV * 2));
+
+		// Invert bits so that 0 means masked out sub-tiles
+		m_adjacentTileMasks[adjU] = ~m_adjacentTileMasks[adjU];
+		m_adjacentTileMasks[adjV] = ~m_adjacentTileMasks[adjV];
+
+		// Mask 1000(order: 0-0-0-1) for bottom left tile
+		// Mask 0100(order: 0-0-1-0) for bottom right tile
+		// Mask 0010(order: 0-1-0-0) for top left tile
+		// Mask 0001(order: 1-0-0-0) for top right tile
+		// Each one of them is right shifted 1 bit
+		uint8_t topRightMask = (1 << 3);
+		// Tile0->binaryCoord(0,0), tile2->binaryCoord(1,0), tile6->binaryCoord(0,1), tile8->binaryCoord(1,1)
+		// lastBitU * 2 + 6 + lastBitV * 2: Acquire corner tile index(0, 2, 6, 8)
+		uint8_t cornerTileIndex = lastBitU * 2 + lastBitV * 6;
+		// lastBitU + lastBitV * 2: Right shift 0, 1, 2, 3, for tile0, tile2, tile6, tile8 respectively
+		m_adjacentTileMasks[cornerTileIndex] = (topRightMask >> (lastBitU + lastBitV * 2));
+		// Invert
+		m_adjacentTileMasks[cornerTileIndex] = ~m_adjacentTileMasks[cornerTileIndex];
+
+		// Don't forget mask of middle tile
+		// Since it's always overlapped by children tiles, we mask it out
+		m_adjacentTileMasks[(uint32_t)TileAdjacency::MIDDLE] = 0;
+	}
+
 	for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
 	{
 		if (!m_tileAvailable[j])
 			continue;
 
-		m_tiles[j]->PrepareGeometry(cameraPosition, planetRadius, level, pOutputTriangles);
+		m_tiles[j]->PrepareGeometry(cameraPosition, planetRadius, level, m_adjacentTileMasks[j], pOutputTriangles);
 	}
 }
