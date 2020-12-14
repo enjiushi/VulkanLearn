@@ -1,5 +1,4 @@
 #include "PlanetLODLayer.h"
-#include "PlanetTile.h"
 
 bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer)
 {
@@ -21,4 +20,15 @@ std::shared_ptr<PlanetLODLayer> PlanetLODLayer::Create()
 	if (pPlanetLODLayer != nullptr && pPlanetLODLayer->Init(pPlanetLODLayer))
 		return pPlanetLODLayer;
 	return nullptr;
+}
+
+void PlanetLODLayer::PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, Triangle*& pOutputTriangles)
+{
+	for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
+	{
+		if (!m_tileAvailable[j])
+			continue;
+
+		m_tiles[j]->PrepareGeometry(cameraPosition, planetRadius, level, pOutputTriangles);
+	}
 }

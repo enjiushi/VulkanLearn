@@ -22,15 +22,6 @@ class PlanetGenerator : public BaseComponent
 		DIVIDE			// If a triangle is fully inside a volumn
 	};
 
-	typedef struct _Triangle
-	{
-		// A triangle consists of a vertex, and 2 edge vectors: edge0 and edge1
-		Vector3f	p;
-		Vector3f	edge0;
-		Vector3f	edge1;
-		float		level;	// the sign of this variable gives morphing direction
-	}Triangle;
-
 public:
 	static std::shared_ptr<PlanetGenerator> Create(const std::shared_ptr<PhysicalCamera>& pCamera, float planetRadius);
 

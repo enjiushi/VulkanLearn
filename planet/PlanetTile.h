@@ -3,6 +3,15 @@
 #include "../Maths/Vector.h"
 #include "../common/Enums.h"
 
+typedef struct _Triangle
+{
+	// A triangle consists of a vertex, and 2 edge vectors: edge0 and edge1
+	Vector3f	p;
+	Vector3f	edge0;
+	Vector3f	edge1;
+	float		level;	// the sign of this variable gives morphing direction
+}Triangle;
+
 class PlanetTile : public SelfRefBase<PlanetTile>
 {
 public:
@@ -29,6 +38,8 @@ public:
 	double GetTileSize() const { return m_tileSize; }
 	const Vector3d& GetNormalizedVertex(uint32_t index) { return m_normalizedVertices[index]; }
 
+	void PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, Triangle*& pOutputTriangles);
+
 protected:
 	void RegenerateVertices();
 
@@ -47,4 +58,10 @@ private:
 	Vector3d			m_normalizedVertices[4];
 	// Parent tile
 	std::weak_ptr<PlanetTile>	m_pParentTile;
+
+	// Utility vectors
+	static Vector3d		m_utilityVector0;
+	static Vector3d		m_utilityVector1;
+	static Vector3d		m_utilityVector2;
+	static Vector3d		m_utilityVector3;
 };

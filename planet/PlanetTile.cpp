@@ -2,6 +2,11 @@
 #include "../class/UniformData.h"
 #include "../class/GlobalUniforms.h"
 
+Vector3d PlanetTile::m_utilityVector0;
+Vector3d PlanetTile::m_utilityVector1;
+Vector3d PlanetTile::m_utilityVector2;
+Vector3d PlanetTile::m_utilityVector3;
+
 bool PlanetTile::Init(const std::shared_ptr<PlanetTile>& pPlanetTile)
 {
 	if (!SelfRefBase<PlanetTile>::Init(pPlanetTile))
@@ -87,4 +92,48 @@ void PlanetTile::RegenerateVertices()
 	m_normalizedVertices[1].Normalize();
 	m_normalizedVertices[2].Normalize();
 	m_normalizedVertices[3].Normalize();
+}
+
+void PlanetTile::PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, Triangle*& pOutputTriangles)
+{
+	m_utilityVector0 = m_normalizedVertices[0];
+	m_utilityVector1 = m_normalizedVertices[1];
+	m_utilityVector2 = m_normalizedVertices[2];
+	m_utilityVector3 = m_normalizedVertices[3];
+
+	m_utilityVector0 *= planetRadius;
+	m_utilityVector1 *= planetRadius;
+	m_utilityVector2 *= planetRadius;
+	m_utilityVector3 *= planetRadius;
+
+	m_utilityVector0 -= cameraPosition;
+	m_utilityVector1 -= cameraPosition;
+	m_utilityVector2 -= cameraPosition;
+	m_utilityVector3 -= cameraPosition;
+
+	// Triangle abc
+	pOutputTriangles->p = m_utilityVector2.SinglePrecision();
+	pOutputTriangles->edge0 = m_utilityVector0.SinglePrecision();
+	pOutputTriangles->edge1 = m_utilityVector1.SinglePrecision();
+
+	pOutputTriangles->edge0 -= pOutputTriangles->p;
+	pOutputTriangles->edge1 -= pOutputTriangles->p;
+
+	// Level + 1 to avoid zero
+	pOutputTriangles->level = (float)0 + 1.0f;
+
+	pOutputTriangles++;
+
+	// Triangle cbd
+	pOutputTriangles->p = m_utilityVector1.SinglePrecision();
+	pOutputTriangles->edge0 = m_utilityVector3.SinglePrecision();
+	pOutputTriangles->edge1 = m_utilityVector2.SinglePrecision();
+
+	pOutputTriangles->edge0 -= pOutputTriangles->p;
+	pOutputTriangles->edge1 -= pOutputTriangles->p;
+
+	// Minus gives a sign whether to reverse morphing in vertex shader
+	pOutputTriangles->level = ((float)0 + 1.0f) * -1.0f;
+
+	pOutputTriangles++;
 }

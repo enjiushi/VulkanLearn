@@ -1211,13 +1211,7 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 		int32_t layer = (int32_t)level - i;
 		if (layer < 0)
 			break;
-		for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
-		{
-			if (!m_planetLODLayers[layer]->IsTileAvailable((TileAdjacency)j))
-				continue;
-
-			PrepareGeometry(m_planetLODLayers[layer]->GetTile((TileAdjacency)j), pOutputTriangles);
-		}
+		m_planetLODLayers[layer]->PrepareGeometry(m_planetSpaceCameraPosition, m_planetRadius, layer, pOutputTriangles);
 	}
 }
 

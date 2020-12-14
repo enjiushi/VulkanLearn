@@ -2,8 +2,7 @@
 #include "../Base/Base.h"
 #include "../common/Enums.h"
 #include "../Maths/Vector.h"
-
-class PlanetTile;
+#include "PlanetTile.h"
 
 class PlanetLODLayer : public SelfRefBase<PlanetLODLayer>
 {
@@ -25,6 +24,8 @@ public:
 	void SetTileAvailable(TileAdjacency tileAdj, bool available) { m_tileAvailable[(uint32_t)tileAdj] = available; }
 	const Vector2d& GetNormalizedCoord() const { return m_normalizedCoord; }
 	void SetNormalizedCoord(const Vector2d& normalizedCoord) { m_normalizedCoord = normalizedCoord; }
+
+	void PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, Triangle*& pOutputTriangles);
 
 private:
 	std::shared_ptr<PlanetTile>	m_tiles[(uint32_t)TileAdjacency::COUNT];
