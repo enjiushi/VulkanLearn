@@ -960,7 +960,7 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 	}
 
 	// Step6: Acquire the normalized position(0-1) of the intersection between normalized camera position and chosen cube face
-	Vector2d normCoord{( camVecInsideCube[axisU] + 1) / 2.0, (camVecInsideCube[axisV] + 1) / 2.0 };
+	Vector2d normCoord{ (camVecInsideCube[axisU] + 1) / 2.0, (camVecInsideCube[axisV] + 1) / 2.0 };
 
 	// Reverse U if a cube face lies on the negative side of our right-hand axis
 	// Do this to align UV with cube face winding order(also reversed)
@@ -1000,144 +1000,215 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 		(((*pV) & fractionMask) + extraOne) >> (zeroExponent - (((*pV) & exponentMask) >> fractionBits))
 	};
 
-	// Locate LOD level
 	double distToGround = m_lockedPlanetSpaceCameraHeight - m_planetRadius;
-	Vector2<uint64_t> currentLayerBinaryCoord;
-	Vector2<uint8_t> subdivideCoord;
-	Vector2d currentLayerNormCoord{ 0.0, 0.0 };
-	Vector2d utilityVec{ 0.0, 0.0 };
-	double currentLayerTileSize = 1.0;
-	uint64_t maxBinary;
 
-	bool adjacentTileAvailable[(uint32_t)TileAdjacency::COUNT];
-	bool adjacentTileDifferentFace[(uint32_t)TileAdjacency::COUNT];
-
-	for (uint32_t i = 0; i < (uint32_t)m_distanceLUT.size(); i++)
-	{
-		memset(adjacentTileAvailable, true, sizeof(bool) * (uint32_t)TileAdjacency::COUNT);
-		memset(adjacentTileDifferentFace, false, sizeof(bool) * (uint32_t)TileAdjacency::COUNT);
-		currentLayerTileSize = std::pow(0.5, (double)i);
-
-		if (i == 0)
-		{
-			adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_LEFT] 
-				= adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_RIGHT]
-				= adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_LEFT]
-				= adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_RIGHT] 
-				= false;
-
-			adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP]
-				= adjacentTileDifferentFace[(uint32_t)TileAdjacency::LEFT]
-				= adjacentTileDifferentFace[(uint32_t)TileAdjacency::RIGHT]
-				= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM]
-				= true;
-		}
-		else
-		{
-			// Binary coordinate of current layer
-			currentLayerBinaryCoord.x = (binaryCoord.x >> (fractionBits - i));
-			currentLayerBinaryCoord.y = (binaryCoord.y >> (fractionBits - i));
-
-			subdivideCoord.x = (currentLayerBinaryCoord.x & 1);
-			subdivideCoord.y = (currentLayerBinaryCoord.y & 1);
-
-			// Normalized coordinate of current layer
-			currentLayerNormCoord.x += (currentLayerTileSize * subdivideCoord.x);
-			currentLayerNormCoord.y += (currentLayerTileSize * subdivideCoord.y);
-
-			maxBinary = (1 << i) - 1;
-
-			// Handle edge case
-			if (currentLayerBinaryCoord.x == 0)
-			{
-				adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_LEFT]
-					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::LEFT]
-					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_LEFT]
-					= true;
-			}
-
-			if (currentLayerBinaryCoord.x == maxBinary)
-			{
-				adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_RIGHT]
-					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::RIGHT]
-					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_RIGHT]
-					= true;
-			}
-
-			if (currentLayerBinaryCoord.y == 0)
-			{
-				adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_LEFT]
-					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM]
-					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_RIGHT]
-					= true;
-			}
-
-			if (currentLayerBinaryCoord.y == maxBinary)
-			{
-				adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_LEFT]
-					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP]
-					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_RIGHT]
-					= true;
-			}
-
-			// Handle corner case
-			if (currentLayerBinaryCoord.x == 0 && currentLayerBinaryCoord.y == 0)
-				adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_LEFT] = false;
-			else if (currentLayerBinaryCoord.x == 0 && currentLayerBinaryCoord.y == maxBinary)
-				adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_LEFT] = false;
-			else if (currentLayerBinaryCoord.x == maxBinary && currentLayerBinaryCoord.y == 0)
-				adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_RIGHT] = false;
-			else if (currentLayerBinaryCoord.x == maxBinary && currentLayerBinaryCoord.y == maxBinary)
-				adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_RIGHT] = false;
-		}
-
-		m_planetLODLayers.push_back(PlanetLODLayer::Create());
-		m_planetLODLayers[i]->SetTileAvailable(TileAdjacency::MIDDLE, true);
-
-		for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
-		{
-			if (!adjacentTileAvailable[j])
-				continue;
-
-			m_planetLODLayers[i]->SetTileAvailable((TileAdjacency)j, true);
-
-			TileAdjacency mappingAdjacency = (TileAdjacency)j;
-			utilityVec = currentLayerNormCoord;
-
-			// Transform adjacent enums into 2 dimensions
-			int32_t adjU = j % 3;
-			int32_t adjV = j / 3;
-
-			// If a tile is located on a border in axis U, and its adjacent tile is outside of current face,
-			// then we remove the other axis from corner case.
-			// E.g. bottom left, bottom right, top left, top right will be transformed into left, right, left, right
-			// The reason to do this is that we only have transforms of different face in 4 adjacent directions, left, right, bottom, top
-			if ((currentLayerBinaryCoord.x == 0 && adjU == 0) || (currentLayerBinaryCoord.x == maxBinary && adjU == 2))
-				mappingAdjacency = (TileAdjacency)(adjU + 3);
-			else
-				utilityVec.x += ((adjU - 1) * currentLayerTileSize);
-
-			// Same applies axis V
-			if ((currentLayerBinaryCoord.y == 0 && adjV == 0) || (currentLayerBinaryCoord.y == maxBinary && adjV == 2))
-				mappingAdjacency = (TileAdjacency)(adjV * 3 + 1);
-			else
-				utilityVec.y += ((adjV - 1) * currentLayerTileSize);
-
-			CubeFace _cubeFace = adjacentTileDifferentFace[j] ? m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].cubeFace : cubeFace;
-
-			if (adjacentTileDifferentFace[j])
-				utilityVec = m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].transform(utilityVec, currentLayerTileSize);
-
-			m_planetLODLayers[i]->GetTile((TileAdjacency)j)->InitTile({ utilityVec, currentLayerBinaryCoord, currentLayerTileSize, i, _cubeFace });
-		}
-
-		if (distToGround > m_distanceLUT[i])
+	// Locate LOD level
+	uint32_t level;
+	for (level = 0; level < (uint32_t)m_distanceLUT.size(); level++)
+		if (distToGround > m_distanceLUT[level])
 			break;
+
+	//binaryCoord.x >>= (fractionBits - level);
+	//binaryCoord.y >>= (fractionBits - level);
+
+	// Rebuild LOD layers
+	bool rebuildLODLayers = false;
+	uint32_t rebuildStartIndex = 0;
+
+	// If layers are not built, or cube face changes, rebuild starting from root level
+	if (m_planetLODLayers.size() == 0 || m_prevCubeFace != cubeFace)
+	{
+		rebuildStartIndex = 0;
+		rebuildLODLayers = true;
 	}
+	else
+	{
+		// If more levels are required at this frame, rebuild starting from the end of existing layers
+		if (m_prevLevel < level)
+		{
+			rebuildStartIndex = m_prevLevel + 1;
+			rebuildLODLayers = true;
+		}
+
+		uint64_t prevValidBinaryU = m_prevBinaryCoord.x >> (fractionBits - level);
+		uint64_t prevValidBinaryV = m_prevBinaryCoord.y >> (fractionBits - level);
+		uint64_t currValidBinaryU = binaryCoord.x >> (fractionBits - level);
+		uint64_t currValidBinaryV = binaryCoord.y >> (fractionBits - level);
+
+		// If one or both of the binary coordinate between frames are different, pick a level that is nearest to root
+		if (prevValidBinaryU != currValidBinaryU)
+		{
+			for (uint32_t i = 0; i < level; i++)
+			{
+				if ((prevValidBinaryU & (1ull << (level - 1 - i))) != (currValidBinaryU & (1ull << (level - 1 - i))))
+				{
+					rebuildStartIndex = (i < rebuildStartIndex) ? i : rebuildStartIndex;
+					break;
+				}
+			}
+			rebuildLODLayers = true;
+		}
+		if (prevValidBinaryV != currValidBinaryV)
+		{
+			for (uint32_t i = 0; i < level; i++)
+			{
+				if ((prevValidBinaryV & (1ull << (level - 1 - i))) != (currValidBinaryV & (1ull << (level - 1 - i))))
+				{
+					rebuildStartIndex = (i < rebuildStartIndex) ? i : rebuildStartIndex;
+					break;
+				}
+			}
+			rebuildLODLayers = true;
+		}
+	}
+
+	if (rebuildLODLayers)
+	{
+		Vector2<uint64_t> currentLayerBinaryCoord;
+		Vector2<uint8_t> subdivideCoord;
+		Vector2d currentLayerNormCoord{ 0.0, 0.0 };
+		Vector2d utilityVec{ 0.0, 0.0 };
+		double currentLayerTileSize = 1.0;
+		uint64_t maxBinary;
+
+		bool adjacentTileAvailable[(uint32_t)TileAdjacency::COUNT];
+		bool adjacentTileDifferentFace[(uint32_t)TileAdjacency::COUNT];
+
+		for (uint32_t i = rebuildStartIndex; i <= level; i++)
+		{
+			memset(adjacentTileAvailable, true, sizeof(bool) * (uint32_t)TileAdjacency::COUNT);
+			memset(adjacentTileDifferentFace, false, sizeof(bool) * (uint32_t)TileAdjacency::COUNT);
+			currentLayerTileSize = std::pow(0.5, (double)i);
+
+			if (i == 0)
+			{
+				adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_LEFT]
+					= adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_RIGHT]
+					= adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_LEFT]
+					= adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_RIGHT]
+					= false;
+
+				adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP]
+					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::LEFT]
+					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::RIGHT]
+					= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM]
+					= true;
+			}
+			else
+			{
+				// Binary coordinate of current layer
+				currentLayerBinaryCoord.x = (binaryCoord.x >> (fractionBits - i));
+				currentLayerBinaryCoord.y = (binaryCoord.y >> (fractionBits - i));
+
+				subdivideCoord.x = (currentLayerBinaryCoord.x & 1);
+				subdivideCoord.y = (currentLayerBinaryCoord.y & 1);
+
+				// Normalized coordinate of current layer
+				currentLayerNormCoord = m_planetLODLayers[i - 1]->GetNormalizedCoord();
+				currentLayerNormCoord.x += (currentLayerTileSize * subdivideCoord.x);
+				currentLayerNormCoord.y += (currentLayerTileSize * subdivideCoord.y);
+
+				maxBinary = (1 << i) - 1;
+
+				// Handle edge case
+				if (currentLayerBinaryCoord.x == 0)
+				{
+					adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_LEFT]
+						= adjacentTileDifferentFace[(uint32_t)TileAdjacency::LEFT]
+						= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_LEFT]
+						= true;
+				}
+
+				if (currentLayerBinaryCoord.x == maxBinary)
+				{
+					adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_RIGHT]
+						= adjacentTileDifferentFace[(uint32_t)TileAdjacency::RIGHT]
+						= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_RIGHT]
+						= true;
+				}
+
+				if (currentLayerBinaryCoord.y == 0)
+				{
+					adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_LEFT]
+						= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM]
+						= adjacentTileDifferentFace[(uint32_t)TileAdjacency::BOTTOM_RIGHT]
+						= true;
+				}
+
+				if (currentLayerBinaryCoord.y == maxBinary)
+				{
+					adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_LEFT]
+						= adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP]
+						= adjacentTileDifferentFace[(uint32_t)TileAdjacency::TOP_RIGHT]
+						= true;
+				}
+
+				// Handle corner case
+				if (currentLayerBinaryCoord.x == 0 && currentLayerBinaryCoord.y == 0)
+					adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_LEFT] = false;
+				else if (currentLayerBinaryCoord.x == 0 && currentLayerBinaryCoord.y == maxBinary)
+					adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_LEFT] = false;
+				else if (currentLayerBinaryCoord.x == maxBinary && currentLayerBinaryCoord.y == 0)
+					adjacentTileAvailable[(uint32_t)TileAdjacency::BOTTOM_RIGHT] = false;
+				else if (currentLayerBinaryCoord.x == maxBinary && currentLayerBinaryCoord.y == maxBinary)
+					adjacentTileAvailable[(uint32_t)TileAdjacency::TOP_RIGHT] = false;
+			}
+
+			if ((uint32_t)m_planetLODLayers.size() == i)
+				m_planetLODLayers.push_back(PlanetLODLayer::Create());
+
+			m_planetLODLayers[i]->SetTileAvailable(TileAdjacency::MIDDLE, true);
+			m_planetLODLayers[i]->SetNormalizedCoord(currentLayerNormCoord);
+
+			for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
+			{
+				if (!adjacentTileAvailable[j])
+					continue;
+
+				m_planetLODLayers[i]->SetTileAvailable((TileAdjacency)j, true);
+
+				TileAdjacency mappingAdjacency = (TileAdjacency)j;
+				utilityVec = currentLayerNormCoord;
+
+				// Transform adjacent enums into 2 dimensions
+				int32_t adjU = j % 3;
+				int32_t adjV = j / 3;
+
+				// If a tile is located on a border in axis U, and its adjacent tile is outside of current face,
+				// then we remove the other axis from corner case.
+				// E.g. bottom left, bottom right, top left, top right will be transformed into left, right, left, right
+				// The reason to do this is that we only have transforms of different face in 4 adjacent directions, left, right, bottom, top
+				if ((currentLayerBinaryCoord.x == 0 && adjU == 0) || (currentLayerBinaryCoord.x == maxBinary && adjU == 2))
+					mappingAdjacency = (TileAdjacency)(adjU + 3);
+				else
+					utilityVec.x += ((adjU - 1) * currentLayerTileSize);
+
+				// Same applies axis V
+				if ((currentLayerBinaryCoord.y == 0 && adjV == 0) || (currentLayerBinaryCoord.y == maxBinary && adjV == 2))
+					mappingAdjacency = (TileAdjacency)(adjV * 3 + 1);
+				else
+					utilityVec.y += ((adjV - 1) * currentLayerTileSize);
+
+				CubeFace _cubeFace = adjacentTileDifferentFace[j] ? m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].cubeFace : cubeFace;
+
+				if (adjacentTileDifferentFace[j])
+					utilityVec = m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].transform(utilityVec, currentLayerTileSize);
+
+				m_planetLODLayers[i]->GetTile((TileAdjacency)j)->InitTile({ utilityVec, currentLayerBinaryCoord, currentLayerTileSize, i, _cubeFace });
+			}
+
+			if (distToGround > m_distanceLUT[i])
+				break;
+		}
+	}
+
+	m_prevBinaryCoord = binaryCoord;
+	m_prevCubeFace = cubeFace;
+	m_prevLevel = level;
 
 	for (int32_t i = 0; i < 3; i++)
 	{
-		int32_t layer = (int32_t)m_planetLODLayers.size() - 1 - i;
+		int32_t layer = (int32_t)level - i;
 		if (layer < 0)
 			break;
 		for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
@@ -1148,8 +1219,6 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 			PrepareGeometry(m_planetLODLayers[layer]->GetTile((TileAdjacency)j), pOutputTriangles);
 		}
 	}
-
-	m_planetLODLayers.clear();
 }
 
 void PlanetGenerator::OnPreRender()

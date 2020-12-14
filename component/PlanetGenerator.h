@@ -129,6 +129,10 @@ private:
 	}TileAdjInfo;
 	TileAdjInfo		m_cubeTileFolding[(uint32_t)CubeFace::COUNT][(uint32_t)TileAdjacency::COUNT];
 
+	Vector2<uint64_t>	m_prevBinaryCoord;
+	CubeFace			m_prevCubeFace;
+	uint32_t			m_prevLevel;
+
 	// Camera infor in planet local space
 	PyramidFrustumd	m_cameraFrustumLocal;
 	Vector3d		m_planetSpaceCameraPosition;
