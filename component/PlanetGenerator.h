@@ -57,11 +57,6 @@ protected:
 	);
 
 	// New planet lod method test function, not named yet
-	void PrepareGeometry
-	(
-		const std::shared_ptr<PlanetTile>& pTile,
-		Triangle*& pOutputTriangles
-	);
 	void NewPlanetLODMethod(Triangle*& pOutputTriangles);
 
 public:
