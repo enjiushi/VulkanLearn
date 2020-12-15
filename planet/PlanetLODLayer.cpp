@@ -527,7 +527,7 @@ void PlanetLODLayer::BuildupLayer(CubeFace cubeFace, uint32_t level, const Vecto
 			adjU = getAdjacentIndex(adjU);
 			adjV = getAdjacentIndex(adjV);
 			
-			pParentLayer->GetTile((TileAdjacency)(adjU + 3 * adjV));
+			pParentTile = pParentLayer->GetTile((TileAdjacency)(adjU + 3 * adjV));
 		}
 
 		m_tiles[j]->InitTile({ adjacentTileNormCoord, currentLayerTileSize, level, _cubeFace, pParentTile });
