@@ -1,6 +1,7 @@
 #include "PlanetTile.h"
 #include "../class/UniformData.h"
 #include "../class/GlobalUniforms.h"
+#include "../common/Util.h"
 
 Vector3d PlanetTile::m_utilityVector0;
 Vector3d PlanetTile::m_utilityVector1;
@@ -24,11 +25,13 @@ std::shared_ptr<PlanetTile> PlanetTile::Create()
 
 void PlanetTile::InitTile(const TileInfo& tileInfo)
 {
-	m_cubeFace = tileInfo.cubeFace;
-	m_binaryTreeID = tileInfo.binaryTreeID;
-	m_tileOffset = tileInfo.tileOffset;
-	m_tileSize = tileInfo.tileSize;
-	m_tileLevel = tileInfo.tileLevel;
+	m_cubeFace		= tileInfo.cubeFace;
+	m_tileOffset	= tileInfo.tileOffset;
+	m_tileSize		= tileInfo.tileSize;
+	m_tileLevel		= tileInfo.tileLevel;
+	m_pParentTile	= tileInfo.pParentTile;
+
+	m_binaryTreeID = { AcquireBinaryCoord(m_tileOffset.x), AcquireBinaryCoord(m_tileOffset.y) };
 	
 	// Acquire binary tree ID of current tile level
 	// 0 for root level
@@ -38,6 +41,9 @@ void PlanetTile::InitTile(const TileInfo& tileInfo)
 	// Add cube face to binary tree id on first 3 bits(up to 6 cube faces, i.e. 110)
 	m_binaryTreeID.x += (uint64_t)m_cubeFace << 61;
 	m_binaryTreeID.y += (uint64_t)m_cubeFace << 61;
+
+	// Parent sub-tile index: 0, 1, 2, 3
+	m_parentSubTileIndex = (m_binaryTreeID.x & 1) + ((m_binaryTreeID.y & 1) << 1);
 
 	RegenerateVertices();
 }

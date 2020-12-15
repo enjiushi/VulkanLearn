@@ -505,7 +505,32 @@ void PlanetLODLayer::BuildupLayer(CubeFace cubeFace, uint32_t level, const Vecto
 		if (m_adjacentTileDifferentFace[j])
 			adjacentTileNormCoord = m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].transformNormCoordToAdjacentTile(adjacentTileNormCoord, currentLayerTileSize);
 
-		m_tiles[j]->InitTile({ adjacentTileNormCoord, m_currentLayerBinaryCoord, currentLayerTileSize, level, _cubeFace });
+		std::weak_ptr<PlanetTile> pParentTile;
+		if (pParentLayer != nullptr)
+		{
+			// Acquire parent tile
+			// Offset last bit of binary coordinate by -1, 0, or 1
+			// We could have -1, 0, 1, or 2
+			// -1 and 2 are not parent layer's center tile, but its adjacent one, in corresponding axis
+			// -1==>left/bottom, 0,1==>middle, 2==>right/top
+			auto getAdjacentIndex = [](int32_t val)
+			{
+				if (val < 0)
+					return 0;
+				else if (val > 1)
+					return 2;
+				else
+					return 1;
+			};
+			adjU = (m_currentLayerBinaryCoord.x & 1) + (adjU - 1);
+			adjV = (m_currentLayerBinaryCoord.y & 1) + (adjV - 1);
+			adjU = getAdjacentIndex(adjU);
+			adjV = getAdjacentIndex(adjV);
+			
+			pParentLayer->GetTile((TileAdjacency)(adjU + 3 * adjV));
+		}
+
+		m_tiles[j]->InitTile({ adjacentTileNormCoord, currentLayerTileSize, level, _cubeFace, pParentTile });
 	}
 }
 

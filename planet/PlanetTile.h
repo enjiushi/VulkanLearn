@@ -18,10 +18,10 @@ public:
 	typedef struct _TileInfo
 	{
 		Vector2d			tileOffset;
-		Vector2<uint64_t>	binaryTreeID;
 		double				tileSize;
 		uint32_t			tileLevel;
 		CubeFace			cubeFace;
+		std::weak_ptr<PlanetTile>	pParentTile;
 	}TileInfo;
 
 protected:
@@ -62,8 +62,10 @@ private:
 	// 9 vertices of this tile, normalized
 	// 4 vertices for a sub-tile
 	Vector3d			m_normalizedVertices[9];
-	// Parent tile
+	// Parent tile and parent sub-tile index
+	// Since every PlanetTile consists of 4 sub-tiles, each child PlanetTile overlaps one parent sub-tile
 	std::weak_ptr<PlanetTile>	m_pParentTile;
+	uint8_t						m_parentSubTileIndex;
 
 	// Utility vectors
 	static Vector3d		m_utilityVector0;
