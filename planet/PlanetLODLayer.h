@@ -30,6 +30,8 @@ public:
 	void PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, const std::shared_ptr<PlanetLODLayer>& pChildLayer, Triangle*& pOutputTriangles);
 
 private:
+	// Cube face of the center of the layer
+	CubeFace					m_cubeFace;
 	std::shared_ptr<PlanetTile>	m_tiles[(uint32_t)TileAdjacency::COUNT];
 	// Indicates which adjacent tile is available
 	bool						m_tileAvailable[(uint32_t)TileAdjacency::COUNT];
@@ -47,13 +49,14 @@ private:
 	typedef struct _TileAdjInfo
 	{
 		// Adjacent cube face
-		CubeFace	cubeFace;
+		CubeFace		cubeFace;
 		// The axis that adjacent cube face folds towards, in normlized coordinate axis
 		NormCoordAxis	foldingAxis;
 		// The folding direction
-		Sign		foldingDirection;
+		Sign			foldingDirection;
 		// Transform normalized coordinate at edge to adjacent tile
-		std::function<Vector2d(const Vector2d&, const double&)> transform;
+		std::function<Vector2d(const Vector2d&, const double&)> transformNormCoordToAdjacentTile;
+		std::function<uint8_t(uint8_t)>							transfromMaskToAdjacentTile;
 	}TileAdjInfo;
 	TileAdjInfo		m_cubeTileFolding[(uint32_t)CubeFace::COUNT][(uint32_t)TileAdjacency::COUNT];
 };

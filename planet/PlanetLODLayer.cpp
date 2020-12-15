@@ -21,6 +21,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, input.x };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::LEFT] =
@@ -31,6 +38,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 1.0 - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::RIGHT] =
@@ -41,6 +55,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 1.0 - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::BOTTOM] =
@@ -51,6 +72,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, input.x };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 
@@ -62,6 +90,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, 1.0 - input.x - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::LEFT] =
@@ -72,6 +107,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 0 };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::RIGHT] =
@@ -82,6 +124,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 0 };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::BOTTOM] =
@@ -92,6 +141,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, 1.0 - input.x - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 
@@ -103,6 +159,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, input.x };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::LEFT] =
@@ -113,6 +176,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 1.0 - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::RIGHT] =
@@ -123,6 +193,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 1.0 - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::BOTTOM] =
@@ -133,6 +210,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, input.x };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 
@@ -144,6 +228,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, 1.0 - input.x - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::LEFT] =
@@ -154,6 +245,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 0 };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::RIGHT] =
@@ -164,6 +262,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 0 };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::BOTTOM] =
@@ -174,6 +279,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, 1.0 - input.x - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 
@@ -185,6 +297,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, input.x };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::LEFT] =
@@ -195,6 +314,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 1.0 - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::RIGHT] =
@@ -205,6 +331,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 1.0 - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::BOTTOM] =
@@ -215,6 +348,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, input.x };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 
@@ -225,6 +365,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		Sign::NEGATIVE,[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, 1.0 - input.x - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::LEFT] =
@@ -235,6 +382,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 0 };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::RIGHT] =
@@ -245,6 +399,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 0 };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 1)
+				+ (((mask >> 1) & 1) << 3)
+				+ (((mask >> 2) & 1) << 0)
+				+ (((mask >> 3) & 1) << 2);
 		}
 	};
 	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::BOTTOM] =
@@ -255,6 +416,13 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, 1.0 - input.x - tileSize };
+		},
+		[](uint8_t mask)
+		{
+			return (((mask >> 0) & 1) << 2)
+				+ (((mask >> 1) & 1) << 0)
+				+ (((mask >> 2) & 1) << 3)
+				+ (((mask >> 3) & 1) << 1);
 		}
 	};
 
@@ -271,6 +439,8 @@ std::shared_ptr<PlanetLODLayer> PlanetLODLayer::Create()
 
 void PlanetLODLayer::BuildupLayer(CubeFace cubeFace, uint32_t level, const Vector2<uint64_t>& binaryCoord, const std::shared_ptr<PlanetLODLayer>& pParentLayer)
 {
+	m_cubeFace = cubeFace;
+
 	memset(m_tileAvailable, true, sizeof(bool) * (uint32_t)TileAdjacency::COUNT);
 	memset(m_adjacentTileDifferentFace, false, sizeof(bool) * (uint32_t)TileAdjacency::COUNT);
 	double currentLayerTileSize = std::pow(0.5, (double)level);
@@ -380,7 +550,7 @@ void PlanetLODLayer::BuildupLayer(CubeFace cubeFace, uint32_t level, const Vecto
 		CubeFace _cubeFace = m_adjacentTileDifferentFace[j] ? m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].cubeFace : cubeFace;
 
 		if (m_adjacentTileDifferentFace[j])
-			adjacentTileNormCoord = m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].transform(adjacentTileNormCoord, currentLayerTileSize);
+			adjacentTileNormCoord = m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].transformNormCoordToAdjacentTile(adjacentTileNormCoord, currentLayerTileSize);
 
 		m_tiles[j]->InitTile({ adjacentTileNormCoord, m_currentLayerBinaryCoord, currentLayerTileSize, level, _cubeFace });
 	}
@@ -427,6 +597,19 @@ void PlanetLODLayer::PrepareGeometry(const Vector3d& cameraPosition, double plan
 		// Don't forget mask of middle tile
 		// Since it's always overlapped by children tiles, we mask it out
 		m_adjacentTileMasks[(uint32_t)TileAdjacency::MIDDLE] = 0;
+
+		// Handle different face case
+		if (m_adjacentTileDifferentFace[adjU])
+			m_adjacentTileMasks[adjU] = m_cubeTileFolding[(uint32_t)m_cubeFace][adjU].transfromMaskToAdjacentTile(m_adjacentTileMasks[adjU]);
+		if (m_adjacentTileDifferentFace[adjV])
+			m_adjacentTileMasks[adjV] = m_cubeTileFolding[(uint32_t)m_cubeFace][adjV].transfromMaskToAdjacentTile(m_adjacentTileMasks[adjV]);
+		if (m_adjacentTileDifferentFace[cornerTileIndex] && m_tileAvailable[cornerTileIndex])
+		{
+			if (m_adjacentTileDifferentFace[adjU])
+				m_adjacentTileMasks[cornerTileIndex] = m_cubeTileFolding[(uint32_t)m_cubeFace][adjU].transfromMaskToAdjacentTile(m_adjacentTileMasks[cornerTileIndex]);
+			if (m_adjacentTileDifferentFace[adjV])
+				m_adjacentTileMasks[cornerTileIndex] = m_cubeTileFolding[(uint32_t)m_cubeFace][adjV].transfromMaskToAdjacentTile(m_adjacentTileMasks[cornerTileIndex]);
+		}
 	}
 
 	for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
