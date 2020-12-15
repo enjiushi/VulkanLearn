@@ -106,3 +106,5 @@ enum ReservedVBBindingSlot
 	// Maybe more in future
 	ReservedVBBindingSlotCount
 };
+
+extern Axis CubeFaceAxisMapping[(uint32_t)CubeFace::COUNT][(uint32_t)NormCoordAxis::COUNT];

@@ -54,21 +54,11 @@ void PlanetTile::RegenerateVertices()
 	Vector2d topRightUV = m_tileOffset;
 	topRightUV += m_tileSize;
 
-	uint32_t axisU, axisV, axisW;
-	double signOnAxisW = 1;
-	if (m_cubeFace == CubeFace::BOTTOM || m_cubeFace == CubeFace::TOP)
-	{
-		axisU = 2; axisV = 0; axisW = 1;	// z and x
-	}
-	else if (m_cubeFace == CubeFace::FRONT || m_cubeFace == CubeFace::BACK)
-	{
-		axisU = 0, axisV = 1; axisW = 2;	// x and y
-	}
-	else
-	{
-		axisU = 1, axisV = 2; axisW = 0;	// y and z
-	}
+	uint32_t axisU = (uint32_t)CubeFaceAxisMapping[(uint32_t)m_cubeFace][(uint32_t)NormCoordAxis::U];
+	uint32_t axisV = (uint32_t)CubeFaceAxisMapping[(uint32_t)m_cubeFace][(uint32_t)NormCoordAxis::V];
+	uint32_t axisW = (uint32_t)CubeFaceAxisMapping[(uint32_t)m_cubeFace][(uint32_t)NormCoordAxis::W];
 
+	double signOnAxisW = 1;
 	if (m_cubeFace == CubeFace::BOTTOM ||
 		m_cubeFace == CubeFace::LEFT ||
 		m_cubeFace == CubeFace::BACK)

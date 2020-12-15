@@ -653,19 +653,8 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 	CubeFace cubeFace = cameraVecDotCubeFaceNormal[maxIndex].second;
 
 	// Step6: Acquire axis index according to cube face
-	uint32_t axisU, axisV;
-	if (cubeFace == CubeFace::BOTTOM || cubeFace == CubeFace::TOP)
-	{
-		axisU = 2; axisV = 0;	// z and x
-	}
-	else if (cubeFace == CubeFace::FRONT || cubeFace == CubeFace::BACK)
-	{
-		axisU = 0, axisV = 1;	// x and y
-	}
-	else
-	{
-		axisU = 1, axisV = 2;	// y and z
-	}
+	uint32_t axisU = (uint32_t)CubeFaceAxisMapping[(uint32_t)cubeFace][(uint32_t)NormCoordAxis::U];
+	uint32_t axisV = (uint32_t)CubeFaceAxisMapping[(uint32_t)cubeFace][(uint32_t)NormCoordAxis::V];
 
 	// Step6: Acquire the normalized position(0-1) of the intersection between normalized camera position and chosen cube face
 	Vector2d normCoord{ (camVecInsideCube[axisU] + 1) / 2.0, (camVecInsideCube[axisV] + 1) / 2.0 };
@@ -814,30 +803,6 @@ void PlanetGenerator::OnPreRender()
 
 	Triangle* pTriangles = (Triangle*)PlanetGeoDataManager::GetInstance()->AcquireDataPtr(offsetInBytes);
 	uint8_t* startPtr = (uint8_t*)pTriangles;
-
-	//for (uint32_t i = 0; i < (uint32_t)CubeFace::COUNT; i++)
-	//{
-	//	Vector3d faceNormal;
-	//	switch (i)
-	//	{
-	//	case 0: faceNormal = { 1, 0, 0 }; break;
-	//	case 1: faceNormal = { -1, 0, 0 }; break;
-	//	case 2: faceNormal = { 0, 1, 0 }; break;
-	//	case 3: faceNormal = { 0, -1, 0 }; break;
-	//	case 4: faceNormal = { 0, 0, 1 }; break;
-	//	case 5: faceNormal = { 0, 0, -1 }; break;
-	//	}
-	//	SubDivideQuad(0, 
-	//		(CubeFace)i,
-	//		(m_pVertices[m_pIndices[i * 6 + 0]] - m_pVertices[m_pIndices[i * 6 + 1]]).Length(), 
-	//		CullState::CULL_DIVIDE,
-	//		m_pVertices[m_pIndices[i * 6 + 0]],	// a
-	//		m_pVertices[m_pIndices[i * 6 + 1]],	// b
-	//		m_pVertices[m_pIndices[i * 6 + 2]],	// c
-	//		m_pVertices[m_pIndices[i * 6 + 5]],	// d
-	//		faceNormal,
-	//		pTriangles);
-	//}
 
 	NewPlanetLODMethod(pTriangles);
 	uint32_t updatedSize = (uint32_t)((uint8_t*)pTriangles - startPtr);

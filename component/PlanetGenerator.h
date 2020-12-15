@@ -87,8 +87,6 @@ private:
 	Vector3d		m_utilityVector2;
 	Vector3d		m_utilityVector3;
 	Vector3d		m_utilityVector4;
-	Vector2d		m_utilityVector5;
-	Vector2d		m_utilityVector6;
 
 	Vector3d		m_lockedNormalizedPlanetSpaceCameraPosition;
 	double			m_lockedPlanetSpaceCameraHeight;
@@ -99,7 +97,6 @@ private:
 	Vector3d		m_cubeFaceNormals[(uint32_t)CubeFace::COUNT];
 
 	std::vector<std::shared_ptr<PlanetLODLayer>>	m_planetLODLayers;
-	Vector3d		m_layerVertices[16];
 
 	Vector2<uint64_t>	m_prevBinaryCoord;
 	CubeFace			m_prevCubeFace;

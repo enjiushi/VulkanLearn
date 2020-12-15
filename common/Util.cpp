@@ -2,6 +2,16 @@
 #include "Enums.h"
 #include "../common/Macros.h"
 
+Axis CubeFaceAxisMapping[(uint32_t)CubeFace::COUNT][(uint32_t)NormCoordAxis::COUNT] =
+{
+	{ Axis::Y, Axis::Z, Axis::X },
+	{ Axis::Y, Axis::Z, Axis::X },
+	{ Axis::Z, Axis::X, Axis::Y },
+	{ Axis::Z, Axis::X, Axis::Y },
+	{ Axis::X, Axis::Y, Axis::Z },
+	{ Axis::X, Axis::Y, Axis::Z }
+};
+
 uint32_t GetVertexBytes(uint32_t vertexFormat)
 {
 	uint32_t vertexByte = 0;
