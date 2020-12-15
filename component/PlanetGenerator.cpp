@@ -680,8 +680,8 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 	// 6. (2) >> (5):			Right shift 
 	Vector2<uint64_t> binaryCoord
 	{
-		(((*pU) & fractionMask) + extraOne) >> (zeroExponent - (((*pU) & exponentMask) >> fractionBits)),
-		(((*pV) & fractionMask) + extraOne) >> (zeroExponent - (((*pV) & exponentMask) >> fractionBits))
+		AcquireBinaryCoord(normCoord.x),
+		AcquireBinaryCoord(normCoord.y),
 	};
 
 	double distToGround = m_lockedPlanetSpaceCameraHeight - m_planetRadius;

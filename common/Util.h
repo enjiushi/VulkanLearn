@@ -33,6 +33,8 @@ static const uint64_t fractionMask = (1ull << fractionBits) - 1;
 // Exponent mask is used to extract only exponent bits of a double(You have to do right shift of "fractionBits" after)
 static const uint64_t exponentMask = ((1ull << exponentBits) - 1) << fractionBits;
 
+uint64_t AcquireBinaryCoord(double normCoord);
+
 uint32_t GetVertexBytes(uint32_t vertexFormat);
 uint32_t GetIndexBytes(VkIndexType indexType);
 
