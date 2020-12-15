@@ -35,8 +35,8 @@ void PlanetTile::InitTile(const TileInfo& tileInfo)
 	
 	// Acquire binary tree ID of current tile level
 	// 0 for root level
-	m_binaryTreeID.x >>= (53 - m_tileLevel);
-	m_binaryTreeID.y >>= (53 - m_tileLevel);
+	m_binaryTreeID.x >>= (fractionBits - m_tileLevel);
+	m_binaryTreeID.y >>= (fractionBits - m_tileLevel);
 
 	// Add cube face to binary tree id on first 3 bits(up to 6 cube faces, i.e. 110)
 	m_binaryTreeID.x += (uint64_t)m_cubeFace << 61;
