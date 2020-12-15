@@ -16,8 +16,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::TOP] =
 	{
 		CubeFace::FRONT,
-		NormCoordAxis::U,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, input.x };
@@ -33,8 +31,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::BOTTOM,
-		NormCoordAxis::V,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 1.0 - tileSize };
@@ -50,8 +46,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::TOP,
-		NormCoordAxis::V,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 1.0 - tileSize };
@@ -67,8 +61,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::RIGHT][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::BACK,
-		NormCoordAxis::U,
-		Sign::NEGATIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, input.x };
@@ -85,8 +77,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::TOP] =
 	{
 		CubeFace::FRONT,
-		NormCoordAxis::U,
-		Sign::NEGATIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, 1.0 - input.x - tileSize };
@@ -102,8 +92,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::TOP,
-		NormCoordAxis::V,
-		Sign::NEGATIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 0 };
@@ -119,8 +107,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::BOTTOM,
-		NormCoordAxis::V,
-		Sign::NEGATIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 0 };
@@ -136,8 +122,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::LEFT][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::BACK,
-		NormCoordAxis::U,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, 1.0 - input.x - tileSize };
@@ -154,8 +138,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::TOP] =
 	{
 		CubeFace::RIGHT,
-		NormCoordAxis::U,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, input.x };
@@ -171,8 +153,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::BACK,
-		NormCoordAxis::V,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 1.0 - tileSize };
@@ -188,8 +168,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::FRONT,
-		NormCoordAxis::V,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 1.0 - tileSize };
@@ -205,8 +183,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::TOP][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::LEFT,
-		NormCoordAxis::U,
-		Sign::NEGATIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, input.x };
@@ -223,8 +199,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::TOP] =
 	{
 		CubeFace::RIGHT,
-		NormCoordAxis::U,
-		Sign::NEGATIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, 1.0 - input.x - tileSize };
@@ -240,8 +214,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::FRONT,
-		NormCoordAxis::V,
-		Sign::NEGATIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 0 };
@@ -257,8 +229,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::BACK,
-		NormCoordAxis::V,
-		Sign::NEGATIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 0 };
@@ -274,8 +244,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::BOTTOM][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::LEFT,
-		NormCoordAxis::U,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, 1.0 - input.x - tileSize };
@@ -292,8 +260,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::TOP] =
 	{
 		CubeFace::TOP,
-		NormCoordAxis::U,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, input.x };
@@ -309,8 +275,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::LEFT,
-		NormCoordAxis::V,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 1.0 - tileSize };
@@ -326,8 +290,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::RIGHT,
-		NormCoordAxis::V,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 1.0 - tileSize };
@@ -343,8 +305,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::FRONT][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::BOTTOM,
-		NormCoordAxis::U,
-		Sign::NEGATIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, input.x };
@@ -361,8 +321,7 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::TOP] =
 	{
 		CubeFace::TOP,
-		NormCoordAxis::U,
-		Sign::NEGATIVE,[](const Vector2d& input, const double& tileSize)
+		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 0, 1.0 - input.x - tileSize };
 		},
@@ -377,8 +336,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::LEFT] =
 	{
 		CubeFace::RIGHT,
-		NormCoordAxis::V,
-		Sign::NEGATIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ input.y, 0 };
@@ -394,8 +351,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::RIGHT] =
 	{
 		CubeFace::LEFT,
-		NormCoordAxis::V,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - input.y - tileSize, 0 };
@@ -411,8 +366,6 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	m_cubeTileFolding[(uint32_t)CubeFace::BACK][(uint32_t)TileAdjacency::BOTTOM] =
 	{
 		CubeFace::BOTTOM,
-		NormCoordAxis::U,
-		Sign::POSITIVE,
 		[](const Vector2d& input, const double& tileSize)
 		{
 			return Vector2d{ 1.0 - tileSize, 1.0 - input.x - tileSize };

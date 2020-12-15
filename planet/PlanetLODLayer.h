@@ -50,12 +50,9 @@ private:
 	{
 		// Adjacent cube face
 		CubeFace		cubeFace;
-		// The axis that adjacent cube face folds towards, in normlized coordinate axis
-		NormCoordAxis	foldingAxis;
-		// The folding direction
-		Sign			foldingDirection;
-		// Transform normalized coordinate at edge to adjacent tile
+		// Transform normalized coordinate at edge to adjacent tile of other faces
 		std::function<Vector2d(const Vector2d&, const double&)> transformNormCoordToAdjacentTile;
+		// Transform sub-tile mask to adjacent tile of other faces
 		std::function<uint8_t(uint8_t)>							transfromMaskToAdjacentTile;
 	}TileAdjInfo;
 	TileAdjInfo		m_cubeTileFolding[(uint32_t)CubeFace::COUNT][(uint32_t)TileAdjacency::COUNT];
