@@ -181,11 +181,6 @@ void PlanetTile::ProcessFrutumCulling(const PyramidFrustumd& frustum)
 		{
 			m_cullState[i] = CullState::CULL_DIVIDE;
 		}
-
-		m_utilityVector0 = m_realSizeVertices[i0];
-		m_utilityVector1 = m_realSizeVertices[i1];
-		m_utilityVector2 = m_realSizeVertices[i2];
-		m_utilityVector3 = m_realSizeVertices[i3];
 	}
 }
 
