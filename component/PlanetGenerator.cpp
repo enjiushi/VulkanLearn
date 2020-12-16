@@ -754,7 +754,7 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 			if (i != 0)
 				pLayer = m_planetLODLayers[i - 1];
 
-			m_planetLODLayers[i]->BuildupLayer(cubeFace, i, binaryCoord, pLayer);
+			m_planetLODLayers[i]->BuildupLayer(cubeFace, i, m_planetRadius, binaryCoord, pLayer);
 		}
 	}
 
@@ -762,17 +762,19 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 	m_prevCubeFace = cubeFace;
 	m_prevLevel = level;
 
-	pLayer = nullptr;
-	for (int32_t i = 0; i < 3; i++)
+	// Process frustum culling
+	for (uint32_t i = 0; i < (uint32_t)m_planetLODLayers.size(); i++)
 	{
-		int32_t layer = (int32_t)level - i;
-		if (layer < 0)
-			break;
+		m_planetLODLayers[i]->ProcessFrutumCulling(m_cameraFrustumLocal);
+	}
 
-		if (layer != level)
-			pLayer = m_planetLODLayers[layer + 1];
+	pLayer = nullptr;
+	for (int32_t i = (int32_t)m_planetLODLayers.size() - 1; i >=0; i--)
+	{
+		if (i != ((int32_t)m_planetLODLayers.size() - 1))
+			pLayer = m_planetLODLayers[i + 1];
 
-		m_planetLODLayers[layer]->PrepareGeometry(m_planetSpaceCameraPosition, m_planetRadius, layer, pLayer, pOutputTriangles);
+		m_planetLODLayers[i]->PrepareGeometry(m_planetSpaceCameraPosition, m_planetRadius, i, pLayer, pOutputTriangles);
 	}
 }
 

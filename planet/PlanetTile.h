@@ -1,6 +1,7 @@
 #pragma once
 #include "../Base/Base.h"
 #include "../Maths/Vector.h"
+#include "../Maths/PyramidFrustum.h"
 #include "../common/Enums.h"
 
 typedef struct _Triangle
@@ -20,8 +21,9 @@ public:
 		Vector2d			tileOffset;
 		double				tileSize;
 		uint32_t			tileLevel;
+		double				planetRadius;
 		CubeFace			cubeFace;
-		std::weak_ptr<PlanetTile>	pParentTile;
+		std::shared_ptr<PlanetTile>	pParentTile;
 	}TileInfo;
 
 protected:
@@ -36,8 +38,9 @@ public:
 	Vector2d GetTileOffset() const { return m_tileOffset; }
 	uint32_t GetTileLevel() const { return m_tileLevel; }
 	double GetTileSize() const { return m_tileSize; }
-	const Vector3d& GetNormalizedVertex(uint32_t index) { return m_normalizedVertices[index]; }
+	CullState GetCullState(uint8_t i) const { return m_cullState[i]; }
 
+	void ProcessFrutumCulling(const PyramidFrustumd& frustum);
 	// 4 bits mask order: bottom left, bottom right, top left, top right
 	// 0: don't render, 1: render
 	// One tile is divided into 4 sub-tiles of the same geometry. Since each one of them might be covered by tiles of the next level,
@@ -57,15 +60,19 @@ private:
 	Vector2d			m_tileOffset;
 	// Tile size in normalized coordinate
 	double				m_tileSize;
+	// Radius of the planet this tile belongs to
+	double				m_planetRadius;
 	// LOD level this tile resides
 	uint32_t			m_tileLevel;
-	// 9 vertices of this tile, normalized
-	// 4 vertices for a sub-tile
-	Vector3d			m_normalizedVertices[9];
+	// 9 vertices of this tile
+	// 4 vertices for each sub-tile
+	Vector3d			m_realSizeVertices[9];
 	// Parent tile and parent sub-tile index
 	// Since every PlanetTile consists of 4 sub-tiles, each child PlanetTile overlaps one parent sub-tile
-	std::weak_ptr<PlanetTile>	m_pParentTile;
+	std::shared_ptr<PlanetTile>	m_pParentTile;
 	uint8_t						m_parentSubTileIndex;
+	// Culling state for 4 sub-tiles
+	CullState					m_cullState[4];
 
 	// Utility vectors
 	static Vector3d		m_utilityVector0;

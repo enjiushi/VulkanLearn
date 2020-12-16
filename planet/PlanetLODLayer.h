@@ -2,6 +2,7 @@
 #include "../Base/Base.h"
 #include "../common/Enums.h"
 #include "../Maths/Vector.h"
+#include "../Maths/PyramidFrustum.h"
 #include "PlanetTile.h"
 #include <functional>
 
@@ -26,7 +27,8 @@ public:
 	const Vector2d& GetNormalizedCoord() const { return m_normalizedCoord; }
 	void SetNormalizedCoord(const Vector2d& normalizedCoord) { m_normalizedCoord = normalizedCoord; }
 
-	void BuildupLayer(CubeFace cubeFace, uint32_t level, const Vector2<uint64_t>& binaryCoord, const std::shared_ptr<PlanetLODLayer>& pParentLayer);
+	void BuildupLayer(CubeFace cubeFace, uint32_t level, double planetRadius, const Vector2<uint64_t>& binaryCoord, const std::shared_ptr<PlanetLODLayer>& pParentLayer);
+	void ProcessFrutumCulling(const PyramidFrustumd& frustum);
 	void PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, const std::shared_ptr<PlanetLODLayer>& pChildLayer, Triangle*& pOutputTriangles);
 
 private:

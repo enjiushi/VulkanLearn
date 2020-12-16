@@ -107,4 +107,11 @@ enum ReservedVBBindingSlot
 	ReservedVBBindingSlotCount
 };
 
+enum class CullState
+{
+	CULL,			// If a triangle is fully out of a volumn
+	CULL_DIVIDE,	// If a triangle intersects with a volumn
+	DIVIDE			// If a triangle is fully inside a volumn
+};
+
 extern Axis CubeFaceAxisMapping[(uint32_t)CubeFace::COUNT][(uint32_t)NormCoordAxis::COUNT];

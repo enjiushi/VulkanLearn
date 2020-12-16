@@ -29,6 +29,7 @@ void PlanetTile::InitTile(const TileInfo& tileInfo)
 	m_tileOffset	= tileInfo.tileOffset;
 	m_tileSize		= tileInfo.tileSize;
 	m_tileLevel		= tileInfo.tileLevel;
+	m_planetRadius	= tileInfo.planetRadius;
 	m_pParentTile	= tileInfo.pParentTile;
 
 	m_binaryTreeID = { AcquireBinaryCoord(m_tileOffset.x), AcquireBinaryCoord(m_tileOffset.y) };
@@ -54,8 +55,8 @@ void PlanetTile::RegenerateVertices()
 	uint32_t* pCubeIndices = &(UniformData::GetInstance()->GetGlobalUniforms()->CubeIndices[0]);
 
 	// Bottom left and top right vertex
-	m_normalizedVertices[0] = pCubeVertices[pCubeIndices[(uint32_t)m_cubeFace * 6 + 0]];
-	m_normalizedVertices[8] = pCubeVertices[pCubeIndices[(uint32_t)m_cubeFace * 6 + 5]];
+	m_realSizeVertices[0] = pCubeVertices[pCubeIndices[(uint32_t)m_cubeFace * 6 + 0]];
+	m_realSizeVertices[8] = pCubeVertices[pCubeIndices[(uint32_t)m_cubeFace * 6 + 5]];
 
 	Vector2d topRightUV = m_tileOffset;
 	topRightUV += m_tileSize;
@@ -72,38 +73,126 @@ void PlanetTile::RegenerateVertices()
 
 	// Interpolate and acquire min/max 
 	double u0, u1, v0, v1;
-	u0 = m_normalizedVertices[0][axisU] * (1.0 - m_tileOffset.x) + m_normalizedVertices[8][axisU] * m_tileOffset.x;
-	u1 = m_normalizedVertices[0][axisU] * (1.0 - topRightUV.x) + m_normalizedVertices[8][axisU] * topRightUV.x;
-	v0 = m_normalizedVertices[0][axisV] * (1.0 - m_tileOffset.y) + m_normalizedVertices[8][axisV] * m_tileOffset.y;
-	v1 = m_normalizedVertices[0][axisV] * (1.0 - topRightUV.y) + m_normalizedVertices[8][axisV] * topRightUV.y;
+	u0 = m_realSizeVertices[0][axisU] * (1.0 - m_tileOffset.x) + m_realSizeVertices[8][axisU] * m_tileOffset.x;
+	u1 = m_realSizeVertices[0][axisU] * (1.0 - topRightUV.x) + m_realSizeVertices[8][axisU] * topRightUV.x;
+	v0 = m_realSizeVertices[0][axisV] * (1.0 - m_tileOffset.y) + m_realSizeVertices[8][axisV] * m_tileOffset.y;
+	v1 = m_realSizeVertices[0][axisV] * (1.0 - topRightUV.y) + m_realSizeVertices[8][axisV] * topRightUV.y;
 
 	static double halfCubeEdgeLength = std::sqrt(3.0) / 3.0 * pCubeVertices[0].Length();
 
-	m_normalizedVertices[0][axisU] = u0; m_normalizedVertices[0][axisV] = v0; m_normalizedVertices[0][axisW] = halfCubeEdgeLength * signOnAxisW;
-	m_normalizedVertices[1][axisU] = (u0 + u1) * 0.5; m_normalizedVertices[1][axisV] = v0; m_normalizedVertices[1][axisW] = m_normalizedVertices[0][axisW];
-	m_normalizedVertices[2][axisU] = u1; m_normalizedVertices[2][axisV] = v0; m_normalizedVertices[2][axisW] = m_normalizedVertices[0][axisW];
+	m_realSizeVertices[0][axisU] = u0; m_realSizeVertices[0][axisV] = v0; m_realSizeVertices[0][axisW] = halfCubeEdgeLength * signOnAxisW;
+	m_realSizeVertices[1][axisU] = (u0 + u1) * 0.5; m_realSizeVertices[1][axisV] = v0; m_realSizeVertices[1][axisW] = m_realSizeVertices[0][axisW];
+	m_realSizeVertices[2][axisU] = u1; m_realSizeVertices[2][axisV] = v0; m_realSizeVertices[2][axisW] = m_realSizeVertices[0][axisW];
 
-	m_normalizedVertices[3][axisU] = u0; m_normalizedVertices[3][axisV] = (v0 + v1) * 0.5; m_normalizedVertices[3][axisW] = m_normalizedVertices[0][axisW];
-	m_normalizedVertices[4][axisU] = (u0 + u1) * 0.5; m_normalizedVertices[4][axisV] = (v0 + v1) * 0.5; m_normalizedVertices[4][axisW] = halfCubeEdgeLength * signOnAxisW;
-	m_normalizedVertices[5][axisU] = u1; m_normalizedVertices[5][axisV] = (v0 + v1) * 0.5; m_normalizedVertices[5][axisW] = m_normalizedVertices[0][axisW];
+	m_realSizeVertices[3][axisU] = u0; m_realSizeVertices[3][axisV] = (v0 + v1) * 0.5; m_realSizeVertices[3][axisW] = m_realSizeVertices[0][axisW];
+	m_realSizeVertices[4][axisU] = (u0 + u1) * 0.5; m_realSizeVertices[4][axisV] = (v0 + v1) * 0.5; m_realSizeVertices[4][axisW] = halfCubeEdgeLength * signOnAxisW;
+	m_realSizeVertices[5][axisU] = u1; m_realSizeVertices[5][axisV] = (v0 + v1) * 0.5; m_realSizeVertices[5][axisW] = m_realSizeVertices[0][axisW];
 
-	m_normalizedVertices[6][axisU] = u0; m_normalizedVertices[6][axisV] = v1; m_normalizedVertices[6][axisW] = m_normalizedVertices[0][axisW];
-	m_normalizedVertices[7][axisU] = (u0 + u1) * 0.5; m_normalizedVertices[7][axisV] = v1; m_normalizedVertices[7][axisW] = m_normalizedVertices[0][axisW];
-	m_normalizedVertices[8][axisU] = u1; m_normalizedVertices[8][axisV] = v1; m_normalizedVertices[8][axisW] = m_normalizedVertices[0][axisW];
+	m_realSizeVertices[6][axisU] = u0; m_realSizeVertices[6][axisV] = v1; m_realSizeVertices[6][axisW] = m_realSizeVertices[0][axisW];
+	m_realSizeVertices[7][axisU] = (u0 + u1) * 0.5; m_realSizeVertices[7][axisV] = v1; m_realSizeVertices[7][axisW] = m_realSizeVertices[0][axisW];
+	m_realSizeVertices[8][axisU] = u1; m_realSizeVertices[8][axisV] = v1; m_realSizeVertices[8][axisW] = m_realSizeVertices[0][axisW];
 
-	m_normalizedVertices[0].Normalize();
-	m_normalizedVertices[1].Normalize();
-	m_normalizedVertices[2].Normalize();
-	m_normalizedVertices[3].Normalize();
-	m_normalizedVertices[4].Normalize();
-	m_normalizedVertices[5].Normalize();
-	m_normalizedVertices[6].Normalize();
-	m_normalizedVertices[7].Normalize();
-	m_normalizedVertices[8].Normalize();
+	m_realSizeVertices[0].Normalize();
+	m_realSizeVertices[1].Normalize();
+	m_realSizeVertices[2].Normalize();
+	m_realSizeVertices[3].Normalize();
+	m_realSizeVertices[4].Normalize();
+	m_realSizeVertices[5].Normalize();
+	m_realSizeVertices[6].Normalize();
+	m_realSizeVertices[7].Normalize();
+	m_realSizeVertices[8].Normalize();
+
+	m_realSizeVertices[0] *= m_planetRadius;
+	m_realSizeVertices[1] *= m_planetRadius;
+	m_realSizeVertices[2] *= m_planetRadius;
+	m_realSizeVertices[3] *= m_planetRadius;
+	m_realSizeVertices[4] *= m_planetRadius;
+	m_realSizeVertices[5] *= m_planetRadius;
+	m_realSizeVertices[6] *= m_planetRadius;
+	m_realSizeVertices[7] *= m_planetRadius;
+	m_realSizeVertices[8] *= m_planetRadius;
+}
+
+void PlanetTile::ProcessFrutumCulling(const PyramidFrustumd& frustum)
+{
+	m_cullState[0] = m_cullState[1] = m_cullState[2] = m_cullState[3] = CullState::DIVIDE;
+
+	if (m_pParentTile != nullptr)
+	{
+		CullState parentCullState = m_pParentTile->GetCullState(m_parentSubTileIndex);
+
+		// Early return if parent sub-tile's culling state is cull
+		if (parentCullState == CullState::CULL)
+		{
+			m_cullState[0] = m_cullState[1] = m_cullState[2] = m_cullState[3] = CullState::CULL;
+			return;
+		}
+		// Early return if parent sub-tile's culling state is divide, which means we don't need to do frustum culling
+		if (parentCullState == CullState::DIVIDE)
+		{
+			return;
+		}
+	}
+
+	// Now we need to do frustum culling since its parent sub-tile is marked as cull and divide
+
+	uint32_t i0, i1, i2, i3, offset;
+	for (uint32_t i = 0; i < 4; i++)
+	{
+		offset = (i / 2) * 3;
+		i0 = offset + 0 + (i % 2);
+		i1 = offset + 1 + (i % 2);
+		i2 = i0 + 3;
+		i3 = i1 + 3;
+
+		// We only do left & right frustum face culling, as I don't want to consider altitude into consideration now, or never
+		uint32_t outsideCount = 0;
+		outsideCount += frustum.planes[PyramidFrustumd::FrustumFace_LEFT].PlaneTest(m_realSizeVertices[i0]) > 0 ? 0 : 1;
+		outsideCount += frustum.planes[PyramidFrustumd::FrustumFace_LEFT].PlaneTest(m_realSizeVertices[i1]) > 0 ? 0 : 1;
+		outsideCount += frustum.planes[PyramidFrustumd::FrustumFace_LEFT].PlaneTest(m_realSizeVertices[i2]) > 0 ? 0 : 1;
+		outsideCount += frustum.planes[PyramidFrustumd::FrustumFace_LEFT].PlaneTest(m_realSizeVertices[i3]) > 0 ? 0 : 1;
+
+		if (outsideCount == 4)
+		{
+			m_cullState[i] = CullState::CULL;
+			continue;
+		}
+		else if (outsideCount > 0)
+		{
+			m_cullState[i] = CullState::CULL_DIVIDE;
+		}
+
+		outsideCount = 0;
+		outsideCount += frustum.planes[PyramidFrustumd::FrustumFace_RIGHT].PlaneTest(m_realSizeVertices[i0]) > 0 ? 0 : 1;
+		outsideCount += frustum.planes[PyramidFrustumd::FrustumFace_RIGHT].PlaneTest(m_realSizeVertices[i1]) > 0 ? 0 : 1;
+		outsideCount += frustum.planes[PyramidFrustumd::FrustumFace_RIGHT].PlaneTest(m_realSizeVertices[i2]) > 0 ? 0 : 1;
+		outsideCount += frustum.planes[PyramidFrustumd::FrustumFace_RIGHT].PlaneTest(m_realSizeVertices[i3]) > 0 ? 0 : 1;
+
+		if (outsideCount == 4)
+		{
+			m_cullState[i] = CullState::CULL;
+			continue;
+		}
+		else if (outsideCount > 0)
+		{
+			m_cullState[i] = CullState::CULL_DIVIDE;
+		}
+
+		m_utilityVector0 = m_realSizeVertices[i0];
+		m_utilityVector1 = m_realSizeVertices[i1];
+		m_utilityVector2 = m_realSizeVertices[i2];
+		m_utilityVector3 = m_realSizeVertices[i3];
+	}
 }
 
 void PlanetTile::PrepareGeometry(const Vector3d& cameraPosition, double planetRadius, uint32_t level, uint8_t mask, Triangle*& pOutputTriangles)
 {
+	if (m_pParentTile != nullptr)
+	{
+		if (m_pParentTile->GetCullState(m_parentSubTileIndex) == CullState::CULL)
+			return;
+	}
+
 	uint32_t i0, i1, i2, i3, offset;
 	for (uint32_t i = 0; i < 4; i++)
 	{
@@ -118,15 +207,10 @@ void PlanetTile::PrepareGeometry(const Vector3d& cameraPosition, double planetRa
 		i2 = i0 + 3;
 		i3 = i1 + 3;
 
-		m_utilityVector0 = m_normalizedVertices[i0];
-		m_utilityVector1 = m_normalizedVertices[i1];
-		m_utilityVector2 = m_normalizedVertices[i2];
-		m_utilityVector3 = m_normalizedVertices[i3];
-
-		m_utilityVector0 *= planetRadius;
-		m_utilityVector1 *= planetRadius;
-		m_utilityVector2 *= planetRadius;
-		m_utilityVector3 *= planetRadius;
+		m_utilityVector0 = m_realSizeVertices[i0];
+		m_utilityVector1 = m_realSizeVertices[i1];
+		m_utilityVector2 = m_realSizeVertices[i2];
+		m_utilityVector3 = m_realSizeVertices[i3];
 
 		m_utilityVector0 -= cameraPosition;
 		m_utilityVector1 -= cameraPosition;

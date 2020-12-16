@@ -390,7 +390,7 @@ std::shared_ptr<PlanetLODLayer> PlanetLODLayer::Create()
 	return nullptr;
 }
 
-void PlanetLODLayer::BuildupLayer(CubeFace cubeFace, uint32_t level, const Vector2<uint64_t>& binaryCoord, const std::shared_ptr<PlanetLODLayer>& pParentLayer)
+void PlanetLODLayer::BuildupLayer(CubeFace cubeFace, uint32_t level, double planetRadius, const Vector2<uint64_t>& binaryCoord, const std::shared_ptr<PlanetLODLayer>& pParentLayer)
 {
 	m_cubeFace = cubeFace;
 
@@ -505,7 +505,7 @@ void PlanetLODLayer::BuildupLayer(CubeFace cubeFace, uint32_t level, const Vecto
 		if (m_adjacentTileDifferentFace[j])
 			adjacentTileNormCoord = m_cubeTileFolding[(uint32_t)cubeFace][(uint32_t)mappingAdjacency].transformNormCoordToAdjacentTile(adjacentTileNormCoord, currentLayerTileSize);
 
-		std::weak_ptr<PlanetTile> pParentTile;
+		std::shared_ptr<PlanetTile> pParentTile;
 		if (pParentLayer != nullptr)
 		{
 			// Acquire parent tile
@@ -530,7 +530,18 @@ void PlanetLODLayer::BuildupLayer(CubeFace cubeFace, uint32_t level, const Vecto
 			pParentTile = pParentLayer->GetTile((TileAdjacency)(adjU + 3 * adjV));
 		}
 
-		m_tiles[j]->InitTile({ adjacentTileNormCoord, currentLayerTileSize, level, _cubeFace, pParentTile });
+		m_tiles[j]->InitTile({ adjacentTileNormCoord, currentLayerTileSize, level, planetRadius, _cubeFace, pParentTile });
+	}
+}
+
+void PlanetLODLayer::ProcessFrutumCulling(const PyramidFrustumd& frustum)
+{
+	for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
+	{
+		if (!m_tileAvailable[j])
+			continue;
+
+		m_tiles[j]->ProcessFrutumCulling(frustum);
 	}
 }
 
