@@ -769,12 +769,16 @@ void PlanetGenerator::NewPlanetLODMethod(Triangle*& pOutputTriangles)
 	}
 
 	pLayer = nullptr;
-	for (int32_t i = (int32_t)m_planetLODLayers.size() - 1; i >=0; i--)
+	for (int32_t i = 0; i < (int32_t)UniformData::GetInstance()->GetGlobalUniforms()->GetMaximumRenderableLODLevel(); i++)
 	{
-		if (i != ((int32_t)m_planetLODLayers.size() - 1))
-			pLayer = m_planetLODLayers[i + 1];
+		int32_t layer = (int32_t)level - i;
+		if (layer < 0)
+			break;
 
-		m_planetLODLayers[i]->PrepareGeometry(m_planetSpaceCameraPosition, m_planetRadius, i, pLayer, pOutputTriangles);
+		if (layer != level)
+			pLayer = m_planetLODLayers[layer + 1];
+
+		m_planetLODLayers[layer]->PrepareGeometry(m_planetSpaceCameraPosition, m_planetRadius, layer, pLayer, pOutputTriangles);
 	}
 }
 

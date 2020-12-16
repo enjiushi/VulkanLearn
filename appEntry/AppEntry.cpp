@@ -464,6 +464,8 @@ void AppEntry::InitUniforms()
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetSunSizeInCosine(std::cos(0.00935 / 2.0));
 	UniformData::GetInstance()->GetGlobalUniforms()->SetPlanetVertexOffset(0.1);
+	// m_LODPatchLevel=7, plus 10, should be pow(2, 17)=131072 meters of most distant terrain for a ground view. That should be sufficient
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaximumRenderableLODLevel(10);
 
 	gli::texture2d gliAlbedoTex(gli::load("../data/textures/cerberus/albedo_1024.ktx"));
 	gli::texture2d gliRoughnessTex(gli::load("../data/textures/cerberus/roughness_1024.ktx"));
