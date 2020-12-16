@@ -201,6 +201,9 @@ void PlanetTile::PrepareGeometry(const Vector3d& cameraPosition, double planetRa
 		if ((mask & (1 << i)) == 0)
 			continue;
 
+		if (m_cullState[i] == CullState::CULL)
+			continue;
+
 		offset = (i / 2) * 3;
 		i0 = offset + 0 + (i % 2);
 		i1 = offset + 1 + (i % 2);
