@@ -18,7 +18,7 @@ public:
 	std::shared_ptr<PlanetTile> GetTile(TileAdjacency tileAdj) const
 	{ 
 		if (m_tileAvailable[(uint32_t)tileAdj])
-			return m_tiles[(uint32_t)tileAdj]; 
+			return m_tiles[m_tilePingpongIndex * (uint32_t)TileAdjacency::COUNT + (uint32_t)tileAdj];
 		return nullptr;
 	}
 
@@ -34,7 +34,10 @@ public:
 private:
 	// Cube face of the center of the layer
 	CubeFace					m_cubeFace;
-	std::shared_ptr<PlanetTile>	m_tiles[(uint32_t)TileAdjacency::COUNT];
+	// A layer consists of 9 tiles. Here we double the size as we need to pingpong it when rebuilding layers to minimize per-frame allocations
+	std::shared_ptr<PlanetTile>	m_tiles[(uint32_t)TileAdjacency::COUNT * 2];
+	// Pingpong index for tiles
+	uint8_t						m_tilePingpongIndex = 0;
 	// Indicates which adjacent tile is available
 	bool						m_tileAvailable[(uint32_t)TileAdjacency::COUNT];
 	// Indicates which adjacent tile is located on a different cube face

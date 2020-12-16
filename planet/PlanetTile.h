@@ -39,6 +39,7 @@ public:
 	uint32_t GetTileLevel() const { return m_tileLevel; }
 	double GetTileSize() const { return m_tileSize; }
 	CullState GetCullState(uint8_t i) const { return m_cullState[i]; }
+	bool SameTile(const Vector2<uint64_t>& binaryTreeID, CubeFace cubeFace);
 
 	void ProcessFrutumCulling(const PyramidFrustumd& frustum);
 	// 4 bits mask order: bottom left, bottom right, top left, top right

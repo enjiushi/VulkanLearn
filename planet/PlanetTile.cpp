@@ -12,6 +12,9 @@ bool PlanetTile::Init(const std::shared_ptr<PlanetTile>& pPlanetTile)
 {
 	if (!SelfRefBase<PlanetTile>::Init(pPlanetTile))
 		return false;
+
+	m_binaryTreeID = { 0, 0 };
+
 	return true;
 }
 
@@ -38,10 +41,6 @@ void PlanetTile::InitTile(const TileInfo& tileInfo)
 	// 0 for root level
 	m_binaryTreeID.x >>= (fractionBits - m_tileLevel);
 	m_binaryTreeID.y >>= (fractionBits - m_tileLevel);
-
-	// Add cube face to binary tree id on first 3 bits(up to 6 cube faces, i.e. 110)
-	m_binaryTreeID.x += (uint64_t)m_cubeFace << 61;
-	m_binaryTreeID.y += (uint64_t)m_cubeFace << 61;
 
 	// Parent sub-tile index: 0, 1, 2, 3
 	m_parentSubTileIndex = (m_binaryTreeID.x & 1) + ((m_binaryTreeID.y & 1) << 1);
@@ -111,6 +110,11 @@ void PlanetTile::RegenerateVertices()
 	m_realSizeVertices[6] *= m_planetRadius;
 	m_realSizeVertices[7] *= m_planetRadius;
 	m_realSizeVertices[8] *= m_planetRadius;
+}
+
+bool PlanetTile::SameTile(const Vector2<uint64_t>& binaryTreeID, CubeFace cubeFace)
+{
+	return (m_binaryTreeID == binaryTreeID) && (m_cubeFace == cubeFace);
 }
 
 void PlanetTile::ProcessFrutumCulling(const PyramidFrustumd& frustum)

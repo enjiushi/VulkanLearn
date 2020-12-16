@@ -9,6 +9,7 @@ bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer
 	for (uint32_t i = 0; i < (uint32_t)TileAdjacency::COUNT; i++)
 	{
 		m_tiles[i] = PlanetTile::Create();
+		m_tiles[i + (uint32_t)TileAdjacency::COUNT] = PlanetTile::Create();
 		m_tileAvailable[i] = false;
 	}
 
@@ -472,6 +473,9 @@ void PlanetLODLayer::BuildupLayer(CubeFace cubeFace, uint32_t level, double plan
 	}
 
 	Vector2d adjacentTileNormCoord{ 0, 0 };
+	Vector2<uint64_t> binaryTreeID;
+	uint8_t prevTilePingpongIndex = (m_tilePingpongIndex + 1) % 2;
+
 	int32_t adjU, adjV;
 	for (uint32_t j = 0; j < (uint32_t)TileAdjacency::COUNT; j++)
 	{
@@ -530,8 +534,28 @@ void PlanetLODLayer::BuildupLayer(CubeFace cubeFace, uint32_t level, double plan
 			pParentTile = pParentLayer->GetTile((TileAdjacency)(adjU + 3 * adjV));
 		}
 
-		m_tiles[j]->InitTile({ adjacentTileNormCoord, currentLayerTileSize, level, planetRadius, _cubeFace, pParentTile });
+		binaryTreeID = { AcquireBinaryCoord(adjacentTileNormCoord.x), AcquireBinaryCoord(adjacentTileNormCoord.y) };
+		binaryTreeID.x >>= (fractionBits - level);
+		binaryTreeID.y >>= (fractionBits - level);
+
+		bool reuse = false;
+		uint8_t currIndex = prevTilePingpongIndex * (uint32_t)TileAdjacency::COUNT + j;	// Storing new tiles into prev pingpong
+		for (uint32_t i = 0; i < (uint32_t)TileAdjacency::COUNT; i++)
+		{
+			if (m_tiles[m_tilePingpongIndex * (uint32_t)TileAdjacency::COUNT + i]->SameTile(binaryTreeID, _cubeFace))
+			{
+				std::swap(m_tiles[currIndex], m_tiles[m_tilePingpongIndex * (uint32_t)TileAdjacency::COUNT + i]);
+				reuse = true;
+				break;
+			}
+		}
+
+		if (!reuse)
+			m_tiles[currIndex]->InitTile({ adjacentTileNormCoord, currentLayerTileSize, level, planetRadius, _cubeFace, pParentTile });
 	}
+
+	// Set prev pingpong to current
+	m_tilePingpongIndex = prevTilePingpongIndex;
 }
 
 void PlanetLODLayer::ProcessFrutumCulling(const PyramidFrustumd& frustum)
@@ -541,7 +565,7 @@ void PlanetLODLayer::ProcessFrutumCulling(const PyramidFrustumd& frustum)
 		if (!m_tileAvailable[j])
 			continue;
 
-		m_tiles[j]->ProcessFrutumCulling(frustum);
+		m_tiles[m_tilePingpongIndex * (uint32_t)TileAdjacency::COUNT + j]->ProcessFrutumCulling(frustum);
 	}
 }
 
@@ -606,6 +630,6 @@ void PlanetLODLayer::PrepareGeometry(const Vector3d& cameraPosition, double plan
 		if (!m_tileAvailable[j])
 			continue;
 
-		m_tiles[j]->PrepareGeometry(cameraPosition, planetRadius, level, m_adjacentTileMasks[j], pOutputTriangles);
+		m_tiles[m_tilePingpongIndex * (uint32_t)TileAdjacency::COUNT + j]->PrepareGeometry(cameraPosition, planetRadius, level, m_adjacentTileMasks[j], pOutputTriangles);
 	}
 }
