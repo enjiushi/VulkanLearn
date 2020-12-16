@@ -14,6 +14,7 @@ bool PlanetTile::Init(const std::shared_ptr<PlanetTile>& pPlanetTile)
 		return false;
 
 	m_binaryTreeID = { 0, 0 };
+	m_cubeFace = CubeFace::COUNT;
 
 	return true;
 }
