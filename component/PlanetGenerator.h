@@ -32,30 +32,6 @@ protected:
 	bool Init(const std::shared_ptr<PlanetGenerator>& pSelf, const std::shared_ptr<PhysicalCamera>& pCamera, float planetRadius);
 
 protected:
-	double ComputeDistanceToTile
-	(
-		const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d,
-		const Vector3d& realSizeA, const Vector3d& realSizeB, const Vector3d& realSizeC, const Vector3d& realSizeD,
-		const Vector3d& faceNormal, const double currentTileLength, CubeFace cubeFace
-	);
-
-	CullState FrustumCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, double height);
-	CullState FrustumCull(const Vector3d& p0, const Vector3d& p1, const Vector3d& p2, const Vector3d& p3, double height);
-	bool BackFaceCull(const Vector3d& a, const Vector3d& b, const Vector3d& c);
-	// Though we can do it with simply 2 triangle back face cullings, this function could potentially reduce some calculation
-	bool BackFaceCull(const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d);
-	void SubDivideTriangle(uint32_t currentLevel, CullState state, const Vector3d& a, const Vector3d& b, const Vector3d& c, bool reversed, Triangle*& pOutputTriangles);
-	void SubDivideQuad
-	(
-		uint32_t currentLevel, 
-		CubeFace cubeFace,
-		double currentTileLength, 
-		CullState state, 
-		const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d, 
-		const Vector3d& faceNormal, 
-		Triangle*& pOutputTriangles
-	);
-
 	// New planet lod method test function, not named yet
 	void NewPlanetLODMethod(Triangle*& pOutputTriangles);
 
@@ -70,12 +46,9 @@ private:
 	double			m_planetRadius = 1;
 
 	// Make a copy here to avoid frequent uniform reading
-	std::vector<double>				m_heightLUT;
 	std::vector<double>				m_distanceLUT;
-	uint32_t						m_maxLODLevel;
 	Vector3d*						m_pVertices;
 	uint32_t*						m_pIndices;
-	bool*							m_pMorphReverse;
 
 	std::shared_ptr<MeshRenderer>	m_pMeshRenderer;
 	std::shared_ptr<PhysicalCamera>	m_pCamera;
