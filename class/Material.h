@@ -9,7 +9,7 @@
 #include "../common/Enums.h"
 #include "../Maths/Vector3.h"
 #include "PerMaterialIndirectUniforms.h"
-#include "ResourceBarrierScheduler.h"
+#include "../vulkan/ResourceBarrierScheduler.h"
 
 #include "../vulkan/Buffer.h"
 

@@ -207,7 +207,7 @@ public:
 	*
 	* X: Sun plate radius in cosine
 	* Y: Planet vertex offset to get rid of nan value produced by altitude below earth surface due to depth precision, in unit km
-	* Z: Reserved
+	* Z: Maximum LOD level count that we can render in a frame
 	* W: Reserved
 	*/
 	Vector4<T>	PlanetRenderingSettings2;
@@ -394,6 +394,8 @@ public:
 	double GetSunSize() const { return m_globalVariables.PlanetRenderingSettings2.x; }
 	void SetPlanetVertexOffset(double offset);
 	double GetPlanetVertexOffset() const { return m_globalVariables.PlanetRenderingSettings2.y; }
+	void SetMaximumRenderableLODLevel(uint32_t maxLODLevel);
+	uint32_t GetMaximumRenderableLODLevel() const { return (uint32_t)m_globalVariables.PlanetRenderingSettings2.z; }
 
 public:
 	bool Init(const std::shared_ptr<GlobalUniforms>& pSelf);

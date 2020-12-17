@@ -62,7 +62,7 @@ public:
 	* DESCRIPTION: Planet Rendering Settings
 	*
 	* X: Planet radius
-	* Y: Planet triangle subdivide level
+	* Y: Planet max lod level
 	* Z: Reserved
 	* W: Reserved
 	*/
@@ -86,8 +86,8 @@ public:
 public:
 	void SetPlanetRadius(uint32_t index, double radius);
 	double GetPlanetRadius(uint32_t index) const { return m_perPlanetVariables[index].PlanetDescriptor0.x; }
-	void SetPlanetTriangleSubdivideLevel(uint32_t index, uint32_t level);
-	double GetPlanetTriangleSubdivideLevel(uint32_t index) const { return m_perPlanetVariables[index].PlanetDescriptor0.y; }
+	void SetPlanetMAXLODLevel(uint32_t index, uint32_t level);
+	double GetPlanetMAXLODLevel(uint32_t index) const { return m_perPlanetVariables[index].PlanetDescriptor0.y; }
 	double GetLODDistance(uint32_t index, uint32_t level) const { return m_perPlanetVariables[index].PlanetLODDistanceLUT[level]; }
 	uint32_t AllocatePlanetChunk();
 

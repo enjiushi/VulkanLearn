@@ -2,6 +2,7 @@
 
 #include "DeviceObjectBase.h"
 #include "VKGPUSyncRes.h"
+#include "Buffer.h"
 #include "../Maths/Vector.h"
 #include <gli\gli.hpp>
 
@@ -35,6 +36,8 @@ public:
 
 	void UpdateByteStream(const GliImageWrapper& gliTex);
 	void UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer);
+
+	void CopyFromBuffer(const std::shared_ptr<Buffer>& pBuffer, const std::shared_ptr<CommandBuffer>& pCommandBuffer);
 
 	virtual std::shared_ptr<ImageView> CreateDefaultImageView(bool isStorage = false) const;
 	virtual std::shared_ptr<ImageView> CreateImageView(uint32_t mipLevel, bool isStorage = false) const;

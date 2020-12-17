@@ -603,6 +603,13 @@ void GlobalUniforms::SetPlanetVertexOffset(double offset)
 	SetDirty();
 }
 
+void GlobalUniforms::SetMaximumRenderableLODLevel(uint32_t maxLODLevel)
+{
+	m_globalVariables.PlanetRenderingSettings2.z = (double)maxLODLevel;
+	CONVERT2SINGLEVAL(m_globalVariables, m_singlePrecisionGlobalVariables, PlanetRenderingSettings2.z);
+	SetDirty();
+}
+
 
 std::vector<UniformVarList> GlobalUniforms::PrepareUniformVarList() const
 {

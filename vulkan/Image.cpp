@@ -152,6 +152,27 @@ void Image::UpdateByteStream(const GliImageWrapper& gliTex, uint32_t layer)
 	GlobalObjects()->GetQueue(PhysicalDevice::QueueFamily::ALL_ROUND)->SubmitCommandBuffer(pCmdBuffer, nullptr, true);
 }
 
+void Image::CopyFromBuffer(const std::shared_ptr<Buffer>& pBuffer, const std::shared_ptr<CommandBuffer>& pCommandBuffer)
+{
+	std::vector<VkBufferImageCopy> bufferCopyRegions;
+	for (uint32_t level = 0; level < m_info.mipLevels; level++)
+	{
+		VkBufferImageCopy bufferCopyRegion = {};
+		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		bufferCopyRegion.imageSubresource.mipLevel = level;
+		bufferCopyRegion.imageSubresource.baseArrayLayer = 0;
+		bufferCopyRegion.imageSubresource.layerCount = m_info.arrayLayers;
+		bufferCopyRegion.bufferOffset = 0;
+		bufferCopyRegion.imageExtent.width = m_info.extent.width;
+		bufferCopyRegion.imageExtent.height = m_info.extent.height;
+		bufferCopyRegion.imageExtent.depth = m_info.extent.depth;
+
+		bufferCopyRegions.push_back(bufferCopyRegion);
+	}
+
+	pCommandBuffer->CopyBufferImage(pBuffer, std::dynamic_pointer_cast<Image>(GetSelfSharedPtr()), bufferCopyRegions);
+}
+
 std::shared_ptr<Sampler> Image::CreateLinearRepeatSampler() const
 {
 	VkSamplerCreateInfo samplerCreateInfo = {};

@@ -5,6 +5,7 @@
 #include <map>
 #include <mutex>
 
+class StagingBuffer;
 class Texture2D;
 class TextureCube;
 class Texture2DArray;
@@ -83,6 +84,7 @@ public:
 
 	void GenerateBRDFLUTTexture();
 	void GenerateSkyBox(uint32_t chunkIndex);
+	void GenerateTerrainTexture(uint32_t level);
 
 protected:
 	bool Init(const std::shared_ptr<GlobalTextures>& pSelf);
@@ -91,6 +93,7 @@ protected:
 	void InitIBLTextures();
 	void InitSSAORandomRotationTexture();
 	void InitTransmittanceTextureDiction();
+	void InitTerrainTexture();
 	void InitSkyboxGenParameters();
 	void InsertTextureDesc(const TextureDesc& desc, TextureArrayDesc& textureArr, uint32_t& emptySlot);
 	bool GetTextureIndex(const TextureArrayDesc& textureArr, const std::string& textureName, uint32_t& textureIndex);
@@ -105,6 +108,10 @@ protected:
 	std::vector<std::shared_ptr<Image>>			m_transmittanceTextureDiction;
 	std::vector<std::shared_ptr<Image>>			m_scatterTextureDiction;
 	std::vector<std::shared_ptr<Image>>			m_irradianceTextureDiction;
+
+	std::shared_ptr<Image>						m_pTestTerrainHeightTexture;
+	std::shared_ptr<Image>						m_pTestTerrainNormalTexture;
+	std::shared_ptr<StagingBuffer>				m_pTestTerrainStagingBuffer;
 
 	// FIXME: Remove this later
 	std::shared_ptr<Image>						m_pDeltaIrradiance;

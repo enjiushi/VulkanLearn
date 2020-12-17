@@ -2,6 +2,32 @@
 #include "Enums.h"
 #include "../common/Macros.h"
 
+Axis CubeFaceAxisMapping[(uint32_t)CubeFace::COUNT][(uint32_t)NormCoordAxis::COUNT] =
+{
+	{ Axis::Y, Axis::Z, Axis::X },
+	{ Axis::Y, Axis::Z, Axis::X },
+	{ Axis::Z, Axis::X, Axis::Y },
+	{ Axis::Z, Axis::X, Axis::Y },
+	{ Axis::X, Axis::Y, Axis::Z },
+	{ Axis::X, Axis::Y, Axis::Z }
+};
+
+uint64_t AcquireBinaryCoord(double normCoord)
+{
+	// Prepare
+	uint64_t *pBinaryCoord;
+	pBinaryCoord = (uint64_t*)&normCoord;
+
+	// Step7: Acquire binary position of the intersection
+	// 1. (*pU) & fractionMask:	Acquire only fraction bits
+	// 2. (1) + extraOne:		Acquire actual fraction bits by adding an invisible bit
+	// 3. (*pU) & exponentMask:	Acquire only exponent bits
+	// 4. (3) >> fractionBits:	Acquire readable exponent by shifting it right of 52 bits	
+	// 5. zeroExponent - (3):	We need to right shift fraction part using exponent value, to make same levels pair with same bits(floating format trait)
+	// 6. (2) >> (5):			Right shift 
+	return (((*pBinaryCoord) & fractionMask) + extraOne) >> (zeroExponent - (((*pBinaryCoord) & exponentMask) >> fractionBits));
+}
+
 uint32_t GetVertexBytes(uint32_t vertexFormat)
 {
 	uint32_t vertexByte = 0;

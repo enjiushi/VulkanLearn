@@ -16,7 +16,7 @@
 #include "GBufferPlanetMaterial.h"
 #include "MaterialInstance.h"
 #include "FrameEventManager.h"
-#include "ResourceBarrierScheduler.h"
+#include "../vulkan/ResourceBarrierScheduler.h"
 
 bool RenderWorkManager::Init()
 {
@@ -306,7 +306,7 @@ void RenderWorkManager::Draw(const std::shared_ptr<CommandBuffer>& pDrawCmdBuffe
 	RenderPassDiction::GetInstance()->GetPipelineRenderPass(RenderPassDiction::PipelineRenderPassPostProcessing)->EndRenderPass(pDrawCmdBuffer);
 	GetMaterial(PostProcess)->AfterRenderPass(pDrawCmdBuffer, pingpong);
 
-	m_pResBarrierScheduler->ClearReferenceTable();
+	m_pResBarrierScheduler->ClearResUsageRecord();
 }
 
 void RenderWorkManager::OnFrameBegin()

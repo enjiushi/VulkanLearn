@@ -20,7 +20,7 @@ public:
 		int numThreads = std::thread::hardware_concurrency();
 		//for (int i = 0; i < numThreads - 1; i++)
 		// Only 1 thread worker for now
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < 2; i++)
 		{
 			m_threadWorkers.push_back(std::make_shared<ThreadWorker>(pDevice, frameRoundBinCount));
 		}

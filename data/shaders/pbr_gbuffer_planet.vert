@@ -48,6 +48,9 @@ void main()
 	else
 		morphFactor = 0;
 
+	// Temporarily disable morph, for now
+	morphFactor = 0;
+
 	// Acquire mixed barycentric position by interpolate from morphing start position and end position
 	vec2 mixBarycentric = mix(inBarycentricCoord.xy, morphStart, morphFactor);
 

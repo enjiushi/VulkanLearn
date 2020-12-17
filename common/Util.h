@@ -20,6 +20,21 @@ if (!pRet || !pRet->Init()) \
 
 #define EQUAL(type, x, y) ((((x) - (std::numeric_limits<type>::epsilon())) <= (y)) && (((x) + (std::numeric_limits<type>::epsilon())) >= (y)))
 
+// 1023 is the bias of exponent bits
+static const uint64_t zeroExponent = 1023;
+// 52 is the count of fraction bits of double
+static const uint64_t fractionBits = 52;
+// 11 is the count of exponent bits of double
+static const uint64_t exponentBits = 11;
+// Extra one is the invisible one of double that is not in fraction bits for normal double
+static const uint64_t extraOne = (1ull << fractionBits);
+// Fraction mask is used to extract only fraction bits of a double
+static const uint64_t fractionMask = (1ull << fractionBits) - 1;
+// Exponent mask is used to extract only exponent bits of a double(You have to do right shift of "fractionBits" after)
+static const uint64_t exponentMask = ((1ull << exponentBits) - 1) << fractionBits;
+
+uint64_t AcquireBinaryCoord(double normCoord);
+
 uint32_t GetVertexBytes(uint32_t vertexFormat);
 uint32_t GetIndexBytes(VkIndexType indexType);
 

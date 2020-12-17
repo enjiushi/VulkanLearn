@@ -29,9 +29,11 @@ void main()
 	float patchEdge = min(min(inBarycentricCoord.z, inBarycentricCoord.w), 1.0f - inBarycentricCoord.z - inBarycentricCoord.w);
 	patchEdge = step(1.0f - globalData.PlanetRenderingSettings1.y, 1.0f - patchEdge) * globalData.PlanetRenderingSettings1.x;
 
-	float edge0 = inBarycentricCoord.x * globalData.PlanetRenderingSettings0.w - floor(inBarycentricCoord.x * globalData.PlanetRenderingSettings0.w );
-	float edge1 = inBarycentricCoord.y * globalData.PlanetRenderingSettings0.w  - floor(inBarycentricCoord.y * globalData.PlanetRenderingSettings0.w );
-	float edge2 = ceil((inBarycentricCoord.x + inBarycentricCoord.y) * globalData.PlanetRenderingSettings0.w ) - (inBarycentricCoord.x + inBarycentricCoord.y) * globalData.PlanetRenderingSettings0.w ;
+	// NOTE: Cut subdivide count half since we're rendering 4 sub-tiles to form a whole tile
+	float patchSubdivideCount = globalData.PlanetRenderingSettings0.w * 0.5f;
+	float edge0 = inBarycentricCoord.x * patchSubdivideCount - floor(inBarycentricCoord.x * patchSubdivideCount);
+	float edge1 = inBarycentricCoord.y * patchSubdivideCount  - floor(inBarycentricCoord.y * patchSubdivideCount);
+	float edge2 = ceil((inBarycentricCoord.x + inBarycentricCoord.y) * patchSubdivideCount) - (inBarycentricCoord.x + inBarycentricCoord.y) * patchSubdivideCount ;
 	float trianlgeEdge = min(min(edge0, edge1), edge2);
 	trianlgeEdge = step(1.0f - globalData.PlanetRenderingSettings1.z, 1.0f - trianlgeEdge) * globalData.PlanetRenderingSettings1.x;
 
