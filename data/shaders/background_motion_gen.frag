@@ -6,7 +6,6 @@
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inPrevClipSpacePos;
 layout (location = 2) in vec3 inCurrClipSpacePos;
-layout (location = 3) in vec3 inViewDir;
 
 layout (location = 0) out vec4 outBGColorAndCoC;
 layout (location = 1) out vec4 outBGMotionVec;
@@ -17,8 +16,7 @@ layout (location = 1) out vec4 outBGMotionVec;
 
 void main() 
 {
-	vec3 skyBox = texture(RGBA16_512_CUBE_SKYBOX[uint(perFrameData.envPingpongIndex)], normalize(inViewDir)).xyz;
-	outBGColorAndCoC = vec4(skyBox, CalculateCoC(perFrameData.nearFarAB.y));
+	outBGColorAndCoC = vec4(vec3(0), CalculateCoC(perFrameData.nearFarAB.y));
 
 	vec2 prevScreenCoord = inPrevClipSpacePos.xy / inPrevClipSpacePos.z;
 	prevScreenCoord = prevScreenCoord * 0.5f + 0.5f;
