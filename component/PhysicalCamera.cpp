@@ -78,12 +78,10 @@ void PhysicalCamera::UpdateProjMatrix()
 	Matrix4d proj;
 
 	proj.x0 = 2.0f * m_supplementProps.fixedNearPlane / m_supplementProps.fixedNearPlaneWidth;	//	2 * n / (right - left)
-	// 1). x2 = ((right + jitter_offset_near_plane) + (left + jitter_offset_near_plane)) / ((right + jitter_offset_near_plane) - (left + jitter_offset_near_plane))
-	// 2). x2 = (2 * jitter_offset_near_plane) / near_plane_width
-	// 3). jitter_offset_near_plane = jitter_offset / window_width * near_plane_width
-	// 4). x2 = 2 * jitter_offset / window_width
-	// 5). jitter_offset = jitter * window_width
-	// 6). x2 = 2 * jitter
+	// 1). z0 = ((right + jitter_offset_near_plane) + (left + jitter_offset_near_plane)) / ((right + jitter_offset_near_plane) - (left + jitter_offset_near_plane))
+	// 2). z0 = (2 * jitter_offset_near_plane) / near_plane_width
+	// 3). jitter_offset_near_plane = jitter_offset * near_plane_width
+	// 4). z0 = 2 * jitter_offset * near_plane_width / window_width = 2 * jitter_offset
 	proj.z0 = 2.0f * m_jitterOffset.x;
 
 	// Since vulkan ndc is right hand and Y axis is upside down, we need to reverse it
