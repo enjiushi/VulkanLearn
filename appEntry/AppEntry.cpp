@@ -436,7 +436,7 @@ void AppEntry::InitUniforms()
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomAmplify(1.0);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetBloomSlope(1.0);
 
-	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxCOC(16.0 / FrameBufferDiction::WINDOW_WIDTH);
+	UniformData::GetInstance()->GetGlobalUniforms()->SetMaxCOC(32.0 / FrameBufferDiction::WINDOW_WIDTH);
 
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionBlurAmplify(0.06);
 	UniformData::GetInstance()->GetGlobalUniforms()->SetMotionBlurSampleCount(16);
