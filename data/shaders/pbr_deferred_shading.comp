@@ -74,39 +74,26 @@ vec4 CalculateSSR(vec3 n, vec3 v, float NdotV, vec4 albedoRoughness, vec3 CSPosi
 		vec3 SSRSurfColor = textureLod(RGBA16_SCREEN_SIZE_MIP_2DARRAY, vec3(hitUV + motionVec, 0), mip).rgb * hitFlag;
 
 		float SSRSurfDepth;
-		vec3 SSRSurfPosition = ReconstructCSPosition(ivec2(SSRHitInfo.xy), oneNearPosition, DepthStencilBuffer[frameIndex], SSRSurfDepth);
+        vec3 SSRSurfPosition = ReconstructCSPosition(ivec2(SSRHitInfo.xy), oneNearPosition, DepthStencilBuffer[frameIndex], SSRSurfDepth);
 
 		vec3 l = normalize(SSRSurfPosition.xyz - CSPosition);
-		vec3 h = normalize(l + v);
+        vec3 h = normalize(l + v);
 
-		float NdotH = max(0.0f, dot(n, h));
-		float NdotL = max(0.0f, dot(n, l));
-		float LdotH = max(0.0f, dot(l, h));
+        float NdotH = max(0.0f, dot(n, h));
+        float NdotL = max(0.0f, dot(n, l));
+        float LdotH = max(0.0f, dot(l, h));
 
-		float weight = 1.0f;
-		if (hitFlag < 0.5f)
-			SSRSurfColor = skyBoxReflection;
-
-		// Reenable this when I figure how to deal with none-hit pixels
-		//if (hitFlag > 0.5f)
-			//weight = GGX_D(NdotH, albedoRoughness.a) * G_SchlicksmithGGX(NdotL, NdotV, albedoRoughness.a) / (4.0f * NdotL * NdotV + 0.001f) / max(SSRHitInfo.b, 1e-5);
-		//else
-		//{
-			//weight = 0.5f;	// FIXME?
-			//SSRSurfColor = vec3(0);
-		//}
-		weight = max(weight, 0.001f);
-
-		SSRSurfColor /= 1.0f + Luminance(SSRSurfColor);
+        float weight = GGX_D(NdotH, albedoRoughness.a) * G_SchlicksmithGGX(NdotL, NdotV, albedoRoughness.a) / (4.0f * NdotL * NdotV + 0.001f) / max(SSRHitInfo.b, 1e-5);
+		weight = max(weight * hitFlag, 1e-5);
 
 		SSRRadiance.rgb += SSRSurfColor * weight;
-		//SSRRadiance.a += hitFlag * weight;
-		SSRRadiance.a += hitFlag * weight * (1.0f - smoothstep(1.0f - rayTraceMaxStepFadeDist, 1.0f, abs(SSRHitInfo.a) / rayTraceMaxStep)) * BorderFading(hitUV);
+		SSRRadiance.a += hitFlag * (1.0f - smoothstep(1.0f - rayTraceMaxStepFadeDist, 1.0f, abs(SSRHitInfo.a) / rayTraceMaxStep)) * BorderFading(hitUV);
 
 		weightSum += weight;
 	}
 
-	SSRRadiance /= weightSum;	// normalize
+	SSRRadiance.rgb /= weightSum;	// normalize
+	SSRRadiance.a /= float(count);
 
 	return SSRRadiance;
 }
