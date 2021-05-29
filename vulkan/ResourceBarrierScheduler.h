@@ -49,7 +49,7 @@ protected:
 	static bool IsAccessWrite(VkAccessFlags accessFlags);
 
 private:
-	typedef struct
+	typedef struct _ClaimedResourceUsage
 	{
 		VkPipelineStageFlags		stagesFlags;
 		VkAccessFlags				accessFlags;

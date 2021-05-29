@@ -1,5 +1,6 @@
 #include "PlanetLODLayer.h"
 #include "../common/Util.h"
+#include <cmath>
 
 bool PlanetLODLayer::Init(const std::shared_ptr<PlanetLODLayer>& pPlanetLODLayer)
 {
